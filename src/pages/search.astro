@@ -1,4 +1,5 @@
 ---
+export const prerender = true;
 import Layout from '../layouts/Layout.astro';
 import { searchIndex } from '../data/searchIndex';
 
@@ -6,7 +7,7 @@ import { searchIndex } from '../data/searchIndex';
 const indexJson = JSON.stringify(searchIndex);
 ---
 
-<Layout title="Search" description="Search all converters and units on xConvert.com — weight, length, temperature, currency, and 20+ more.">
+<Layout title="Search" description="Search all converters and units on xConvert24.com — weight, length, temperature, currency, and 20+ more.">
   <div class="max-w-3xl">
     <!-- Header -->
     <div class="mb-8">
@@ -31,14 +32,18 @@ const indexJson = JSON.stringify(searchIndex);
     </div>
 
     <!-- Stats bar -->
-    <div id="stats-bar" class="flex items-center justify-between mb-5 text-sm text-gray-500 dark:text-gray-400">
-      <span id="result-count">Showing all <strong class="text-gray-700 dark:text-gray-300">150 entries</strong> across <strong class="text-gray-700 dark:text-gray-300">27 categories</strong></span>
-      <div class="flex items-center gap-3">
+    <div id="stats-bar" class="flex items-center justify-between gap-3 mb-5 text-sm text-gray-500 dark:text-gray-400 flex-nowrap overflow-x-auto">
+      <span id="result-count" class="shrink-0 whitespace-nowrap">Showing all <strong class="text-gray-700 dark:text-gray-300">150 entries</strong> across <strong class="text-gray-700 dark:text-gray-300">27 categories</strong></span>
+      <div class="flex items-center gap-3 flex-nowrap shrink-0">
         <span class="text-xs text-gray-400">Filter:</span>
         <button data-filter="all"   class="filter-btn px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500 text-white transition-colors">All</button>
         <button data-filter="category" class="filter-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Categories</button>
         <button data-filter="unit"  class="filter-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Units</button>
         <button data-filter="tool"  class="filter-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Tools</button>
+        <span class="text-xs text-gray-300 dark:text-gray-600">|</span>
+        <span class="text-xs text-gray-400">Sort:</span>
+        <button id="sort-popular" class="sort-btn px-2.5 py-1 rounded-full text-xs font-medium bg-violet-500 text-white transition-colors">Most Used</button>
+        <button id="sort-alpha" class="sort-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">A–Z</button>
       </div>
     </div>
 
@@ -59,6 +64,7 @@ const indexJson = JSON.stringify(searchIndex);
 
   let query = '';
   let activeFilter = 'all';
+  let sortMode = 'popular'; // 'popular' or 'alpha'
 
   const searchEl = document.getElementById('main-search');
   const clearBtn = document.getElementById('clear-search');
@@ -88,8 +94,17 @@ const indexJson = JSON.stringify(searchIndex);
     const q = query.trim();
     let results = index
       .map(e => ({ ...e, _score: scoreEntry(e, q) }))
-      .filter(e => e._score > 0 && (activeFilter === 'all' || e.type === activeFilter))
-      .sort((a, b) => b._score - a._score || a.name.localeCompare(b.name));
+      .filter(e => e._score > 0 && (activeFilter === 'all' || e.type === activeFilter));
+
+    // Sort
+    if (q) {
+      // When searching, sort by relevance
+      results.sort((a, b) => b._score - a._score || a.name.localeCompare(b.name));
+    } else if (sortMode === 'popular') {
+      results.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    } else {
+      results.sort((a, b) => a.name.localeCompare(b.name));
+    }
 
     if (!q && activeFilter === 'all') {
       // Show grouped by category
@@ -216,6 +231,25 @@ const indexJson = JSON.stringify(searchIndex);
       });
       doSearch();
     });
+  });
+
+  // Sort buttons
+  const sortPopular = document.getElementById('sort-popular');
+  const sortAlpha = document.getElementById('sort-alpha');
+  const activeSortClass = 'sort-btn px-2.5 py-1 rounded-full text-xs font-medium bg-violet-500 text-white transition-colors';
+  const inactiveSortClass = 'sort-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors';
+
+  sortPopular.addEventListener('click', () => {
+    sortMode = 'popular';
+    sortPopular.className = activeSortClass;
+    sortAlpha.className = inactiveSortClass;
+    doSearch();
+  });
+  sortAlpha.addEventListener('click', () => {
+    sortMode = 'alpha';
+    sortAlpha.className = activeSortClass;
+    sortPopular.className = inactiveSortClass;
+    doSearch();
   });
 
   // Read ?q= param from URL

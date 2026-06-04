@@ -1,0 +1,107 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+
+let secrets: { key: string; set: boolean; value?: string }[] = [];
+try {
+  const { env } = await import('cloudflare:workers');
+  const cfEnv = env as any;
+  secrets = [
+    { key: 'GOOGLE_CLIENT_ID', set: !!cfEnv.GOOGLE_CLIENT_ID },
+    { key: 'GOOGLE_CLIENT_SECRET', set: !!cfEnv.GOOGLE_CLIENT_SECRET },
+    { key: 'AUTH_SECRET', set: !!cfEnv.AUTH_SECRET },
+    { key: 'ADMIN_EMAIL', set: !!cfEnv.ADMIN_EMAIL, value: cfEnv.ADMIN_EMAIL || '(not set)' },
+  ];
+} catch {
+  secrets = [
+    { key: 'GOOGLE_CLIENT_ID', set: false },
+    { key: 'GOOGLE_CLIENT_SECRET', set: false },
+    { key: 'AUTH_SECRET', set: false },
+    { key: 'ADMIN_EMAIL', set: false, value: '(not set)' },
+  ];
+}
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+    .back { color: #9ca3af; text-decoration: none; font-size: 14px; }
+    .back:hover { color: #fbbf24; }
+    .logo { font-size: 16px; font-weight: 600; color: #d1d5db; }
+    .container { max-width: 700px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .section { margin-bottom: 32px; }
+    .section-title { font-size: 13px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #1f2937; }
+    th { color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { color: #d1d5db; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+    .badge-ok { background: #052e16; color: #4ade80; }
+    .badge-no { background: #450a0a; color: #f87171; }
+    .mono { font-family: monospace; font-size: 13px; }
+    .info { padding: 12px 16px; background: #1e3a5f; border: 1px solid #2563eb; border-radius: 8px; font-size: 13px; color: #93c5fd; margin-top: 16px; }
+    code { background: #1f2937; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="/admin" class="back">← Dashboard</a>
+    <span class="logo">Settings</span>
+  </div>
+
+  <div class="container">
+    <h1>⚙️ Settings</h1>
+    <p class="subtitle">Environment configuration for the admin module</p>
+
+    <div class="section">
+      <div class="section-title">Authentication Secrets</div>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Status</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+          {secrets.map(s => (
+            <tr>
+              <td class="mono">{s.key}</td>
+              <td><span class:list={['badge', s.set ? 'badge-ok' : 'badge-no']}>{s.set ? '✓ Set' : '✗ Missing'}</span></td>
+              <td class="mono">{s.key === 'ADMIN_EMAIL' ? (s.value || '—') : (s.set ? '••••••••' : '—')}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div class="info">
+        Set secrets via Wrangler CLI:<br/>
+        <code>npx wrangler secret put GOOGLE_CLIENT_ID</code><br/>
+        <code>npx wrangler secret put GOOGLE_CLIENT_SECRET</code><br/>
+        <code>npx wrangler secret put AUTH_SECRET</code><br/>
+        <code>npx wrangler secret put ADMIN_EMAIL</code>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Logged In As</div>
+      <table>
+        <tbody>
+          <tr><td>Email</td><td class="mono">{user.email}</td></tr>
+          <tr><td>Name</td><td>{user.name}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">OAuth Redirect URI</div>
+      <p style="font-size: 13px; color: #9ca3af; margin-bottom: 8px;">Register this in your Google Cloud Console → Credentials → Authorized redirect URIs:</p>
+      <code style="display:block; padding: 10px 14px; background: #1f2937; border-radius: 6px; font-size: 13px; color: #fbbf24; word-break: break-all;">{Astro.url.origin}/admin/callback</code>
+    </div>
+  </div>
+</body>
+</html>

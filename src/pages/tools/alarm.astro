@@ -1,0 +1,182 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Alarm Clock — Set Online Alarms" description="Free online alarm clock. Set multiple alarms with custom labels and sounds. Works in your browser tab." keywords="alarm clock, online alarm, set alarm, wake up alarm, timer alarm, web alarm, browser alarm">
+  <div class="max-w-md mx-auto">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">⏰</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Alarm Clock</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Set alarms that ring in your browser — no app needed</p>
+    </div>
+
+    <!-- Current time -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm text-center">
+      <div class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Current Time</div>
+      <div id="current-time" class="text-4xl font-mono font-bold text-gray-900 dark:text-white">--:--:--</div>
+    </div>
+
+    <!-- Set alarm -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Set New Alarm</h2>
+      <div class="flex gap-3 mb-3">
+        <div class="flex-1">
+          <label for="alarm-time" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Time</label>
+          <input id="alarm-time" type="time" class="w-full h-12 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500" style="color-scheme: light dark" />
+        </div>
+        <div class="flex-1">
+          <label for="alarm-label" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Label (optional)</label>
+          <input id="alarm-label" type="text" placeholder="Wake up" class="w-full h-12 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
+        </div>
+      </div>
+      <button id="add-alarm" class="w-full h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm hover:bg-amber-600 transition-colors">
+        + Set Alarm
+      </button>
+    </div>
+
+    <!-- Active alarms -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white text-sm">Active Alarms</h2>
+        <span id="alarm-count" class="text-xs text-gray-400">0 alarms</span>
+      </div>
+      <div id="alarm-list" class="divide-y divide-gray-50 dark:divide-gray-800">
+        <div class="px-5 py-4 text-sm text-gray-400 italic text-center">No alarms set</div>
+      </div>
+    </div>
+
+    <!-- Ringing modal -->
+    <div id="alarm-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl border border-gray-200 dark:border-gray-700 animate-pulse">
+        <div class="text-6xl mb-4">⏰</div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-1">Alarm!</h2>
+        <p id="alarm-modal-label" class="text-gray-500 dark:text-gray-400 mb-6">Time's up</p>
+        <button id="alarm-dismiss" class="px-8 py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors text-lg">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  interface AlarmItem { id: string; time: string; label: string; }
+  let alarms: AlarmItem[] = [];
+  let ringingAudioCtx: AudioContext | null = null;
+  let ringingOsc: OscillatorNode | null = null;
+
+  const timeEl = document.getElementById('current-time')!;
+  const alarmTime = document.getElementById('alarm-time') as HTMLInputElement;
+  const alarmLabel = document.getElementById('alarm-label') as HTMLInputElement;
+  const addBtn = document.getElementById('add-alarm')!;
+  const listEl = document.getElementById('alarm-list')!;
+  const countEl = document.getElementById('alarm-count')!;
+  const modal = document.getElementById('alarm-modal')!;
+  const modalLabel = document.getElementById('alarm-modal-label')!;
+  const dismissBtn = document.getElementById('alarm-dismiss')!;
+
+  // Set default alarm time to 1 minute from now
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 1);
+  alarmTime.value = now.toTimeString().slice(0, 5);
+
+  function updateClock() {
+    const n = new Date();
+    timeEl.textContent = n.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    // Check alarms
+    const currentHHMM = n.toTimeString().slice(0, 5);
+    const currentSec = n.getSeconds();
+    if (currentSec === 0) {
+      const triggered = alarms.filter(a => a.time === currentHHMM);
+      triggered.forEach(a => triggerAlarm(a));
+    }
+  }
+
+  function triggerAlarm(alarm: AlarmItem) {
+    // Show modal
+    modalLabel.textContent = alarm.label || "Time's up!";
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    // Play sound
+    startRinging();
+    // Remove from list
+    alarms = alarms.filter(a => a.id !== alarm.id);
+    renderAlarms();
+  }
+
+  function startRinging() {
+    try {
+      ringingAudioCtx = new AudioContext();
+      ringingOsc = ringingAudioCtx.createOscillator();
+      const gain = ringingAudioCtx.createGain();
+      ringingOsc.type = 'sine';
+      ringingOsc.frequency.value = 800;
+      gain.gain.value = 0.3;
+      ringingOsc.connect(gain).connect(ringingAudioCtx.destination);
+      ringingOsc.start();
+      // Beep pattern
+      let beepOn = true;
+      const interval = setInterval(() => {
+        if (!ringingOsc) { clearInterval(interval); return; }
+        gain.gain.value = beepOn ? 0.3 : 0;
+        beepOn = !beepOn;
+      }, 500);
+      (ringingOsc as any)._interval = interval;
+    } catch {}
+  }
+
+  function stopRinging() {
+    if (ringingOsc) {
+      clearInterval((ringingOsc as any)._interval);
+      ringingOsc.stop();
+      ringingOsc = null;
+    }
+    if (ringingAudioCtx) { ringingAudioCtx.close(); ringingAudioCtx = null; }
+  }
+
+  dismissBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    stopRinging();
+  });
+
+  function renderAlarms() {
+    countEl.textContent = `${alarms.length} alarm${alarms.length !== 1 ? 's' : ''}`;
+    if (!alarms.length) {
+      listEl.innerHTML = '<div class="px-5 py-4 text-sm text-gray-400 italic text-center">No alarms set</div>';
+      return;
+    }
+    listEl.innerHTML = alarms.map(a => `
+      <div class="flex items-center justify-between px-5 py-3">
+        <div>
+          <div class="text-lg font-mono font-bold text-gray-900 dark:text-white">${a.time}</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">${a.label || 'Alarm'}</div>
+        </div>
+        <button data-del="${a.id}" class="text-gray-400 hover:text-red-500 transition-colors p-1">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    `).join('');
+    listEl.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alarms = alarms.filter(a => a.id !== (btn as HTMLElement).dataset.del);
+        renderAlarms();
+      });
+    });
+  }
+
+  addBtn.addEventListener('click', () => {
+    const time = alarmTime.value;
+    if (!time) return;
+    alarms.push({ id: Date.now().toString(36), time, label: alarmLabel.value.trim() });
+    alarmLabel.value = '';
+    renderAlarms();
+  });
+
+  setInterval(updateClock, 1000);
+  updateClock();
+  renderAlarms();
+</script>

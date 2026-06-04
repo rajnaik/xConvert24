@@ -1,7 +1,8 @@
 ---
+export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
 ---
-<Layout title="Color Picker" description="Pick colors and convert between RGB, HEX, HSL, and CMYK color formats.">
+<Layout title="Color Picker — RGB to HEX, HSL, CMYK Converter" description="Free online color picker and converter. Pick any color and convert between RGB, HEX, HSL, and CMYK formats. Copy values instantly." keywords="color picker, RGB to HEX, HEX to RGB, HSL converter, CMYK converter, color code converter, HTML color picker, web colors">
   <div class="max-w-2xl">
     <div class="mb-6">
       <div class="flex items-center gap-3 mb-2"><span class="text-3xl">🎨</span><h1 class="text-2xl font-bold text-gray-900 dark:text-white">Color Picker</h1></div>
@@ -15,7 +16,25 @@ import Layout from '../../layouts/Layout.astro';
         <div class="flex-1">
           <label for="color-picker" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pick a Color</label>
           <input id="color-picker" type="color" value="#f59e0b" class="w-full h-13 rounded-lg cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent"/>
-          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Click to open color picker, or edit values below</p>
+          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Click to open color picker, use the wheel below, or edit values</p>
+        </div>
+      </div>
+
+      <!-- Color Wheel -->
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Color Wheel</h3>
+        <div class="flex flex-col items-center gap-4">
+          <div class="relative">
+            <canvas id="color-wheel" width="240" height="240" class="rounded-full cursor-crosshair border border-gray-200 dark:border-gray-700 shadow-sm"></canvas>
+            <!-- Crosshair indicator -->
+            <div id="wheel-cursor" class="absolute w-5 h-5 border-2 border-white rounded-full shadow-md pointer-events-none" style="top:110px;left:110px;box-shadow: 0 0 0 1px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.3);"></div>
+          </div>
+          <!-- Lightness slider -->
+          <div class="flex items-center gap-3 w-full max-w-[240px]">
+            <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">Dark</span>
+            <input type="range" id="wheel-lightness" min="10" max="90" value="50" class="flex-1 h-2 rounded-full accent-amber-500 cursor-pointer"/>
+            <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">Light</span>
+          </div>
         </div>
       </div>
 
@@ -169,4 +188,132 @@ import Layout from '../../layouts/Layout.astro';
   });
 
   fromSliders();
+
+  // ─── Color Wheel ─────────────────────────────────────────────────────────
+  const wheelCanvas = document.getElementById('color-wheel') as HTMLCanvasElement;
+  const wheelCtx = wheelCanvas.getContext('2d')!;
+  const wheelCursor = document.getElementById('wheel-cursor') as HTMLElement;
+  const lightnessSlider = document.getElementById('wheel-lightness') as HTMLInputElement;
+  const wheelSize = 240;
+  const wheelRadius = wheelSize / 2;
+  let wheelLightness = 50;
+
+  function hslToRgbFn(h: number, s: number, l: number): RGB {
+    const hNorm = h / 360, sNorm = s / 100, lNorm = l / 100;
+    let r: number, g: number, b: number;
+    if (sNorm === 0) { r = g = b = lNorm; } else {
+      const hue2rgb = (p: number, q: number, t: number) => {
+        if (t < 0) t += 1; if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      };
+      const q = lNorm < 0.5 ? lNorm * (1 + sNorm) : lNorm + sNorm - lNorm * sNorm;
+      const p = 2 * lNorm - q;
+      r = hue2rgb(p, q, hNorm + 1/3);
+      g = hue2rgb(p, q, hNorm);
+      b = hue2rgb(p, q, hNorm - 1/3);
+    }
+    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+  }
+
+  function drawWheel() {
+    const imgData = wheelCtx.createImageData(wheelSize, wheelSize);
+    for (let y = 0; y < wheelSize; y++) {
+      for (let x = 0; x < wheelSize; x++) {
+        const dx = x - wheelRadius;
+        const dy = y - wheelRadius;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const idx = (y * wheelSize + x) * 4;
+
+        if (dist <= wheelRadius) {
+          const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+          const sat = (dist / wheelRadius) * 100;
+          const rgb = hslToRgbFn(angle, sat, wheelLightness);
+          imgData.data[idx] = rgb.r;
+          imgData.data[idx + 1] = rgb.g;
+          imgData.data[idx + 2] = rgb.b;
+          imgData.data[idx + 3] = 255;
+        } else {
+          imgData.data[idx + 3] = 0;
+        }
+      }
+    }
+    wheelCtx.putImageData(imgData, 0, 0);
+  }
+
+  function pickFromWheel(x: number, y: number) {
+    const dx = x - wheelRadius;
+    const dy = y - wheelRadius;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > wheelRadius) return;
+
+    const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+    const sat = (dist / wheelRadius) * 100;
+    const rgb = hslToRgbFn(angle, sat, wheelLightness);
+
+    // Update cursor position
+    wheelCursor.style.left = (x - 10) + 'px';
+    wheelCursor.style.top = (y - 10) + 'px';
+    wheelCursor.style.background = rgbToHex(rgb);
+
+    // Update all controls
+    rSlider.value = rNum.value = rgb.r.toString();
+    gSlider.value = gNum.value = rgb.g.toString();
+    bSlider.value = bNum.value = rgb.b.toString();
+    updateOutputs(rgb);
+  }
+
+  function getWheelCoords(e: MouseEvent | TouchEvent): { x: number; y: number } {
+    const rect = wheelCanvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+    return {
+      x: (clientX - rect.left) * (wheelSize / rect.width),
+      y: (clientY - rect.top) * (wheelSize / rect.height),
+    };
+  }
+
+  let wheelDragging = false;
+
+  wheelCanvas.addEventListener('mousedown', (e) => {
+    wheelDragging = true;
+    const { x, y } = getWheelCoords(e);
+    pickFromWheel(x, y);
+  });
+
+  wheelCanvas.addEventListener('mousemove', (e) => {
+    if (!wheelDragging) return;
+    const { x, y } = getWheelCoords(e);
+    pickFromWheel(x, y);
+  });
+
+  document.addEventListener('mouseup', () => { wheelDragging = false; });
+
+  // Touch support
+  wheelCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    wheelDragging = true;
+    const { x, y } = getWheelCoords(e);
+    pickFromWheel(x, y);
+  }, { passive: false });
+
+  wheelCanvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!wheelDragging) return;
+    const { x, y } = getWheelCoords(e);
+    pickFromWheel(x, y);
+  }, { passive: false });
+
+  wheelCanvas.addEventListener('touchend', () => { wheelDragging = false; });
+
+  // Lightness slider
+  lightnessSlider.addEventListener('input', () => {
+    wheelLightness = parseInt(lightnessSlider.value);
+    drawWheel();
+  });
+
+  // Initial draw
+  drawWheel();
 </script>

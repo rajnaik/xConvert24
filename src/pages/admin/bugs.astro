@@ -1,0 +1,117 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bug Reports | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+    .back { color: #9ca3af; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 4px; }
+    .back:hover { color: #fbbf24; }
+    .logo { font-size: 16px; font-weight: 600; color: #d1d5db; }
+    .container { max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .stats { display: flex; gap: 12px; margin-bottom: 24px; }
+    .stat { background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 12px 16px; text-align: center; flex: 1; }
+    .stat-val { font-size: 24px; font-weight: 700; color: #fbbf24; }
+    .stat-label { font-size: 11px; color: #6b7280; margin-top: 2px; text-transform: uppercase; }
+    .bug-item { display: flex; align-items: flex-start; gap: 14px; background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px 18px; margin-bottom: 10px; }
+    .votes { text-align: center; min-width: 44px; }
+    .votes-num { font-size: 20px; font-weight: 700; color: #fbbf24; }
+    .votes-label { font-size: 10px; color: #6b7280; }
+    .bug-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+    .sev-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; }
+    .sev-high { background: #450a0a; color: #f87171; }
+    .sev-medium { background: #431407; color: #fb923c; }
+    .sev-low { background: #422006; color: #fbbf24; }
+    .bug-page { font-size: 12px; color: #fbbf24; font-weight: 500; }
+    .bug-date { font-size: 11px; color: #6b7280; margin-left: auto; }
+    .bug-desc { font-size: 13px; color: #d1d5db; line-height: 1.5; }
+    .bug-email { font-size: 11px; color: #6b7280; margin-top: 4px; }
+    .loading { text-align: center; padding: 40px; color: #6b7280; font-style: italic; }
+    .error { text-align: center; padding: 40px; color: #f87171; font-style: italic; }
+    .empty { text-align: center; padding: 40px; color: #6b7280; }
+    .delete-btn { margin-left: auto; font-size: 11px; color: #6b7280; background: none; border: 1px solid #374151; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+    .delete-btn:hover { color: #f87171; border-color: #7f1d1d; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="/admin" class="back">← Dashboard</a>
+    <span class="logo">Bug Reports</span>
+  </div>
+
+  <div class="container">
+    <h1>🐛 Bug Reports</h1>
+    <p class="subtitle">All user-submitted bug reports from the global D1 database, sorted by votes.</p>
+
+    <div class="stats" id="stats">
+      <div class="stat"><div class="stat-val" id="total-count">—</div><div class="stat-label">Total</div></div>
+      <div class="stat"><div class="stat-val" id="high-count">—</div><div class="stat-label">🔴 High</div></div>
+      <div class="stat"><div class="stat-val" id="medium-count">—</div><div class="stat-label">🟠 Medium</div></div>
+      <div class="stat"><div class="stat-val" id="low-count">—</div><div class="stat-label">🟡 Low</div></div>
+    </div>
+
+    <div id="bug-list">
+      <div class="loading">Loading bugs from database…</div>
+    </div>
+  </div>
+
+  <script>
+    const listEl = document.getElementById('bug-list');
+
+    async function loadBugs() {
+      try {
+        const res = await fetch('/api/bugs');
+        if (!res.ok) throw new Error('API returned ' + res.status);
+        const data = await res.json();
+        const bugs = data.bugs || [];
+
+        // Stats
+        document.getElementById('total-count').textContent = bugs.length.toString();
+        document.getElementById('high-count').textContent = bugs.filter(b => b.severity === 'high').length.toString();
+        document.getElementById('medium-count').textContent = bugs.filter(b => b.severity === 'medium').length.toString();
+        document.getElementById('low-count').textContent = bugs.filter(b => b.severity === 'low').length.toString();
+
+        if (!bugs.length) {
+          listEl.innerHTML = '<div class="empty">No bug reports yet. Users can submit at /report-bug</div>';
+          return;
+        }
+
+        const sevClass = { high: 'sev-high', medium: 'sev-medium', low: 'sev-low' };
+        const sevEmoji = { high: '🔴', medium: '🟠', low: '🟡' };
+
+        listEl.innerHTML = bugs.map(bug => `
+          <div class="bug-item">
+            <div class="votes">
+              <div class="votes-num">${bug.votes || 0}</div>
+              <div class="votes-label">vote${bug.votes !== 1 ? 's' : ''}</div>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div class="bug-meta">
+                <span class="sev-badge ${sevClass[bug.severity] || 'sev-low'}">${sevEmoji[bug.severity] || '🟡'} ${(bug.severity || 'low').charAt(0).toUpperCase() + (bug.severity || 'low').slice(1)}</span>
+                ${bug.page ? `<span class="bug-page">${bug.page}</span>` : ''}
+                <span class="bug-date">${bug.created_at ? new Date(bug.created_at).toLocaleDateString() : ''}</span>
+              </div>
+              <div class="bug-desc">${bug.description.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+              ${bug.email ? `<div class="bug-email">📧 ${bug.email}</div>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        listEl.innerHTML = '<div class="error">Failed to load bugs: ' + err.message + '</div>';
+      }
+    }
+
+    loadBugs();
+  </script>
+</body>
+</html>

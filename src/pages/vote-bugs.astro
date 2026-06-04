@@ -1,0 +1,191 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Vote on Bug Fixes" description="Help us prioritise — vote on the bugs you want fixed first on xConvert24.com." keywords="vote bugs, bug priority, fix request, community voting, xConvert24 bugs">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🗳️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Vote on Bug Fixes</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Upvote the bugs you want fixed first. Your vote helps us prioritise.</p>
+      <a href="/report-bug" class="inline-flex items-center gap-1.5 mt-2 text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium">
+        ← Back to Report a Bug
+      </a>
+    </div>
+
+    <!-- Sort controls -->
+    <div class="flex items-center justify-between mb-4">
+      <span id="bug-count" class="text-sm text-gray-500 dark:text-gray-400">Loading…</span>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-gray-400">Sort:</span>
+        <button id="sort-votes" class="sort-btn px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500 text-white transition-colors">Most votes</button>
+        <button id="sort-newest" class="sort-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Newest</button>
+        <button id="sort-severity" class="sort-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Severity</button>
+      </div>
+    </div>
+
+    <!-- Bug list -->
+    <div id="bug-vote-list" class="space-y-3">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-16">
+      <div class="text-5xl mb-4">🎉</div>
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">No bugs reported yet</h2>
+      <p class="text-gray-500 dark:text-gray-400">
+        Be the first to <a href="/report-bug" class="text-amber-600 dark:text-amber-400 hover:underline">report a bug</a> — or enjoy the bug-free experience!
+      </p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const VOTED_KEY = 'xconvert24-user-voted';
+
+  let sortMode: 'votes' | 'newest' | 'severity' = 'votes';
+  let bugs: any[] = [];
+
+  const listEl = document.getElementById('bug-vote-list')!;
+  const emptyEl = document.getElementById('empty-state')!;
+  const countEl = document.getElementById('bug-count')!;
+
+  const sevWeight: Record<string, number> = { high: 3, medium: 2, low: 1 };
+  const sevEmoji: Record<string, string> = { high: '🔴', medium: '🟠', low: '🟡' };
+  const sevLabel: Record<string, string> = { high: 'High', medium: 'Medium', low: 'Low' };
+
+  function getUserVoted(): Set<string> {
+    try { return new Set(JSON.parse(localStorage.getItem(VOTED_KEY) || '[]')); } catch { return new Set(); }
+  }
+  function saveUserVoted(voted: Set<string>) {
+    localStorage.setItem(VOTED_KEY, JSON.stringify([...voted]));
+  }
+
+  function escapeHtml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  async function loadBugs() {
+    try {
+      const res = await fetch('/api/bugs');
+      const data = await res.json();
+      bugs = data.bugs || [];
+      render();
+    } catch {
+      listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#6b7280;font-style:italic;">Failed to load bugs from server.</div>';
+    }
+  }
+
+  function render() {
+    const userVoted = getUserVoted();
+
+    if (!bugs.length) {
+      listEl.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+      countEl.textContent = '0 bugs';
+      return;
+    }
+    emptyEl.classList.add('hidden');
+    countEl.textContent = `${bugs.length} bug${bugs.length !== 1 ? 's' : ''} reported`;
+
+    const sorted = [...bugs].sort((a, b) => {
+      if (sortMode === 'votes') return (b.votes || 0) - (a.votes || 0);
+      if (sortMode === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return (sevWeight[b.severity] || 0) - (sevWeight[a.severity] || 0);
+    });
+
+    listEl.innerHTML = sorted.map(bug => {
+      const voteCount = bug.votes || 0;
+      const hasVoted = userVoted.has(bug.id);
+      return `
+        <div class="flex items-start gap-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 shadow-sm">
+          <div class="flex flex-col items-center shrink-0">
+            <button
+              class="vote-btn w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${hasVoted ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-500'}"
+              data-id="${bug.id}"
+              data-voted="${hasVoted ? '1' : '0'}"
+              aria-label="${hasVoted ? 'Remove vote' : 'Upvote this bug'}"
+            >
+              <svg class="w-5 h-5" fill="${hasVoted ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+            </button>
+            <span class="text-sm font-bold mt-1 ${hasVoted ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'}">${voteCount}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${
+                bug.severity === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
+                bug.severity === 'medium' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' :
+                'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+              }">${sevEmoji[bug.severity] || '🟡'} ${sevLabel[bug.severity] || 'Low'}</span>
+              ${bug.page ? `<a href="${bug.href}" class="text-xs text-amber-600 dark:text-amber-400 hover:underline font-medium">${escapeHtml(bug.page)}</a>` : ''}
+              <span class="text-xs text-gray-400 ml-auto shrink-0">${bug.created_at ? new Date(bug.created_at).toLocaleDateString() : ''}</span>
+            </div>
+            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${escapeHtml(bug.description)}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach vote handlers
+    listEl.querySelectorAll('.vote-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = (btn as HTMLElement).dataset.id!;
+        const wasVoted = (btn as HTMLElement).dataset.voted === '1';
+        toggleVote(id, wasVoted);
+      });
+    });
+  }
+
+  async function toggleVote(id: string, wasVoted: boolean) {
+    const userVoted = getUserVoted();
+    const direction = wasVoted ? 'down' : 'up';
+
+    // Optimistic UI update
+    if (wasVoted) { userVoted.delete(id); } else { userVoted.add(id); }
+    saveUserVoted(userVoted);
+
+    // Update local bugs array
+    const bug = bugs.find(b => b.id === id);
+    if (bug) bug.votes = Math.max(0, (bug.votes || 0) + (wasVoted ? -1 : 1));
+    render();
+
+    // Persist to server
+    try {
+      await fetch('/api/bugs/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, direction }),
+      });
+    } catch {
+      // Revert on failure
+      if (wasVoted) { userVoted.add(id); } else { userVoted.delete(id); }
+      saveUserVoted(userVoted);
+      if (bug) bug.votes = Math.max(0, (bug.votes || 0) + (wasVoted ? 1 : -1));
+      render();
+    }
+  }
+
+  // Sort buttons
+  const sortBtns = document.querySelectorAll('.sort-btn');
+  const activeSort = 'px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500 text-white transition-colors';
+  const inactiveSort = 'px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors';
+
+  document.getElementById('sort-votes')!.addEventListener('click', () => { sortMode = 'votes'; updateSortUI(); render(); });
+  document.getElementById('sort-newest')!.addEventListener('click', () => { sortMode = 'newest'; updateSortUI(); render(); });
+  document.getElementById('sort-severity')!.addEventListener('click', () => { sortMode = 'severity'; updateSortUI(); render(); });
+
+  function updateSortUI() {
+    sortBtns.forEach(btn => {
+      const isActive = (btn.id === 'sort-votes' && sortMode === 'votes') ||
+                       (btn.id === 'sort-newest' && sortMode === 'newest') ||
+                       (btn.id === 'sort-severity' && sortMode === 'severity');
+      (btn as HTMLElement).className = `sort-btn ${isActive ? activeSort : inactiveSort}`;
+    });
+  }
+
+  // Init
+  loadBugs();
+</script>

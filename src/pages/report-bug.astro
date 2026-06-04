@@ -1,0 +1,306 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import { searchIndex } from '../data/searchIndex';
+const indexJson = JSON.stringify(searchIndex);
+---
+
+<Layout title="Report a Bug" description="Found an issue on xConvert24.com? Report it here. Select the affected converter or tool and describe the problem." keywords="report bug, bug report, issue, error, xConvert24 feedback, converter bug">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🐛</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Report a Bug</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Found something wrong? Let us know and we'll fix it.</p>
+      <a href="/vote-bugs" class="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-lg bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 text-sm font-medium border border-violet-200 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+        Vote on Bug Fixes — help us prioritise
+      </a>
+    </div>
+
+    <!-- Bug report form -->
+    <div id="bug-form-section" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <form id="bug-form" class="space-y-5">
+
+        <!-- Step 1: Select affected page via search -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Which converter or tool is affected?
+          </label>
+          <div class="relative" id="bug-search-wrapper">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              id="bug-search-input"
+              type="text"
+              placeholder="Search — e.g. &quot;weight&quot;, &quot;kg&quot;, &quot;calculator&quot;…"
+              autocomplete="off"
+              class="w-full h-11 pl-9 pr-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <!-- Dropdown -->
+            <div id="bug-search-dropdown" class="hidden absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-30">
+            </div>
+          </div>
+          <!-- Selected badge -->
+          <div id="bug-selected" class="hidden mt-2 flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-medium">
+              <span id="bug-selected-icon"></span>
+              <span id="bug-selected-name"></span>
+              <button type="button" id="bug-clear-selection" class="ml-1 hover:text-amber-900 dark:hover:text-amber-200" aria-label="Remove selection">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </span>
+          </div>
+          <input type="hidden" id="bug-page-href" name="page" />
+        </div>
+
+        <!-- Step 2: Severity -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Severity</label>
+          <div class="flex gap-2">
+            <label class="flex-1 cursor-pointer">
+              <input type="radio" name="severity" value="low" class="peer sr-only" checked />
+              <div class="peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/20 peer-checked:text-amber-700 dark:peer-checked:text-amber-400 border-2 border-gray-200 dark:border-gray-700 rounded-lg py-2 px-3 text-center text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">
+                🟡 Low
+              </div>
+            </label>
+            <label class="flex-1 cursor-pointer">
+              <input type="radio" name="severity" value="medium" class="peer sr-only" />
+              <div class="peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 peer-checked:text-orange-700 dark:peer-checked:text-orange-400 border-2 border-gray-200 dark:border-gray-700 rounded-lg py-2 px-3 text-center text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">
+                🟠 Medium
+              </div>
+            </label>
+            <label class="flex-1 cursor-pointer">
+              <input type="radio" name="severity" value="high" class="peer sr-only" />
+              <div class="peer-checked:border-red-500 peer-checked:bg-red-50 dark:peer-checked:bg-red-900/20 peer-checked:text-red-700 dark:peer-checked:text-red-400 border-2 border-gray-200 dark:border-gray-700 rounded-lg py-2 px-3 text-center text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors">
+                🔴 High
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 3: Description -->
+        <div>
+          <label for="bug-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Describe the bug
+          </label>
+          <textarea
+            id="bug-description"
+            name="description"
+            rows="4"
+            required
+            placeholder="What happened? What did you expect? Include input values if applicable…"
+            class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+          ></textarea>
+        </div>
+
+        <!-- Step 4: Email (optional) -->
+        <div>
+          <label for="bug-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Email <span class="text-gray-400 font-normal">(optional — for follow-up)</span>
+          </label>
+          <input
+            id="bug-email"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            class="w-full h-11 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="w-full h-12 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-2.99L13.74 4.01a2 2 0 00-3.48 0L3.33 16.01A2 2 0 005.07 19z"/></svg>
+          Submit Bug Report
+        </button>
+      </form>
+
+      <!-- Success -->
+      <div id="bug-success" class="hidden text-center py-8">
+        <div class="text-4xl mb-3">🐛✅</div>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Bug report saved!</h2>
+        <p class="text-gray-500 dark:text-gray-400 mb-4">Thank you — we'll investigate and fix this.</p>
+        <button id="bug-report-another" class="px-5 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm">
+          Report another bug
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent reports from global database -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white text-sm">Recent Bug Reports</h2>
+        <span id="bug-total" class="text-xs text-gray-400"></span>
+      </div>
+      <div id="bug-list" class="divide-y divide-gray-50 dark:divide-gray-800 max-h-72 overflow-y-auto">
+        <div class="px-6 py-4 text-sm text-gray-400 dark:text-gray-500 italic">Loading…</div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ indexJson }}>
+  const index = JSON.parse(indexJson);
+
+  // State
+  let selectedPage = null;
+
+  // Elements
+  const searchInput = document.getElementById('bug-search-input');
+  const dropdown = document.getElementById('bug-search-dropdown');
+  const wrapper = document.getElementById('bug-search-wrapper');
+  const selectedEl = document.getElementById('bug-selected');
+  const selectedIcon = document.getElementById('bug-selected-icon');
+  const selectedName = document.getElementById('bug-selected-name');
+  const clearSelBtn = document.getElementById('bug-clear-selection');
+  const hrefInput = document.getElementById('bug-page-href');
+  const form = document.getElementById('bug-form');
+  const successEl = document.getElementById('bug-success');
+  const bugList = document.getElementById('bug-list');
+  const bugTotal = document.getElementById('bug-total');
+
+  // Search logic
+  function score(entry, q) {
+    const lq = q.toLowerCase();
+    const name = entry.name.toLowerCase();
+    const aliases = entry.aliases.map(a => a.toLowerCase());
+    if (name === lq) return 100;
+    if (name.startsWith(lq)) return 90;
+    if (aliases.some(a => a === lq)) return 85;
+    if (aliases.some(a => a.startsWith(lq))) return 75;
+    if (name.includes(lq)) return 60;
+    if (entry.category.toLowerCase().includes(lq)) return 50;
+    if (aliases.some(a => a.includes(lq))) return 40;
+    return 0;
+  }
+
+  function showDropdown(q) {
+    if (!q.trim()) { dropdown.classList.add('hidden'); return; }
+    const results = index
+      .map(e => ({ ...e, _score: score(e, q) }))
+      .filter(e => e._score > 0)
+      .sort((a, b) => b._score - a._score)
+      .slice(0, 8);
+
+    if (!results.length) {
+      dropdown.innerHTML = '<div class="px-3 py-3 text-sm text-gray-400 text-center">No matches</div>';
+    } else {
+      dropdown.innerHTML = results.map(r => `
+        <button type="button" class="bug-pick w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors text-sm" data-name="${r.name}" data-icon="${r.categoryIcon}" data-href="${r.href}">
+          <span class="shrink-0">${r.categoryIcon}</span>
+          <span class="font-medium text-gray-900 dark:text-white">${r.name}</span>
+          <span class="text-xs text-gray-400 ml-auto">${r.category}</span>
+        </button>
+      `).join('');
+      dropdown.querySelectorAll('.bug-pick').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectPage(btn.dataset.name, btn.dataset.icon, btn.dataset.href);
+        });
+      });
+    }
+    dropdown.classList.remove('hidden');
+  }
+
+  function selectPage(name, icon, href) {
+    selectedPage = { name, icon, href };
+    hrefInput.value = href;
+    selectedIcon.textContent = icon;
+    selectedName.textContent = name;
+    selectedEl.classList.remove('hidden');
+    searchInput.value = '';
+    dropdown.classList.add('hidden');
+  }
+
+  function clearSelection() {
+    selectedPage = null;
+    hrefInput.value = '';
+    selectedEl.classList.add('hidden');
+  }
+
+  searchInput.addEventListener('input', (e) => showDropdown(e.target.value));
+  searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) showDropdown(searchInput.value); });
+  clearSelBtn.addEventListener('click', clearSelection);
+  document.addEventListener('click', (e) => { if (!wrapper.contains(e.target)) dropdown.classList.add('hidden'); });
+
+  // Fetch and render bugs from global API
+  async function loadBugs() {
+    try {
+      const res = await fetch('/api/bugs');
+      const data = await res.json();
+      const bugs = data.bugs || [];
+      bugTotal.textContent = `${bugs.length} total`;
+
+      if (!bugs.length) {
+        bugList.innerHTML = '<div class="px-6 py-4 text-sm text-gray-400 dark:text-gray-500 italic">No reports yet — be the first!</div>';
+        return;
+      }
+
+      const sevEmoji = { low: '🟡', medium: '🟠', high: '🔴' };
+      bugList.innerHTML = bugs.slice(0, 20).map(r => `
+        <div class="px-5 py-3 flex items-start gap-3">
+          <span class="text-sm mt-0.5 shrink-0">${sevEmoji[r.severity] || '🟡'}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">${r.page || 'General'}</span>
+              <span class="text-xs text-amber-600 dark:text-amber-400 font-mono">${r.votes} vote${r.votes !== 1 ? 's' : ''}</span>
+              <span class="text-xs text-gray-400 ml-auto">${r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">${r.description.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      bugList.innerHTML = '<div class="px-6 py-4 text-sm text-red-400 italic">Failed to load bugs. The API may not be deployed yet.</div>';
+    }
+  }
+
+  // Form submit — POST to API
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const description = document.getElementById('bug-description').value.trim();
+    if (!description) return;
+    const severity = form.querySelector('input[name="severity"]:checked')?.value || 'low';
+    const email = document.getElementById('bug-email').value.trim();
+
+    const payload = {
+      page: selectedPage?.name || '',
+      href: selectedPage?.href || '',
+      severity,
+      description,
+      email,
+    };
+
+    try {
+      const res = await fetch('/api/bugs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        form.classList.add('hidden');
+        successEl.classList.remove('hidden');
+        loadBugs();
+      } else {
+        alert('Failed to submit. Please try again.');
+      }
+    } catch {
+      alert('Network error. Please try again.');
+    }
+  });
+
+  // Report another
+  document.getElementById('bug-report-another')?.addEventListener('click', () => {
+    form.reset();
+    clearSelection();
+    form.classList.remove('hidden');
+    successEl.classList.add('hidden');
+  });
+
+  // Init
+  loadBugs();
+</script>

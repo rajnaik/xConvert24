@@ -1,0 +1,171 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+
+const releases = [
+  {
+    version: '1.3.0',
+    date: 'June 4, 2025',
+    tag: 'Latest',
+    features: [
+      'Admin module with secure Google OAuth login (/admin)',
+      'Global bug report database using Cloudflare D1 — shared across all users',
+      'Suggest a Conversion page with community 5-star rating system',
+      'Community suggestions board — highest rated suggestions on top',
+      'Favourites system with global D1 counter tracking across all users',
+      'Cookie consent banner with Google Consent Mode v2 (analytics + marketing toggles)',
+      'Chat assistant — pattern-matching AI that directs users to the right converter',
+      'Stopwatch tool with lap tracking and millisecond precision',
+      'Alarm Clock tool — set multiple alarms with browser sound notifications',
+      'Reminder tool — countdown timer with presets, pause/resume, and browser notifications',
+      'Color Wheel — canvas-based HSL picker with lightness slider',
+      'Regional tipping guide covering US, Europe, China, India, and Middle East',
+      'How to Use guide (6 steps) and FAQ page (20 questions) with JSON-LD schema',
+      'Tag cloud in sidebar weighted by global favourite counts + visit popularity',
+      'Bookmark dropdown showing saved pages with unfavourite option',
+      'Red heart icon in header linking to /favourites with badge count',
+      'Heart button on every converter page — add/remove favourites with GA tracking',
+      'Global GA click tracking on all links, buttons, icons across the entire site',
+      'Suggest a Conversion icon (lightbulb) in header',
+      'Bug report icon (bug) in header',
+      'Playwright load test: 20 concurrent users simulating real interactions',
+      'Vote on Bug Fixes page — upvote/downvote with server-side persistence',
+      'Browse all converters sorted by most used (popularity scoring)',
+      'Version + deployment timestamp displayed in header',
+      'New logo: converging arrows on gradient background matching brand image',
+      'Cloudflare D1 tables: bugs, suggestions, favourite_counts',
+      'API endpoints: /api/bugs, /api/bugs/vote, /api/suggestions, /api/suggestions/rate, /api/favourites',
+    ],
+    fixes: [
+      'Chat panel z-index raised to 9999 — no longer hidden behind other elements',
+      'Chat panel positioning fixed (top: 70px, display toggle via JS)',
+      'Admin module no longer returns 500 when secrets not configured — redirects to login',
+      'Vote bugs page fetches from global D1 database instead of localStorage',
+      'Stats bar on search page now displays in a single contiguous line',
+      'Report Bug page posts to server API instead of localStorage',
+      'Sidebar tag cloud uses server data instead of local favourites',
+      'Renamed site to xConvert24.com throughout all files',
+      'Fixed "Fast & Free" tagline to "Fast & Free 24 hours a day"',
+      'Heading "All your conversions, one place." on single line',
+    ],
+  },
+  {
+    version: '1.2.0',
+    date: 'June 4, 2025',
+    tag: '',
+    features: [
+      'Added site-wide live search with instant dropdown results',
+      'Added 5 new tools: Scientific Calculator, Tip Calculator, Discount Calculator, Loan Calculator (with amortization), Age Calculator, Date Difference',
+      'Added collapsible treeview navigation in sidebar',
+      'Added category and unit icons throughout the site',
+      'Added Privacy Policy, Cookie Policy, Terms & Conditions, About Us, Contact Us pages',
+      'Added 4-column footer with quick links across all pages',
+      'Added Google Analytics integration',
+      'Added bookmark button in header',
+      'Added custom 404 and 500 error pages with fun taglines',
+      'Added Release Notes page',
+      'Added Bug Report page with category search and local database',
+      'Full SEO optimisation: meta tags, Open Graph, Twitter Cards, JSON-LD, sitemap, robots.txt',
+      'Renamed site from xConvert.com to xConvert24.com',
+    ],
+    fixes: [
+      'Fixed logo text clipping — widened SVG viewBox',
+      'Fixed duplicate icons on Area and Pressure cards',
+      'Fixed invalid gradient class on Color Picker card',
+      'Removed timezone converter (skipped per request)',
+    ],
+  },
+  {
+    version: '1.1.1',
+    date: 'June 4, 2025',
+    tag: 'MVP',
+    features: [
+      '18 unit converters: Weight, Length, Temperature, Area, Volume, Speed, Data Storage, Energy, Pressure, Power, Fuel Economy, Angle, Frequency, Time, Cooking, Number Base, Roman Numerals, Currency (17 currencies)',
+      '3 tools: BMI Calculator, Color Picker (RGB/HEX/HSL/CMYK), World Clock (12 cities)',
+      'Responsive layout with sidebar navigation',
+      'Dark/light mode toggle with flash prevention',
+      'Golden xConvert logo with intersecting-arrows X mark',
+      'Search box in sidebar with filtering',
+      'Tailwind CSS v4 via @tailwindcss/vite',
+      'Astro MCP integration',
+      'Deployed to Cloudflare Workers',
+    ],
+    fixes: [],
+  },
+  {
+    version: '1.0.0',
+    date: 'June 4, 2025',
+    tag: 'Initial',
+    features: [
+      'Initial Astro project scaffold',
+      'Tailwind CSS v4 setup',
+      'Basic layout with favicon',
+    ],
+    fixes: [],
+  },
+];
+---
+
+<Layout title="Release Notes" description="xConvert24.com release notes — see what's new, improved, and fixed in each version." keywords="release notes, changelog, version history, xConvert24 updates, new features">
+  <div class="max-w-3xl">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Release Notes</h1>
+      <p class="text-gray-500 dark:text-gray-400">Track every feature, improvement, and bug fix shipped to xConvert24.com.</p>
+    </div>
+
+    <div class="space-y-8">
+      {releases.map((release, i) => (
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+          <!-- Version header -->
+          <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/60">
+            <div class="flex items-center gap-3">
+              <span class="text-lg font-bold text-gray-900 dark:text-white font-mono">v{release.version}</span>
+              {release.tag && (
+                <span class:list={[
+                  'px-2 py-0.5 rounded-full text-xs font-semibold',
+                  i === 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                ]}>{release.tag}</span>
+              )}
+            </div>
+            <span class="text-sm text-gray-500 dark:text-gray-400">{release.date}</span>
+          </div>
+          <!-- Content -->
+          <div class="px-6 py-5">
+            {release.features.length > 0 && (
+              <div class="mb-4">
+                <h3 class="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                  Features & Improvements
+                </h3>
+                <ul class="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                  {release.features.map(f => (
+                    <li class="flex items-start gap-2">
+                      <span class="text-green-500 mt-0.5 shrink-0">•</span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {release.fixes.length > 0 && (
+              <div>
+                <h3 class="text-xs font-semibold text-red-500 dark:text-red-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  Bug Fixes
+                </h3>
+                <ul class="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+                  {release.fixes.map(f => (
+                    <li class="flex items-start gap-2">
+                      <span class="text-red-400 mt-0.5 shrink-0">•</span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,206 @@
+---
+import { searchIndex } from '../data/searchIndex';
+const indexJson = JSON.stringify(searchIndex);
+---
+
+<!-- Chat toggle button -->
+<button
+  id="chat-toggle"
+  class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+  aria-label="Open chat assistant"
+  title="Ask a question"
+>
+  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+  </svg>
+  <!-- Notification dot -->
+  <span id="chat-dot" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+</button>
+
+<!-- Chat panel -->
+<div id="chat-panel" class="fixed right-4 w-80 sm:w-96 h-[450px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl flex-col overflow-hidden" style="top: 70px; z-index: 9999; display: none;">
+  <!-- Header -->
+  <div class="flex items-center justify-between px-4 py-3 bg-amber-500 text-white shrink-0">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">💬</span>
+      <span class="text-sm font-semibold">xConvert24 Assistant</span>
+    </div>
+    <button id="chat-close" class="p-1.5 hover:bg-amber-600 rounded-lg transition-colors" aria-label="Close chat">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div id="chat-messages" class="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+    <!-- Welcome message -->
+    <div class="chat-bot">
+      <div class="inline-block max-w-[85%] px-3 py-2 rounded-xl rounded-tl-sm bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300">
+        👋 Hi! I'm your xConvert24 assistant. Ask me things like:
+        <ul class="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+          <li>• "How do I convert kg to pounds?"</li>
+          <li>• "I need a loan calculator"</li>
+          <li>• "What's 100°F in Celsius?"</li>
+          <li>• "Show me the color picker"</li>
+          <li>• "How do I use this site?"</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="px-3 py-3 border-t border-gray-100 dark:border-gray-800 shrink-0">
+    <form id="chat-form" class="flex gap-2">
+      <input
+        id="chat-input"
+        type="text"
+        placeholder="Ask me anything…"
+        autocomplete="off"
+        class="flex-1 h-10 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+      />
+      <button type="submit" class="h-10 w-10 rounded-lg bg-amber-500 text-white flex items-center justify-center hover:bg-amber-600 transition-colors shrink-0">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script define:vars={{ indexJson }}>
+  const index = JSON.parse(indexJson);
+
+  const toggleBtn = document.getElementById('chat-toggle');
+  const panel = document.getElementById('chat-panel');
+  const closeBtn = document.getElementById('chat-close');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const messages = document.getElementById('chat-messages');
+  const dot = document.getElementById('chat-dot');
+
+  let isOpen = false;
+
+  function openChat() {
+    isOpen = true;
+    panel.style.display = 'flex';
+    dot.classList.add('hidden');
+    input.focus();
+  }
+
+  function closeChat() {
+    isOpen = false;
+    panel.style.display = 'none';
+  }
+
+  toggleBtn.addEventListener('click', () => { isOpen ? closeChat() : openChat(); });
+  closeBtn.addEventListener('click', closeChat);
+
+  // Hide dot after first open
+  toggleBtn.addEventListener('click', () => { dot.classList.add('hidden'); }, { once: true });
+
+  function addMessage(text, isUser) {
+    const div = document.createElement('div');
+    div.className = isUser ? 'chat-user flex justify-end' : 'chat-bot';
+    const bubble = document.createElement('div');
+    bubble.className = isUser
+      ? 'inline-block max-w-[85%] px-3 py-2 rounded-xl rounded-tr-sm bg-amber-500 text-white text-sm'
+      : 'inline-block max-w-[85%] px-3 py-2 rounded-xl rounded-tl-sm bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-300';
+    bubble.innerHTML = text;
+    div.appendChild(bubble);
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // ─── Intent matching ─────────────────────────────────────────────────
+  function score(entry, q) {
+    const lq = q.toLowerCase();
+    const name = entry.name.toLowerCase();
+    const aliases = entry.aliases.map(a => a.toLowerCase());
+    if (name === lq) return 100;
+    if (name.startsWith(lq)) return 90;
+    if (aliases.some(a => a === lq)) return 85;
+    if (aliases.some(a => a.startsWith(lq))) return 75;
+    if (name.includes(lq)) return 60;
+    if (entry.category.toLowerCase().includes(lq)) return 50;
+    if (aliases.some(a => a.includes(lq))) return 40;
+    return 0;
+  }
+
+  function findMatches(q) {
+    const words = q.toLowerCase().replace(/[?!.,]/g, '').split(/\s+/).filter(w => w.length > 1);
+    let best = [];
+    // Try full query first
+    let results = index.map(e => ({ ...e, _s: score(e, q) })).filter(e => e._s > 0).sort((a, b) => b._s - a._s);
+    if (results.length > 0) return results.slice(0, 3);
+    // Try individual words
+    for (const word of words) {
+      const r = index.map(e => ({ ...e, _s: score(e, word) })).filter(e => e._s > 0);
+      best.push(...r);
+    }
+    // Deduplicate
+    const seen = new Set();
+    return best.filter(e => { if (seen.has(e.href)) return false; seen.add(e.href); return true; })
+      .sort((a, b) => b._s - a._s).slice(0, 3);
+  }
+
+  function generateResponse(q) {
+    const lq = q.toLowerCase();
+
+    // Greeting
+    if (/^(hi|hello|hey|howdy|sup)/i.test(lq)) {
+      return "👋 Hello! How can I help you today? Ask me about any conversion or tool.";
+    }
+
+    // How to use / help
+    if (/how.*(use|work)|help|guide|tutorial/i.test(lq)) {
+      return '📖 Check out our <a href="/guide" class="text-amber-600 dark:text-amber-400 underline font-medium">User Guide</a> for step-by-step instructions on using all converters and tools.';
+    }
+
+    // FAQ
+    if (/faq|question|asked/i.test(lq)) {
+      return '❓ Visit our <a href="/faq" class="text-amber-600 dark:text-amber-400 underline font-medium">FAQ page</a> for answers to common questions.';
+    }
+
+    // Bug report
+    if (/bug|error|wrong|broken|issue/i.test(lq)) {
+      return '🐛 Sorry to hear that! You can report it on our <a href="/report-bug" class="text-amber-600 dark:text-amber-400 underline font-medium">Bug Report page</a>. Select the affected tool and describe the issue.';
+    }
+
+    // Contact
+    if (/contact|email|reach|support/i.test(lq)) {
+      return '📧 You can reach us via the <a href="/contact" class="text-amber-600 dark:text-amber-400 underline font-medium">Contact page</a>.';
+    }
+
+    // Dark mode
+    if (/dark|light|theme|mode/i.test(lq)) {
+      return '🌙 Click the sun/moon icon in the top-right header to toggle between dark and light mode. Your preference is saved automatically.';
+    }
+
+    // Search for matching tools/converters
+    const matches = findMatches(q);
+    if (matches.length > 0) {
+      const links = matches.map(m =>
+        `<a href="${m.href}" class="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 underline font-medium">${m.categoryIcon} ${m.name}</a>`
+      ).join('');
+      const intro = matches.length === 1
+        ? "Here's what I found:"
+        : "Here are some matches:";
+      return `🔍 ${intro}<div class="mt-2 space-y-1.5">${links}</div>`;
+    }
+
+    // Fallback
+    return "🤔 I'm not sure about that. Try asking about a specific unit (e.g. \"kg\", \"miles\", \"celsius\") or tool (e.g. \"calculator\", \"BMI\", \"loan\"). You can also <a href='/search' class='text-amber-600 dark:text-amber-400 underline'>search all converters</a>.";
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (!q) return;
+
+    addMessage(q, true);
+    input.value = '';
+
+    // Small delay for natural feel
+    setTimeout(() => {
+      const response = generateResponse(q);
+      addMessage(response, false);
+    }, 300);
+  });
+</script>

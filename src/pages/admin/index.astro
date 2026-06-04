@@ -1,0 +1,232 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .user { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .user-name { font-size: 14px; color: #d1d5db; }
+    .logout-btn { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .logout-btn:hover { color: #f87171; border-color: #7f1d1d; background: #1f2937; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 24px; transition: border-color 0.2s; }
+    .card:hover { border-color: #f59e0b; }
+    .card-icon { font-size: 32px; margin-bottom: 12px; }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .card-desc { font-size: 13px; color: #6b7280; line-height: 1.5; }
+    .card a { color: inherit; text-decoration: none; display: block; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 32px; }
+    .stat { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 20px; text-align: center; }
+    .stat-value { font-size: 36px; font-weight: 700; color: #fbbf24; }
+    .stat-label { font-size: 12px; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .section-title { font-size: 14px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+    a.card-link { display: block; text-decoration: none; color: inherit; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">⚙️ xConvert24 Admin</div>
+    <div class="user">
+      {user.picture && <img src={user.picture} alt="" class="avatar" referrerpolicy="no-referrer" />}
+      <span class="user-name">{user.name || user.email}</span>
+      <a href="/admin/logout" class="logout-btn">Sign out</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Welcome back, {user.name || user.email}. Manage your xConvert24.com site from here.</p>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">38</div>
+        <div class="stat-label">Total Pages</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">18</div>
+        <div class="stat-label">Converters</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">9</div>
+        <div class="stat-label">Tools</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">150+</div>
+        <div class="stat-label">Units Indexed</div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="section-title">Quick Actions</div>
+    <div class="grid">
+      <div class="card">
+        <a href="/admin/bugs" class="card-link">
+          <div class="card-icon">🐛</div>
+          <div class="card-title">Bug Reports</div>
+          <div class="card-desc">View and manage bug reports submitted by users.</div>
+        </a>
+      </div>
+      <div class="card">
+        <a href="/releases" class="card-link">
+          <div class="card-icon">📋</div>
+          <div class="card-title">Release Notes</div>
+          <div class="card-desc">View the release history and changelog.</div>
+        </a>
+      </div>
+      <div class="card">
+        <a href="/admin/analytics" class="card-link">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Analytics</div>
+          <div class="card-desc">View site traffic and usage data via Google Analytics.</div>
+        </a>
+      </div>
+      <div class="card">
+        <a href="/search" class="card-link">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">Search Index</div>
+          <div class="card-desc">150+ entries across all categories, units, and tools.</div>
+        </a>
+      </div>
+      <div class="card">
+        <a href="/" class="card-link">
+          <div class="card-icon">🌐</div>
+          <div class="card-title">View Live Site</div>
+          <div class="card-desc">Open the public-facing xConvert24.com site.</div>
+        </a>
+      </div>
+      <div class="card">
+        <a href="/admin/settings" class="card-link">
+          <div class="card-icon">⚙️</div>
+          <div class="card-title">Settings</div>
+          <div class="card-desc">Manage admin configuration and environment.</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Bug Reports (sorted by votes) -->
+    <div style="margin-top: 40px;">
+      <div class="section-title">🐛 Bug Reports (by votes)</div>
+      <div id="admin-bugs" style="margin-top: 12px;">
+        <div style="color: #6b7280; font-size: 14px; font-style: italic; padding: 20px; text-align: center;">Loading bugs from client database…</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const container = document.getElementById('admin-bugs');
+
+      async function loadBugs() {
+        try {
+          const res = await fetch('/api/bugs');
+          const data = await res.json();
+          const bugs = data.bugs || [];
+
+          if (!bugs.length) {
+            container.innerHTML = '<div style="color:#6b7280;font-size:14px;font-style:italic;padding:24px;text-align:center;background:#111827;border:1px solid #1f2937;border-radius:10px;">No bug reports yet. Users can submit bugs at /report-bug</div>';
+            return;
+          }
+
+          // Already sorted by votes from API
+          const sevColors = { high: '#f87171', medium: '#fb923c', low: '#fbbf24' };
+          const sevBg = { high: '#450a0a', medium: '#431407', low: '#422006' };
+          const sevEmoji = { high: '🔴', medium: '🟠', low: '🟡' };
+
+          container.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              ${bugs.map(bug => {
+                return `
+                  <div style="display:flex;align-items:flex-start;gap:14px;background:#111827;border:1px solid #1f2937;border-radius:10px;padding:14px 18px;">
+                    <div style="text-align:center;min-width:44px;">
+                      <div style="font-size:22px;font-weight:700;color:#fbbf24;">${bug.votes || 0}</div>
+                      <div style="font-size:10px;color:#6b7280;margin-top:2px;">vote${bug.votes !== 1 ? 's' : ''}</div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+                        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:${sevBg[bug.severity] || sevBg.low};color:${sevColors[bug.severity] || sevColors.low};">${sevEmoji[bug.severity] || '🟡'} ${(bug.severity || 'low').charAt(0).toUpperCase() + (bug.severity || 'low').slice(1)}</span>
+                        ${bug.page ? `<span style="font-size:12px;color:#fbbf24;font-weight:500;">${bug.page}</span>` : ''}
+                        <span style="font-size:11px;color:#6b7280;margin-left:auto;">${bug.created_at ? new Date(bug.created_at).toLocaleDateString() : ''}</span>
+                      </div>
+                      <div style="font-size:13px;color:#d1d5db;line-height:1.5;">${bug.description.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                      ${bug.email ? `<div style="font-size:11px;color:#6b7280;margin-top:4px;">📧 ${bug.email}</div>` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div style="margin-top:12px;font-size:12px;color:#6b7280;text-align:center;">
+              Showing ${bugs.length} report${bugs.length !== 1 ? 's' : ''} • Global D1 database
+            </div>
+          `;
+        } catch (err) {
+          container.innerHTML = '<div style="color:#f87171;font-size:14px;font-style:italic;padding:24px;text-align:center;background:#111827;border:1px solid #1f2937;border-radius:10px;">Failed to load bugs from API. Deploy with D1 binding configured.</div>';
+        }
+      }
+
+      loadBugs();
+    })();
+  </script>
+
+  <!-- Suggestions section -->
+  <script>
+    (function() {
+      // Add suggestions section after bugs
+      const container = document.getElementById('admin-bugs');
+      const sugSection = document.createElement('div');
+      sugSection.style.marginTop = '40px';
+      sugSection.innerHTML = '<div style="font-size:14px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:16px;">💡 Community Suggestions (by rating)</div><div id="admin-suggestions"><div style="color:#6b7280;font-size:14px;font-style:italic;padding:20px;text-align:center;">Loading…</div></div>';
+      container.parentElement.appendChild(sugSection);
+
+      const sugContainer = document.getElementById('admin-suggestions');
+
+      async function loadSuggestions() {
+        try {
+          const res = await fetch('/api/suggestions');
+          const data = await res.json();
+          const suggestions = data.suggestions || [];
+
+          if (!suggestions.length) {
+            sugContainer.innerHTML = '<div style="color:#6b7280;font-size:14px;font-style:italic;padding:24px;text-align:center;background:#111827;border:1px solid #1f2937;border-radius:10px;">No suggestions yet.</div>';
+            return;
+          }
+
+          sugContainer.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;">' + suggestions.map(function(s) {
+            const stars = s.rating ? '⭐'.repeat(Math.round(s.rating)) : '—';
+            return '<div style="display:flex;align-items:flex-start;gap:14px;background:#111827;border:1px solid #1f2937;border-radius:10px;padding:14px 18px;">' +
+              '<div style="text-align:center;min-width:50px;">' +
+                '<div style="font-size:16px;font-weight:700;color:#fbbf24;">' + (s.rating ? s.rating.toFixed(1) : '—') + '</div>' +
+                '<div style="font-size:10px;color:#6b7280;">' + (s.votes_count || 0) + ' vote' + (s.votes_count !== 1 ? 's' : '') + '</div>' +
+              '</div>' +
+              '<div style="flex:1;min-width:0;">' +
+                '<div style="font-size:13px;font-weight:600;color:#f9fafb;">' + s.title.replace(/</g,'&lt;') + '</div>' +
+                (s.description ? '<div style="font-size:12px;color:#6b7280;margin-top:2px;">' + s.description.replace(/</g,'&lt;').slice(0,100) + '</div>' : '') +
+                (s.category ? '<div style="font-size:10px;color:#9ca3af;margin-top:4px;">Category: ' + s.category + '</div>' : '') +
+              '</div>' +
+            '</div>';
+          }).join('') + '</div>' +
+          '<div style="margin-top:12px;font-size:12px;color:#6b7280;text-align:center;">' + suggestions.length + ' suggestion' + (suggestions.length !== 1 ? 's' : '') + ' • Global D1 database</div>';
+        } catch(err) {
+          sugContainer.innerHTML = '<div style="color:#f87171;font-size:14px;font-style:italic;padding:24px;text-align:center;">Failed to load suggestions.</div>';
+        }
+      }
+
+      loadSuggestions();
+    })();
+  </script>
+</body>
+</html>

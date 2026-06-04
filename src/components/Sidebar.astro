@@ -62,10 +62,13 @@ const nav = [
     label: 'Time & Date',
     icon: '🕐',
     items: [
-      { label: 'Time Units',      href: '/convert/time',    icon: '⏱️' },
-      { label: 'World Clock',     href: '/tools/clock',     icon: '🌍' },
-      { label: 'Age Calculator',  href: '/tools/age',       icon: '🎂' },
-      { label: 'Date Difference', href: '/tools/date-diff', icon: '📅' },
+      { label: 'Time Units',      href: '/convert/time',      icon: '⏱️' },
+      { label: 'World Clock',     href: '/tools/clock',       icon: '🌍' },
+      { label: 'Stopwatch',       href: '/tools/stopwatch',   icon: '⏱️' },
+      { label: 'Alarm',           href: '/tools/alarm',       icon: '⏰' },
+      { label: 'Reminder',        href: '/tools/reminder',    icon: '🔔' },
+      { label: 'Age Calculator',  href: '/tools/age',         icon: '🎂' },
+      { label: 'Date Difference', href: '/tools/date-diff',   icon: '📅' },
     ],
   },
   {
@@ -104,11 +107,11 @@ const activeCategory = nav.find(section =>
 >
   <!-- Header: logo + close -->
   <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
-    <a href="/" class="flex items-center gap-1.5" aria-label="xConvert.com home">
-      <svg width="110" height="28" viewBox="0 0 145 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <a href="/" class="flex items-center gap-1.5" aria-label="xConvert24.com home">
+      <svg width="140" height="36" viewBox="0 0 280 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="sb-gold" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#fbbf24"/>
+          <linearGradient id="sb-bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#4a3f5c"/>
             <stop offset="100%" stop-color="#d97706"/>
           </linearGradient>
           <linearGradient id="sb-text" x1="0" y1="0" x2="0" y2="1">
@@ -116,11 +119,10 @@ const activeCategory = nav.find(section =>
             <stop offset="100%" stop-color="#d97706"/>
           </linearGradient>
         </defs>
-        <line x1="4" y1="34" x2="24" y2="8" stroke="url(#sb-gold)" stroke-width="3.5" stroke-linecap="round"/>
-        <polyline points="14,8 24,8 24,18" stroke="url(#sb-gold)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <line x1="4" y1="8" x2="24" y2="34" stroke="url(#sb-gold)" stroke-width="3.5" stroke-linecap="round"/>
-        <polyline points="14,34 24,34 24,24" stroke="url(#sb-gold)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <text x="31" y="29" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="url(#sb-text)" letter-spacing="-0.5">xConvert.com</text>
+        <rect x="2" y="4" width="40" height="40" rx="10" fill="url(#sb-bg)"/>
+        <path d="M12 36 L22 26 M22 26 L22 32 M22 26 L16 26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M32 12 L22 22 M22 22 L22 16 M22 22 L28 22" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="50" y="33" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="url(#sb-text)" letter-spacing="-0.5">xConvert24</text>
       </svg>
     </a>
     <button id="sidebar-close" class="lg:hidden p-1.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Close menu">
@@ -242,8 +244,97 @@ const activeCategory = nav.find(section =>
         );
       })}
     </ul>
+
+    <!-- Tag Cloud (dynamic: favourites first, then by visits) -->
+    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 px-1">
+      <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">Popular</div>
+      <div id="tag-cloud" class="flex flex-wrap gap-1.5 px-1">
+        <!-- Populated by JS -->
+      </div>
+    </div>
   </nav>
 </aside>
+
+<script>
+  // ── Tag cloud: global favourite counts first, then visit popularity ─────
+  (function() {
+    var cloudEl = document.getElementById('tag-cloud');
+    if (!cloudEl) return;
+
+    // Labels for each path
+    var labels = {
+      '/convert/weight': 'kg to lbs', '/convert/length': 'km to miles',
+      '/convert/temperature': '°C to °F', '/convert/currency': 'USD to EUR',
+      '/tools/bmi': 'BMI', '/tools/calculator': 'Calculator',
+      '/convert/cooking': 'cups to ml', '/tools/loan': 'Loan',
+      '/convert/volume': 'liters to gal', '/tools/color': 'Color',
+      '/convert/speed': 'mph to km/h', '/convert/data': 'MB to GB',
+      '/tools/tip': 'Tip', '/tools/discount': 'Discount',
+      '/tools/clock': 'World Clock', '/tools/age': 'Age',
+      '/convert/area': 'acres', '/convert/energy': 'Energy',
+      '/convert/pressure': 'PSI to bar', '/convert/power': 'kW to HP',
+      '/convert/fuel': 'MPG', '/convert/base': 'Binary',
+      '/convert/frequency': 'Hz to MHz', '/convert/angle': 'Radians',
+      '/convert/roman': 'Roman', '/convert/time': 'Time',
+      '/tools/date-diff': 'Date Diff', '/tools/stopwatch': 'Stopwatch',
+      '/tools/alarm': 'Alarm', '/tools/reminder': 'Reminder',
+    };
+
+    // Base visit popularity (fallback if API fails)
+    var visitWeights = {
+      '/convert/weight': 95, '/convert/length': 90, '/convert/temperature': 88,
+      '/convert/currency': 85, '/tools/bmi': 78, '/tools/calculator': 75,
+      '/convert/cooking': 72, '/tools/loan': 72, '/convert/volume': 70,
+      '/tools/color': 70, '/convert/speed': 68, '/convert/data': 65,
+      '/tools/tip': 62, '/tools/discount': 58, '/tools/clock': 55,
+      '/tools/age': 52, '/convert/area': 50, '/convert/energy': 50,
+      '/convert/pressure': 48, '/convert/power': 45, '/convert/fuel': 42,
+      '/convert/base': 40, '/convert/frequency': 38, '/convert/angle': 35,
+      '/convert/roman': 30, '/convert/time': 60, '/tools/date-diff': 48,
+      '/tools/stopwatch': 45, '/tools/alarm': 40, '/tools/reminder': 38,
+    };
+
+    function renderCloud(favCounts) {
+      // Merge: favourite count weight (normalized to 0-100) + visit weight
+      // Favourite counts are primary, visit weights are secondary (tiebreaker)
+      var maxFavCount = Math.max(1, Math.max.apply(null, Object.values(favCounts).concat([1])));
+
+      var tags = Object.keys(labels).map(function(href) {
+        var favCount = favCounts[href] || 0;
+        var favScore = (favCount / maxFavCount) * 60; // 0-60 from favourites
+        var visitScore = ((visitWeights[href] || 30) / 100) * 40; // 0-40 from visits
+        var weight = Math.round(favScore + visitScore);
+        return { label: labels[href], href: href, weight: weight, favCount: favCount };
+      });
+
+      // Sort by weight descending
+      tags.sort(function(a, b) { return b.weight - a.weight; });
+      tags = tags.slice(0, 20);
+
+      cloudEl.innerHTML = tags.map(function(tag) {
+        var minSize = 10, maxSize = 16;
+        var size = minSize + (tag.weight / 100) * (maxSize - minSize);
+        var opacity = 0.5 + (tag.weight / 100) * 0.5;
+        var isHot = tag.favCount > (maxFavCount * 0.5);
+        var classes = isHot
+          ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30'
+          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-400';
+        var heart = isHot ? '❤️ ' : '';
+        return '<a href="' + tag.href + '" class="inline-block px-2 py-0.5 rounded-full ' + classes + ' transition-colors leading-snug" style="font-size:' + size + 'px;opacity:' + opacity + ';" title="' + tag.label + ' — ' + tag.favCount + ' favourites">' + heart + tag.label + '</a>';
+      }).join('');
+    }
+
+    // Fetch global favourite counts from API
+    fetch('/api/favourites').then(function(res) { return res.json(); }).then(function(data) {
+      var counts = {};
+      (data.counts || []).forEach(function(r) { counts[r.href] = r.count; });
+      renderCloud(counts);
+    }).catch(function() {
+      // Fallback: render with visits only
+      renderCloud({});
+    });
+  })();
+</script>
 
 <script>
   // ── Treeview toggle ────────────────────────────────────────────────────────

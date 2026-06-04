@@ -2,13 +2,22 @@
 import '../styles/global.css';
 import Sidebar from '../components/Sidebar.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
+import LiveSearch from '../components/LiveSearch.astro';
+import CookieConsent from '../components/CookieConsent.astro';
+import ChatAssistant from '../components/ChatAssistant.astro';
 
 interface Props {
   title: string;
   description?: string;
+  keywords?: string;
+  canonical?: string;
+  ogType?: string;
 }
 
-const { title, description = 'Free online unit converters and calculators. Convert weight, length, temperature, currency, and more.' } = Astro.props;
+const { title, description = 'Free online unit converters and calculators. Convert weight, length, temperature, currency, and more.', keywords = '', canonical, ogType = 'website' } = Astro.props;
+const siteUrl = 'https://xconvert24-com.xconvert.workers.dev';
+const canonicalUrl = canonical || siteUrl + Astro.url.pathname;
+const fullTitle = `${title} | xConvert24.com`;
 ---
 
 <!doctype html>
@@ -19,11 +28,114 @@ const { title, description = 'Free online unit converters and calculators. Conve
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title} | xConvert.com</title>
+
+    <!-- Primary SEO -->
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta property="og:title" content={`${title} | xConvert.com`} />
+    {keywords && <meta name="keywords" content={keywords} />}
+    <link rel="canonical" href={canonicalUrl} />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <meta name="author" content="xConvert24.com" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="xConvert24.com" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+
+    <!-- Technical -->
     <meta name="theme-color" content="#f59e0b" />
+    <link rel="sitemap" href="/sitemap.xml" />
+
+    <!-- JSON-LD Structured Data -->
+    <script is:inline type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "xConvert24.com",
+      "url": "https://xconvert24-com.xconvert.workers.dev",
+      "description": "Free online unit converters and calculators for weight, length, temperature, currency, and more.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://xconvert24-com.xconvert.workers.dev/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Google Consent Mode v2 defaults (must be BEFORE gtag) -->
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'functionality_storage': 'granted',
+        'personalization_storage': 'denied',
+        'security_storage': 'granted',
+        'wait_for_update': 500
+      });
+    </script>
+
+    <!-- Google Analytics (respects consent mode) -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-BZMZ2XC247"></script>
+    <script is:inline>
+      gtag('js', new Date());
+      gtag('config', 'G-BZMZ2XC247');
+    </script>
+
+    <!-- Global click tracking for all interactive elements -->
+    <script is:inline>
+      document.addEventListener('click', function(e) {
+        if (typeof gtag !== 'function') return;
+        var el = e.target.closest('a, button, [data-track]');
+        if (!el) return;
+
+        var tag = el.tagName.toLowerCase();
+        var label = el.getAttribute('aria-label') || el.getAttribute('title') || el.textContent.trim().slice(0, 50);
+        var href = el.getAttribute('href') || '';
+        var id = el.id || '';
+
+        // Determine event category
+        var category = 'interaction';
+        if (href.startsWith('/convert/')) category = 'converter_click';
+        else if (href.startsWith('/tools/')) category = 'tool_click';
+        else if (href.startsWith('/admin')) category = 'admin_click';
+        else if (tag === 'button') category = 'button_click';
+        else if (href.startsWith('/')) category = 'navigation';
+        else if (href.startsWith('http')) category = 'outbound_link';
+
+        // Specific tracked actions
+        if (id === 'theme-toggle') category = 'theme_toggle';
+        else if (id === 'chat-toggle') category = 'chat_open';
+        else if (id === 'bookmark-btn') category = 'bookmark_click';
+        else if (id === 'sw-start' || id === 'sw-lap' || id === 'sw-reset') category = 'stopwatch_action';
+        else if (el.closest('#cookie-banner')) category = 'cookie_consent';
+        else if (el.classList.contains('vote-btn')) category = 'bug_vote';
+        else if (el.classList.contains('star-btn')) category = 'suggestion_rate';
+        else if (el.classList.contains('fav-btn') || el.closest('.fav-btn')) category = 'favourite_toggle';
+        else if (el.closest('#live-search-results')) category = 'search_result_click';
+        else if (el.closest('.tag-cloud') || el.closest('#tag-cloud')) category = 'tag_cloud_click';
+        else if (id === 'swap-btn') category = 'swap_units';
+
+        gtag('event', category, {
+          event_label: label,
+          event_category: category,
+          link_url: href || undefined,
+          element_id: id || undefined,
+          page_path: window.location.pathname,
+        });
+      });
+    </script>
     <script is:inline>
       // Prevent flash of wrong theme
       (function() {
@@ -55,11 +167,11 @@ const { title, description = 'Free online unit converters and calculators. Conve
         </button>
 
         <!-- Logo (mobile only - desktop shows in sidebar) -->
-        <a href="/" class="lg:hidden flex items-center" aria-label="xConvert.com">
-          <svg width="105" height="28" viewBox="0 0 145 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <a href="/" class="lg:hidden flex items-center" aria-label="xConvert24.com">
+          <svg width="130" height="32" viewBox="0 0 280 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="hdr-gold" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#fbbf24"/>
+              <linearGradient id="hdr-bg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#4a3f5c"/>
                 <stop offset="100%" stop-color="#d97706"/>
               </linearGradient>
               <linearGradient id="hdr-text" x1="0" y1="0" x2="0" y2="1">
@@ -67,38 +179,98 @@ const { title, description = 'Free online unit converters and calculators. Conve
                 <stop offset="100%" stop-color="#d97706"/>
               </linearGradient>
             </defs>
-            <line x1="4" y1="34" x2="24" y2="8" stroke="url(#hdr-gold)" stroke-width="3.5" stroke-linecap="round"/>
-            <polyline points="14,8 24,8 24,18" stroke="url(#hdr-gold)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <line x1="4" y1="8" x2="24" y2="34" stroke="url(#hdr-gold)" stroke-width="3.5" stroke-linecap="round"/>
-            <polyline points="14,34 24,34 24,24" stroke="url(#hdr-gold)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            <text x="31" y="29" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="url(#hdr-text)" letter-spacing="-0.5">xConvert.com</text>
+            <rect x="2" y="4" width="40" height="40" rx="10" fill="url(#hdr-bg)"/>
+            <path d="M12 36 L22 26 M22 26 L22 32 M22 26 L16 26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M32 12 L22 22 M22 22 L22 16 M22 22 L28 22" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="50" y="33" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="url(#hdr-text)" letter-spacing="-0.5">xConvert24</text>
           </svg>
         </a>
 
         <!-- Right side: search + theme toggle -->
         <div class="flex items-center gap-2 ml-auto">
-          <!-- Search bar (desktop) -->
-          <form action="/search" method="get" class="hidden md:flex items-center" role="search">
-            <div class="relative">
-              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                type="search"
-                name="q"
-                placeholder="Search converters…"
-                class="h-9 w-52 pl-9 pr-3 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white dark:focus:bg-gray-900 transition-colors"
-                aria-label="Search converters"
-              />
-            </div>
-          </form>
-          <!-- Search icon (mobile) -->
+          <!-- Live search (desktop) -->
+          <div class="hidden md:block">
+            <LiveSearch />
+          </div>
+          <!-- Search icon (mobile) — opens full search page -->
           <a href="/search" class="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Search">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
           </a>
+          <!-- Suggest a conversion -->
+          <a
+            href="/suggest"
+            class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label="Suggest a conversion"
+            title="Suggest a conversion"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </a>
+          <!-- Favourites -->
+          <a
+            href="/favourites"
+            class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label="My Favourites"
+            title="My Favourites"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            <span id="fav-badge" class="hidden absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">0</span>
+          </a>
+          <ChatAssistant />
           <ThemeToggle />
+          <!-- Bug report button -->
+          <a
+            href="/report-bug"
+            class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label="Report a bug"
+            title="Report a bug"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 12v.01M8 8l-1.5-1.5M16 8l1.5-1.5M9 20h6M12 20v-4m0-4a4 4 0 01-4-4V7a4 4 0 118 0v1a4 4 0 01-4 4zm-6 0H4m16 0h-2m-9 4l-1 2m8-2l1 2"/>
+            </svg>
+          </a>
+          <!-- Bookmark button -->
+          <div class="relative" id="bookmark-wrapper">
+            <button
+              id="bookmark-btn"
+              aria-label="Bookmark this page"
+              title="Bookmark this page"
+              class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            >
+              <!-- Bookmark outline (not saved) -->
+              <svg id="bookmark-outline" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+              </svg>
+              <!-- Bookmark filled (saved) -->
+              <svg id="bookmark-filled" class="w-5 h-5 hidden text-amber-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+              </svg>
+            </button>
+
+            <!-- Bookmark dropdown -->
+            <div id="bookmark-dropdown" class="hidden absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+              <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                <span class="text-sm font-semibold text-gray-900 dark:text-white">Your Bookmarks</span>
+                <span id="bookmark-count" class="text-xs text-gray-400">0 saved</span>
+              </div>
+              <div id="bookmark-list" class="max-h-52 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800">
+                <div class="px-4 py-3 text-sm text-gray-400 italic">No bookmarks yet</div>
+              </div>
+              <div class="px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                <div id="bookmark-action" class="text-xs text-gray-500 dark:text-gray-400"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Version badge with deployment timestamp -->
+          <a href="/releases" class="hidden sm:flex flex-col items-end leading-none" title="Version 1.2.0" style="font-size:8px;">
+            <span class="text-amber-500 font-mono">v1.3.0</span>
+            <span class="text-gray-400 font-mono mt-0.5">{new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'').toUpperCase()}-{new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}</span>
+          </a>
         </div>
       </header>
 
@@ -108,9 +280,266 @@ const { title, description = 'Free online unit converters and calculators. Conve
       </main>
 
       <!-- Footer -->
-      <footer class="border-t border-gray-200 dark:border-gray-800 py-6 px-4 lg:px-8 text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>© {new Date().getFullYear()} xConvert.com — Free online unit converters &amp; calculators</p>
+      <footer class="border-t border-gray-200 dark:border-gray-800 py-8 px-4 lg:px-8">
+        <div class="max-w-5xl mx-auto">
+          <!-- Footer links -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
+            <!-- Converters -->
+            <div>
+              <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Popular Converters</h3>
+              <ul class="space-y-2 text-sm">
+                <li><a href="/convert/weight" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Weight</a></li>
+                <li><a href="/convert/length" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Length</a></li>
+                <li><a href="/convert/temperature" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Temperature</a></li>
+                <li><a href="/convert/currency" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Currency</a></li>
+                <li><a href="/convert/data" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Data Storage</a></li>
+              </ul>
+            </div>
+            <!-- Tools -->
+            <div>
+              <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Tools</h3>
+              <ul class="space-y-2 text-sm">
+                <li><a href="/tools/calculator" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Calculator</a></li>
+                <li><a href="/tools/bmi" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">BMI</a></li>
+                <li><a href="/tools/color" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Color Picker</a></li>
+                <li><a href="/tools/loan" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Loan Calculator</a></li>
+                <li><a href="/tools/clock" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">World Clock</a></li>
+              </ul>
+            </div>
+            <!-- Company -->
+            <div>
+              <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Company</h3>
+              <ul class="space-y-2 text-sm">
+                <li><a href="/about" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">About Us</a></li>
+                <li><a href="/contact" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Contact Us</a></li>
+                <li><a href="/guide" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">User Guide</a></li>
+                <li><a href="/faq" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">FAQ</a></li>
+                <li><a href="/search" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Search</a></li>
+              </ul>
+            </div>
+            <!-- Legal -->
+            <div>
+              <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Legal</h3>
+              <ul class="space-y-2 text-sm">
+                <li><a href="/privacy" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Privacy Policy</a></li>
+                <li><a href="/terms" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Terms & Conditions</a></li>
+                <li><a href="/cookies" class="text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Cookie Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          <!-- Bottom bar -->
+          <div class="border-t border-gray-100 dark:border-gray-800 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
+            <p>© {new Date().getFullYear()} xConvert24.com — Free online unit converters &amp; calculators</p>
+            <div class="flex items-center gap-4">
+              <a href="/releases" class="font-mono text-xs text-amber-600 dark:text-amber-400 hover:underline">v1.3.0</a>
+              <a href="/privacy" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Privacy</a>
+              <a href="/terms" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Terms</a>
+              <a href="/contact" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Contact</a>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
+
+    <!-- Cookie Consent Banner -->
+    <CookieConsent />
+
+    <script is:inline>
+      // ─── Favourites system ─────────────────────────────────────────────────
+      (function() {
+        var FAV_KEY = 'xconvert24-favourites';
+        var path = window.location.pathname.replace(/\/$/, '') || '/';
+
+        function getFavs() {
+          try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function saveFavs(favs) { localStorage.setItem(FAV_KEY, JSON.stringify(favs)); }
+        function isFav() { return getFavs().some(function(f) { return f.href === path; }); }
+
+        // Update badge count
+        var badge = document.getElementById('fav-badge');
+        var count = getFavs().length;
+        if (badge && count > 0) {
+          badge.textContent = count.toString();
+          badge.classList.remove('hidden');
+          badge.style.display = 'flex';
+        }
+
+        // Only inject heart button on converter/tool pages
+        if (!/^\/(convert|tools)\//.test(path)) return;
+
+        // Find the page header (first h1)
+        var h1 = document.querySelector('main h1');
+        if (!h1) return;
+        var headerDiv = h1.closest('.flex') || h1.parentElement;
+        if (!headerDiv) return;
+
+        var pageName = h1.textContent.trim();
+        var isFavourite = isFav();
+
+        // Create heart button
+        var btn = document.createElement('button');
+        btn.className = 'ml-auto shrink-0 p-2 rounded-lg transition-colors ' + (isFavourite ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-red-300 dark:text-red-800 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20');
+        btn.setAttribute('aria-label', isFavourite ? 'Remove from favourites' : 'Add to favourites');
+        btn.setAttribute('title', isFavourite ? '❤️ In your favourites — click to remove' : '🤍 Add to favourites');
+        btn.innerHTML = isFavourite
+          ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>'
+          : '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>';
+
+        btn.addEventListener('click', function() {
+          var favs = getFavs();
+          if (isFav()) {
+            // Remove
+            favs = favs.filter(function(f) { return f.href !== path; });
+            saveFavs(favs);
+            btn.className = 'ml-auto shrink-0 p-2 rounded-lg transition-colors text-red-300 dark:text-red-800 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20';
+            btn.innerHTML = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>';
+            btn.setAttribute('title', '🤍 Add to favourites');
+            // GA event + API
+            if (typeof gtag === 'function') gtag('event', 'remove_favourite', { page_title: pageName, page_path: path });
+            fetch('/api/favourites', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ href: path, action: 'remove' }) }).catch(function(){});
+          } else {
+            // Add
+            var category = '';
+            var catEl = document.querySelector('[data-section] .px-2.py-1\\.5');
+            if (catEl) category = catEl.textContent.trim();
+            favs.unshift({ name: pageName, href: path, category: category, addedAt: Date.now() });
+            saveFavs(favs);
+            btn.className = 'ml-auto shrink-0 p-2 rounded-lg transition-colors text-red-500 bg-red-50 dark:bg-red-900/20';
+            btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>';
+            btn.setAttribute('title', '❤️ In your favourites — click to remove');
+            // GA event + API
+            if (typeof gtag === 'function') gtag('event', 'add_favourite', { page_title: pageName, page_path: path, category: category });
+            fetch('/api/favourites', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ href: path, action: 'add' }) }).catch(function(){});
+          }
+          // Update badge
+          var newCount = getFavs().length;
+          if (badge) {
+            badge.textContent = newCount.toString();
+            if (newCount > 0) { badge.classList.remove('hidden'); badge.style.display = 'flex'; }
+            else { badge.classList.add('hidden'); }
+          }
+        });
+
+        headerDiv.style.display = 'flex';
+        headerDiv.style.alignItems = 'center';
+        headerDiv.appendChild(btn);
+      })();
+    </script>
+
+    <script is:inline>
+      // Bookmark functionality with dropdown
+      (function() {
+        var btn = document.getElementById('bookmark-btn');
+        var outline = document.getElementById('bookmark-outline');
+        var filled = document.getElementById('bookmark-filled');
+        var dropdown = document.getElementById('bookmark-dropdown');
+        var wrapper = document.getElementById('bookmark-wrapper');
+        var listEl = document.getElementById('bookmark-list');
+        var countEl = document.getElementById('bookmark-count');
+        var actionEl = document.getElementById('bookmark-action');
+        var key = 'xconvert-bookmarks';
+        var path = window.location.pathname;
+        var title = document.title.split(' | ')[0];
+        var isOpen = false;
+
+        function getBookmarks() {
+          try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+        }
+
+        function isBookmarked() {
+          return getBookmarks().some(function(b) { return b.path === path; });
+        }
+
+        function addBookmark() {
+          var bookmarks = getBookmarks();
+          if (!bookmarks.some(function(b) { return b.path === path; })) {
+            bookmarks.unshift({ path: path, title: title, date: new Date().toLocaleDateString() });
+            localStorage.setItem(key, JSON.stringify(bookmarks));
+          }
+        }
+
+        function removeBookmark() {
+          var bookmarks = getBookmarks().filter(function(b) { return b.path !== path; });
+          localStorage.setItem(key, JSON.stringify(bookmarks));
+        }
+
+        function renderIcon() {
+          if (isBookmarked()) {
+            outline.classList.add('hidden');
+            filled.classList.remove('hidden');
+          } else {
+            outline.classList.remove('hidden');
+            filled.classList.add('hidden');
+          }
+        }
+
+        function renderDropdown() {
+          var bookmarks = getBookmarks();
+          countEl.textContent = bookmarks.length + ' saved';
+
+          if (bookmarks.length === 0) {
+            listEl.innerHTML = '<div class="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 italic">No bookmarks yet</div>';
+          } else {
+            listEl.innerHTML = bookmarks.map(function(b) {
+              return '<a href="' + b.path + '" class="flex items-center justify-between px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">' +
+                '<span class="text-sm text-gray-700 dark:text-gray-300 truncate">' + b.title + '</span>' +
+                '<button data-remove="' + b.path + '" class="shrink-0 ml-2 text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors" onclick="event.preventDefault();event.stopPropagation();">' +
+                '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>' +
+                '</button></a>';
+            }).join('');
+
+            // Attach remove handlers
+            listEl.querySelectorAll('[data-remove]').forEach(function(el) {
+              el.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var p = el.getAttribute('data-remove');
+                var bm = getBookmarks().filter(function(b) { return b.path !== p; });
+                localStorage.setItem(key, JSON.stringify(bm));
+                renderIcon();
+                renderDropdown();
+              });
+            });
+          }
+
+          // Action text
+          if (isBookmarked()) {
+            actionEl.innerHTML = '✓ This page is bookmarked. <button id="bm-remove-current" class="text-red-500 hover:underline">Remove</button>';
+            var removeBtn = document.getElementById('bm-remove-current');
+            if (removeBtn) removeBtn.addEventListener('click', function() { removeBookmark(); renderIcon(); renderDropdown(); });
+          } else {
+            actionEl.innerHTML = '<button id="bm-add-current" class="text-amber-600 dark:text-amber-400 hover:underline font-medium">+ Bookmark this page</button>';
+            var addBtn = document.getElementById('bm-add-current');
+            if (addBtn) addBtn.addEventListener('click', function() { addBookmark(); renderIcon(); renderDropdown(); });
+          }
+        }
+
+        function toggleDropdown() {
+          isOpen = !isOpen;
+          if (isOpen) {
+            renderDropdown();
+            dropdown.classList.remove('hidden');
+          } else {
+            dropdown.classList.add('hidden');
+          }
+        }
+
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          toggleDropdown();
+        });
+
+        // Close on outside click
+        document.addEventListener('click', function(e) {
+          if (!wrapper.contains(e.target) && isOpen) {
+            isOpen = false;
+            dropdown.classList.add('hidden');
+          }
+        });
+
+        renderIcon();
+      })();
+    </script>
   </body>
 </html>

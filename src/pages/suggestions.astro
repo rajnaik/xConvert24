@@ -1,0 +1,129 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Community Suggestions — Rate & Vote" description="View and rate suggested converters and tools for xConvert24.com. Highest rated suggestions get built first." keywords="suggestions, feature voting, community requests, rate suggestions, new converter ideas">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">⭐</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Community Suggestions</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Rate suggestions to help us decide what to build next. Highest rated wins!</p>
+      <a href="/suggest" class="inline-flex items-center gap-1.5 mt-2 text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium">
+        💡 Submit a new suggestion →
+      </a>
+    </div>
+
+    <div id="sug-count" class="text-sm text-gray-500 dark:text-gray-400 mb-4">Loading…</div>
+
+    <div id="sug-list" class="space-y-3">
+      <div class="text-center py-12 text-gray-400 italic">Loading suggestions…</div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="sug-empty" class="hidden text-center py-16">
+      <div class="text-5xl mb-4">💡</div>
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">No suggestions yet</h2>
+      <p class="text-gray-500 dark:text-gray-400">Be the first to <a href="/suggest" class="text-amber-600 dark:text-amber-400 hover:underline">suggest a converter</a>!</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const RATED_KEY = 'xconvert24-rated-suggestions';
+  const listEl = document.getElementById('sug-list')!;
+  const emptyEl = document.getElementById('sug-empty')!;
+  const countEl = document.getElementById('sug-count')!;
+
+  function getRated(): Record<string, number> {
+    try { return JSON.parse(localStorage.getItem(RATED_KEY) || '{}'); } catch { return {}; }
+  }
+  function saveRated(r: Record<string, number>) {
+    localStorage.setItem(RATED_KEY, JSON.stringify(r));
+  }
+
+  const catLabels: Record<string, string> = {
+    measurement: '📏 Measurement', digital: '💻 Digital', finance: '💰 Finance',
+    'food-health': '🍳 Food & Health', energy: '⚡ Energy', time: '🕐 Time',
+    creative: '🎨 Creative', math: '🔢 Math', other: '📦 Other',
+  };
+
+  async function loadSuggestions() {
+    try {
+      const res = await fetch('/api/suggestions');
+      const data = await res.json();
+      const suggestions = data.suggestions || [];
+      const rated = getRated();
+
+      countEl.textContent = `${suggestions.length} suggestion${suggestions.length !== 1 ? 's' : ''}`;
+
+      if (!suggestions.length) {
+        listEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      listEl.innerHTML = suggestions.map((s: any) => {
+        const userRating = rated[s.id] || 0;
+        const avgRating = s.rating ? s.rating.toFixed(1) : '—';
+        const stars = [1,2,3,4,5].map(n => {
+          const filled = n <= userRating;
+          return `<button data-id="${s.id}" data-stars="${n}" class="star-btn text-xl transition-transform hover:scale-125 ${filled ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600 hover:text-amber-300'}">${filled ? '★' : '☆'}</button>`;
+        }).join('');
+
+        return `
+          <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">${s.title.replace(/</g,'&lt;')}</h3>
+                ${s.description ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">${s.description.replace(/</g,'&lt;')}</p>` : ''}
+              </div>
+              ${s.category ? `<span class="shrink-0 text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">${catLabels[s.category] || s.category}</span>` : ''}
+            </div>
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div class="flex items-center gap-1">${stars}</div>
+              <div class="flex items-center gap-3 text-xs text-gray-400">
+                <span class="font-semibold text-amber-600 dark:text-amber-400">${avgRating} ⭐</span>
+                <span>${s.votes_count || 0} rating${s.votes_count !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Attach star click handlers
+      listEl.querySelectorAll('.star-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = (btn as HTMLElement).dataset.id!;
+          const stars = parseInt((btn as HTMLElement).dataset.stars!);
+          await rateSuggestion(id, stars);
+        });
+      });
+    } catch {
+      listEl.innerHTML = '<div class="text-center py-8 text-red-400 italic">Failed to load suggestions from server.</div>';
+    }
+  }
+
+  async function rateSuggestion(id: string, stars: number) {
+    const rated = getRated();
+    if (rated[id]) return; // Already rated
+
+    rated[id] = stars;
+    saveRated(rated);
+
+    try {
+      await fetch('/api/suggestions/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, stars }),
+      });
+    } catch {}
+
+    loadSuggestions(); // Re-render
+  }
+
+  loadSuggestions();
+</script>

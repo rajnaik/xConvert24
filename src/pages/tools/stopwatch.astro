@@ -1,0 +1,132 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Stopwatch — Online Timer with Laps" description="Free online stopwatch with lap times, split tracking, and millisecond precision. Start, stop, lap, and reset." keywords="stopwatch, online stopwatch, timer, lap timer, split time, chronometer, milliseconds">
+  <div class="max-w-md mx-auto">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">⏱️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Stopwatch</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Precise stopwatch with lap tracking</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm text-center">
+      <!-- Display -->
+      <div id="sw-display" class="text-6xl font-mono font-bold text-gray-900 dark:text-white tracking-tight mb-2">
+        00:00:00<span class="text-3xl text-gray-400 dark:text-gray-500">.00</span>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex justify-center gap-3 mt-6">
+        <button id="sw-start" class="px-6 py-3 rounded-xl bg-green-500 text-white font-semibold text-sm hover:bg-green-600 transition-colors shadow-sm">
+          ▶ Start
+        </button>
+        <button id="sw-lap" class="px-6 py-3 rounded-xl bg-blue-500 text-white font-semibold text-sm hover:bg-blue-600 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+          🏁 Lap
+        </button>
+        <button id="sw-reset" class="px-6 py-3 rounded-xl bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">
+          ↺ Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Laps -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white text-sm">Laps</h2>
+        <span id="sw-lap-count" class="text-xs text-gray-400">0 laps</span>
+      </div>
+      <div id="sw-laps" class="max-h-60 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800">
+        <div class="px-5 py-3 text-sm text-gray-400 italic text-center">No laps recorded</div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let running = false;
+  let startTime = 0;
+  let elapsed = 0;
+  let animFrame: number;
+  let laps: number[] = [];
+
+  const display = document.getElementById('sw-display')!;
+  const startBtn = document.getElementById('sw-start')!;
+  const lapBtn = document.getElementById('sw-lap') as HTMLButtonElement;
+  const resetBtn = document.getElementById('sw-reset')!;
+  const lapsEl = document.getElementById('sw-laps')!;
+  const lapCount = document.getElementById('sw-lap-count')!;
+
+  function formatTime(ms: number): string {
+    const hrs = Math.floor(ms / 3600000);
+    const mins = Math.floor((ms % 3600000) / 60000);
+    const secs = Math.floor((ms % 60000) / 1000);
+    const centis = Math.floor((ms % 1000) / 10);
+    const hh = hrs.toString().padStart(2, '0');
+    const mm = mins.toString().padStart(2, '0');
+    const ss = secs.toString().padStart(2, '0');
+    const cc = centis.toString().padStart(2, '0');
+    return `${hh}:${mm}:${ss}<span class="text-3xl text-gray-400 dark:text-gray-500">.${cc}</span>`;
+  }
+
+  function update() {
+    if (!running) return;
+    elapsed = Date.now() - startTime;
+    display.innerHTML = formatTime(elapsed);
+    animFrame = requestAnimationFrame(update);
+  }
+
+  function start() {
+    if (running) {
+      // Pause
+      running = false;
+      cancelAnimationFrame(animFrame);
+      startBtn.textContent = '▶ Resume';
+      startBtn.className = 'px-6 py-3 rounded-xl bg-green-500 text-white font-semibold text-sm hover:bg-green-600 transition-colors shadow-sm';
+    } else {
+      // Start/Resume
+      running = true;
+      startTime = Date.now() - elapsed;
+      startBtn.textContent = '⏸ Pause';
+      startBtn.className = 'px-6 py-3 rounded-xl bg-amber-500 text-white font-semibold text-sm hover:bg-amber-600 transition-colors shadow-sm';
+      lapBtn.disabled = false;
+      update();
+    }
+  }
+
+  function lap() {
+    if (!running) return;
+    laps.push(elapsed);
+    lapCount.textContent = `${laps.length} lap${laps.length !== 1 ? 's' : ''}`;
+    const diff = laps.length > 1 ? elapsed - laps[laps.length - 2] : elapsed;
+    const item = document.createElement('div');
+    item.className = 'flex items-center justify-between px-5 py-2.5 text-sm';
+    item.innerHTML = `
+      <span class="text-gray-500 dark:text-gray-400 font-mono">Lap ${laps.length}</span>
+      <span class="text-gray-700 dark:text-gray-300 font-mono font-semibold">${formatTime(diff).replace(/<[^>]*>/g, '.')}</span>
+      <span class="text-xs text-gray-400 font-mono">${formatTime(elapsed).replace(/<[^>]*>/g, '.')}</span>
+    `;
+    if (lapsEl.querySelector('.italic')) lapsEl.innerHTML = '';
+    lapsEl.prepend(item);
+  }
+
+  function reset() {
+    running = false;
+    cancelAnimationFrame(animFrame);
+    elapsed = 0;
+    laps = [];
+    display.innerHTML = formatTime(0);
+    startBtn.textContent = '▶ Start';
+    startBtn.className = 'px-6 py-3 rounded-xl bg-green-500 text-white font-semibold text-sm hover:bg-green-600 transition-colors shadow-sm';
+    lapBtn.disabled = true;
+    lapsEl.innerHTML = '<div class="px-5 py-3 text-sm text-gray-400 italic text-center">No laps recorded</div>';
+    lapCount.textContent = '0 laps';
+  }
+
+  startBtn.addEventListener('click', start);
+  lapBtn.addEventListener('click', lap);
+  resetBtn.addEventListener('click', reset);
+</script>

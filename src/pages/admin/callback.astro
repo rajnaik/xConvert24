@@ -1,0 +1,39 @@
+---
+import {
+  exchangeCodeForUser,
+  createSessionCookie,
+  getSessionCookieHeader,
+  type AuthEnv,
+} from '../../lib/auth';
+
+const { env } = await import('cloudflare:workers');
+const cfEnv = env as any;
+const code = Astro.url.searchParams.get('code');
+
+if (!code) {
+  return Astro.redirect('/admin/login');
+}
+
+const user = await exchangeCodeForUser(code, cfEnv as AuthEnv, Astro.url);
+
+if (!user) {
+  return Astro.redirect('/admin/login?error=auth_failed');
+}
+
+// Check if user is the allowed admin
+const adminEmail = cfEnv.ADMIN_EMAIL || '';
+if (adminEmail && user.email.toLowerCase() !== adminEmail.toLowerCase()) {
+  return new Response('Access denied. Only the authorized admin can sign in.', { status: 403 });
+}
+
+// Create session cookie and redirect to dashboard
+const cookie = await createSessionCookie(user, cfEnv.AUTH_SECRET);
+
+return new Response(null, {
+  status: 302,
+  headers: {
+    Location: '/admin',
+    'Set-Cookie': getSessionCookieHeader(cookie),
+  },
+});
+---
