@@ -1,0 +1,82 @@
+---
+import Layout from '../../layouts/Layout.astro';
+const units = [
+  { value: 'w', label: 'Watts (W)' },
+  { value: 'kw', label: 'Kilowatts (kW)' },
+  { value: 'mw', label: 'Megawatts (MW)' },
+  { value: 'hp', label: 'Horsepower (hp)' },
+  { value: 'ps', label: 'Metric Horsepower (PS)' },
+  { value: 'btuh', label: 'BTU per hour (BTU/hr)' },
+  { value: 'calh', label: 'Calories per second (cal/s)' },
+  { value: 'ft_lbs', label: 'Foot-pounds/min (ft·lbf/min)' },
+];
+---
+<Layout title="Power Converter" description="Convert between Watts, Kilowatts, Horsepower, BTU/hr and more power units.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2"><span class="text-3xl">🔋</span><h1 class="text-2xl font-bold text-gray-900 dark:text-white">Power Converter</h1></div>
+      <p class="text-gray-500 dark:text-gray-400">Convert between units of power</p>
+    </div>
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div class="mb-4">
+        <label for="from-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From</label>
+        <div class="flex gap-3">
+          <select id="from-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map((u,i) => <option value={u.value} selected={i===3}>{u.label}</option>)}
+          </select>
+          <input id="from-value" type="number" value="1" class="flex-1 h-13 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+      </div>
+      <div class="flex justify-center my-3">
+        <button id="swap-btn" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>Swap
+        </button>
+      </div>
+      <div class="mb-4">
+        <label for="to-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To</label>
+        <div class="flex gap-3">
+          <select id="to-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map((u,i) => <option value={u.value} selected={i===0}>{u.label}</option>)}
+          </select>
+          <div id="result" class="flex-1 h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-lg font-semibold flex items-center">745.7</div>
+        </div>
+      </div>
+      <div id="formula" class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 font-mono">1 hp = 745.7 W</div>
+    </div>
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800"><h2 class="font-semibold text-gray-900 dark:text-white">Quick Reference</h2></div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800"><tr><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Value</th><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Equivalent</th></tr></thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {[['1 hp (US)','745.7 W / 0.7457 kW'],['1 PS (metric hp)','735.499 W'],['1 kW','1000 W / 1.341 hp'],['1 BTU/hr','0.29307 W'],['1 MW','1,000 kW / 1,341 hp']].map(([a,b]) => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{a}</td><td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{b}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+<script>
+  // All in Watts
+  const toW: Record<string,number> = {
+    w:1, kw:1000, mw:1e6, hp:745.69987158227022,
+    ps:735.49875, btuh:0.29307107017222, calh:4.184,
+    ft_lbs:0.02259696580552
+  };
+  function fmt(n: number) { return n<0.0001||n>1e9?n.toExponential(4):parseFloat(n.toPrecision(7)).toString(); }
+  const fu=document.getElementById('from-unit') as HTMLSelectElement;
+  const tu=document.getElementById('to-unit') as HTMLSelectElement;
+  const fv=document.getElementById('from-value') as HTMLInputElement;
+  const re=document.getElementById('result')!;
+  const fo=document.getElementById('formula')!;
+  function update(){
+    const v=parseFloat(fv.value); if(isNaN(v)){re.textContent='—';return;}
+    re.textContent=fmt(v*toW[fu.value]/toW[tu.value]);
+    fo.textContent=`1 ${fu.value} = ${fmt(toW[fu.value]/toW[tu.value])} ${tu.value}`;
+  }
+  fv.addEventListener('input',update);fu.addEventListener('change',update);tu.addEventListener('change',update);
+  document.getElementById('swap-btn')!.addEventListener('click',()=>{const t=fu.value;fu.value=tu.value;tu.value=t;update();});
+  update();
+</script>

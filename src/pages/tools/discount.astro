@@ -1,0 +1,159 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Discount Calculator" description="Calculate sale price, savings amount and discount percentage. Works both ways — find price from discount or discount from price.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🏷️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Discount Calculator</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Find sale price, savings and discount percentage instantly</p>
+    </div>
+
+    <!-- Mode tabs -->
+    <div class="flex gap-2 mb-5">
+      <button id="tab-pct" class="flex-1 py-2 px-4 rounded-lg text-sm font-medium border-2 border-amber-500 bg-amber-500 text-white transition-colors">Original + Discount %</button>
+      <button id="tab-sale" class="flex-1 py-2 px-4 rounded-lg text-sm font-medium border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-amber-400 transition-colors">Original + Sale Price</button>
+    </div>
+
+    <!-- Mode A: original price + discount % -->
+    <div id="mode-pct" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label for="orig-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Original Price</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+            <input id="orig-price" type="number" min="0" step="0.01" value="100" placeholder="0.00"
+              class="w-full h-12 pl-7 pr-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          </div>
+        </div>
+        <div>
+          <label for="disc-pct" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Discount</label>
+          <div class="relative">
+            <input id="disc-pct" type="number" min="0" max="100" step="0.1" value="20" placeholder="0"
+              class="w-full h-12 pl-3 pr-8 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick discount presets -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        {[5, 10, 15, 20, 25, 30, 40, 50, 60, 70].map(p => (
+          <button data-pct={p} class="disc-preset px-3 py-1 rounded-full text-xs font-semibold border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-amber-400 hover:text-amber-600 transition-colors">{p}% off</button>
+        ))}
+      </div>
+
+      <!-- Results -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-center">
+          <div class="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-1">Sale Price</div>
+          <div id="res-sale-price" class="text-2xl font-bold text-green-700 dark:text-green-400">$80.00</div>
+        </div>
+        <div class="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-center">
+          <div class="text-xs font-semibold text-red-500 dark:text-red-400 uppercase tracking-wide mb-1">You Save</div>
+          <div id="res-savings" class="text-2xl font-bold text-red-600 dark:text-red-400">$20.00</div>
+        </div>
+        <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-center">
+          <div class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">Savings</div>
+          <div id="res-pct-label" class="text-2xl font-bold text-amber-700 dark:text-amber-400">20%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode B: original + sale price → find discount % -->
+    <div id="mode-sale" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label for="b-orig" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Original Price</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+            <input id="b-orig" type="number" min="0" step="0.01" value="120" placeholder="0.00"
+              class="w-full h-12 pl-7 pr-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          </div>
+        </div>
+        <div>
+          <label for="b-sale" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Sale Price</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+            <input id="b-sale" type="number" min="0" step="0.01" value="90" placeholder="0.00"
+              class="w-full h-12 pl-7 pr-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-center">
+          <div class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">Discount %</div>
+          <div id="b-disc-pct" class="text-3xl font-bold text-amber-700 dark:text-amber-400">25%</div>
+        </div>
+        <div class="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-center">
+          <div class="text-xs font-semibold text-red-500 dark:text-red-400 uppercase tracking-wide mb-1">You Save</div>
+          <div id="b-savings" class="text-3xl font-bold text-red-600 dark:text-red-400">$30.00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let mode: 'pct' | 'sale' = 'pct';
+
+  const tabPct = document.getElementById('tab-pct')!;
+  const tabSale = document.getElementById('tab-sale')!;
+  const modePct = document.getElementById('mode-pct')!;
+  const modeSaleEl = document.getElementById('mode-sale')!;
+
+  const activeTab = 'flex-1 py-2 px-4 rounded-lg text-sm font-medium border-2 border-amber-500 bg-amber-500 text-white transition-colors';
+  const inactiveTab = 'flex-1 py-2 px-4 rounded-lg text-sm font-medium border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-amber-400 transition-colors';
+
+  function setMode(m: 'pct' | 'sale') {
+    mode = m;
+    if (m === 'pct') {
+      tabPct.className = activeTab; tabSale.className = inactiveTab;
+      modePct.classList.remove('hidden'); modeSaleEl.classList.add('hidden');
+    } else {
+      tabSale.className = activeTab; tabPct.className = inactiveTab;
+      modeSaleEl.classList.remove('hidden'); modePct.classList.add('hidden');
+    }
+  }
+
+  function fmt(n: number) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  function updateA() {
+    const orig = parseFloat((document.getElementById('orig-price') as HTMLInputElement).value) || 0;
+    const pct = parseFloat((document.getElementById('disc-pct') as HTMLInputElement).value) || 0;
+    const savings = orig * pct / 100;
+    const sale = orig - savings;
+    document.getElementById('res-sale-price')!.textContent = fmt(sale);
+    document.getElementById('res-savings')!.textContent = fmt(savings);
+    document.getElementById('res-pct-label')!.textContent = pct.toFixed(1) + '%';
+  }
+
+  function updateB() {
+    const orig = parseFloat((document.getElementById('b-orig') as HTMLInputElement).value) || 0;
+    const sale = parseFloat((document.getElementById('b-sale') as HTMLInputElement).value) || 0;
+    if (orig <= 0) return;
+    const savings = orig - sale;
+    const pct = (savings / orig) * 100;
+    document.getElementById('b-disc-pct')!.textContent = pct.toFixed(1) + '%';
+    document.getElementById('b-savings')!.textContent = fmt(Math.max(0, savings));
+  }
+
+  tabPct.addEventListener('click', () => setMode('pct'));
+  tabSale.addEventListener('click', () => setMode('sale'));
+
+  // Presets
+  document.querySelectorAll('[data-pct]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      (document.getElementById('disc-pct') as HTMLInputElement).value = (btn as HTMLElement).dataset.pct!;
+      updateA();
+    });
+  });
+
+  ['orig-price', 'disc-pct'].forEach(id => document.getElementById(id)?.addEventListener('input', updateA));
+  ['b-orig', 'b-sale'].forEach(id => document.getElementById(id)?.addEventListener('input', updateB));
+
+  updateA();
+  updateB();
+</script>

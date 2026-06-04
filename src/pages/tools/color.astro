@@ -1,0 +1,172 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Color Picker" description="Pick colors and convert between RGB, HEX, HSL, and CMYK color formats.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2"><span class="text-3xl">🎨</span><h1 class="text-2xl font-bold text-gray-900 dark:text-white">Color Picker</h1></div>
+      <p class="text-gray-500 dark:text-gray-400">Pick a color and convert between RGB, HEX, HSL, and CMYK</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <!-- Color preview + picker -->
+      <div class="flex gap-4 mb-6">
+        <div id="color-swatch" class="w-24 h-24 rounded-xl border border-gray-200 dark:border-gray-700 shadow-inner shrink-0" style="background: #f59e0b;"></div>
+        <div class="flex-1">
+          <label for="color-picker" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pick a Color</label>
+          <input id="color-picker" type="color" value="#f59e0b" class="w-full h-13 rounded-lg cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent"/>
+          <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Click to open color picker, or edit values below</p>
+        </div>
+      </div>
+
+      <!-- RGB Sliders -->
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">RGB</h3>
+        <div class="space-y-3">
+          {['r','g','b'].map((ch, i) => (
+            <div class="flex items-center gap-3">
+              <span class="w-5 text-sm font-bold" style={`color:${['#ef4444','#22c55e','#3b82f6'][i]}`}>{ch.toUpperCase()}</span>
+              <input type="range" id={`rgb-${ch}`} min="0" max="255" value={ch==='r'?245:ch==='g'?158:11} class="flex-1 h-2 rounded-full accent-amber-500 cursor-pointer"/>
+              <input type="number" id={`rgb-${ch}-num`} min="0" max="255" value={ch==='r'?245:ch==='g'?158:11} class="w-16 h-8 px-2 text-sm text-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Output formats -->
+      <div class="space-y-3">
+        {[
+          { id:'out-hex', label:'HEX', val:'#F59E0B' },
+          { id:'out-rgb', label:'RGB', val:'rgb(245, 158, 11)' },
+          { id:'out-hsl', label:'HSL', val:'hsl(38, 92%, 50%)' },
+          { id:'out-cmyk', label:'CMYK', val:'cmyk(0%, 35%, 96%, 4%)' },
+        ].map(fmt => (
+          <div class="flex items-center gap-3">
+            <span class="w-12 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase shrink-0">{fmt.label}</span>
+            <input id={fmt.id} type="text" readonly value={fmt.val}
+              class="flex-1 h-10 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 font-mono text-sm focus:outline-none"/>
+            <button data-copy={fmt.id} class="px-3 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 text-xs font-medium transition-colors border border-gray-200 dark:border-gray-700 shrink-0">Copy</button>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Shades -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Color Shades</h2>
+      <div id="shades" class="grid grid-cols-5 gap-2"></div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  type RGB = { r: number; g: number; b: number };
+
+  function rgbToHex({ r, g, b }: RGB): string {
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+  }
+
+  function hexToRgb(hex: string): RGB | null {
+    const m = hex.replace('#', '').match(/.{2}/g);
+    if (!m || m.length < 3) return null;
+    return { r: parseInt(m[0], 16), g: parseInt(m[1], 16), b: parseInt(m[2], 16) };
+  }
+
+  function rgbToHsl({ r, g, b }: RGB): { h: number; s: number; l: number } {
+    const rn = r / 255, gn = g / 255, bn = b / 255;
+    const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6;
+      else if (max === gn) h = ((bn - rn) / d + 2) / 6;
+      else h = ((rn - gn) / d + 4) / 6;
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  }
+
+  function rgbToCmyk({ r, g, b }: RGB): { c: number; m: number; y: number; k: number } {
+    const rn = r / 255, gn = g / 255, bn = b / 255;
+    const k = 1 - Math.max(rn, gn, bn);
+    if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+    return {
+      c: Math.round((1 - rn - k) / (1 - k) * 100),
+      m: Math.round((1 - gn - k) / (1 - k) * 100),
+      y: Math.round((1 - bn - k) / (1 - k) * 100),
+      k: Math.round(k * 100),
+    };
+  }
+
+  const pickerEl = document.getElementById('color-picker') as HTMLInputElement;
+  const swatchEl = document.getElementById('color-swatch')!;
+  const rSlider = document.getElementById('rgb-r') as HTMLInputElement;
+  const gSlider = document.getElementById('rgb-g') as HTMLInputElement;
+  const bSlider = document.getElementById('rgb-b') as HTMLInputElement;
+  const rNum = document.getElementById('rgb-r-num') as HTMLInputElement;
+  const gNum = document.getElementById('rgb-g-num') as HTMLInputElement;
+  const bNum = document.getElementById('rgb-b-num') as HTMLInputElement;
+  const shadesEl = document.getElementById('shades')!;
+
+  function updateOutputs(rgb: RGB) {
+    const hex = rgbToHex(rgb);
+    const hsl = rgbToHsl(rgb);
+    const cmyk = rgbToCmyk(rgb);
+    (document.getElementById('out-hex') as HTMLInputElement).value = hex;
+    (document.getElementById('out-rgb') as HTMLInputElement).value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+    (document.getElementById('out-hsl') as HTMLInputElement).value = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+    (document.getElementById('out-cmyk') as HTMLInputElement).value = `cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`;
+    swatchEl.style.background = hex;
+    pickerEl.value = hex.toLowerCase();
+    // Shades
+    shadesEl.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+      const f = i / 10;
+      const shade = { r: Math.round(rgb.r * f + 255 * (1 - f) * 0.1), g: Math.round(rgb.g * f + 255 * (1 - f) * 0.1), b: Math.round(rgb.b * f + 255 * (1 - f) * 0.1) };
+      const div = document.createElement('div');
+      div.className = 'h-10 rounded-lg cursor-pointer group relative';
+      div.style.background = rgbToHex(shade);
+      div.title = rgbToHex(shade);
+      shadesEl.appendChild(div);
+    }
+  }
+
+  function fromSliders() {
+    const rgb = { r: parseInt(rSlider.value), g: parseInt(gSlider.value), b: parseInt(bSlider.value) };
+    rNum.value = rSlider.value; gNum.value = gSlider.value; bNum.value = bSlider.value;
+    updateOutputs(rgb);
+  }
+
+  function syncNum(slider: HTMLInputElement, num: HTMLInputElement) {
+    num.addEventListener('input', () => {
+      let v = Math.max(0, Math.min(255, parseInt(num.value) || 0));
+      slider.value = v.toString(); fromSliders();
+    });
+    slider.addEventListener('input', fromSliders);
+  }
+  syncNum(rSlider, rNum); syncNum(gSlider, gNum); syncNum(bSlider, bNum);
+
+  pickerEl.addEventListener('input', () => {
+    const rgb = hexToRgb(pickerEl.value);
+    if (!rgb) return;
+    rSlider.value = rNum.value = rgb.r.toString();
+    gSlider.value = gNum.value = rgb.g.toString();
+    bSlider.value = bNum.value = rgb.b.toString();
+    updateOutputs(rgb);
+  });
+
+  // Copy buttons
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = (btn as HTMLElement).dataset.copy!;
+      const val = (document.getElementById(id) as HTMLInputElement).value;
+      navigator.clipboard?.writeText(val);
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    });
+  });
+
+  fromSliders();
+</script>

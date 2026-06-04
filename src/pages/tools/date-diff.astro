@@ -1,0 +1,164 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Date Difference Calculator" description="Calculate the number of days, weeks, months and years between any two dates.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">📅</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Date Difference Calculator</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Calculate the exact time between any two dates</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+        <div>
+          <label for="date-start" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Start Date</label>
+          <input id="date-start" type="date"
+            class="w-full h-12 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-base focus:outline-none focus:ring-2 focus:ring-amber-500"
+            style="color-scheme: light dark"/>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="date-end" class="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+            <button id="end-today" class="text-xs text-amber-600 dark:text-amber-400 hover:underline">Use today</button>
+          </div>
+          <input id="date-end" type="date"
+            class="w-full h-12 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-base focus:outline-none focus:ring-2 focus:ring-amber-500"
+            style="color-scheme: light dark"/>
+        </div>
+      </div>
+
+      <!-- Swap -->
+      <div class="flex justify-center mb-6">
+        <button id="swap-dates" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          Swap Dates
+        </button>
+      </div>
+
+      <!-- Main result -->
+      <div id="diff-result" class="p-5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-5">
+        <div id="diff-main" class="text-2xl font-bold text-gray-900 dark:text-white text-center">—</div>
+        <div id="diff-sub" class="text-sm text-gray-500 dark:text-gray-400 text-center mt-1">—</div>
+      </div>
+
+      <!-- Stats grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 text-center">
+          <div class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Years</div>
+          <div id="stat-y" class="text-2xl font-bold text-blue-700 dark:text-blue-400 font-mono">—</div>
+        </div>
+        <div class="p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800 text-center">
+          <div class="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide mb-1">Months</div>
+          <div id="stat-m" class="text-2xl font-bold text-violet-700 dark:text-violet-400 font-mono">—</div>
+        </div>
+        <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 text-center">
+          <div class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">Weeks</div>
+          <div id="stat-w" class="text-2xl font-bold text-amber-700 dark:text-amber-400 font-mono">—</div>
+        </div>
+        <div class="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 text-center">
+          <div class="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-1">Days</div>
+          <div id="stat-d" class="text-2xl font-bold text-green-700 dark:text-green-400 font-mono">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick jumps -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Quick Dates</h2>
+      <div class="flex flex-wrap gap-2">
+        {[
+          { label: 'Last 7 days', days: -7 },
+          { label: 'Last 30 days', days: -30 },
+          { label: 'Last 90 days', days: -90 },
+          { label: 'Last 365 days', days: -365 },
+          { label: 'Next 7 days', days: 7 },
+          { label: 'Next 30 days', days: 30 },
+          { label: 'Next 90 days', days: 90 },
+          { label: 'Next 365 days', days: 365 },
+        ].map(q => (
+          <button data-days={q.days} class="quick-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-amber-400 hover:text-amber-600 transition-colors">{q.label}</button>
+        ))}
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const startEl = document.getElementById('date-start') as HTMLInputElement;
+  const endEl = document.getElementById('date-end') as HTMLInputElement;
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  endEl.value = todayStr;
+  const past30 = new Date(today);
+  past30.setDate(today.getDate() - 30);
+  startEl.value = past30.toISOString().split('T')[0];
+
+  document.getElementById('end-today')?.addEventListener('click', () => {
+    endEl.value = todayStr; calculate();
+  });
+
+  document.getElementById('swap-dates')?.addEventListener('click', () => {
+    const tmp = startEl.value;
+    startEl.value = endEl.value;
+    endEl.value = tmp;
+    calculate();
+  });
+
+  document.querySelectorAll('[data-days]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const days = parseInt((btn as HTMLElement).dataset.days!);
+      const t = new Date(today);
+      if (days < 0) {
+        startEl.value = new Date(t.setDate(t.getDate() + days)).toISOString().split('T')[0];
+        endEl.value = todayStr;
+      } else {
+        startEl.value = todayStr;
+        endEl.value = new Date(t.setDate(t.getDate() + days)).toISOString().split('T')[0];
+      }
+      calculate();
+    });
+  });
+
+  function calculate() {
+    const s = new Date(startEl.value);
+    const e = new Date(endEl.value);
+    if (isNaN(s.getTime()) || isNaN(e.getTime())) return;
+
+    const earlier = s <= e ? s : e;
+    const later = s <= e ? e : s;
+    const diffMs = later.getTime() - earlier.getTime();
+    const totalDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    const totalWeeks = Math.floor(totalDays / 7);
+
+    // Years, months, days
+    let y = later.getFullYear() - earlier.getFullYear();
+    let m = later.getMonth() - earlier.getMonth();
+    let d = later.getDate() - earlier.getDate();
+    if (d < 0) { m--; const prev = new Date(later.getFullYear(), later.getMonth(), 0); d += prev.getDate(); }
+    if (m < 0) { y--; m += 12; }
+    const totalMonths = y * 12 + m;
+
+    const dirLabel = s > e ? '(earlier date first)' : '';
+
+    const parts = [];
+    if (y > 0) parts.push(`${y} year${y !== 1 ? 's' : ''}`);
+    if (m > 0) parts.push(`${m} month${m !== 1 ? 's' : ''}`);
+    if (d > 0) parts.push(`${d} day${d !== 1 ? 's' : ''}`);
+
+    document.getElementById('diff-main')!.textContent = parts.length ? parts.join(', ') : '0 days';
+    document.getElementById('diff-sub')!.textContent = `${earlier.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} → ${later.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} ${dirLabel}`;
+
+    document.getElementById('stat-y')!.textContent = y.toString();
+    document.getElementById('stat-m')!.textContent = totalMonths.toLocaleString();
+    document.getElementById('stat-w')!.textContent = totalWeeks.toLocaleString();
+    document.getElementById('stat-d')!.textContent = totalDays.toLocaleString();
+  }
+
+  startEl.addEventListener('input', calculate);
+  endEl.addEventListener('input', calculate);
+  calculate();
+</script>

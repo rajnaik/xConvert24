@@ -1,0 +1,81 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const cities = [
+  { id: 'london', name: 'London', tz: 'Europe/London', flag: '🇬🇧' },
+  { id: 'new_york', name: 'New York', tz: 'America/New_York', flag: '🇺🇸' },
+  { id: 'los_angeles', name: 'Los Angeles', tz: 'America/Los_Angeles', flag: '🇺🇸' },
+  { id: 'toronto', name: 'Toronto', tz: 'America/Toronto', flag: '🇨🇦' },
+  { id: 'sao_paulo', name: 'São Paulo', tz: 'America/Sao_Paulo', flag: '🇧🇷' },
+  { id: 'paris', name: 'Paris', tz: 'Europe/Paris', flag: '🇫🇷' },
+  { id: 'dubai', name: 'Dubai', tz: 'Asia/Dubai', flag: '🇦🇪' },
+  { id: 'mumbai', name: 'Mumbai', tz: 'Asia/Kolkata', flag: '🇮🇳' },
+  { id: 'singapore', name: 'Singapore', tz: 'Asia/Singapore', flag: '🇸🇬' },
+  { id: 'tokyo', name: 'Tokyo', tz: 'Asia/Tokyo', flag: '🇯🇵' },
+  { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney', flag: '🇦🇺' },
+  { id: 'auckland', name: 'Auckland', tz: 'Pacific/Auckland', flag: '🇳🇿' },
+];
+---
+<Layout title="World Clock" description="Check the current time in major cities around the world.">
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2"><span class="text-3xl">🌍</span><h1 class="text-2xl font-bold text-gray-900 dark:text-white">World Clock</h1></div>
+      <p class="text-gray-500 dark:text-gray-400">Current time in major cities worldwide — updates every second</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {cities.map(city => (
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 shadow-sm hover:border-amber-400 dark:hover:border-amber-500 transition-colors">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xl" aria-hidden="true">{city.flag}</span>
+              <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{city.name}</span>
+            </div>
+            <span class="text-xs text-gray-400 dark:text-gray-500 font-mono" id={`tz-${city.id}`}></span>
+          </div>
+          <div id={`time-${city.id}`} class="text-3xl font-bold text-gray-900 dark:text-white font-mono tracking-tight">--:--:--</div>
+          <div id={`date-${city.id}`} class="text-xs text-gray-500 dark:text-gray-400 mt-1">---</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const cities = [
+    { id: 'london', name: 'London', tz: 'Europe/London' },
+    { id: 'new_york', name: 'New York', tz: 'America/New_York' },
+    { id: 'los_angeles', name: 'Los Angeles', tz: 'America/Los_Angeles' },
+    { id: 'toronto', name: 'Toronto', tz: 'America/Toronto' },
+    { id: 'sao_paulo', name: 'São Paulo', tz: 'America/Sao_Paulo' },
+    { id: 'paris', name: 'Paris', tz: 'Europe/Paris' },
+    { id: 'dubai', name: 'Dubai', tz: 'Asia/Dubai' },
+    { id: 'mumbai', name: 'Mumbai', tz: 'Asia/Kolkata' },
+    { id: 'singapore', name: 'Singapore', tz: 'Asia/Singapore' },
+    { id: 'tokyo', name: 'Tokyo', tz: 'Asia/Tokyo' },
+    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney' },
+    { id: 'auckland', name: 'Auckland', tz: 'Pacific/Auckland' },
+  ];
+
+  function updateClocks() {
+    const now = new Date();
+    cities.forEach(({ id, tz }) => {
+      const timeEl = document.getElementById(`time-${id}`);
+      const dateEl = document.getElementById(`date-${id}`);
+      const tzEl = document.getElementById(`tz-${id}`);
+      if (!timeEl || !dateEl) return;
+
+      const timeStr = now.toLocaleTimeString('en-US', { timeZone: tz, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dateStr = now.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+      // Timezone abbreviation
+      const tzAbbr = now.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').pop() || '';
+
+      timeEl.textContent = timeStr;
+      dateEl.textContent = dateStr;
+      if (tzEl) tzEl.textContent = tzAbbr;
+    });
+  }
+
+  updateClocks();
+  setInterval(updateClocks, 1000);
+</script>

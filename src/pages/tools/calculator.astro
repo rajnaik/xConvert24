@@ -1,0 +1,260 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Scientific Calculator" description="Free online scientific calculator with sin, cos, tan, log, square root, powers, and math constants.">
+  <div class="max-w-md">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🔬</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Scientific Calculator</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Full scientific calculator with trigonometry, logarithms and constants</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <!-- Display -->
+      <div class="bg-gray-950 dark:bg-black p-4">
+        <div id="calc-expr" class="text-gray-400 text-sm font-mono min-h-5 text-right truncate">&nbsp;</div>
+        <div id="calc-display" class="text-white text-4xl font-mono font-bold text-right mt-1 overflow-x-auto whitespace-nowrap">0</div>
+      </div>
+
+      <!-- Mode toggle -->
+      <div class="flex border-b border-gray-100 dark:border-gray-800">
+        <button id="mode-deg" class="flex-1 py-2 text-xs font-semibold bg-amber-500 text-white transition-colors">DEG</button>
+        <button id="mode-rad" class="flex-1 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">RAD</button>
+        <button id="mode-inv" class="flex-1 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">INV</button>
+      </div>
+
+      <!-- Buttons -->
+      <div class="grid grid-cols-5 gap-px bg-gray-100 dark:bg-gray-800">
+        <!-- Row 1: Scientific functions -->
+        <button data-action="sin"   class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">sin</button>
+        <button data-action="cos"   class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">cos</button>
+        <button data-action="tan"   class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">tan</button>
+        <button data-action="log"   class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">log</button>
+        <button data-action="ln"    class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">ln</button>
+
+        <!-- Row 2: More functions -->
+        <button data-action="sqrt"  class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">√</button>
+        <button data-action="sq"    class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">x²</button>
+        <button data-action="pow"   class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">xʸ</button>
+        <button data-action="pi"    class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">π</button>
+        <button data-action="e"     class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">e</button>
+
+        <!-- Row 3: Brackets + C -->
+        <button data-action="("    class="calc-op py-3 text-sm font-semibold bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">(</button>
+        <button data-action=")"    class="calc-op py-3 text-sm font-semibold bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">)</button>
+        <button data-action="abs"  class="calc-fn py-3 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">|x|</button>
+        <button data-action="C"    class="calc-clear py-3 text-sm font-semibold bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">C</button>
+        <button data-action="back" class="calc-clear py-3 text-sm font-semibold bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">⌫</button>
+
+        <!-- Row 4: 7 8 9 ÷ % -->
+        <button data-digit="7" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">7</button>
+        <button data-digit="8" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">8</button>
+        <button data-digit="9" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">9</button>
+        <button data-action="÷" class="calc-op py-4 text-lg font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">÷</button>
+        <button data-action="%" class="calc-op py-4 text-lg font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">%</button>
+
+        <!-- Row 5: 4 5 6 × -->
+        <button data-digit="4" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">4</button>
+        <button data-digit="5" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">5</button>
+        <button data-digit="6" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">6</button>
+        <button data-action="×" class="calc-op py-4 text-lg font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">×</button>
+        <button data-action="1/x" class="calc-fn py-4 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">1/x</button>
+
+        <!-- Row 6: 1 2 3 - -->
+        <button data-digit="1" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">1</button>
+        <button data-digit="2" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">2</button>
+        <button data-digit="3" class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">3</button>
+        <button data-action="-" class="calc-op py-4 text-lg font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">−</button>
+        <button data-action="factorial" class="calc-fn py-4 text-sm font-medium bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors">n!</button>
+
+        <!-- Row 7: 0 . = + -->
+        <button data-digit="0" class="calc-num col-span-2 py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">0</button>
+        <button data-digit="." class="calc-num py-4 text-lg font-semibold bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors">.</button>
+        <button data-action="+" class="calc-op py-4 text-lg font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors">+</button>
+        <button data-action="=" class="calc-eq py-4 text-lg font-bold bg-amber-500 text-white hover:bg-amber-600 transition-colors">=</button>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white text-sm">History</h2>
+        <button id="clear-history" class="text-xs text-gray-400 hover:text-red-500 transition-colors">Clear</button>
+      </div>
+      <ul id="calc-history" class="divide-y divide-gray-50 dark:divide-gray-800 max-h-48 overflow-y-auto">
+        <li class="px-5 py-3 text-sm text-gray-400 dark:text-gray-500 italic">No history yet</li>
+      </ul>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let current = '0';
+  let expression = '';
+  let justEvaluated = false;
+  let isDeg = true;
+  let isInv = false;
+
+  const display = document.getElementById('calc-display')!;
+  const exprEl = document.getElementById('calc-expr')!;
+  const historyEl = document.getElementById('calc-history')!;
+
+  function toRad(x: number) { return isDeg ? x * Math.PI / 180 : x; }
+  function fromRad(x: number) { return isDeg ? x * 180 / Math.PI : x; }
+
+  function updateDisplay() {
+    display.textContent = current;
+    exprEl.textContent = expression || '\u00a0';
+  }
+
+  function addHistory(expr: string, result: string) {
+    const empty = historyEl.querySelector('li.italic');
+    if (empty) empty.remove();
+    const li = document.createElement('li');
+    li.className = 'px-5 py-2 flex items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors';
+    li.innerHTML = `<span class="text-gray-500 dark:text-gray-400 text-xs font-mono truncate">${expr}</span><span class="text-gray-900 dark:text-white text-sm font-mono font-semibold shrink-0">${result}</span>`;
+    li.addEventListener('click', () => {
+      current = result;
+      justEvaluated = true;
+      updateDisplay();
+    });
+    historyEl.prepend(li);
+  }
+
+  function factorial(n: number): number {
+    if (n < 0 || !Number.isInteger(n)) return NaN;
+    if (n === 0 || n === 1) return 1;
+    if (n > 170) return Infinity;
+    let result = 1;
+    for (let i = 2; i <= n; i++) result *= i;
+    return result;
+  }
+
+  function handleAction(action: string) {
+    switch (action) {
+      case 'C':
+        current = '0'; expression = ''; justEvaluated = false; break;
+      case 'back':
+        if (current.length > 1) current = current.slice(0, -1);
+        else current = '0';
+        break;
+      case '=': {
+        try {
+          const expr = expression + current;
+          // Replace display operators
+          const safe = expr.replace(/÷/g, '/').replace(/×/g, '*').replace(/−/g, '-');
+          // eslint-disable-next-line no-new-func
+          const result = Function('"use strict"; return (' + safe + ')')();
+          const r = parseFloat(result.toPrecision(12)).toString();
+          addHistory(expr + ' =', r);
+          expression = '';
+          current = r;
+          justEvaluated = true;
+        } catch {
+          current = 'Error'; justEvaluated = true;
+        }
+        break;
+      }
+      case '+': case '-': case '×': case '÷': {
+        if (current === 'Error') { current = '0'; }
+        expression = (expression + current + ' ' + action + ' ');
+        current = '0';
+        justEvaluated = false;
+        break;
+      }
+      case 'pow': {
+        expression = (expression + current + ' ** ');
+        current = '0'; justEvaluated = false; break;
+      }
+      case '(': case ')': {
+        if (justEvaluated) { current = action; justEvaluated = false; }
+        else current += action;
+        break;
+      }
+      case '%': current = (parseFloat(current) / 100).toString(); break;
+      case 'sqrt': current = Math.sqrt(parseFloat(current)).toString(); break;
+      case 'sq': current = (parseFloat(current) ** 2).toString(); break;
+      case 'sin': current = (isInv ? fromRad(Math.asin(parseFloat(current))) : Math.sin(toRad(parseFloat(current)))).toString(); break;
+      case 'cos': current = (isInv ? fromRad(Math.acos(parseFloat(current))) : Math.cos(toRad(parseFloat(current)))).toString(); break;
+      case 'tan': current = (isInv ? fromRad(Math.atan(parseFloat(current))) : Math.tan(toRad(parseFloat(current)))).toString(); break;
+      case 'log': current = (isInv ? Math.pow(10, parseFloat(current)) : Math.log10(parseFloat(current))).toString(); break;
+      case 'ln': current = (isInv ? Math.exp(parseFloat(current)) : Math.log(parseFloat(current))).toString(); break;
+      case 'abs': current = Math.abs(parseFloat(current)).toString(); break;
+      case '1/x': current = (1 / parseFloat(current)).toString(); break;
+      case 'pi': current = Math.PI.toString(); break;
+      case 'e': current = Math.E.toString(); break;
+      case 'factorial': current = factorial(parseFloat(current)).toString(); break;
+    }
+    // Round display value
+    if (!isNaN(parseFloat(current)) && isFinite(parseFloat(current))) {
+      const n = parseFloat(current);
+      if (!current.includes('e') && current !== 'Error') {
+        current = parseFloat(n.toPrecision(12)).toString();
+      }
+    }
+    updateDisplay();
+  }
+
+  function handleDigit(d: string) {
+    if (justEvaluated) { current = d === '.' ? '0.' : d; justEvaluated = false; }
+    else if (d === '.' && current.includes('.')) return;
+    else if (current === '0' && d !== '.') current = d;
+    else current += d;
+    updateDisplay();
+  }
+
+  // Button events
+  document.querySelectorAll('[data-digit]').forEach(btn => {
+    btn.addEventListener('click', () => handleDigit((btn as HTMLElement).dataset.digit!));
+  });
+  document.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => handleAction((btn as HTMLElement).dataset.action!));
+  });
+
+  // Mode buttons
+  const modeDeg = document.getElementById('mode-deg')!;
+  const modeRad = document.getElementById('mode-rad')!;
+  const modeInv = document.getElementById('mode-inv')!;
+  const activeMode = 'bg-amber-500 text-white';
+  const inactiveMode = 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800';
+
+  modeDeg.addEventListener('click', () => {
+    isDeg = true;
+    modeDeg.className = modeDeg.className.replace(inactiveMode, activeMode);
+    modeRad.className = modeRad.className.replace(activeMode, inactiveMode);
+  });
+  modeRad.addEventListener('click', () => {
+    isDeg = false;
+    modeRad.className = modeRad.className.replace(inactiveMode, activeMode);
+    modeDeg.className = modeDeg.className.replace(activeMode, inactiveMode);
+  });
+  modeInv.addEventListener('click', () => {
+    isInv = !isInv;
+    modeInv.className = isInv
+      ? modeInv.className.replace(inactiveMode, activeMode)
+      : modeInv.className.replace(activeMode, inactiveMode);
+  });
+
+  // Keyboard support
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '0' && e.key <= '9') handleDigit(e.key);
+    else if (e.key === '.') handleDigit('.');
+    else if (e.key === '+') handleAction('+');
+    else if (e.key === '-') handleAction('-');
+    else if (e.key === '*') handleAction('×');
+    else if (e.key === '/') { e.preventDefault(); handleAction('÷'); }
+    else if (e.key === 'Enter' || e.key === '=') handleAction('=');
+    else if (e.key === 'Backspace') handleAction('back');
+    else if (e.key === 'Escape') handleAction('C');
+    else if (e.key === '%') handleAction('%');
+  });
+
+  // Clear history
+  document.getElementById('clear-history')?.addEventListener('click', () => {
+    historyEl.innerHTML = '<li class="px-5 py-3 text-sm text-gray-400 dark:text-gray-500 italic">No history yet</li>';
+  });
+
+  updateDisplay();
+</script>

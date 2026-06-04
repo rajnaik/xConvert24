@@ -1,0 +1,332 @@
+---
+const currentPath = Astro.url.pathname;
+
+const nav = [
+  {
+    id: 'measurements',
+    label: 'Measurements',
+    icon: '📏',
+    items: [
+      { label: 'Weight',      href: '/convert/weight',      icon: '⚖️' },
+      { label: 'Length',      href: '/convert/length',      icon: '📏' },
+      { label: 'Temperature', href: '/convert/temperature', icon: '🌡️' },
+      { label: 'Area',        href: '/convert/area',        icon: '🗺️' },
+      { label: 'Volume',      href: '/convert/volume',      icon: '🧪' },
+      { label: 'Speed',       href: '/convert/speed',       icon: '🚀' },
+      { label: 'Angle',       href: '/convert/angle',       icon: '📐' },
+      { label: 'Frequency',   href: '/convert/frequency',   icon: '〰️' },
+    ],
+  },
+  {
+    id: 'digital',
+    label: 'Digital',
+    icon: '💻',
+    items: [
+      { label: 'Data Storage', href: '/convert/data', icon: '💾' },
+      { label: 'Number Base',  href: '/convert/base', icon: '🧮' },
+    ],
+  },
+  {
+    id: 'finance',
+    label: 'Finance',
+    icon: '💰',
+    items: [
+      { label: 'Currency',            href: '/convert/currency', icon: '💱' },
+      { label: 'Tip Calculator',      href: '/tools/tip',        icon: '🍽️' },
+      { label: 'Discount Calculator', href: '/tools/discount',   icon: '🏷️' },
+      { label: 'Loan Calculator',     href: '/tools/loan',       icon: '🏦' },
+    ],
+  },
+  {
+    id: 'food-health',
+    label: 'Food & Health',
+    icon: '🍳',
+    items: [
+      { label: 'Cooking',        href: '/convert/cooking', icon: '🍳' },
+      { label: 'BMI Calculator', href: '/tools/bmi',       icon: '🧍' },
+    ],
+  },
+  {
+    id: 'energy',
+    label: 'Energy & Physics',
+    icon: '⚡',
+    items: [
+      { label: 'Energy',       href: '/convert/energy',   icon: '⚡' },
+      { label: 'Pressure',     href: '/convert/pressure', icon: '🔩' },
+      { label: 'Power',        href: '/convert/power',    icon: '🔋' },
+      { label: 'Fuel Economy', href: '/convert/fuel',     icon: '⛽' },
+    ],
+  },
+  {
+    id: 'time-date',
+    label: 'Time & Date',
+    icon: '🕐',
+    items: [
+      { label: 'Time Units',      href: '/convert/time',    icon: '⏱️' },
+      { label: 'World Clock',     href: '/tools/clock',     icon: '🌍' },
+      { label: 'Age Calculator',  href: '/tools/age',       icon: '🎂' },
+      { label: 'Date Difference', href: '/tools/date-diff', icon: '📅' },
+    ],
+  },
+  {
+    id: 'creative',
+    label: 'Creative',
+    icon: '🎨',
+    items: [
+      { label: 'Color Picker', href: '/tools/color', icon: '🎨' },
+    ],
+  },
+  {
+    id: 'math',
+    label: 'Math',
+    icon: '🔢',
+    items: [
+      { label: 'Roman Numerals',        href: '/convert/roman',    icon: '🏛️' },
+      { label: 'Scientific Calculator', href: '/tools/calculator', icon: '🔭' },
+    ],
+  },
+];
+
+// Work out which category is active so we can pre-expand it
+const activeCategory = nav.find(section =>
+  section.items.some(item => currentPath === item.href || currentPath === item.href + '/')
+)?.id ?? null;
+---
+
+<!-- Mobile overlay backdrop -->
+<div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 lg:hidden hidden" aria-hidden="true"></div>
+
+<!-- Sidebar -->
+<aside
+  id="sidebar"
+  class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out"
+  aria-label="Main navigation"
+>
+  <!-- Header: logo + close -->
+  <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
+    <a href="/" class="flex items-center gap-1.5" aria-label="xConvert.com home">
+      <svg width="110" height="28" viewBox="0 0 145 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sb-gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#fbbf24"/>
+            <stop offset="100%" stop-color="#d97706"/>
+          </linearGradient>
+          <linearGradient id="sb-text" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fcd34d"/>
+            <stop offset="100%" stop-color="#d97706"/>
+          </linearGradient>
+        </defs>
+        <line x1="4" y1="34" x2="24" y2="8" stroke="url(#sb-gold)" stroke-width="3.5" stroke-linecap="round"/>
+        <polyline points="14,8 24,8 24,18" stroke="url(#sb-gold)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <line x1="4" y1="8" x2="24" y2="34" stroke="url(#sb-gold)" stroke-width="3.5" stroke-linecap="round"/>
+        <polyline points="14,34 24,34 24,24" stroke="url(#sb-gold)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <text x="31" y="29" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="url(#sb-text)" letter-spacing="-0.5">xConvert.com</text>
+      </svg>
+    </a>
+    <button id="sidebar-close" class="lg:hidden p-1.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Close menu">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="px-3 py-3 shrink-0">
+    <form action="/search" method="get" role="search">
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          id="sidebar-search"
+          type="search"
+          name="q"
+          placeholder="Search converters..."
+          autocomplete="off"
+          class="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          aria-label="Search converters"
+        />
+      </div>
+    </form>
+  </div>
+
+  <!-- Treeview nav -->
+  <nav class="flex-1 overflow-y-auto px-2 pb-6" id="sidebar-nav" aria-label="Converters navigation">
+
+    <!-- Browse all link -->
+    <div class="mb-1">
+      <a href="/search" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+        <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        Browse all converters
+      </a>
+    </div>
+
+    <!-- Divider -->
+    <div class="border-t border-gray-100 dark:border-gray-800 mb-2"></div>
+
+    <!-- Tree -->
+    <ul class="space-y-0.5" role="tree" aria-label="Converter categories">
+      {nav.map((section) => {
+        const isExpanded = section.id === activeCategory;
+        const hasActive = section.items.some(item => currentPath === item.href || currentPath === item.href + '/');
+        return (
+          <li role="treeitem" aria-expanded={isExpanded} class="tree-node" data-id={section.id}>
+
+            <!-- Category toggle button -->
+            <button
+              class:list={[
+                'tree-toggle w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-semibold transition-colors select-none',
+                hasActive
+                  ? 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20'
+                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800',
+              ]}
+              aria-expanded={isExpanded}
+              aria-controls={`tree-children-${section.id}`}
+              data-target={section.id}
+            >
+              {/* Chevron */}
+              <svg
+                class:list={['tree-chevron w-3.5 h-3.5 shrink-0 transition-transform duration-200 text-gray-400 dark:text-gray-500', isExpanded ? 'rotate-90' : '']}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+              {/* Category icon */}
+              <span class="text-base leading-none w-5 text-center shrink-0" aria-hidden="true">{section.icon}</span>
+              {/* Label */}
+              <span class="flex-1 text-left">{section.label}</span>
+              {/* Item count badge */}
+              <span class="shrink-0 text-xs text-gray-400 dark:text-gray-500 tabular-nums">{section.items.length}</span>
+            </button>
+
+            <!-- Children list -->
+            <ul
+              id={`tree-children-${section.id}`}
+              role="group"
+              class:list={[
+                'tree-children overflow-hidden transition-all duration-200',
+                isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
+              ]}
+              data-expanded={isExpanded ? 'true' : 'false'}
+            >
+              {/* Vertical guide line + children */}
+              <div class="relative ml-3.5 pl-3.5 border-l-2 border-gray-100 dark:border-gray-800 mt-0.5 mb-1 space-y-0.5">
+                {section.items.map((item) => {
+                  const isActive = currentPath === item.href || currentPath === item.href + '/';
+                  return (
+                    <li role="treeitem" class="nav-item" data-label={item.label.toLowerCase()}>
+                      <a
+                        href={item.href}
+                        class:list={[
+                          'flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-sm transition-colors',
+                          isActive
+                            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-semibold'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 font-medium',
+                        ]}
+                        aria-current={isActive ? 'page' : undefined}
+                      >
+                        <span class="text-sm leading-none w-4 text-center shrink-0" aria-hidden="true">{item.icon}</span>
+                        {item.label}
+                        {isActive && (
+                          <span class="ml-auto w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" aria-hidden="true"></span>
+                        )}
+                      </a>
+                    </li>
+                  );
+                })}
+              </div>
+            </ul>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
+</aside>
+
+<script>
+  // ── Treeview toggle ────────────────────────────────────────────────────────
+  document.querySelectorAll<HTMLButtonElement>('.tree-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.target!;
+      const node = document.querySelector<HTMLElement>(`.tree-node[data-id="${id}"]`);
+      const children = document.getElementById(`tree-children-${id}`);
+      const chevron = btn.querySelector<SVGElement>('.tree-chevron');
+      if (!node || !children) return;
+
+      const isOpen = children.dataset.expanded === 'true';
+
+      if (isOpen) {
+        // Collapse
+        children.style.maxHeight = children.scrollHeight + 'px';
+        requestAnimationFrame(() => {
+          children.style.maxHeight = '0';
+          children.style.opacity = '0';
+        });
+        children.dataset.expanded = 'false';
+        btn.setAttribute('aria-expanded', 'false');
+        node.setAttribute('aria-expanded', 'false');
+        chevron?.classList.remove('rotate-90');
+      } else {
+        // Expand
+        children.style.maxHeight = '0';
+        children.style.opacity = '0';
+        requestAnimationFrame(() => {
+          children.style.maxHeight = children.scrollHeight + 'px';
+          children.style.opacity = '1';
+        });
+        children.dataset.expanded = 'true';
+        btn.setAttribute('aria-expanded', 'true');
+        node.setAttribute('aria-expanded', 'true');
+        chevron?.classList.add('rotate-90');
+      }
+    });
+
+    // Keyboard: space/enter toggle, arrow keys navigate
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        btn.click();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const id = btn.dataset.target!;
+        const children = document.getElementById(`tree-children-${id}`);
+        if (children?.dataset.expanded !== 'true') btn.click();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const id = btn.dataset.target!;
+        const children = document.getElementById(`tree-children-${id}`);
+        if (children?.dataset.expanded === 'true') btn.click();
+      }
+    });
+  });
+
+  // ── Mobile sidebar ─────────────────────────────────────────────────────────
+  const backdrop = document.getElementById('sidebar-backdrop');
+  const sidebar  = document.getElementById('sidebar');
+  const closeBtn = document.getElementById('sidebar-close');
+  const hamburger = document.getElementById('hamburger-btn');
+
+  function openSidebar() {
+    sidebar?.classList.remove('-translate-x-full');
+    backdrop?.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar?.classList.add('-translate-x-full');
+    backdrop?.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  hamburger?.addEventListener('click', openSidebar);
+  closeBtn?.addEventListener('click', closeSidebar);
+  backdrop?.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+
+  // Scroll active item into view on desktop
+  const activeLink = document.querySelector<HTMLAnchorElement>('[aria-current="page"]');
+  if (activeLink) {
+    activeLink.scrollIntoView({ block: 'nearest' });
+  }
+</script>

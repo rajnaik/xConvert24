@@ -1,0 +1,87 @@
+---
+import Layout from '../../layouts/Layout.astro';
+const units = [
+  { value: 'deg', label: 'Degrees (°)' },
+  { value: 'rad', label: 'Radians (rad)' },
+  { value: 'grad', label: 'Gradians (grad)' },
+  { value: 'turn', label: 'Turns (full rotation)' },
+  { value: 'arcmin', label: 'Arcminutes (\')' },
+  { value: 'arcsec', label: 'Arcseconds (\'\')' },
+];
+---
+<Layout title="Angle Converter" description="Convert between degrees, radians, gradians and more angle units.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2"><span class="text-3xl">📐</span><h1 class="text-2xl font-bold text-gray-900 dark:text-white">Angle Converter</h1></div>
+      <p class="text-gray-500 dark:text-gray-400">Convert between units of angle</p>
+    </div>
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div class="mb-4">
+        <label for="from-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From</label>
+        <div class="flex gap-3">
+          <select id="from-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map(u => <option value={u.value}>{u.label}</option>)}
+          </select>
+          <input id="from-value" type="number" value="180" class="flex-1 h-13 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+      </div>
+      <div class="flex justify-center my-3">
+        <button id="swap-btn" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>Swap
+        </button>
+      </div>
+      <div class="mb-4">
+        <label for="to-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To</label>
+        <div class="flex gap-3">
+          <select id="to-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map((u,i) => <option value={u.value} selected={i===1}>{u.label}</option>)}
+          </select>
+          <div id="result" class="flex-1 h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-lg font-semibold flex items-center">3.14159</div>
+        </div>
+      </div>
+      <div id="formula" class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 font-mono">rad = deg × π / 180</div>
+    </div>
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800"><h2 class="font-semibold text-gray-900 dark:text-white">Common Angles</h2></div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800"><tr><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Degrees</th><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Radians</th><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Gradians</th></tr></thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {[['0°','0','0 grad'],['30°','π/6 ≈ 0.5236','33.333 grad'],['45°','π/4 ≈ 0.7854','50 grad'],['60°','π/3 ≈ 1.0472','66.667 grad'],['90°','π/2 ≈ 1.5708','100 grad'],['180°','π ≈ 3.1416','200 grad'],['270°','3π/2 ≈ 4.7124','300 grad'],['360°','2π ≈ 6.2832','400 grad']].map(row => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                {row.map(c => <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{c}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+<script>
+  // All in degrees
+  const toDeg: Record<string,number> = {
+    deg:1, rad:180/Math.PI, grad:0.9,
+    turn:360, arcmin:1/60, arcsec:1/3600
+  };
+  const formulas: Record<string,Record<string,string>> = {
+    deg: { rad:'rad = deg × π / 180', grad:'grad = deg × 400 / 360' },
+    rad: { deg:'deg = rad × 180 / π', grad:'grad = rad × 200 / π' },
+    grad: { deg:'deg = grad × 360 / 400', rad:'rad = grad × π / 200' },
+  };
+  function fmt(n: number) { return parseFloat(n.toPrecision(7)).toString(); }
+  const fu=document.getElementById('from-unit') as HTMLSelectElement;
+  const tu=document.getElementById('to-unit') as HTMLSelectElement;
+  const fv=document.getElementById('from-value') as HTMLInputElement;
+  const re=document.getElementById('result')!;
+  const fo=document.getElementById('formula')!;
+  function update(){
+    const v=parseFloat(fv.value); if(isNaN(v)){re.textContent='—';return;}
+    re.textContent=fmt(v*toDeg[fu.value]/toDeg[tu.value]);
+    const fml = formulas[fu.value]?.[tu.value] || formulas[tu.value]?.[fu.value] || `1 ${fu.value} = ${fmt(toDeg[fu.value]/toDeg[tu.value])} ${tu.value}`;
+    fo.textContent=fml;
+  }
+  fv.addEventListener('input',update);fu.addEventListener('change',update);tu.addEventListener('change',update);
+  document.getElementById('swap-btn')!.addEventListener('click',()=>{const t=fu.value;fu.value=tu.value;tu.value=t;update();});
+  update();
+</script>

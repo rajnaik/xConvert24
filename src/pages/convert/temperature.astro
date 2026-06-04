@@ -1,0 +1,127 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const units = [
+  { value: 'c', label: 'Celsius (°C)' },
+  { value: 'f', label: 'Fahrenheit (°F)' },
+  { value: 'k', label: 'Kelvin (K)' },
+];
+---
+
+<Layout title="Temperature Converter" description="Convert between Celsius, Fahrenheit, and Kelvin temperature scales.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🌡️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Temperature Converter</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert between Celsius, Fahrenheit, and Kelvin</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div class="mb-4">
+        <label for="from-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From</label>
+        <div class="flex gap-3">
+          <select id="from-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map(u => <option value={u.value}>{u.label}</option>)}
+          </select>
+          <input id="from-value" type="number" placeholder="Enter value" value="100" class="flex-1 h-13 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+      </div>
+      <div class="flex justify-center my-3">
+        <button id="swap-btn" aria-label="Swap units" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          Swap
+        </button>
+      </div>
+      <div class="mb-4">
+        <label for="to-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To</label>
+        <div class="flex gap-3">
+          <select id="to-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map((u, i) => <option value={u.value} selected={i === 1}>{u.label}</option>)}
+          </select>
+          <div id="result" class="flex-1 h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-lg font-semibold flex items-center">212</div>
+        </div>
+      </div>
+      <div id="formula" class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 font-mono">°F = (°C × 9/5) + 32</div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white">Common Temperatures</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Description</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">°C</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">°F</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">K</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {[
+              ['Absolute Zero', '-273.15', '-459.67', '0'],
+              ['Water Freezes', '0', '32', '273.15'],
+              ['Body Temperature', '37', '98.6', '310.15'],
+              ['Water Boils', '100', '212', '373.15'],
+              ['Oven (moderate)', '180', '356', '453.15'],
+            ].map(row => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">{row[0]}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{row[1]}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{row[2]}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{row[3]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const formulas: Record<string, Record<string, string>> = {
+    c: { f: '°F = (°C × 9/5) + 32', k: 'K = °C + 273.15' },
+    f: { c: '°C = (°F − 32) × 5/9', k: 'K = (°F − 32) × 5/9 + 273.15' },
+    k: { c: '°C = K − 273.15', f: '°F = (K − 273.15) × 9/5 + 32' },
+  };
+
+  function convert(val: number, from: string, to: string): number {
+    if (from === to) return val;
+    // convert to Celsius first
+    let c: number;
+    if (from === 'c') c = val;
+    else if (from === 'f') c = (val - 32) * 5 / 9;
+    else c = val - 273.15; // kelvin
+    // convert from Celsius to target
+    if (to === 'c') return c;
+    if (to === 'f') return c * 9 / 5 + 32;
+    return c + 273.15;
+  }
+
+  const fromUnit = document.getElementById('from-unit') as HTMLSelectElement;
+  const toUnit = document.getElementById('to-unit') as HTMLSelectElement;
+  const fromVal = document.getElementById('from-value') as HTMLInputElement;
+  const resultEl = document.getElementById('result')!;
+  const formulaEl = document.getElementById('formula')!;
+
+  function update() {
+    const val = parseFloat(fromVal.value);
+    if (isNaN(val)) { resultEl.textContent = '—'; return; }
+    const res = convert(val, fromUnit.value, toUnit.value);
+    resultEl.textContent = parseFloat(res.toFixed(4)).toString();
+    const key = fromUnit.value + toUnit.value;
+    formulaEl.textContent = formulas[fromUnit.value]?.[toUnit.value] || formulas[toUnit.value]?.[fromUnit.value] || `Same unit`;
+  }
+
+  fromVal.addEventListener('input', update);
+  fromUnit.addEventListener('change', update);
+  toUnit.addEventListener('change', update);
+  document.getElementById('swap-btn')!.addEventListener('click', () => {
+    const tmp = fromUnit.value; fromUnit.value = toUnit.value; toUnit.value = tmp; update();
+  });
+  update();
+</script>

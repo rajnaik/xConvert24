@@ -1,0 +1,103 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Number Base Converter" description="Convert numbers between decimal, binary, octal, and hexadecimal number bases.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2"><span class="text-3xl">🧮</span><h1 class="text-2xl font-bold text-gray-900 dark:text-white">Number Base Converter</h1></div>
+      <p class="text-gray-500 dark:text-gray-400">Convert between decimal, binary, octal, and hexadecimal</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm space-y-4">
+      <!-- Decimal -->
+      <div>
+        <label for="dec" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+          Decimal <span class="font-normal text-gray-400">(Base 10)</span>
+        </label>
+        <input id="dec" type="text" placeholder="0–9" inputmode="numeric" class="w-full h-13 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+      </div>
+      <!-- Binary -->
+      <div>
+        <label for="bin" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+          Binary <span class="font-normal text-gray-400">(Base 2)</span>
+        </label>
+        <input id="bin" type="text" placeholder="0 or 1" class="w-full h-13 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+      </div>
+      <!-- Octal -->
+      <div>
+        <label for="oct" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+          Octal <span class="font-normal text-gray-400">(Base 8)</span>
+        </label>
+        <input id="oct" type="text" placeholder="0–7" class="w-full h-13 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+      </div>
+      <!-- Hex -->
+      <div>
+        <label for="hex" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+          Hexadecimal <span class="font-normal text-gray-400">(Base 16)</span>
+        </label>
+        <input id="hex" type="text" placeholder="0–9, A–F" class="w-full h-13 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 uppercase"/>
+      </div>
+      <p id="error" class="text-sm text-red-500 hidden">Invalid input for selected base.</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800"><h2 class="font-semibold text-gray-900 dark:text-white">Quick Reference</h2></div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800"><tr><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Dec</th><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Bin</th><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Oct</th><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Hex</th></tr></thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {[[0,0,0,'0'],[1,1,1,'1'],[2,'10',2,'2'],[4,'100',4,'4'],[8,'1000',10,'8'],[10,'1010',12,'A'],[15,'1111',17,'F'],[16,'10000',20,'10'],[255,'11111111',377,'FF'],[256,'100000000',400,'100']].map(([d,b,o,h]) => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{d}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{b}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{o}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{h}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const decEl = document.getElementById('dec') as HTMLInputElement;
+  const binEl = document.getElementById('bin') as HTMLInputElement;
+  const octEl = document.getElementById('oct') as HTMLInputElement;
+  const hexEl = document.getElementById('hex') as HTMLInputElement;
+  const errEl = document.getElementById('error')!;
+
+  function updateFrom(source: string, value: string) {
+    if (!value.trim()) {
+      [decEl, binEl, octEl, hexEl].forEach(el => el.value = '');
+      errEl.classList.add('hidden');
+      return;
+    }
+    let dec: number;
+    try {
+      if (source === 'dec') dec = parseInt(value, 10);
+      else if (source === 'bin') dec = parseInt(value, 2);
+      else if (source === 'oct') dec = parseInt(value, 8);
+      else dec = parseInt(value, 16);
+      if (isNaN(dec) || dec < 0) throw new Error();
+      errEl.classList.add('hidden');
+    } catch {
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (source !== 'dec') decEl.value = dec.toString(10);
+    if (source !== 'bin') binEl.value = dec.toString(2);
+    if (source !== 'oct') octEl.value = dec.toString(8);
+    if (source !== 'hex') hexEl.value = dec.toString(16).toUpperCase();
+  }
+
+  decEl.addEventListener('input', () => updateFrom('dec', decEl.value));
+  binEl.addEventListener('input', () => updateFrom('bin', binEl.value));
+  octEl.addEventListener('input', () => updateFrom('oct', octEl.value));
+  hexEl.addEventListener('input', () => updateFrom('hex', hexEl.value.toUpperCase()));
+
+  // Init
+  decEl.value = '255';
+  updateFrom('dec', '255');
+</script>

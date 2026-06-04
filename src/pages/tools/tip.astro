@@ -1,0 +1,171 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Tip Calculator" description="Calculate tip amount, total bill per person and split bills easily with our free tip calculator.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🍽️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Tip Calculator</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Calculate tip and split the bill between people</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <!-- Bill amount -->
+      <div class="mb-5">
+        <label for="bill-amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Bill Amount</label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg font-semibold">$</span>
+          <input id="bill-amount" type="number" min="0" step="0.01" value="50" placeholder="0.00"
+            class="w-full h-14 pl-9 pr-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-xl font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+      </div>
+
+      <!-- Tip percentage -->
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tip Percentage</label>
+        <div class="grid grid-cols-5 gap-2 mb-3">
+          {[10, 15, 18, 20, 25].map(pct => (
+            <button data-tip={pct} class={`tip-preset py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${pct === 18 ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-amber-400'}`}>
+              {pct}%
+            </button>
+          ))}
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-500 dark:text-gray-400">Custom:</span>
+          <div class="relative flex-1">
+            <input id="tip-custom" type="number" min="0" max="100" step="1" value="18" placeholder="18"
+              class="w-full h-10 px-3 pr-8 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Split -->
+      <div class="mb-6">
+        <label for="num-people" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Number of People</label>
+        <div class="flex items-center gap-3">
+          <button id="people-minus" class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xl font-bold hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 transition-colors flex items-center justify-center">−</button>
+          <input id="num-people" type="number" min="1" max="50" value="2"
+            class="flex-1 h-10 text-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          <button id="people-plus" class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xl font-bold hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 transition-colors flex items-center justify-center">+</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-center">
+          <div class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">Tip Amount</div>
+          <div id="result-tip" class="text-3xl font-bold text-amber-700 dark:text-amber-400">$9.00</div>
+        </div>
+        <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-center">
+          <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Total Bill</div>
+          <div id="result-total" class="text-3xl font-bold text-gray-900 dark:text-white">$59.00</div>
+        </div>
+        <div class="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-center">
+          <div class="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-1">Per Person</div>
+          <div id="result-per-person" class="text-3xl font-bold text-green-700 dark:text-green-400">$29.50</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tip guide -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white">Tipping Guide</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Service</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Typical Tip</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {[
+              ['Restaurant (sit-down)', '15% – 20%'],
+              ['Restaurant (counter / takeout)', '10% – 15%'],
+              ['Bar / drinks', '15% – 20%'],
+              ['Food delivery', '10% – 20%'],
+              ['Taxi / rideshare', '10% – 20%'],
+              ['Hair salon / spa', '15% – 20%'],
+              ['Hotel housekeeping', '$2 – $5 / night'],
+              ['Hotel concierge / bellhop', '$2 – $5 per bag'],
+            ].map(([svc, tip]) => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">{svc}</td>
+                <td class="px-4 py-3 text-amber-600 dark:text-amber-400 font-semibold">{tip}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const billEl = document.getElementById('bill-amount') as HTMLInputElement;
+  const customEl = document.getElementById('tip-custom') as HTMLInputElement;
+  const peopleEl = document.getElementById('num-people') as HTMLInputElement;
+  const minusBtn = document.getElementById('people-minus')!;
+  const plusBtn = document.getElementById('people-plus')!;
+
+  let tipPct = 18;
+
+  function fmt(n: number) {
+    return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function update() {
+    const bill = parseFloat(billEl.value) || 0;
+    const people = Math.max(1, parseInt(peopleEl.value) || 1);
+    const tip = bill * tipPct / 100;
+    const total = bill + tip;
+    document.getElementById('result-tip')!.textContent = fmt(tip);
+    document.getElementById('result-total')!.textContent = fmt(total);
+    document.getElementById('result-per-person')!.textContent = fmt(total / people);
+  }
+
+  // Tip presets
+  document.querySelectorAll('[data-tip]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tipPct = parseInt((btn as HTMLElement).dataset.tip!);
+      customEl.value = tipPct.toString();
+      document.querySelectorAll('[data-tip]').forEach(b => {
+        const active = b === btn;
+        (b as HTMLElement).className = `tip-preset py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${
+          active ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-amber-400'
+        }`;
+      });
+      update();
+    });
+  });
+
+  customEl.addEventListener('input', () => {
+    tipPct = parseFloat(customEl.value) || 0;
+    document.querySelectorAll('[data-tip]').forEach(b => {
+      const match = parseInt((b as HTMLElement).dataset.tip!) === tipPct;
+      (b as HTMLElement).className = `tip-preset py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${
+        match ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-amber-400'
+      }`;
+    });
+    update();
+  });
+
+  minusBtn.addEventListener('click', () => {
+    const v = Math.max(1, (parseInt(peopleEl.value) || 1) - 1);
+    peopleEl.value = v.toString(); update();
+  });
+  plusBtn.addEventListener('click', () => {
+    const v = Math.min(50, (parseInt(peopleEl.value) || 1) + 1);
+    peopleEl.value = v.toString(); update();
+  });
+
+  billEl.addEventListener('input', update);
+  peopleEl.addEventListener('input', update);
+
+  update();
+</script>

@@ -1,0 +1,165 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+const units = [
+  { value: 'kg', label: 'Kilograms (kg)' },
+  { value: 'g', label: 'Grams (g)' },
+  { value: 'mg', label: 'Milligrams (mg)' },
+  { value: 'lb', label: 'Pounds (lb)' },
+  { value: 'oz', label: 'Ounces (oz)' },
+  { value: 'st', label: 'Stones (st)' },
+  { value: 't', label: 'Metric Tonnes (t)' },
+  { value: 'ton', label: 'Short Tons (ton)' },
+];
+
+const table = [
+  ['1 kg', '2.20462 lb', '1000 g', '35.274 oz'],
+  ['1 lb', '0.453592 kg', '453.592 g', '16 oz'],
+  ['1 stone', '6.35029 kg', '14 lb', ''],
+  ['1 tonne', '1000 kg', '2204.62 lb', ''],
+  ['1 oz', '28.3495 g', '0.0625 lb', ''],
+];
+---
+
+<Layout title="Weight Converter" description="Convert between kilograms, pounds, ounces, grams, stones and more weight units.">
+  <div class="max-w-2xl">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">⚖️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Weight Converter</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert between units of weight and mass</p>
+    </div>
+
+    <!-- Converter card -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <!-- From -->
+      <div class="mb-4">
+        <label for="from-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From</label>
+        <div class="flex gap-3">
+          <select id="from-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map(u => <option value={u.value}>{u.label}</option>)}
+          </select>
+          <input
+            id="from-value"
+            type="number"
+            placeholder="Enter value"
+            value="1"
+            class="flex-1 h-13 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+      </div>
+
+      <!-- Swap button -->
+      <div class="flex justify-center my-3">
+        <button id="swap-btn" aria-label="Swap units" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          Swap
+        </button>
+      </div>
+
+      <!-- To -->
+      <div class="mb-4">
+        <label for="to-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To</label>
+        <div class="flex gap-3">
+          <select id="to-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map((u, i) => <option value={u.value} selected={i === 3}>{u.label}</option>)}
+          </select>
+          <div id="result" class="flex-1 h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-lg font-semibold flex items-center">
+            2.20462
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div id="formula" class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 font-mono">
+        1 kg = 2.20462 lb
+      </div>
+    </div>
+
+    <!-- Quick reference table -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white">Quick Reference</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Value</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Equivalent 1</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Equivalent 2</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Equivalent 3</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {table.map(row => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                {row.map(cell => (
+                  <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Conversion factors to kilograms (base unit)
+  const toKg: Record<string, number> = {
+    kg: 1,
+    g: 0.001,
+    mg: 0.000001,
+    lb: 0.45359237,
+    oz: 0.028349523125,
+    st: 6.35029318,
+    t: 1000,
+    ton: 907.18474,
+  };
+
+  function convert(val: number, from: string, to: string): number {
+    if (from === to) return val;
+    return val * toKg[from] / toKg[to];
+  }
+
+  function getFormula(from: string, to: string): string {
+    if (from === to) return `1 ${from} = 1 ${from}`;
+    const factor = convert(1, from, to);
+    const f = factor < 0.001 ? factor.toExponential(4) : parseFloat(factor.toPrecision(6)).toString();
+    return `1 ${from} = ${f} ${to}`;
+  }
+
+  const fromUnit = document.getElementById('from-unit') as HTMLSelectElement;
+  const toUnit = document.getElementById('to-unit') as HTMLSelectElement;
+  const fromVal = document.getElementById('from-value') as HTMLInputElement;
+  const resultEl = document.getElementById('result')!;
+  const formulaEl = document.getElementById('formula')!;
+  const swapBtn = document.getElementById('swap-btn')!;
+
+  function update() {
+    const val = parseFloat(fromVal.value);
+    if (isNaN(val)) { resultEl.textContent = '—'; return; }
+    const result = convert(val, fromUnit.value, toUnit.value);
+    const disp = result < 0.0001 || result > 1e9
+      ? result.toExponential(4)
+      : parseFloat(result.toPrecision(7)).toString();
+    resultEl.textContent = disp;
+    formulaEl.textContent = getFormula(fromUnit.value, toUnit.value);
+  }
+
+  fromVal.addEventListener('input', update);
+  fromUnit.addEventListener('change', update);
+  toUnit.addEventListener('change', update);
+  swapBtn.addEventListener('click', () => {
+    const tmp = fromUnit.value;
+    fromUnit.value = toUnit.value;
+    toUnit.value = tmp;
+    update();
+  });
+
+  update();
+</script>

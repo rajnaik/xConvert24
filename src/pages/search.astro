@@ -1,0 +1,230 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { searchIndex } from '../data/searchIndex';
+
+// Serialise to JSON for client-side use
+const indexJson = JSON.stringify(searchIndex);
+---
+
+<Layout title="Search" description="Search all converters and units on xConvert.com — weight, length, temperature, currency, and 20+ more.">
+  <div class="max-w-3xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Search Converters</h1>
+      <p class="text-gray-500 dark:text-gray-400">Search across all categories, units and tools</p>
+    </div>
+
+    <!-- Search input -->
+    <div class="relative mb-6">
+      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        id="main-search"
+        type="search"
+        placeholder="Search units, converters, tools… e.g. &quot;kg&quot;, &quot;miles&quot;, &quot;BTU&quot;, &quot;loan&quot;"
+        autofocus
+        class="w-full h-14 pl-12 pr-4 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 text-base placeholder-gray-400 focus:outline-none focus:border-amber-500 dark:focus:border-amber-500 transition-colors shadow-sm"
+        aria-label="Search converters and units"
+      />
+      <kbd id="clear-search" class="hidden absolute right-4 top-1/2 -translate-y-1/2 px-2 py-0.5 text-xs text-gray-400 border border-gray-200 dark:border-gray-700 rounded cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 transition-colors">esc</kbd>
+    </div>
+
+    <!-- Stats bar -->
+    <div id="stats-bar" class="flex items-center justify-between mb-5 text-sm text-gray-500 dark:text-gray-400">
+      <span id="result-count">Showing all <strong class="text-gray-700 dark:text-gray-300">150 entries</strong> across <strong class="text-gray-700 dark:text-gray-300">27 categories</strong></span>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-gray-400">Filter:</span>
+        <button data-filter="all"   class="filter-btn px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500 text-white transition-colors">All</button>
+        <button data-filter="category" class="filter-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Categories</button>
+        <button data-filter="unit"  class="filter-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Units</button>
+        <button data-filter="tool"  class="filter-btn px-2.5 py-1 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Tools</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results-container" class="space-y-6"></div>
+
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-16">
+      <div class="text-5xl mb-4">🔍</div>
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">No results found</h2>
+      <p class="text-gray-500 dark:text-gray-400">Try a different search term or browse the <a href="/" class="text-amber-600 dark:text-amber-400 hover:underline">home page</a></p>
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ indexJson }}>
+  const index = JSON.parse(indexJson);
+
+  let query = '';
+  let activeFilter = 'all';
+
+  const searchEl = document.getElementById('main-search');
+  const clearBtn = document.getElementById('clear-search');
+  const container = document.getElementById('results-container');
+  const emptyState = document.getElementById('empty-state');
+  const resultCount = document.getElementById('result-count');
+
+  // ── Search logic ─────────────────────────────────────────────────────────────
+  function scoreEntry(entry, q) {
+    if (!q) return 1;
+    const lq = q.toLowerCase();
+    const name = entry.name.toLowerCase();
+    const cat = entry.category.toLowerCase();
+    const aliases = entry.aliases.map(a => a.toLowerCase());
+
+    if (name === lq) return 100;
+    if (name.startsWith(lq)) return 90;
+    if (aliases.some(a => a === lq)) return 85;
+    if (aliases.some(a => a.startsWith(lq))) return 75;
+    if (name.includes(lq)) return 60;
+    if (cat.includes(lq)) return 50;
+    if (aliases.some(a => a.includes(lq))) return 40;
+    return 0;
+  }
+
+  function doSearch() {
+    const q = query.trim();
+    let results = index
+      .map(e => ({ ...e, _score: scoreEntry(e, q) }))
+      .filter(e => e._score > 0 && (activeFilter === 'all' || e.type === activeFilter))
+      .sort((a, b) => b._score - a._score || a.name.localeCompare(b.name));
+
+    if (!q && activeFilter === 'all') {
+      // Show grouped by category
+      renderGrouped(results);
+    } else {
+      renderGrouped(results);
+    }
+
+    // Update count
+    const cats = new Set(results.map(r => r.category)).size;
+    if (results.length === 0) {
+      container.innerHTML = '';
+      emptyState.classList.remove('hidden');
+      resultCount.innerHTML = 'No results';
+    } else {
+      emptyState.classList.add('hidden');
+      resultCount.innerHTML = `Showing <strong class="text-gray-700 dark:text-gray-300">${results.length} result${results.length !== 1 ? 's' : ''}</strong> across <strong class="text-gray-700 dark:text-gray-300">${cats} categor${cats !== 1 ? 'ies' : 'y'}</strong>`;
+    }
+  }
+
+  function renderGrouped(results) {
+    // Group by category preserving order
+    const groups = new Map();
+    results.forEach(r => {
+      if (!groups.has(r.category)) groups.set(r.category, { icon: r.categoryIcon, items: [] });
+      groups.get(r.category).items.push(r);
+    });
+
+    container.innerHTML = '';
+    groups.forEach((group, cat) => {
+      const section = document.createElement('div');
+      section.className = 'bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm';
+
+      // Group header
+      const header = document.createElement('div');
+      header.className = 'px-5 py-3 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2';
+      header.innerHTML = `
+        <span class="text-base" aria-hidden="true">${group.icon}</span>
+        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">${cat}</span>
+        <span class="ml-auto text-xs text-gray-400">${group.items.length} result${group.items.length !== 1 ? 's' : ''}</span>
+      `;
+      section.appendChild(header);
+
+      // Items list
+      const list = document.createElement('ul');
+      list.className = 'divide-y divide-gray-50 dark:divide-gray-800';
+
+      group.items.forEach(item => {
+        const li = document.createElement('li');
+        const typeBadgeClass = {
+          category: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+          unit:     'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+          tool:     'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+        }[item.type];
+
+        const qs = query.trim();
+        let matchHint = '';
+        if (qs) {
+          const hit = item.aliases.find(a => a.toLowerCase().includes(qs.toLowerCase()));
+          if (hit && hit.toLowerCase() !== item.name.toLowerCase()) {
+            matchHint = `<span class="text-xs text-gray-400 ml-2">aka <em>${hit}</em></span>`;
+          }
+        }
+
+        li.innerHTML = `
+          <a href="${item.href}" class="flex items-center gap-3 px-5 py-3 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors group">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">${highlight(item.name, qs)}</span>
+                ${matchHint}
+              </div>
+            </div>
+            <span class="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${typeBadgeClass}">${item.type}</span>
+            <svg class="shrink-0 w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-amber-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        `;
+        list.appendChild(li);
+      });
+
+      section.appendChild(list);
+      container.appendChild(section);
+    });
+  }
+
+  function highlight(text, q) {
+    if (!q) return text;
+    const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="bg-amber-200 dark:bg-amber-700/50 text-gray-900 dark:text-white rounded px-0.5">$1</mark>');
+  }
+
+  // ── Event listeners ──────────────────────────────────────────────────────────
+  searchEl.addEventListener('input', e => {
+    query = e.target.value;
+    clearBtn.classList.toggle('hidden', !query);
+    doSearch();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    searchEl.value = '';
+    query = '';
+    clearBtn.classList.add('hidden');
+    searchEl.focus();
+    doSearch();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && query) {
+      searchEl.value = '';
+      query = '';
+      clearBtn.classList.add('hidden');
+      doSearch();
+    }
+  });
+
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeFilter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        const active = b === btn;
+        b.className = `filter-btn px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+          active ? 'bg-amber-500 text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+        }`;
+      });
+      doSearch();
+    });
+  });
+
+  // Read ?q= param from URL
+  const urlQ = new URLSearchParams(window.location.search).get('q') || '';
+  if (urlQ) {
+    searchEl.value = urlQ;
+    query = urlQ;
+    clearBtn.classList.remove('hidden');
+  }
+
+  doSearch();
+</script>

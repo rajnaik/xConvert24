@@ -1,0 +1,106 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Roman Numeral Converter" description="Convert between integers and Roman numerals.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2"><span class="text-3xl">Ⅻ</span><h1 class="text-2xl font-bold text-gray-900 dark:text-white">Roman Numeral Converter</h1></div>
+      <p class="text-gray-500 dark:text-gray-400">Convert between integers and Roman numerals</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <!-- Integer to Roman -->
+      <div class="mb-6">
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Integer → Roman Numeral</h2>
+        <div class="flex gap-3 mb-3">
+          <input id="int-input" type="number" min="1" max="3999" placeholder="1–3999" value="2024"
+            class="flex-1 h-13 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <div id="roman-result" class="w-full h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-2xl font-bold flex items-center tracking-widest">
+          MMXXIV
+        </div>
+      </div>
+
+      <hr class="border-gray-100 dark:border-gray-800 my-6"/>
+
+      <!-- Roman to Integer -->
+      <div>
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Roman Numeral → Integer</h2>
+        <div class="flex gap-3 mb-3">
+          <input id="roman-input" type="text" placeholder="e.g. XIV" value="MMXXIV"
+            class="flex-1 h-13 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-mono uppercase focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <div id="int-result" class="w-full h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-2xl font-bold flex items-center">
+          2024
+        </div>
+        <p id="roman-error" class="mt-2 text-sm text-red-500 hidden">Invalid Roman numeral</p>
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800"><h2 class="font-semibold text-gray-900 dark:text-white">Roman Numeral Symbols</h2></div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800"><tr><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Symbol</th><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Value</th></tr></thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {[['I','1'],['V','5'],['X','10'],['L','50'],['C','100'],['D','500'],['M','1000'],['IV','4'],['IX','9'],['XL','40'],['XC','90'],['CD','400'],['CM','900']].map(([s,v]) => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono text-lg font-bold">{s}</td><td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{v}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
+  const syms = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+
+  function toRoman(n: number): string {
+    if (n < 1 || n > 3999) return 'Out of range (1–3999)';
+    let result = '';
+    for (let i = 0; i < vals.length; i++) {
+      while (n >= vals[i]) { result += syms[i]; n -= vals[i]; }
+    }
+    return result;
+  }
+
+  function fromRoman(s: string): number {
+    const map: Record<string,number> = {I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
+    let result = 0;
+    s = s.toUpperCase().trim();
+    for (let i = 0; i < s.length; i++) {
+      const cur = map[s[i]];
+      const nxt = map[s[i+1]];
+      if (!cur) return NaN;
+      if (nxt && cur < nxt) result -= cur;
+      else result += cur;
+    }
+    return result;
+  }
+
+  const intInput = document.getElementById('int-input') as HTMLInputElement;
+  const romanInput = document.getElementById('roman-input') as HTMLInputElement;
+  const romanResult = document.getElementById('roman-result')!;
+  const intResult = document.getElementById('int-result')!;
+  const romanError = document.getElementById('roman-error')!;
+
+  intInput.addEventListener('input', () => {
+    const n = parseInt(intInput.value, 10);
+    romanResult.textContent = isNaN(n) ? '—' : toRoman(n);
+  });
+
+  romanInput.addEventListener('input', () => {
+    const val = romanInput.value.toUpperCase();
+    const n = fromRoman(val);
+    if (!val) { intResult.textContent = '—'; romanError.classList.add('hidden'); return; }
+    if (isNaN(n) || n === 0) {
+      romanError.classList.remove('hidden');
+      intResult.textContent = '—';
+    } else {
+      romanError.classList.add('hidden');
+      intResult.textContent = n.toString();
+    }
+  });
+</script>

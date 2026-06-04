@@ -1,0 +1,183 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Loan Calculator" description="Calculate monthly loan payments, total interest paid, and see an amortization schedule for any loan.">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🏦</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Loan Calculator</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Calculate monthly payments, total interest and amortization</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <!-- Loan amount -->
+        <div>
+          <label for="loan-amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Loan Amount</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+            <input id="loan-amount" type="number" min="0" step="100" value="25000" placeholder="0"
+              class="w-full h-12 pl-7 pr-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          </div>
+        </div>
+        <!-- Interest rate -->
+        <div>
+          <label for="interest-rate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Annual Interest Rate</label>
+          <div class="relative">
+            <input id="interest-rate" type="number" min="0" max="100" step="0.1" value="6.5" placeholder="0"
+              class="w-full h-12 pl-3 pr-8 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">%</span>
+          </div>
+        </div>
+        <!-- Loan term -->
+        <div>
+          <label for="loan-term" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Loan Term</label>
+          <div class="flex gap-2">
+            <input id="loan-term" type="number" min="1" max="480" step="1" value="60" placeholder="0"
+              class="flex-1 h-12 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+            <select id="term-unit" class="h-12 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="months">months</option>
+              <option value="years">years</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick term presets -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        {[{label:'1 yr',m:12},{label:'2 yr',m:24},{label:'3 yr',m:36},{label:'5 yr',m:60},{label:'10 yr',m:120},{label:'15 yr',m:180},{label:'20 yr',m:240},{label:'30 yr',m:360}].map(t => (
+          <button data-months={t.m} class="term-preset px-3 py-1 rounded-full text-xs font-semibold border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-amber-400 hover:text-amber-600 transition-colors">{t.label}</button>
+        ))}
+      </div>
+
+      <!-- Results -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-center">
+          <div class="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-1">Monthly Payment</div>
+          <div id="res-monthly" class="text-3xl font-bold text-green-700 dark:text-green-400">—</div>
+        </div>
+        <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-center">
+          <div class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-1">Total Interest</div>
+          <div id="res-interest" class="text-3xl font-bold text-amber-700 dark:text-amber-400">—</div>
+        </div>
+        <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-center">
+          <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Total Amount</div>
+          <div id="res-total" class="text-3xl font-bold text-gray-900 dark:text-white">—</div>
+        </div>
+      </div>
+
+      <!-- Principal vs Interest bar -->
+      <div>
+        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+          <span id="bar-principal-label">Principal</span>
+          <span id="bar-interest-label">Interest</span>
+        </div>
+        <div class="h-4 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex">
+          <div id="bar-principal" class="h-full bg-green-500 transition-all duration-500" style="width:50%"></div>
+          <div id="bar-interest" class="h-full bg-amber-400 transition-all duration-500" style="width:50%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Amortization -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white">Amortization Schedule</h2>
+        <span id="amort-note" class="text-xs text-gray-400">First 24 months shown</span>
+      </div>
+      <div class="overflow-x-auto max-h-64">
+        <table class="w-full text-sm" id="amort-table">
+          <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">#</th>
+              <th class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400">Payment</th>
+              <th class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400">Principal</th>
+              <th class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400">Interest</th>
+              <th class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400">Balance</th>
+            </tr>
+          </thead>
+          <tbody id="amort-body" class="divide-y divide-gray-100 dark:divide-gray-800">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  function fmt(n: number) { return '$' + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+  function calculate() {
+    const principal = parseFloat((document.getElementById('loan-amount') as HTMLInputElement).value) || 0;
+    const annualRate = parseFloat((document.getElementById('interest-rate') as HTMLInputElement).value) || 0;
+    const termVal = parseInt((document.getElementById('loan-term') as HTMLInputElement).value) || 0;
+    const termUnit = (document.getElementById('term-unit') as HTMLSelectElement).value;
+    const months = termUnit === 'years' ? termVal * 12 : termVal;
+
+    if (principal <= 0 || months <= 0) return;
+
+    const monthlyRate = annualRate / 100 / 12;
+    let monthly: number;
+
+    if (monthlyRate === 0) {
+      monthly = principal / months;
+    } else {
+      monthly = principal * monthlyRate * Math.pow(1 + monthlyRate, months) / (Math.pow(1 + monthlyRate, months) - 1);
+    }
+
+    const totalPaid = monthly * months;
+    const totalInterest = totalPaid - principal;
+
+    document.getElementById('res-monthly')!.textContent = fmt(monthly);
+    document.getElementById('res-interest')!.textContent = fmt(totalInterest);
+    document.getElementById('res-total')!.textContent = fmt(totalPaid);
+
+    // Bar
+    const principalPct = (principal / totalPaid) * 100;
+    const interestPct = 100 - principalPct;
+    (document.getElementById('bar-principal') as HTMLElement).style.width = principalPct + '%';
+    (document.getElementById('bar-interest') as HTMLElement).style.width = interestPct + '%';
+    document.getElementById('bar-principal-label')!.textContent = `Principal (${principalPct.toFixed(0)}%)`;
+    document.getElementById('bar-interest-label')!.textContent = `Interest (${interestPct.toFixed(0)}%)`;
+
+    // Amortization table (first 24 months or all if ≤24)
+    const showMonths = Math.min(months, 24);
+    const tbody = document.getElementById('amort-body')!;
+    tbody.innerHTML = '';
+    let balance = principal;
+    for (let i = 1; i <= showMonths; i++) {
+      const interestPayment = balance * monthlyRate;
+      const principalPayment = monthly - interestPayment;
+      balance = Math.max(0, balance - principalPayment);
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-800/50';
+      tr.innerHTML = `
+        <td class="px-4 py-2.5 text-gray-500 dark:text-gray-400 font-mono">${i}</td>
+        <td class="px-4 py-2.5 text-right text-gray-700 dark:text-gray-300 font-mono">${fmt(monthly)}</td>
+        <td class="px-4 py-2.5 text-right text-green-600 dark:text-green-400 font-mono">${fmt(principalPayment)}</td>
+        <td class="px-4 py-2.5 text-right text-amber-600 dark:text-amber-400 font-mono">${fmt(interestPayment)}</td>
+        <td class="px-4 py-2.5 text-right text-gray-900 dark:text-white font-mono font-semibold">${fmt(balance)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+    document.getElementById('amort-note')!.textContent = months > 24 ? `First 24 of ${months} months shown` : `All ${months} months`;
+  }
+
+  // Term presets
+  document.querySelectorAll('[data-months]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      (document.getElementById('loan-term') as HTMLInputElement).value = (btn as HTMLElement).dataset.months!;
+      (document.getElementById('term-unit') as HTMLSelectElement).value = 'months';
+      calculate();
+    });
+  });
+
+  ['loan-amount','interest-rate','loan-term','term-unit'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', calculate);
+    document.getElementById(id)?.addEventListener('change', calculate);
+  });
+
+  calculate();
+</script>
