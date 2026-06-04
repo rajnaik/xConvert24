@@ -54,9 +54,23 @@ import Layout from '../../layouts/Layout.astro';
         <div class="text-6xl mb-4">⏰</div>
         <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-1">Alarm!</h2>
         <p id="alarm-modal-label" class="text-gray-500 dark:text-gray-400 mb-6">Time's up</p>
-        <button id="alarm-dismiss" class="px-8 py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors text-lg">
-          Dismiss
-        </button>
+        <!-- Stop + Snooze -->
+        <div class="flex flex-col gap-3">
+          <button id="alarm-stop" class="w-full px-6 py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors text-lg">
+            ⏹ Stop
+          </button>
+          <div>
+            <p class="text-xs text-gray-400 mb-2">Or snooze for:</p>
+            <div class="flex flex-wrap justify-center gap-2">
+              <button data-snooze="1" class="snooze-btn px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">1 min</button>
+              <button data-snooze="2" class="snooze-btn px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">2 min</button>
+              <button data-snooze="3" class="snooze-btn px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">3 min</button>
+              <button data-snooze="5" class="snooze-btn px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">5 min</button>
+              <button data-snooze="10" class="snooze-btn px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">10 min</button>
+              <button data-snooze="15" class="snooze-btn px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors">15 min</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -64,11 +78,19 @@ import Layout from '../../layouts/Layout.astro';
 
 <script>
   interface AlarmItem { id: string; time: string; label: string; }
-  let alarms: AlarmItem[] = [];
+  const ALARM_KEY = 'xconvert24-alarms';
+
+  function loadAlarms(): AlarmItem[] {
+    try { return JSON.parse(localStorage.getItem(ALARM_KEY) || '[]'); } catch { return []; }
+  }
+  function saveAlarms(a: AlarmItem[]) {
+    localStorage.setItem(ALARM_KEY, JSON.stringify(a));
+  }
+
+  let alarms: AlarmItem[] = loadAlarms();
   let ringingAudioCtx: AudioContext | null = null;
   let ringingOsc: OscillatorNode | null = null;
 
-  const timeEl = document.getElementById('current-time')!;
   const alarmTime = document.getElementById('alarm-time') as HTMLInputElement;
   const alarmLabel = document.getElementById('alarm-label') as HTMLInputElement;
   const addBtn = document.getElementById('add-alarm')!;
@@ -76,7 +98,9 @@ import Layout from '../../layouts/Layout.astro';
   const countEl = document.getElementById('alarm-count')!;
   const modal = document.getElementById('alarm-modal')!;
   const modalLabel = document.getElementById('alarm-modal-label')!;
-  const dismissBtn = document.getElementById('alarm-dismiss')!;
+  const stopBtn = document.getElementById('alarm-stop')!;
+
+  let currentRingingAlarm: AlarmItem | null = null;
 
   // Set default alarm time to 1 minute from now
   const now = new Date();
@@ -84,18 +108,25 @@ import Layout from '../../layouts/Layout.astro';
   alarmTime.value = now.toTimeString().slice(0, 5);
 
   function updateClock() {
-    const n = new Date();
-    timeEl.textContent = n.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    // Check alarms
-    const currentHHMM = n.toTimeString().slice(0, 5);
-    const currentSec = n.getSeconds();
-    if (currentSec === 0) {
-      const triggered = alarms.filter(a => a.time === currentHHMM);
-      triggered.forEach(a => triggerAlarm(a));
-    }
+    try {
+      const el = document.getElementById('current-time');
+      if (!el) return;
+      const n = new Date();
+      el.textContent = n.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      // Check alarms
+      const currentHHMM = n.toTimeString().slice(0, 5);
+      const currentSec = n.getSeconds();
+      if (currentSec === 0) {
+        // Reload alarms from storage in case they were updated
+        alarms = loadAlarms();
+        const triggered = alarms.filter(a => a.time === currentHHMM);
+        triggered.forEach(a => triggerAlarm(a));
+      }
+    } catch {}
   }
 
   function triggerAlarm(alarm: AlarmItem) {
+    currentRingingAlarm = alarm;
     // Show modal
     modalLabel.textContent = alarm.label || "Time's up!";
     modal.classList.remove('hidden');
@@ -104,6 +135,7 @@ import Layout from '../../layouts/Layout.astro';
     startRinging();
     // Remove from list
     alarms = alarms.filter(a => a.id !== alarm.id);
+    saveAlarms(alarms);
     renderAlarms();
   }
 
@@ -137,10 +169,38 @@ import Layout from '../../layouts/Layout.astro';
     if (ringingAudioCtx) { ringingAudioCtx.close(); ringingAudioCtx = null; }
   }
 
-  dismissBtn.addEventListener('click', () => {
+  function closeModal() {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
     stopRinging();
+    currentRingingAlarm = null;
+  }
+
+  // Stop button
+  stopBtn.addEventListener('click', closeModal);
+
+  // Snooze buttons
+  document.querySelectorAll('[data-snooze]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const minutes = parseInt((btn as HTMLElement).dataset.snooze!);
+      stopRinging();
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+
+      // Calculate snooze time
+      const snoozeTime = new Date();
+      snoozeTime.setMinutes(snoozeTime.getMinutes() + minutes);
+      const hh = snoozeTime.getHours().toString().padStart(2, '0');
+      const mm = snoozeTime.getMinutes().toString().padStart(2, '0');
+      const newTime = `${hh}:${mm}`;
+
+      // Re-add the alarm with the snoozed time
+      const label = currentRingingAlarm?.label ? `${currentRingingAlarm.label} (snoozed)` : `Snoozed ${minutes}min`;
+      alarms.push({ id: Date.now().toString(36), time: newTime, label });
+      saveAlarms(alarms);
+      renderAlarms();
+      currentRingingAlarm = null;
+    });
   });
 
   function renderAlarms() {
@@ -163,6 +223,7 @@ import Layout from '../../layouts/Layout.astro';
     listEl.querySelectorAll('[data-del]').forEach(btn => {
       btn.addEventListener('click', () => {
         alarms = alarms.filter(a => a.id !== (btn as HTMLElement).dataset.del);
+        saveAlarms(alarms);
         renderAlarms();
       });
     });
@@ -172,6 +233,7 @@ import Layout from '../../layouts/Layout.astro';
     const time = alarmTime.value;
     if (!time) return;
     alarms.push({ id: Date.now().toString(36), time, label: alarmLabel.value.trim() });
+    saveAlarms(alarms);
     alarmLabel.value = '';
     renderAlarms();
   });

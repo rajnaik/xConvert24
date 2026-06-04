@@ -1,0 +1,210 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Top 100 Cryptocurrencies — Live Prices & Market Cap" description="Live cryptocurrency prices for the top 100 coins. Track 1h, 24h, 7d, 30d, 90d price changes, market cap, and circulating supply." keywords="cryptocurrency prices, bitcoin price, top 100 crypto, market cap, live crypto rates, ethereum, altcoins, crypto tracker">
+  <div class="max-w-5xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🪙</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Top 100 Cryptocurrencies</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Live prices from CoinGecko — updated on page load</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div id="last-updated" class="text-xs text-gray-400">Loading…</div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-gray-400">Show columns:</span>
+        <label class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+          <input type="checkbox" id="col-1h" checked class="accent-amber-500 w-3.5 h-3.5"/> 1h
+        </label>
+        <label class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+          <input type="checkbox" id="col-24h" checked class="accent-amber-500 w-3.5 h-3.5"/> 24h
+        </label>
+        <label class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+          <input type="checkbox" id="col-7d" checked class="accent-amber-500 w-3.5 h-3.5"/> 7d
+        </label>
+        <label class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+          <input type="checkbox" id="col-30d" class="accent-amber-500 w-3.5 h-3.5"/> 30d
+        </label>
+        <label class="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+          <input type="checkbox" id="col-90d" class="accent-amber-500 w-3.5 h-3.5"/> 90d
+        </label>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm" id="crypto-table">
+          <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0">
+            <tr>
+              <th class="px-3 py-3 text-left font-medium text-gray-600 dark:text-gray-400 w-10 cursor-pointer hover:text-amber-600 select-none" data-sort="rank"># ↕</th>
+              <th class="px-3 py-3 text-left font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:text-amber-600 select-none" data-sort="name">Coin ↕</th>
+              <th class="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:text-amber-600 select-none" data-sort="price">Price ↕</th>
+              <th class="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-400 col-1h cursor-pointer hover:text-amber-600 select-none" data-sort="1h">1h % ↕</th>
+              <th class="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-400 col-24h cursor-pointer hover:text-amber-600 select-none" data-sort="24h">24h % ↕</th>
+              <th class="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-400 col-7d cursor-pointer hover:text-amber-600 select-none" data-sort="7d">7d % ↕</th>
+              <th class="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-400 col-30d hidden cursor-pointer hover:text-amber-600 select-none" data-sort="30d">30d % ↕</th>
+              <th class="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-400 col-90d hidden cursor-pointer hover:text-amber-600 select-none" data-sort="90d">90d % ↕</th>
+              <th class="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:text-amber-600 select-none" data-sort="cap">Market Cap ↕</th>
+              <th class="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:text-amber-600 select-none" data-sort="supply">Circulating ↕</th>
+            </tr>
+          </thead>
+          <tbody id="crypto-body" class="divide-y divide-gray-50 dark:divide-gray-800">
+            <tr><td colspan="10" class="px-4 py-12 text-center text-gray-400 italic">Loading top 100 cryptocurrencies…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Attribution -->
+    <p class="mt-3 text-xs text-gray-400 text-center">Data provided by <a href="https://www.coingecko.com" target="_blank" rel="noopener" class="text-amber-600 dark:text-amber-400 hover:underline">CoinGecko</a> API</p>
+  </div>
+</Layout>
+
+<script>
+  const body = document.getElementById('crypto-body')!;
+  const updatedEl = document.getElementById('last-updated')!;
+
+  let allCoins: any[] = [];
+  let sortKey = 'rank';
+  let sortDir: 'asc' | 'desc' = 'asc';
+
+  function formatUsd(n: number): string {
+    if (n >= 1) return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (n >= 0.01) return '$' + n.toFixed(4);
+    return '$' + n.toFixed(6);
+  }
+
+  function formatCap(n: number): string {
+    if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + 'T';
+    if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+    return '$' + n.toLocaleString();
+  }
+
+  function formatSupply(n: number, symbol: string): string {
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B ' + symbol;
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M ' + symbol;
+    return n.toLocaleString() + ' ' + symbol;
+  }
+
+  function pctCell(val: number | null): string {
+    if (val == null) return '<td class="px-3 py-2.5 text-right text-gray-400">—</td>';
+    const color = val >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400';
+    const arrow = val >= 0 ? '▲' : '▼';
+    return `<td class="px-3 py-2.5 text-right font-mono text-xs ${color}">${arrow} ${Math.abs(val).toFixed(2)}%</td>`;
+  }
+
+  async function loadCoins() {
+    try {
+      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h,24h,7d,30d,90d');
+      if (!res.ok) throw new Error('API ' + res.status);
+      allCoins = await res.json();
+      updatedEl.textContent = `Updated: ${new Date().toLocaleTimeString()} • ${allCoins.length} coins`;
+      renderTable();
+    } catch (err: any) {
+      body.innerHTML = `<tr><td colspan="10" class="px-4 py-12 text-center text-red-400 italic">Failed to load: ${err.message}. Try refreshing.</td></tr>`;
+      updatedEl.textContent = 'Failed to load';
+    }
+  }
+
+  function getSortValue(coin: any, key: string): number | string {
+    switch (key) {
+      case 'rank': return coin.market_cap_rank || 999;
+      case 'name': return coin.name.toLowerCase();
+      case 'price': return coin.current_price || 0;
+      case '1h': return coin.price_change_percentage_1h_in_currency || 0;
+      case '24h': return coin.price_change_percentage_24h_in_currency || 0;
+      case '7d': return coin.price_change_percentage_7d_in_currency || 0;
+      case '30d': return coin.price_change_percentage_30d_in_currency || 0;
+      case '90d': return coin.price_change_percentage_90d_in_currency || 0;
+      case 'cap': return coin.market_cap || 0;
+      case 'supply': return coin.circulating_supply || 0;
+      default: return 0;
+    }
+  }
+
+  function renderTable() {
+    const sorted = [...allCoins].sort((a, b) => {
+      const aVal = getSortValue(a, sortKey);
+      const bVal = getSortValue(b, sortKey);
+      let cmp = 0;
+      if (typeof aVal === 'string' && typeof bVal === 'string') cmp = aVal.localeCompare(bVal);
+      else cmp = (aVal as number) - (bVal as number);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    body.innerHTML = sorted.map((coin: any, i: number) => `
+      <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+        <td class="px-3 py-2.5 text-gray-400 font-mono text-xs">${coin.market_cap_rank || i + 1}</td>
+        <td class="px-3 py-2.5">
+          <div class="flex items-center gap-2">
+            <img src="${coin.image}" alt="${coin.name} logo" class="w-5 h-5 rounded-full" loading="lazy"/>
+            <span class="font-medium text-gray-900 dark:text-white text-sm">${coin.name}</span>
+            <span class="text-xs text-gray-400 uppercase">${coin.symbol}</span>
+          </div>
+        </td>
+        <td class="px-3 py-2.5 text-right font-mono font-semibold text-gray-900 dark:text-white">${formatUsd(coin.current_price)}</td>
+        ${pctCell(coin.price_change_percentage_1h_in_currency).replace('class="', 'class="col-1h ')}
+        ${pctCell(coin.price_change_percentage_24h_in_currency).replace('class="', 'class="col-24h ')}
+        ${pctCell(coin.price_change_percentage_7d_in_currency).replace('class="', 'class="col-7d ')}
+        ${pctCell(coin.price_change_percentage_30d_in_currency).replace('class="', 'class="col-30d hidden ')}
+        ${pctCell(coin.price_change_percentage_90d_in_currency).replace('class="', 'class="col-90d hidden ')}
+        <td class="px-3 py-2.5 text-right font-mono text-xs text-gray-700 dark:text-gray-300">${formatCap(coin.market_cap)}</td>
+        <td class="px-3 py-2.5 text-right font-mono text-xs text-gray-500 dark:text-gray-400">${coin.circulating_supply ? formatSupply(coin.circulating_supply, coin.symbol.toUpperCase()) : '—'}</td>
+      </tr>
+    `).join('');
+
+    applyColumnVisibility();
+    updateSortIndicators();
+  }
+
+  function updateSortIndicators() {
+    document.querySelectorAll('[data-sort]').forEach(th => {
+      const key = (th as HTMLElement).dataset.sort;
+      const base = (th as HTMLElement).textContent!.replace(/ [↑↓↕]/g, '');
+      if (key === sortKey) {
+        (th as HTMLElement).textContent = base + (sortDir === 'asc' ? ' ↑' : ' ↓');
+        (th as HTMLElement).classList.add('text-amber-600');
+      } else {
+        (th as HTMLElement).textContent = base + ' ↕';
+        (th as HTMLElement).classList.remove('text-amber-600');
+      }
+    });
+  }
+
+  // Sort click handlers
+  document.querySelectorAll('[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = (th as HTMLElement).dataset.sort!;
+      if (sortKey === key) {
+        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        sortKey = key;
+        sortDir = key === 'name' ? 'asc' : 'desc'; // numbers default to desc, name to asc
+      }
+      renderTable();
+    });
+  });
+
+  // Column visibility toggles
+  function applyColumnVisibility() {
+    ['1h', '24h', '7d', '30d', '90d'].forEach(period => {
+      const checked = (document.getElementById(`col-${period}`) as HTMLInputElement).checked;
+      document.querySelectorAll(`.col-${period}`).forEach(el => {
+        (el as HTMLElement).classList.toggle('hidden', !checked);
+      });
+    });
+  }
+
+  ['col-1h', 'col-24h', 'col-7d', 'col-30d', 'col-90d'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', applyColumnVisibility);
+  });
+
+  loadCoins();
+</script>

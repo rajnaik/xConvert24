@@ -2,7 +2,7 @@
 export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
 ---
-<Layout title="Roman Numeral Converter — Numbers to Roman Numerals" description="Free online Roman numeral converter. Convert any integer (1-3999) to Roman numerals and Roman numerals back to numbers instantly." keywords="roman numeral converter, numbers to roman numerals, roman numerals to numbers, roman numeral chart, MCMXCIX, roman numeral translation">
+<Layout title="Roman Numeral Converter — Numbers to Roman Numerals" description="Free online Roman numeral converter. Convert any integer (1-3999) to Roman numerals and Roman numerals back to numbers instantly. Supports vinculum notation up to 3,999,999." keywords="roman numeral converter, numbers to roman numerals, roman numerals to numbers, roman numeral chart, MCMXCIX, roman numeral translation, vinculum">
   <div class="max-w-2xl">
     <div class="mb-6">
       <div class="flex items-center gap-3 mb-2"><span class="text-3xl">Ⅻ</span><h1 class="text-2xl font-bold text-gray-900 dark:text-white">Roman Numeral Converter</h1></div>
@@ -10,14 +10,25 @@ import Layout from '../../layouts/Layout.astro';
     </div>
 
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <!-- Mode toggle -->
+      <div class="flex gap-2 mb-5">
+        <button id="mode-standard" class="flex-1 py-2 px-4 rounded-lg text-sm font-medium border-2 border-amber-500 bg-amber-500 text-white transition-colors">Standard (1–3,999)</button>
+        <button id="mode-vinculum" class="flex-1 py-2 px-4 rounded-lg text-sm font-medium border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-amber-400 transition-colors">Vinculum (1–3,999,999)</button>
+      </div>
+
+      <!-- Vinculum info -->
+      <div id="vinculum-info" class="hidden mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-400">
+        <strong>Vinculum notation:</strong> A bar over a numeral means ×1000. For example, <span class="font-mono font-bold" style="text-decoration: overline;">V</span> = 5,000 and <span class="font-mono font-bold" style="text-decoration: overline;">X</span> = 10,000. This extends Roman numerals up to 3,999,999.
+      </div>
+
       <!-- Integer to Roman -->
       <div class="mb-6">
         <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Integer → Roman Numeral</h2>
         <div class="flex gap-3 mb-3">
-          <input id="int-input" type="number" min="1" max="3999" placeholder="1–3999" value="2024"
+          <input id="int-input" type="number" min="1" max="3999999" placeholder="Enter a number" value="2024"
             class="flex-1 h-13 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"/>
         </div>
-        <div id="roman-result" class="w-full h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-2xl font-bold flex items-center tracking-widest">
+        <div id="roman-result" class="w-full min-h-13 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-2xl font-bold flex items-center tracking-widest">
           MMXXIV
         </div>
       </div>
@@ -27,6 +38,7 @@ import Layout from '../../layouts/Layout.astro';
       <!-- Roman to Integer -->
       <div>
         <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Roman Numeral → Integer</h2>
+        <p id="vinculum-hint" class="hidden text-xs text-gray-400 dark:text-gray-500 mb-2">Use parentheses for overline: (V) = 5000, (X) = 10000, (M) = 1000000</p>
         <div class="flex gap-3 mb-3">
           <input id="roman-input" type="text" placeholder="e.g. XIV" value="MMXXIV"
             class="flex-1 h-13 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg font-mono uppercase focus:outline-none focus:ring-2 focus:ring-amber-500"/>
@@ -44,33 +56,94 @@ import Layout from '../../layouts/Layout.astro';
         <table class="w-full text-sm">
           <thead class="bg-gray-50 dark:bg-gray-800"><tr><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Symbol</th><th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Value</th></tr></thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            {[['I','1'],['V','5'],['X','10'],['L','50'],['C','100'],['D','500'],['M','1000'],['IV','4'],['IX','9'],['XL','40'],['XC','90'],['CD','400'],['CM','900']].map(([s,v]) => (
+            {[['I','1'],['V','5'],['X','10'],['L','50'],['C','100'],['D','500'],['M','1,000'],['IV','4'],['IX','9'],['XL','40'],['XC','90'],['CD','400'],['CM','900']].map(([s,v]) => (
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono text-lg font-bold">{s}</td><td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{v}</td></tr>
             ))}
           </tbody>
         </table>
+      </div>
+      <!-- Vinculum table -->
+      <div id="vinculum-table" class="hidden border-t border-gray-100 dark:border-gray-800">
+        <div class="px-6 py-3 bg-gray-50 dark:bg-gray-800"><span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Vinculum (overline = ×1000)</span></div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              {[
+                ['V̅ or (V)','5,000'],['X̅ or (X)','10,000'],['L̅ or (L)','50,000'],
+                ['C̅ or (C)','100,000'],['D̅ or (D)','500,000'],['M̅ or (M)','1,000,000'],
+              ].map(([s,v]) => (
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50"><td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono text-lg font-bold">{s}</td><td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{v}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </Layout>
 
 <script>
+  let useVinculum = false;
+
   const vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
   const syms = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
 
+  // Extended values for vinculum (overline = ×1000)
+  const valsExt = [1000000,900000,500000,400000,100000,90000,50000,40000,10000,9000,5000,4000,1000,900,500,400,100,90,50,40,10,9,5,4,1];
+  const symsExt = ['(M)','(CM)','(D)','(CD)','(C)','(XC)','(L)','(XL)','(X)','(IX)','(V)','(IV)','M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+  // HTML versions with overline
+  const symsExtHtml = ['M̅','C̅M̅','D̅','C̅D̅','C̅','X̅C̅','L̅','X̅L̅','X̅','I̅X̅','V̅','I̅V̅','M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+
   function toRoman(n: number): string {
-    if (n < 1 || n > 3999) return 'Out of range (1–3999)';
+    if (n < 1) return '—';
+    const max = useVinculum ? 3999999 : 3999;
+    if (n > max) return `Out of range (1–${max.toLocaleString()})`;
+
+    if (!useVinculum) {
+      let result = '';
+      for (let i = 0; i < vals.length; i++) {
+        while (n >= vals[i]) { result += syms[i]; n -= vals[i]; }
+      }
+      return result;
+    }
+
+    // Vinculum mode — return HTML with overlines
     let result = '';
-    for (let i = 0; i < vals.length; i++) {
-      while (n >= vals[i]) { result += syms[i]; n -= vals[i]; }
+    for (let i = 0; i < valsExt.length; i++) {
+      while (n >= valsExt[i]) { result += symsExtHtml[i]; n -= valsExt[i]; }
     }
     return result;
   }
 
   function fromRoman(s: string): number {
+    s = s.toUpperCase().trim();
+    if (!s) return NaN;
+
+    if (useVinculum) {
+      // Parse parenthesized notation: (X) = 10000, etc.
+      let total = 0;
+      let remaining = s;
+
+      // Process (XX) groups first
+      remaining = remaining.replace(/\(([MDCLXVI]+)\)/g, (_, inner) => {
+        const val = parseStandardRoman(inner);
+        if (isNaN(val)) return '?';
+        total += val * 1000;
+        return '';
+      });
+
+      if (remaining.includes('?')) return NaN;
+      const stdVal = parseStandardRoman(remaining);
+      if (isNaN(stdVal) && remaining.length > 0) return NaN;
+      return total + (stdVal || 0);
+    }
+
+    return parseStandardRoman(s);
+  }
+
+  function parseStandardRoman(s: string): number {
     const map: Record<string,number> = {I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
     let result = 0;
-    s = s.toUpperCase().trim();
     for (let i = 0; i < s.length; i++) {
       const cur = map[s[i]];
       const nxt = map[s[i+1]];
@@ -81,27 +154,69 @@ import Layout from '../../layouts/Layout.astro';
     return result;
   }
 
+  // Elements
   const intInput = document.getElementById('int-input') as HTMLInputElement;
   const romanInput = document.getElementById('roman-input') as HTMLInputElement;
   const romanResult = document.getElementById('roman-result')!;
   const intResult = document.getElementById('int-result')!;
   const romanError = document.getElementById('roman-error')!;
+  const modeStd = document.getElementById('mode-standard')!;
+  const modeVinc = document.getElementById('mode-vinculum')!;
+  const vincInfo = document.getElementById('vinculum-info')!;
+  const vincTable = document.getElementById('vinculum-table')!;
+  const vincHint = document.getElementById('vinculum-hint')!;
 
-  intInput.addEventListener('input', () => {
+  const activeClass = 'flex-1 py-2 px-4 rounded-lg text-sm font-medium border-2 border-amber-500 bg-amber-500 text-white transition-colors';
+  const inactiveClass = 'flex-1 py-2 px-4 rounded-lg text-sm font-medium border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-amber-400 transition-colors';
+
+  function setMode(vinculum: boolean) {
+    useVinculum = vinculum;
+    if (vinculum) {
+      modeVinc.className = activeClass;
+      modeStd.className = inactiveClass;
+      vincInfo.classList.remove('hidden');
+      vincTable.classList.remove('hidden');
+      vincHint.classList.remove('hidden');
+      intInput.max = '3999999';
+      intInput.placeholder = '1–3,999,999';
+    } else {
+      modeStd.className = activeClass;
+      modeVinc.className = inactiveClass;
+      vincInfo.classList.add('hidden');
+      vincTable.classList.add('hidden');
+      vincHint.classList.add('hidden');
+      intInput.max = '3999';
+      intInput.placeholder = '1–3,999';
+    }
+    updateFromInt();
+    updateFromRoman();
+  }
+
+  function updateFromInt() {
     const n = parseInt(intInput.value, 10);
-    romanResult.textContent = isNaN(n) ? '—' : toRoman(n);
-  });
+    if (isNaN(n)) { romanResult.innerHTML = '—'; return; }
+    const result = toRoman(n);
+    romanResult.innerHTML = result;
+  }
 
-  romanInput.addEventListener('input', () => {
-    const val = romanInput.value.toUpperCase();
+  function updateFromRoman() {
+    const val = romanInput.value;
+    if (!val.trim()) { intResult.textContent = '—'; romanError.classList.add('hidden'); return; }
     const n = fromRoman(val);
-    if (!val) { intResult.textContent = '—'; romanError.classList.add('hidden'); return; }
     if (isNaN(n) || n === 0) {
       romanError.classList.remove('hidden');
       intResult.textContent = '—';
     } else {
       romanError.classList.add('hidden');
-      intResult.textContent = n.toString();
+      intResult.textContent = n.toLocaleString();
     }
-  });
+  }
+
+  modeStd.addEventListener('click', () => setMode(false));
+  modeVinc.addEventListener('click', () => setMode(true));
+  intInput.addEventListener('input', updateFromInt);
+  romanInput.addEventListener('input', updateFromRoman);
+
+  // Init
+  updateFromInt();
 </script>

@@ -1,0 +1,194 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Crypto Bubbles — Visual Market Overview" description="See cryptocurrency market trends as interactive bubbles. Size represents market cap, color represents price change. Top 100 coins visualized." keywords="crypto bubbles, cryptocurrency visualization, bitcoin bubble, market cap visual, crypto market overview, altcoin bubbles">
+  <div class="max-w-6xl">
+    <div class="mb-4">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🫧</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Crypto Bubbles</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400 text-sm">Bubble size = market cap • Color = price change</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <!-- Period selector -->
+      <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <button data-period="1h" class="period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors text-gray-500 dark:text-gray-400">1H</button>
+        <button data-period="24h" class="period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm">24H</button>
+        <button data-period="7d" class="period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors text-gray-500 dark:text-gray-400">7D</button>
+        <button data-period="30d" class="period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors text-gray-500 dark:text-gray-400">30D</button>
+      </div>
+      <!-- Count selector -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-gray-400">Show:</span>
+        <button data-count="20" class="count-btn px-2 py-1 rounded text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">20</button>
+        <button data-count="50" class="count-btn px-2 py-1 rounded text-xs font-medium bg-amber-500 text-white">50</button>
+        <button data-count="100" class="count-btn px-2 py-1 rounded text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">100</button>
+      </div>
+    </div>
+
+    <!-- Bubbles container -->
+    <div id="bubbles-wrap" class="relative bg-gray-950 rounded-2xl border border-gray-800 overflow-hidden min-h-[550px] p-3">
+      <div id="bubbles-loading" class="absolute inset-0 flex items-center justify-center text-gray-500 italic text-sm">Loading coins…</div>
+      <div id="bubbles" class="flex flex-wrap justify-center items-center gap-1.5 content-center"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="flex flex-wrap items-center justify-center gap-4 mt-4 text-xs text-gray-500 dark:text-gray-400">
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:#16a34a"></span> Strong gain (&gt;5%)</div>
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:#4ade80"></span> Gain (0–5%)</div>
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:#6b7280"></span> Flat</div>
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:#f87171"></span> Loss (0–5%)</div>
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:#dc2626"></span> Strong loss (&gt;5%)</div>
+    </div>
+
+    <p class="mt-3 text-xs text-gray-400 text-center">Data by <a href="https://www.coingecko.com" target="_blank" rel="noopener" class="text-amber-600 dark:text-amber-400 hover:underline">CoinGecko</a></p>
+  </div>
+</Layout>
+
+<style>
+  .bubble {
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .bubble:hover {
+    transform: scale(1.12);
+    box-shadow: 0 0 20px rgba(255,255,255,0.15);
+    z-index: 10;
+  }
+  .bubble-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    opacity: 0.15;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), transparent 60%);
+  }
+</style>
+
+<script>
+  let coins: any[] = [];
+  let activePeriod = '24h';
+  let showCount = 50;
+
+  const bubblesEl = document.getElementById('bubbles')!;
+  const loadingEl = document.getElementById('bubbles-loading')!;
+
+  function getChangeKey(period: string): string {
+    return {
+      '1h': 'price_change_percentage_1h_in_currency',
+      '24h': 'price_change_percentage_24h_in_currency',
+      '7d': 'price_change_percentage_7d_in_currency',
+      '30d': 'price_change_percentage_30d_in_currency',
+    }[period] || 'price_change_percentage_24h_in_currency';
+  }
+
+  function getColor(change: number | null): string {
+    if (change == null || Math.abs(change) < 0.5) return '#374151'; // gray
+    if (change > 10) return '#15803d';  // deep green
+    if (change > 5) return '#16a34a';   // green
+    if (change > 0) return '#4ade80';   // light green
+    if (change > -5) return '#f87171';  // light red
+    if (change > -10) return '#dc2626'; // red
+    return '#991b1b'; // deep red
+  }
+
+  function getBorderColor(change: number | null): string {
+    if (change == null || Math.abs(change) < 0.5) return 'rgba(107,114,128,0.4)';
+    if (change > 0) return 'rgba(74,222,128,0.3)';
+    return 'rgba(248,113,113,0.3)';
+  }
+
+  function formatPrice(p: number): string {
+    if (p >= 1000) return '$' + (p / 1000).toFixed(1) + 'k';
+    if (p >= 1) return '$' + p.toFixed(2);
+    return '$' + p.toFixed(4);
+  }
+
+  function renderBubbles() {
+    if (!coins.length) return;
+    const key = getChangeKey(activePeriod);
+    const subset = coins.slice(0, showCount);
+    const maxCap = subset[0]?.market_cap || 1;
+
+    bubblesEl.innerHTML = subset.map((coin, i) => {
+      const change = coin[key] ?? 0;
+      const color = getColor(change);
+      const border = getBorderColor(change);
+
+      // Size: proportional to sqrt of market cap, scaled to fit
+      const ratio = coin.market_cap / maxCap;
+      const baseSize = showCount <= 20 ? 130 : showCount <= 50 ? 95 : 70;
+      const minSize = showCount <= 20 ? 60 : showCount <= 50 ? 38 : 28;
+      const size = Math.max(minSize, Math.sqrt(ratio) * baseSize);
+
+      const sign = change >= 0 ? '+' : '';
+      const textSize = size > 60 ? 11 : size > 40 ? 9 : 7;
+      const imgSize = size > 60 ? 22 : size > 40 ? 16 : 12;
+      const symbolSize = size > 60 ? 10 : size > 40 ? 8 : 6;
+      const showPrice = size > 55;
+
+      return `
+        <div class="bubble" 
+          style="width:${size}px;height:${size}px;background:${color};border:1.5px solid ${border};"
+          title="${coin.name} (${coin.symbol.toUpperCase()})&#10;Price: ${formatPrice(coin.current_price)}&#10;${activePeriod}: ${sign}${change?.toFixed(2)}%&#10;Market Cap: $${(coin.market_cap / 1e9).toFixed(2)}B"
+        >
+          <div class="bubble-glow"></div>
+          <img src="${coin.image}" alt="${coin.name}" style="width:${imgSize}px;height:${imgSize}px;border-radius:50%;position:relative;z-index:1;" loading="lazy"/>
+          <span style="font-size:${symbolSize}px;font-weight:700;color:white;opacity:0.95;line-height:1.2;position:relative;z-index:1;margin-top:1px;">${coin.symbol.toUpperCase()}</span>
+          <span style="font-size:${textSize}px;font-weight:600;color:white;position:relative;z-index:1;line-height:1;">${sign}${change?.toFixed(1)}%</span>
+          ${showPrice ? `<span style="font-size:${symbolSize}px;color:rgba(255,255,255,0.6);position:relative;z-index:1;">${formatPrice(coin.current_price)}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function loadCoins() {
+    try {
+      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h,24h,7d,30d');
+      if (!res.ok) throw new Error('API error');
+      coins = await res.json();
+      loadingEl.classList.add('hidden');
+      renderBubbles();
+    } catch {
+      loadingEl.textContent = 'Failed to load. Try refreshing.';
+    }
+  }
+
+  // Period buttons
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activePeriod = (btn as HTMLElement).dataset.period!;
+      document.querySelectorAll('.period-btn').forEach(b => {
+        const active = (b as HTMLElement).dataset.period === activePeriod;
+        (b as HTMLElement).className = `period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${active ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`;
+      });
+      renderBubbles();
+    });
+  });
+
+  // Count buttons
+  document.querySelectorAll('.count-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      showCount = parseInt((btn as HTMLElement).dataset.count!);
+      document.querySelectorAll('.count-btn').forEach(b => {
+        const active = parseInt((b as HTMLElement).dataset.count!) === showCount;
+        (b as HTMLElement).className = `count-btn px-2 py-1 rounded text-xs font-medium ${active ? 'bg-amber-500 text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`;
+      });
+      renderBubbles();
+    });
+  });
+
+  loadCoins();
+</script>

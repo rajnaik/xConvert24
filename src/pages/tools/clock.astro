@@ -1,21 +1,6 @@
 ---
 export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
-
-const cities = [
-  { id: 'london', name: 'London', tz: 'Europe/London', flag: '🇬🇧' },
-  { id: 'new_york', name: 'New York', tz: 'America/New_York', flag: '🇺🇸' },
-  { id: 'los_angeles', name: 'Los Angeles', tz: 'America/Los_Angeles', flag: '🇺🇸' },
-  { id: 'toronto', name: 'Toronto', tz: 'America/Toronto', flag: '🇨🇦' },
-  { id: 'sao_paulo', name: 'São Paulo', tz: 'America/Sao_Paulo', flag: '🇧🇷' },
-  { id: 'paris', name: 'Paris', tz: 'Europe/Paris', flag: '🇫🇷' },
-  { id: 'dubai', name: 'Dubai', tz: 'Asia/Dubai', flag: '🇦🇪' },
-  { id: 'mumbai', name: 'Mumbai', tz: 'Asia/Kolkata', flag: '🇮🇳' },
-  { id: 'singapore', name: 'Singapore', tz: 'Asia/Singapore', flag: '🇸🇬' },
-  { id: 'tokyo', name: 'Tokyo', tz: 'Asia/Tokyo', flag: '🇯🇵' },
-  { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney', flag: '🇦🇺' },
-  { id: 'auckland', name: 'Auckland', tz: 'Pacific/Auckland', flag: '🇳🇿' },
-];
 ---
 <Layout title="World Clock — Current Time in Major Cities Worldwide" description="Free online world clock showing current time in London, New York, Tokyo, Sydney, Dubai, Singapore, Mumbai and more major cities. Live updates every second." keywords="world clock, current time, time in London, time in New York, time in Tokyo, international clock, city time zones, GMT time">
   <div class="max-w-3xl">
@@ -24,43 +9,131 @@ const cities = [
       <p class="text-gray-500 dark:text-gray-400">Current time in major cities worldwide — updates every second</p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {cities.map(city => (
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 shadow-sm hover:border-amber-400 dark:hover:border-amber-500 transition-colors">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-              <span class="text-xl" aria-hidden="true">{city.flag}</span>
-              <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">{city.name}</span>
-            </div>
-            <span class="text-xs text-gray-400 dark:text-gray-500 font-mono" id={`tz-${city.id}`}></span>
-          </div>
-          <div id={`time-${city.id}`} class="text-3xl font-bold text-gray-900 dark:text-white font-mono tracking-tight">--:--:--</div>
-          <div id={`date-${city.id}`} class="text-xs text-gray-500 dark:text-gray-400 mt-1">---</div>
+    <!-- Add city -->
+    <div class="mb-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 shadow-sm">
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="city-search" type="text" placeholder="Search and add a city…" autocomplete="off"
+            class="w-full h-10 pl-9 pr-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"/>
         </div>
-      ))}
+        <button id="reset-btn" class="px-3 h-10 rounded-lg text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-amber-400 hover:text-amber-600 transition-colors" title="Reset to defaults">
+          Reset
+        </button>
+      </div>
+      <!-- Search results dropdown -->
+      <div id="city-dropdown" class="hidden mt-2 max-h-40 overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg"></div>
+    </div>
+
+    <!-- Clocks grid -->
+    <div id="clocks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Populated by JS -->
     </div>
   </div>
 </Layout>
 
 <script>
-  const cities = [
-    { id: 'london', name: 'London', tz: 'Europe/London' },
-    { id: 'new_york', name: 'New York', tz: 'America/New_York' },
-    { id: 'los_angeles', name: 'Los Angeles', tz: 'America/Los_Angeles' },
-    { id: 'toronto', name: 'Toronto', tz: 'America/Toronto' },
-    { id: 'sao_paulo', name: 'São Paulo', tz: 'America/Sao_Paulo' },
-    { id: 'paris', name: 'Paris', tz: 'Europe/Paris' },
-    { id: 'dubai', name: 'Dubai', tz: 'Asia/Dubai' },
-    { id: 'mumbai', name: 'Mumbai', tz: 'Asia/Kolkata' },
-    { id: 'singapore', name: 'Singapore', tz: 'Asia/Singapore' },
-    { id: 'tokyo', name: 'Tokyo', tz: 'Asia/Tokyo' },
-    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney' },
-    { id: 'auckland', name: 'Auckland', tz: 'Pacific/Auckland' },
+  const STORAGE_KEY = 'xconvert24-world-clock-cities';
+
+  // All available cities
+  const allCities = [
+    { id: 'new_york', name: 'New York', tz: 'America/New_York', flag: '🇺🇸' },
+    { id: 'los_angeles', name: 'Los Angeles', tz: 'America/Los_Angeles', flag: '🇺🇸' },
+    { id: 'chicago', name: 'Chicago', tz: 'America/Chicago', flag: '🇺🇸' },
+    { id: 'toronto', name: 'Toronto', tz: 'America/Toronto', flag: '🇨🇦' },
+    { id: 'vancouver', name: 'Vancouver', tz: 'America/Vancouver', flag: '🇨🇦' },
+    { id: 'mexico_city', name: 'Mexico City', tz: 'America/Mexico_City', flag: '🇲🇽' },
+    { id: 'sao_paulo', name: 'São Paulo', tz: 'America/Sao_Paulo', flag: '🇧🇷' },
+    { id: 'buenos_aires', name: 'Buenos Aires', tz: 'America/Argentina/Buenos_Aires', flag: '🇦🇷' },
+    { id: 'london', name: 'London', tz: 'Europe/London', flag: '🇬🇧' },
+    { id: 'paris', name: 'Paris', tz: 'Europe/Paris', flag: '🇫🇷' },
+    { id: 'berlin', name: 'Berlin', tz: 'Europe/Berlin', flag: '🇩🇪' },
+    { id: 'madrid', name: 'Madrid', tz: 'Europe/Madrid', flag: '🇪🇸' },
+    { id: 'rome', name: 'Rome', tz: 'Europe/Rome', flag: '🇮🇹' },
+    { id: 'amsterdam', name: 'Amsterdam', tz: 'Europe/Amsterdam', flag: '🇳🇱' },
+    { id: 'zurich', name: 'Zurich', tz: 'Europe/Zurich', flag: '🇨🇭' },
+    { id: 'moscow', name: 'Moscow', tz: 'Europe/Moscow', flag: '🇷🇺' },
+    { id: 'istanbul', name: 'Istanbul', tz: 'Europe/Istanbul', flag: '🇹🇷' },
+    { id: 'dubai', name: 'Dubai', tz: 'Asia/Dubai', flag: '🇦🇪' },
+    { id: 'riyadh', name: 'Riyadh', tz: 'Asia/Riyadh', flag: '🇸🇦' },
+    { id: 'new_delhi', name: 'New Delhi', tz: 'Asia/Kolkata', flag: '🇮🇳' },
+    { id: 'mumbai', name: 'Mumbai', tz: 'Asia/Kolkata', flag: '🇮🇳' },
+    { id: 'bangkok', name: 'Bangkok', tz: 'Asia/Bangkok', flag: '🇹🇭' },
+    { id: 'singapore', name: 'Singapore', tz: 'Asia/Singapore', flag: '🇸🇬' },
+    { id: 'hong_kong', name: 'Hong Kong', tz: 'Asia/Hong_Kong', flag: '🇭🇰' },
+    { id: 'shanghai', name: 'Shanghai', tz: 'Asia/Shanghai', flag: '🇨🇳' },
+    { id: 'beijing', name: 'Beijing', tz: 'Asia/Shanghai', flag: '🇨🇳' },
+    { id: 'tokyo', name: 'Tokyo', tz: 'Asia/Tokyo', flag: '🇯🇵' },
+    { id: 'seoul', name: 'Seoul', tz: 'Asia/Seoul', flag: '🇰🇷' },
+    { id: 'sydney', name: 'Sydney', tz: 'Australia/Sydney', flag: '🇦🇺' },
+    { id: 'melbourne', name: 'Melbourne', tz: 'Australia/Melbourne', flag: '🇦🇺' },
+    { id: 'auckland', name: 'Auckland', tz: 'Pacific/Auckland', flag: '🇳🇿' },
+    { id: 'cairo', name: 'Cairo', tz: 'Africa/Cairo', flag: '🇪🇬' },
+    { id: 'johannesburg', name: 'Johannesburg', tz: 'Africa/Johannesburg', flag: '🇿🇦' },
+    { id: 'lagos', name: 'Lagos', tz: 'Africa/Lagos', flag: '🇳🇬' },
+    { id: 'nairobi', name: 'Nairobi', tz: 'Africa/Nairobi', flag: '🇰🇪' },
   ];
+
+  const defaultCityIds = ['new_york', 'london', 'paris', 'toronto', 'tokyo', 'new_delhi', 'melbourne'];
+
+  // State
+  function getSelectedIds(): string[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return [...defaultCityIds];
+  }
+
+  function saveSelectedIds(ids: string[]) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+  }
+
+  let selectedIds = getSelectedIds();
+
+  // Elements
+  const grid = document.getElementById('clocks-grid')!;
+  const searchInput = document.getElementById('city-search') as HTMLInputElement;
+  const dropdown = document.getElementById('city-dropdown')!;
+  const resetBtn = document.getElementById('reset-btn')!;
+
+  function getSelectedCities() {
+    return selectedIds.map(id => allCities.find(c => c.id === id)).filter(Boolean) as typeof allCities;
+  }
+
+  function renderClocks() {
+    const cities = getSelectedCities();
+    grid.innerHTML = cities.map(city => `
+      <div class="clock-card relative bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 shadow-sm hover:border-amber-400 dark:hover:border-amber-500 transition-colors" data-city-id="${city.id}">
+        <button class="remove-city absolute top-3 right-3 w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 hover:bg-red-200 dark:hover:bg-red-900/50 flex items-center justify-center transition-colors" data-remove="${city.id}" aria-label="Remove ${city.name}" title="Remove">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="flex items-center gap-2 mb-2 pr-10">
+          <span class="text-xl" aria-hidden="true">${city.flag}</span>
+          <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">${city.name}</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 font-mono ml-auto" id="tz-${city.id}"></span>
+        </div>
+        <div id="time-${city.id}" class="text-3xl font-bold text-gray-900 dark:text-white font-mono tracking-tight">--:--:--</div>
+        <div id="date-${city.id}" class="text-xs text-gray-500 dark:text-gray-400 mt-1">---</div>
+      </div>
+    `).join('');
+
+    // Attach remove handlers
+    grid.querySelectorAll('.remove-city').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = (btn as HTMLElement).dataset.remove!;
+        selectedIds = selectedIds.filter(i => i !== id);
+        saveSelectedIds(selectedIds);
+        renderClocks();
+      });
+    });
+
+    updateClocks();
+  }
 
   function updateClocks() {
     const now = new Date();
-    cities.forEach(({ id, tz }) => {
+    getSelectedCities().forEach(({ id, tz }) => {
       const timeEl = document.getElementById(`time-${id}`);
       const dateEl = document.getElementById(`date-${id}`);
       const tzEl = document.getElementById(`tz-${id}`);
@@ -68,7 +141,6 @@ const cities = [
 
       const timeStr = now.toLocaleTimeString('en-US', { timeZone: tz, hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
       const dateStr = now.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-      // Timezone abbreviation
       const tzAbbr = now.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).split(' ').pop() || '';
 
       timeEl.textContent = timeStr;
@@ -77,6 +149,52 @@ const cities = [
     });
   }
 
-  updateClocks();
+  // Search & add
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    if (!q) { dropdown.classList.add('hidden'); return; }
+
+    const available = allCities.filter(c => !selectedIds.includes(c.id) && c.name.toLowerCase().includes(q));
+    if (!available.length) {
+      dropdown.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400 text-center">No cities found</div>';
+    } else {
+      dropdown.innerHTML = available.slice(0, 8).map(c => `
+        <button class="add-city-btn w-full flex items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors" data-add="${c.id}">
+          <span>${c.flag}</span>
+          <span class="font-medium text-gray-900 dark:text-white">${c.name}</span>
+          <span class="text-xs text-gray-400 ml-auto">${c.tz.split('/').pop()?.replace(/_/g, ' ')}</span>
+        </button>
+      `).join('');
+
+      dropdown.querySelectorAll('.add-city-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = (btn as HTMLElement).dataset.add!;
+          selectedIds.push(id);
+          saveSelectedIds(selectedIds);
+          searchInput.value = '';
+          dropdown.classList.add('hidden');
+          renderClocks();
+        });
+      });
+    }
+    dropdown.classList.remove('hidden');
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (!(e.target as Element).closest('#city-search') && !(e.target as Element).closest('#city-dropdown')) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  // Reset to defaults
+  resetBtn.addEventListener('click', () => {
+    selectedIds = [...defaultCityIds];
+    saveSelectedIds(selectedIds);
+    renderClocks();
+  });
+
+  // Init
+  renderClocks();
   setInterval(updateClocks, 1000);
 </script>
