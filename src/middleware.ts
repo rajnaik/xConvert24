@@ -15,6 +15,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
+  // In local dev (localhost), skip auth and provide a mock user
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    (context.locals as any).user = { email: 'dev@localhost', name: 'Dev Admin', picture: '' };
+    return next();
+  }
+
   try {
     // Import env from cloudflare:workers
     const { env } = await import('cloudflare:workers');

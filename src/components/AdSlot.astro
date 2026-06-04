@@ -1,0 +1,46 @@
+---
+/**
+ * AdSense ad slot placeholder.
+ * 
+ * To activate:
+ * 1. Get approved at google.com/adsense
+ * 2. Replace the data-ad-client and data-ad-slot values below
+ * 3. Set enabled = true
+ * 
+ * Props:
+ *   format: 'horizontal' | 'rectangle' | 'vertical' (default: horizontal)
+ *   slot: ad unit ID from AdSense (default: placeholder)
+ */
+interface Props {
+  format?: 'horizontal' | 'rectangle' | 'vertical';
+  slot?: string;
+}
+
+const { format = 'horizontal', slot = '' } = Astro.props;
+const enabled = false; // Set to true once AdSense is approved
+const adClient = 'ca-pub-XXXXXXXXXX'; // Replace with your publisher ID
+
+const heightClass = {
+  horizontal: 'h-[90px]',
+  rectangle: 'h-[250px]',
+  vertical: 'h-[600px]',
+}[format];
+---
+
+{enabled ? (
+  <!-- Real AdSense ad -->
+  <div class={`w-full ${heightClass} my-4`}>
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client={adClient}
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true">
+    </ins>
+  </div>
+) : (
+  <!-- Placeholder (invisible in production, visible in dev for positioning) -->
+  <div class={`w-full ${heightClass} my-4 border border-dashed border-gray-200 dark:border-gray-800 rounded-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity`}>
+    <span class="text-xs text-gray-300 dark:text-gray-700">Ad slot ({format})</span>
+  </div>
+)}
