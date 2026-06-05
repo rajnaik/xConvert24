@@ -1,0 +1,186 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Morse Code Translator — Text to Morse & Back" description="Free online Morse code translator. Convert text to Morse code and Morse code to text instantly. Play Morse audio with Web Audio API." keywords="morse code translator, text to morse, morse to text, morse code audio">
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">📡</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Morse Code Translator</h1>
+        <span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded-full">🧪 Experimental</span>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert text to Morse code and back. Play audio for any Morse message.</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label for="text-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Text</label>
+          <textarea id="text-input" rows="5" placeholder="Type text here..." class="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+        </div>
+        <div>
+          <label for="morse-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Morse Code</label>
+          <textarea id="morse-input" rows="5" placeholder="Type Morse here (use . and - separated by spaces)..." class="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="play-btn" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Play Audio
+        </button>
+        <button id="stop-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-semibold rounded-lg transition-colors hidden">
+          Stop
+        </button>
+        <span id="play-status" class="text-xs text-gray-500 dark:text-gray-400"></span>
+      </div>
+    </div>
+
+    <!-- Reference Table -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Morse Code Reference</h2>
+      <div id="morse-table" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 text-sm"></div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    const MORSE = {
+      'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....','I':'..','J':'.---',
+      'K':'-.-','L':'.-..','M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.','S':'...','T':'-',
+      'U':'..-','V':'...-','W':'.--','X':'-..-','Y':'-.--','Z':'--..',
+      '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
+      '6':'-....','7':'--...','8':'---..','9':'----.',
+      '.':'.-.-.-',',':'--..--','?':'..--..','!':'-.-.--','/':'-..-.','(':'-.--.',')':'-.--.-',
+      '&':'.-...',':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.','-':'-....-',
+      '_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.','\'':'.----.'
+    };
+    const REVERSE = {};
+    for (const k in MORSE) REVERSE[MORSE[k]] = k;
+
+    const textInput = document.getElementById('text-input');
+    const morseInput = document.getElementById('morse-input');
+    const playBtn = document.getElementById('play-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const playStatus = document.getElementById('play-status');
+    const morseTable = document.getElementById('morse-table');
+
+    // Build reference table
+    const entries = Object.entries(MORSE);
+    entries.forEach(([char, code]) => {
+      const el = document.createElement('div');
+      el.className = 'flex items-center gap-2 px-2 py-1.5 rounded bg-gray-50 dark:bg-gray-800';
+      el.innerHTML = '<span class="font-bold text-amber-600 dark:text-amber-400 w-5 text-center">' + char + '</span><span class="font-mono text-gray-600 dark:text-gray-400 text-xs">' + code + '</span>';
+      morseTable.appendChild(el);
+    });
+
+    function textToMorse(text) {
+      return text.toUpperCase().split('').map(ch => {
+        if (ch === ' ') return '/';
+        return MORSE[ch] || '';
+      }).filter(Boolean).join(' ');
+    }
+
+    function morseToText(morse) {
+      return morse.split(' / ').map(word =>
+        word.split(' ').map(code => REVERSE[code] || '').join('')
+      ).join(' ');
+    }
+
+    let updating = false;
+    textInput.addEventListener('input', () => {
+      if (updating) return;
+      updating = true;
+      morseInput.value = textToMorse(textInput.value);
+      updating = false;
+    });
+
+    morseInput.addEventListener('input', () => {
+      if (updating) return;
+      updating = true;
+      textInput.value = morseToText(morseInput.value);
+      updating = false;
+    });
+
+    // Audio playback
+    let audioCtx = null;
+    let playing = false;
+    let stopRequested = false;
+
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    async function playMorse(morse) {
+      const ctx = getAudioCtx();
+      const dotDuration = 0.08;
+      const dashDuration = dotDuration * 3;
+      const gapDuration = dotDuration;
+      const letterGap = dotDuration * 3;
+      const wordGap = dotDuration * 7;
+
+      playing = true;
+      stopRequested = false;
+      playBtn.classList.add('hidden');
+      stopBtn.classList.remove('hidden');
+
+      const symbols = morse.split('');
+      let time = ctx.currentTime + 0.05;
+
+      for (let i = 0; i < symbols.length; i++) {
+        if (stopRequested) break;
+        const sym = symbols[i];
+        if (sym === '.') {
+          playTone(ctx, time, dotDuration);
+          time += dotDuration + gapDuration;
+        } else if (sym === '-') {
+          playTone(ctx, time, dashDuration);
+          time += dashDuration + gapDuration;
+        } else if (sym === ' ') {
+          if (symbols[i-1] === '/' || symbols[i+1] === '/') continue;
+          time += letterGap;
+        } else if (sym === '/') {
+          time += wordGap;
+        }
+      }
+
+      const duration = (time - ctx.currentTime) * 1000;
+      playStatus.textContent = 'Playing...';
+      await new Promise(r => setTimeout(r, Math.max(0, duration)));
+      playing = false;
+      playBtn.classList.remove('hidden');
+      stopBtn.classList.add('hidden');
+      playStatus.textContent = '';
+    }
+
+    function playTone(ctx, startTime, duration) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 600;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.5, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.01);
+    }
+
+    playBtn.addEventListener('click', () => {
+      const morse = morseInput.value.trim();
+      if (!morse) { playStatus.textContent = 'Enter some text first'; return; }
+      if (!playing) playMorse(morse);
+    });
+
+    stopBtn.addEventListener('click', () => {
+      stopRequested = true;
+      if (audioCtx) audioCtx.close().then(() => { audioCtx = null; });
+      playing = false;
+      playBtn.classList.remove('hidden');
+      stopBtn.classList.add('hidden');
+      playStatus.textContent = 'Stopped';
+    });
+  })();
+  </script>
+</Layout>

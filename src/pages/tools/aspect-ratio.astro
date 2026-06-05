@@ -1,0 +1,161 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Aspect Ratio Calculator — Find & Convert Screen Ratios" description="Free aspect ratio calculator. Find simplified ratios from dimensions, calculate missing dimensions from a ratio, and browse common screen ratios." keywords="aspect ratio calculator, 16:9, screen ratio, resolution calculator, image ratio">
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">📐</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Aspect Ratio Calculator</h1>
+        <span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded-full">🧪 Experimental</span>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Find simplified ratios from dimensions or calculate missing dimensions from a ratio.</p>
+    </div>
+
+    <!-- Calculator -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Find Ratio from Dimensions</h2>
+      <div class="flex items-end gap-3 mb-4">
+        <div class="flex-1">
+          <label for="dim-w" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Width</label>
+          <input id="dim-w" type="number" min="1" placeholder="1920" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <span class="text-gray-400 dark:text-gray-500 text-lg font-bold pb-2">×</span>
+        <div class="flex-1">
+          <label for="dim-h" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Height</label>
+          <input id="dim-h" type="number" min="1" placeholder="1080" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <span class="text-gray-400 dark:text-gray-500 text-lg font-bold pb-2">=</span>
+        <div class="flex-1">
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Ratio</label>
+          <div id="ratio-result" class="w-full px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-bold text-sm text-center min-h-[38px] flex items-center justify-center">—</div>
+        </div>
+      </div>
+
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 mt-8">Calculate Dimension from Ratio</h2>
+      <div class="flex items-end gap-3 mb-4">
+        <div class="flex-1">
+          <label for="ratio-x" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Ratio W</label>
+          <input id="ratio-x" type="number" min="1" value="16" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <span class="text-gray-400 dark:text-gray-500 text-lg font-bold pb-2">:</span>
+        <div class="flex-1">
+          <label for="ratio-y" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Ratio H</label>
+          <input id="ratio-y" type="number" min="1" value="9" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <span class="text-gray-400 dark:text-gray-500 text-lg font-bold pb-2">→</span>
+        <div class="flex-1">
+          <label for="calc-w" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Width</label>
+          <input id="calc-w" type="number" min="1" placeholder="1920" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+        <span class="text-gray-400 dark:text-gray-500 text-lg font-bold pb-2">×</span>
+        <div class="flex-1">
+          <label for="calc-h" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Height</label>
+          <input id="calc-h" type="number" min="1" placeholder="1080" class="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Presets -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Quick Presets</h2>
+      <div id="presets" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- Common Ratios -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Common Aspect Ratios</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="common-ratios"></div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+    const dimW = document.getElementById('dim-w');
+    const dimH = document.getElementById('dim-h');
+    const ratioResult = document.getElementById('ratio-result');
+    const ratioX = document.getElementById('ratio-x');
+    const ratioY = document.getElementById('ratio-y');
+    const calcW = document.getElementById('calc-w');
+    const calcH = document.getElementById('calc-h');
+
+    function updateRatio() {
+      const w = parseInt(dimW.value);
+      const h = parseInt(dimH.value);
+      if (!w || !h || w <= 0 || h <= 0) { ratioResult.textContent = '—'; return; }
+      const d = gcd(w, h);
+      ratioResult.textContent = (w / d) + ':' + (h / d);
+    }
+
+    function calcFromRatio() {
+      const rx = parseFloat(ratioX.value);
+      const ry = parseFloat(ratioY.value);
+      if (!rx || !ry) return;
+
+      const w = parseFloat(calcW.value);
+      const h = parseFloat(calcH.value);
+
+      if (w && !h) {
+        calcH.value = Math.round(w * ry / rx);
+      } else if (h && !w) {
+        calcW.value = Math.round(h * rx / ry);
+      }
+    }
+
+    dimW.addEventListener('input', updateRatio);
+    dimH.addEventListener('input', updateRatio);
+    calcW.addEventListener('input', () => { calcH.value = ''; calcFromRatio(); });
+    calcH.addEventListener('input', () => { calcW.value = ''; calcFromRatio(); });
+    ratioX.addEventListener('input', calcFromRatio);
+    ratioY.addEventListener('input', calcFromRatio);
+
+    // Presets
+    const presets = [
+      { name: '1080p', w: 1920, h: 1080 },
+      { name: '720p', w: 1280, h: 720 },
+      { name: '4K UHD', w: 3840, h: 2160 },
+      { name: '2K QHD', w: 2560, h: 1440 },
+      { name: 'iPhone 15', w: 1179, h: 2556 },
+      { name: 'iPad', w: 2048, h: 2732 },
+      { name: 'Instagram', w: 1080, h: 1080 },
+      { name: 'Twitter Banner', w: 1500, h: 500 },
+      { name: 'Ultrawide', w: 3440, h: 1440 },
+      { name: 'Cinema 4K', w: 4096, h: 2160 },
+    ];
+
+    const presetsEl = document.getElementById('presets');
+    presets.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-300 transition-colors border border-gray-200 dark:border-gray-700';
+      btn.textContent = p.name + ' (' + p.w + '×' + p.h + ')';
+      btn.addEventListener('click', () => {
+        dimW.value = p.w;
+        dimH.value = p.h;
+        updateRatio();
+      });
+      presetsEl.appendChild(btn);
+    });
+
+    // Common ratios
+    const commonRatios = [
+      { ratio: '16:9', desc: 'Widescreen TV, YouTube', examples: '1920×1080, 2560×1440' },
+      { ratio: '4:3', desc: 'Classic TV, Presentations', examples: '1024×768, 1600×1200' },
+      { ratio: '21:9', desc: 'Ultrawide Monitors', examples: '2560×1080, 3440×1440' },
+      { ratio: '1:1', desc: 'Square, Instagram Posts', examples: '1080×1080, 500×500' },
+      { ratio: '3:2', desc: 'DSLR Photos, Surface', examples: '1440×960, 3000×2000' },
+      { ratio: '9:16', desc: 'Phone Portrait, Stories', examples: '1080×1920, 1179×2556' },
+    ];
+
+    const ratiosEl = document.getElementById('common-ratios');
+    commonRatios.forEach(r => {
+      const el = document.createElement('div');
+      el.className = 'p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700';
+      el.innerHTML = '<div class="font-bold text-amber-600 dark:text-amber-400 text-lg">' + r.ratio + '</div><div class="text-xs text-gray-600 dark:text-gray-400 mt-1">' + r.desc + '</div><div class="text-xs text-gray-400 dark:text-gray-500 mt-1 font-mono">' + r.examples + '</div>';
+      ratiosEl.appendChild(el);
+    });
+  })();
+  </script>
+</Layout>

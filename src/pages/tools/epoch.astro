@@ -1,0 +1,168 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Epoch Converter — Unix Timestamp to Date & Back" description="Free epoch/Unix timestamp converter. Convert between Unix timestamps and human-readable dates. Live clock, relative time, and quick presets." keywords="epoch converter, unix timestamp, timestamp to date, date to epoch, unix time">
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">⏱️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Epoch Converter</h1>
+        <span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 rounded-full">🧪 Experimental</span>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert Unix timestamps to dates and dates to timestamps. Live updating current epoch.</p>
+    </div>
+
+    <!-- Live Clock -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Current Epoch Time</h2>
+      <div class="flex items-center gap-4 flex-wrap">
+        <div class="font-mono text-3xl font-bold text-amber-600 dark:text-amber-400" id="live-epoch">—</div>
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          <div id="live-date">—</div>
+          <div id="live-ms" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">milliseconds: —</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Epoch to Date -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Epoch → Human Date</h2>
+      <div class="flex gap-3 mb-3 flex-wrap">
+        <input id="epoch-input" type="number" placeholder="Enter epoch timestamp..." class="flex-1 min-w-[200px] px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        <select id="epoch-unit" class="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+          <option value="s">Seconds</option>
+          <option value="ms">Milliseconds</option>
+        </select>
+      </div>
+      <div id="epoch-output" class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 min-h-[60px]">
+        <div class="text-sm text-gray-500 dark:text-gray-400 italic">Enter an epoch timestamp above</div>
+      </div>
+    </div>
+
+    <!-- Date to Epoch -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Human Date → Epoch</h2>
+      <div class="flex gap-3 mb-3 flex-wrap">
+        <input id="date-input" type="datetime-local" class="flex-1 min-w-[200px] px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+      </div>
+      <div id="date-output" class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 min-h-[60px]">
+        <div class="text-sm text-gray-500 dark:text-gray-400 italic">Select a date above</div>
+      </div>
+    </div>
+
+    <!-- Quick Buttons -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Quick Timestamps</h2>
+      <div class="flex flex-wrap gap-2" id="quick-btns"></div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    const liveEpoch = document.getElementById('live-epoch');
+    const liveDate = document.getElementById('live-date');
+    const liveMs = document.getElementById('live-ms');
+    const epochInput = document.getElementById('epoch-input');
+    const epochUnit = document.getElementById('epoch-unit');
+    const epochOutput = document.getElementById('epoch-output');
+    const dateInput = document.getElementById('date-input');
+    const dateOutput = document.getElementById('date-output');
+
+    // Live clock
+    function updateLive() {
+      const now = Date.now();
+      const sec = Math.floor(now / 1000);
+      liveEpoch.textContent = sec;
+      liveDate.textContent = new Date(now).toUTCString();
+      liveMs.textContent = 'milliseconds: ' + now;
+    }
+    updateLive();
+    setInterval(updateLive, 1000);
+
+    // Relative time
+    function relativeTime(date) {
+      const now = Date.now();
+      const diff = date.getTime() - now;
+      const absDiff = Math.abs(diff);
+      const seconds = Math.floor(absDiff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      const months = Math.floor(days / 30);
+      const years = Math.floor(days / 365);
+
+      let str = '';
+      if (years > 0) str = years + ' year' + (years > 1 ? 's' : '');
+      else if (months > 0) str = months + ' month' + (months > 1 ? 's' : '');
+      else if (days > 0) str = days + ' day' + (days > 1 ? 's' : '');
+      else if (hours > 0) str = hours + ' hour' + (hours > 1 ? 's' : '');
+      else if (minutes > 0) str = minutes + ' minute' + (minutes > 1 ? 's' : '');
+      else str = seconds + ' second' + (seconds !== 1 ? 's' : '');
+
+      return diff < 0 ? str + ' ago' : 'in ' + str;
+    }
+
+    // Epoch to Date
+    function convertEpoch() {
+      const val = epochInput.value.trim();
+      if (!val) { epochOutput.innerHTML = '<div class="text-sm text-gray-500 dark:text-gray-400 italic">Enter an epoch timestamp above</div>'; return; }
+      let ms = parseInt(val);
+      if (epochUnit.value === 's') ms *= 1000;
+      const d = new Date(ms);
+      if (isNaN(d.getTime())) { epochOutput.innerHTML = '<div class="text-sm text-red-500">Invalid timestamp</div>'; return; }
+
+      epochOutput.innerHTML = '<div class="space-y-1 text-sm">' +
+        '<div><span class="text-gray-500 dark:text-gray-400 w-20 inline-block">UTC:</span> <span class="font-mono text-gray-900 dark:text-white">' + d.toUTCString() + '</span></div>' +
+        '<div><span class="text-gray-500 dark:text-gray-400 w-20 inline-block">Local:</span> <span class="font-mono text-gray-900 dark:text-white">' + d.toLocaleString() + '</span></div>' +
+        '<div><span class="text-gray-500 dark:text-gray-400 w-20 inline-block">ISO:</span> <span class="font-mono text-gray-900 dark:text-white">' + d.toISOString() + '</span></div>' +
+        '<div><span class="text-gray-500 dark:text-gray-400 w-20 inline-block">Relative:</span> <span class="font-semibold text-amber-600 dark:text-amber-400">' + relativeTime(d) + '</span></div>' +
+        '</div>';
+    }
+
+    epochInput.addEventListener('input', convertEpoch);
+    epochUnit.addEventListener('change', convertEpoch);
+
+    // Date to Epoch
+    dateInput.addEventListener('input', function() {
+      const val = dateInput.value;
+      if (!val) { dateOutput.innerHTML = '<div class="text-sm text-gray-500 dark:text-gray-400 italic">Select a date above</div>'; return; }
+      const d = new Date(val);
+      if (isNaN(d.getTime())) { dateOutput.innerHTML = '<div class="text-sm text-red-500">Invalid date</div>'; return; }
+      const sec = Math.floor(d.getTime() / 1000);
+      const ms = d.getTime();
+
+      dateOutput.innerHTML = '<div class="space-y-1 text-sm">' +
+        '<div><span class="text-gray-500 dark:text-gray-400 w-28 inline-block">Seconds:</span> <span class="font-mono font-bold text-gray-900 dark:text-white">' + sec + '</span></div>' +
+        '<div><span class="text-gray-500 dark:text-gray-400 w-28 inline-block">Milliseconds:</span> <span class="font-mono font-bold text-gray-900 dark:text-white">' + ms + '</span></div>' +
+        '<div><span class="text-gray-500 dark:text-gray-400 w-28 inline-block">Relative:</span> <span class="font-semibold text-amber-600 dark:text-amber-400">' + relativeTime(d) + '</span></div>' +
+        '</div>';
+    });
+
+    // Quick buttons
+    const quickBtns = document.getElementById('quick-btns');
+    const quickPresets = [
+      { name: 'Now', fn: () => Math.floor(Date.now() / 1000) },
+      { name: 'Start of Today', fn: () => { const d = new Date(); d.setHours(0,0,0,0); return Math.floor(d.getTime() / 1000); } },
+      { name: 'Start of Year', fn: () => Math.floor(new Date(new Date().getFullYear(), 0, 1).getTime() / 1000) },
+      { name: '1 Hour Ago', fn: () => Math.floor((Date.now() - 3600000) / 1000) },
+      { name: '24 Hours Ago', fn: () => Math.floor((Date.now() - 86400000) / 1000) },
+      { name: 'Y2K (2000-01-01)', fn: () => 946684800 },
+      { name: 'Unix Epoch (0)', fn: () => 0 },
+    ];
+
+    quickPresets.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-300 transition-colors border border-gray-200 dark:border-gray-700';
+      btn.textContent = p.name;
+      btn.addEventListener('click', () => {
+        const val = p.fn();
+        epochInput.value = val;
+        epochUnit.value = 's';
+        convertEpoch();
+      });
+      quickBtns.appendChild(btn);
+    });
+  })();
+  </script>
+</Layout>

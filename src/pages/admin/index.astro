@@ -125,114 +125,85 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
       </div>
     </div>
 
-    <!-- Bug Reports (sorted by votes) -->
-    <div style="margin-top: 40px;">
-      <div class="section-title">🐛 Bug Reports (by votes)</div>
-      <div id="admin-bugs" style="margin-top: 12px;">
-        <div style="color: #6b7280; font-size: 14px; font-style: italic; padding: 20px; text-align: center;">Loading bugs from client database…</div>
+    <!-- Draggable panels container -->
+    <div id="panels-container" style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 20px;">
+      <!-- Bug Reports Panel -->
+      <div class="panel" id="panel-bugs" style="flex: 1; min-width: 400px; background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; cursor: move;">
+        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #1f2937; border-bottom: 1px solid #374151;">
+          <span style="font-size: 14px; font-weight: 600; color: #f9fafb;">🐛 Bug Reports (by votes)</span>
+          <button id="bugs-expand" style="background: #374151; border: none; color: #fbbf24; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: 700; line-height: 1;">+</button>
+        </div>
+        <div id="admin-bugs" style="padding: 12px;">
+          <div style="color: #6b7280; font-size: 14px; font-style: italic; padding: 20px; text-align: center;">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Suggestions Panel -->
+      <div class="panel" id="panel-suggestions" style="flex: 1; min-width: 400px; background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; cursor: move;">
+        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #1f2937; border-bottom: 1px solid #374151;">
+          <span style="font-size: 14px; font-weight: 600; color: #f9fafb;">💡 Community Suggestions (by rating)</span>
+          <button id="sug-expand" style="background: #374151; border: none; color: #fbbf24; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: 700; line-height: 1;">+</button>
+        </div>
+        <div id="admin-suggestions" style="padding: 12px;">
+          <div style="color: #6b7280; font-size: 14px; font-style: italic; padding: 20px; text-align: center;">Loading…</div>
+        </div>
       </div>
     </div>
   </div>
 
+
   <script>
     (function() {
-      const container = document.getElementById('admin-bugs');
+      var bugsContainer = document.getElementById('admin-bugs');
+      var sugContainer = document.getElementById('admin-suggestions');
+      var bugsExpanded = false;
+      var sugExpanded = false;
+      var allBugs = [];
+      var allSuggestions = [];
 
-      async function loadBugs() {
-        try {
-          const res = await fetch('/api/bugs');
-          const data = await res.json();
-          const bugs = data.bugs || [];
+      var sevColors = { high: '#f87171', medium: '#fb923c', low: '#fbbf24' };
+      var sevBg = { high: '#450a0a', medium: '#431407', low: '#422006' };
+      var sevEmoji = { high: '🔴', medium: '🟠', low: '🟡' };
 
-          if (!bugs.length) {
-            container.innerHTML = '<div style="color:#6b7280;font-size:14px;font-style:italic;padding:24px;text-align:center;background:#111827;border:1px solid #1f2937;border-radius:10px;">No bug reports yet. Users can submit bugs at /report-bug</div>';
-            return;
-          }
-
-          // Already sorted by votes from API
-          const sevColors = { high: '#f87171', medium: '#fb923c', low: '#fbbf24' };
-          const sevBg = { high: '#450a0a', medium: '#431407', low: '#422006' };
-          const sevEmoji = { high: '🔴', medium: '🟠', low: '🟡' };
-
-          container.innerHTML = `
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              ${bugs.map(bug => {
-                return `
-                  <div style="display:flex;align-items:flex-start;gap:14px;background:#111827;border:1px solid #1f2937;border-radius:10px;padding:14px 18px;">
-                    <div style="text-align:center;min-width:44px;">
-                      <div style="font-size:22px;font-weight:700;color:#fbbf24;">${bug.votes || 0}</div>
-                      <div style="font-size:10px;color:#6b7280;margin-top:2px;">vote${bug.votes !== 1 ? 's' : ''}</div>
-                    </div>
-                    <div style="flex:1;min-width:0;">
-                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
-                        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:${sevBg[bug.severity] || sevBg.low};color:${sevColors[bug.severity] || sevColors.low};">${sevEmoji[bug.severity] || '🟡'} ${(bug.severity || 'low').charAt(0).toUpperCase() + (bug.severity || 'low').slice(1)}</span>
-                        ${bug.page ? `<span style="font-size:12px;color:#fbbf24;font-weight:500;">${bug.page}</span>` : ''}
-                        <span style="font-size:11px;color:#6b7280;margin-left:auto;">${bug.created_at ? new Date(bug.created_at).toLocaleDateString() : ''}</span>
-                      </div>
-                      <div style="font-size:13px;color:#d1d5db;line-height:1.5;">${bug.description.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-                      ${bug.email ? `<div style="font-size:11px;color:#6b7280;margin-top:4px;">📧 ${bug.email}</div>` : ''}
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-            <div style="margin-top:12px;font-size:12px;color:#6b7280;text-align:center;">
-              Showing ${bugs.length} report${bugs.length !== 1 ? 's' : ''} • Global D1 database
-            </div>
-          `;
-        } catch (err) {
-          container.innerHTML = '<div style="color:#f87171;font-size:14px;font-style:italic;padding:24px;text-align:center;background:#111827;border:1px solid #1f2937;border-radius:10px;">Failed to load bugs from API. Deploy with D1 binding configured.</div>';
-        }
+      function renderBugs() {
+        var bugs = bugsExpanded ? allBugs : allBugs.slice(0, 5);
+        if (!allBugs.length) { bugsContainer.innerHTML = '<div style="color:#6b7280;font-size:13px;text-align:center;padding:20px;">No bugs reported yet.</div>'; return; }
+        bugsContainer.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;">' + bugs.map(function(bug) {
+          return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#0f172a;border-radius:8px;">' +
+            '<div style="text-align:center;min-width:36px;"><div style="font-size:16px;font-weight:700;color:#fbbf24;">' + (bug.votes || 0) + '</div><div style="font-size:9px;color:#6b7280;">votes</div></div>' +
+            '<div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;"><span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:100px;background:' + (sevBg[bug.severity] || sevBg.low) + ';color:' + (sevColors[bug.severity] || sevColors.low) + ';">' + (sevEmoji[bug.severity] || '🟡') + '</span>' + (bug.page ? '<span style="font-size:11px;color:#fbbf24;">' + bug.page + '</span>' : '') + '</div>' +
+            '<div style="font-size:12px;color:#d1d5db;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + bug.description.replace(/</g,'&lt;') + '</div></div></div>';
+        }).join('') + '</div><div style="margin-top:8px;font-size:11px;color:#6b7280;text-align:center;">Showing ' + bugs.length + ' of ' + allBugs.length + '</div>';
       }
 
-      loadBugs();
-    })();
-  </script>
-
-  <!-- Suggestions section -->
-  <script>
-    (function() {
-      // Add suggestions section after bugs
-      const container = document.getElementById('admin-bugs');
-      const sugSection = document.createElement('div');
-      sugSection.style.marginTop = '40px';
-      sugSection.innerHTML = '<div style="font-size:14px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:16px;">💡 Community Suggestions (by rating)</div><div id="admin-suggestions"><div style="color:#6b7280;font-size:14px;font-style:italic;padding:20px;text-align:center;">Loading…</div></div>';
-      container.parentElement.appendChild(sugSection);
-
-      const sugContainer = document.getElementById('admin-suggestions');
-
-      async function loadSuggestions() {
-        try {
-          const res = await fetch('/api/suggestions');
-          const data = await res.json();
-          const suggestions = data.suggestions || [];
-
-          if (!suggestions.length) {
-            sugContainer.innerHTML = '<div style="color:#6b7280;font-size:14px;font-style:italic;padding:24px;text-align:center;background:#111827;border:1px solid #1f2937;border-radius:10px;">No suggestions yet.</div>';
-            return;
-          }
-
-          sugContainer.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px;">' + suggestions.map(function(s) {
-            const stars = s.rating ? '⭐'.repeat(Math.round(s.rating)) : '—';
-            return '<div style="display:flex;align-items:flex-start;gap:14px;background:#111827;border:1px solid #1f2937;border-radius:10px;padding:14px 18px;">' +
-              '<div style="text-align:center;min-width:50px;">' +
-                '<div style="font-size:16px;font-weight:700;color:#fbbf24;">' + (s.rating ? s.rating.toFixed(1) : '—') + '</div>' +
-                '<div style="font-size:10px;color:#6b7280;">' + (s.votes_count || 0) + ' vote' + (s.votes_count !== 1 ? 's' : '') + '</div>' +
-              '</div>' +
-              '<div style="flex:1;min-width:0;">' +
-                '<div style="font-size:13px;font-weight:600;color:#f9fafb;">' + s.title.replace(/</g,'&lt;') + '</div>' +
-                (s.description ? '<div style="font-size:12px;color:#6b7280;margin-top:2px;">' + s.description.replace(/</g,'&lt;').slice(0,100) + '</div>' : '') +
-                (s.category ? '<div style="font-size:10px;color:#9ca3af;margin-top:4px;">Category: ' + s.category + '</div>' : '') +
-              '</div>' +
-            '</div>';
-          }).join('') + '</div>' +
-          '<div style="margin-top:12px;font-size:12px;color:#6b7280;text-align:center;">' + suggestions.length + ' suggestion' + (suggestions.length !== 1 ? 's' : '') + ' • Global D1 database</div>';
-        } catch(err) {
-          sugContainer.innerHTML = '<div style="color:#f87171;font-size:14px;font-style:italic;padding:24px;text-align:center;">Failed to load suggestions.</div>';
-        }
+      function renderSuggestions() {
+        var sug = sugExpanded ? allSuggestions : allSuggestions.slice(0, 5);
+        if (!allSuggestions.length) { sugContainer.innerHTML = '<div style="color:#6b7280;font-size:13px;text-align:center;padding:20px;">No suggestions yet.</div>'; return; }
+        sugContainer.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;">' + sug.map(function(s) {
+          return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#0f172a;border-radius:8px;">' +
+            '<div style="text-align:center;min-width:36px;"><div style="font-size:16px;font-weight:700;color:#fbbf24;">' + (s.rating ? s.rating.toFixed(1) : '—') + '</div><div style="font-size:9px;color:#6b7280;">' + (s.votes_count || 0) + ' votes</div></div>' +
+            '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:#f9fafb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + s.title.replace(/</g,'&lt;') + '</div>' +
+            (s.category ? '<div style="font-size:10px;color:#6b7280;margin-top:2px;">' + s.category + '</div>' : '') + '</div></div>';
+        }).join('') + '</div><div style="margin-top:8px;font-size:11px;color:#6b7280;text-align:center;">Showing ' + sug.length + ' of ' + allSuggestions.length + '</div>';
       }
 
-      loadSuggestions();
+      document.getElementById('bugs-expand').addEventListener('click', function() { bugsExpanded = !bugsExpanded; this.textContent = bugsExpanded ? '−' : '+'; renderBugs(); });
+      document.getElementById('sug-expand').addEventListener('click', function() { sugExpanded = !sugExpanded; this.textContent = sugExpanded ? '−' : '+'; renderSuggestions(); });
+
+      // Drag panels
+      var panels = document.querySelectorAll('.panel');
+      var panelContainer = document.getElementById('panels-container');
+      var dragEl = null;
+      panels.forEach(function(p) {
+        p.setAttribute('draggable', 'true');
+        p.addEventListener('dragstart', function() { dragEl = p; p.style.opacity = '0.5'; });
+        p.addEventListener('dragend', function() { p.style.opacity = '1'; dragEl = null; });
+        p.addEventListener('dragover', function(e) { e.preventDefault(); });
+        p.addEventListener('drop', function(e) { e.preventDefault(); if (dragEl && dragEl !== p) { var kids = Array.from(panelContainer.children); if (kids.indexOf(dragEl) < kids.indexOf(p)) panelContainer.insertBefore(dragEl, p.nextSibling); else panelContainer.insertBefore(dragEl, p); } });
+      });
+
+      fetch('/api/bugs').then(function(r) { return r.json(); }).then(function(d) { allBugs = d.bugs || []; renderBugs(); }).catch(function() { bugsContainer.innerHTML = '<div style="color:#f87171;font-size:13px;text-align:center;padding:20px;">Failed to load.</div>'; });
+      fetch('/api/suggestions').then(function(r) { return r.json(); }).then(function(d) { allSuggestions = d.suggestions || []; renderSuggestions(); }).catch(function() { sugContainer.innerHTML = '<div style="color:#f87171;font-size:13px;text-align:center;padding:20px;">Failed to load.</div>'; });
     })();
   </script>
 </body>

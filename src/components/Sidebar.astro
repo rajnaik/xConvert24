@@ -89,12 +89,33 @@ const nav = [
     ],
   },
   {
+    id: 'fashion',
+    label: 'Fashion',
+    icon: '👗',
+    items: [
+      { label: 'Shoe Size',     href: '/convert/shoe-size',     icon: '👟' },
+      { label: 'Clothing Size', href: '/convert/clothing-size', icon: '👔' },
+    ],
+  },
+  {
     id: 'math',
     label: 'Math',
     icon: '🔢',
     items: [
       { label: 'Roman Numerals',        href: '/convert/roman',    icon: '🏛️' },
       { label: 'Scientific Calculator', href: '/tools/calculator', icon: '🔭' },
+    ],
+  },
+  {
+    id: 'experimental',
+    label: 'Experimental',
+    icon: '🧪',
+    items: [
+      { label: 'Scrabble Solver',    href: '/tools/scrabble',       icon: '🔤' },
+      { label: 'Morse Code',         href: '/tools/morse',          icon: '📡' },
+      { label: 'Aspect Ratio',       href: '/tools/aspect-ratio',   icon: '🖥️' },
+      { label: 'Epoch Converter',    href: '/tools/epoch',          icon: '⏳' },
+      { label: 'Password Generator', href: '/tools/password',       icon: '🔑' },
     ],
   },
 ];
@@ -333,15 +354,19 @@ const activeCategory = nav.find(section =>
       }).join('');
     }
 
-    // Fetch global favourite counts from API
-    fetch('/api/favourites').then(function(res) { return res.json(); }).then(function(data) {
-      var counts = {};
-      (data.counts || []).forEach(function(r) { counts[r.href] = r.count; });
-      renderCloud(counts);
-    }).catch(function() {
-      // Fallback: render with visits only
-      renderCloud({});
-    });
+    // Render immediately with visit weights (no flash)
+    renderCloud({});
+
+    // Then try to enhance with real favourite data (no layout shift)
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      fetch('/api/favourites').then(function(res) { return res.json(); }).then(function(data) {
+        var counts = {};
+        (data.counts || []).forEach(function(r) { counts[r.href] = r.count; });
+        renderCloud(counts);
+      }).catch(function() {
+        // Already rendered with fallback, do nothing
+      });
+    }
   })();
 </script>
 
