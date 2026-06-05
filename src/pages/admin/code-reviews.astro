@@ -1,0 +1,125 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Code Reviews | xConvert24 Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-link { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .pipeline-info { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .pipeline-step { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: #111827; border: 1px solid #1f2937; border-radius: 8px; font-size: 11px; color: #9ca3af; }
+    .pipeline-step.active { border-color: #fbbf24; color: #fbbf24; }
+    .pipeline-arrow { color: #374151; font-size: 14px; display: flex; align-items: center; }
+    .review-list { display: flex; flex-direction: column; gap: 12px; }
+    .review-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px 20px; transition: border-color 0.2s; }
+    .review-card:hover { border-color: #374151; }
+    .review-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .review-version { font-size: 14px; font-weight: 700; color: #fbbf24; font-family: monospace; }
+    .review-date { font-size: 11px; color: #6b7280; }
+    .review-status { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+    .status-passed { background: #16a34a20; color: #4ade80; }
+    .status-failed { background: #dc262620; color: #f87171; }
+    .status-warning { background: #d9770620; color: #fb923c; }
+    .review-details { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-bottom: 10px; }
+    .detail-item { background: #0f172a; border-radius: 6px; padding: 8px 10px; }
+    .detail-label { font-size: 9px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .detail-value { font-size: 12px; color: #f9fafb; font-weight: 600; margin-top: 2px; font-family: monospace; }
+    .detail-value.critical { color: #f87171; }
+    .detail-value.major { color: #fb923c; }
+    .detail-value.minor { color: #fbbf24; }
+    .review-summary { font-size: 11px; color: #9ca3af; margin-top: 6px; padding: 6px 8px; background: #0f172a; border-radius: 4px; }
+    .empty-state { text-align: center; padding: 40px; color: #6b7280; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🔍 Code Reviews</div>
+    <a href="/admin" class="back-link">← Dashboard</a>
+  </div>
+
+  <div class="container">
+    <h1>🔍 Code Reviews</h1>
+    <p class="subtitle">Code review results from SonarQube analysis — part of the CI pipeline.</p>
+
+    <!-- Pipeline visualization -->
+    <div class="pipeline-info">
+      <div class="pipeline-step">1️⃣ Write Code</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">2️⃣ Run Tests</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step active">3️⃣ Code Review</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">4️⃣ Build</div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">5️⃣ Deploy</div>
+    </div>
+
+    <div id="review-list" class="review-list">
+      <div class="empty-state">Loading code reviews...</div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    function renderReviews(reviews) {
+      var container = document.getElementById('review-list');
+
+      if (!reviews.length) {
+        container.innerHTML = '<div class="empty-state">No code reviews recorded yet. Reviews are logged automatically after tests pass in the CI pipeline.</div>';
+        return;
+      }
+
+      container.innerHTML = reviews.slice(0, 10).map(function(r) {
+        var statusClass = r.status === 'passed' ? 'status-passed' : r.status === 'warning' ? 'status-warning' : 'status-failed';
+        var statusText = r.status === 'passed' ? '✓ Passed' : r.status === 'warning' ? '⚠ Warning' : '✗ Failed';
+        var date = new Date(r.timestamp);
+        var dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+        return '<div class="review-card">' +
+          '<div class="review-header">' +
+            '<div style="display:flex;align-items:center;gap:10px;">' +
+              '<span class="review-version">v' + r.version + '</span>' +
+              (r.branch ? '<span style="font-size:10px;color:#6b7280;font-family:monospace;">(' + r.branch + ')</span>' : '') +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+              '<span class="review-status ' + statusClass + '">' + statusText + '</span>' +
+              '<span class="review-date">' + dateStr + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="review-details">' +
+            '<div class="detail-item"><div class="detail-label">Issues Found</div><div class="detail-value">' + (r.issues_found || 0) + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Critical</div><div class="detail-value critical">' + (r.issues_critical || 0) + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Major</div><div class="detail-value major">' + (r.issues_major || 0) + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Minor</div><div class="detail-value minor">' + (r.issues_minor || 0) + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Duration</div><div class="detail-value">' + (r.duration || '—') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Reviewer</div><div class="detail-value">' + (r.reviewer || 'sonarqube') + '</div></div>' +
+          '</div>' +
+          (r.summary ? '<div class="review-summary">' + r.summary + '</div>' : '') +
+          (r.commit_hash ? '<div style="font-size:10px;color:#4b5563;margin-top:4px;font-family:monospace;">Commit: ' + r.commit_hash.substring(0, 8) + '</div>' : '') +
+        '</div>';
+      }).join('');
+    }
+
+    fetch('/api/code-reviews?limit=10')
+      .then(function(r) { if (!r.ok) throw new Error('not available'); return r.json(); })
+      .then(function(data) { renderReviews(data.reviews || []); })
+      .catch(function() {
+        document.getElementById('review-list').innerHTML = '<div class="empty-state">Code review data is stored in D1 (production only). Visit <a href="https://www.xconvert24.com/admin/code-reviews" style="color:#fbbf24;">the live admin</a> to see results.</div>';
+      });
+  })();
+  </script>
+</body>
+</html>

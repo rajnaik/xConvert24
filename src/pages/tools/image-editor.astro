@@ -1,0 +1,663 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Image Editor — Crop, Resize, Rotate, Watermark, Adjust" description="Free online image editor with crop, resize, rotate, flip, brightness/contrast adjustments, watermarks, borders, and web optimization. No upload — all processing in your browser." keywords="image editor, crop image, resize image, rotate image, watermark, brightness, contrast, image processing, web optimization, blur image">
+  <div class="max-w-4xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🎨</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Image Editor</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Edit images in your browser — crop, resize, rotate, adjust brightness/contrast, add watermarks, and optimize for web. No upload needed.</p>
+    </div>
+
+    <!-- Upload area -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-8 mb-6 text-center transition-colors hover:border-amber-400 dark:hover:border-amber-500" id="drop-zone">
+      <input type="file" id="file-input" accept="image/*,.svg" class="hidden"/>
+      <div id="upload-prompt">
+        <div class="text-4xl mb-3">📁</div>
+        <p class="text-gray-600 dark:text-gray-400 font-medium mb-1">Drop an image here or click to upload</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500">Supports PNG, JPG, WebP, BMP, GIF, SVG</p>
+        <button id="select-btn" class="mt-4 px-5 py-2.5 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors text-sm">Select File</button>
+      </div>
+    </div>
+
+    <!-- Editor workspace (hidden until image loaded) -->
+    <div id="editor-workspace" class="hidden">
+      <!-- Canvas preview -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-6 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <span id="file-name" class="text-sm font-semibold text-gray-900 dark:text-white"></span>
+            <span id="file-info" class="text-xs text-gray-500 dark:text-gray-400 ml-2"></span>
+          </div>
+          <button id="change-file" class="text-xs text-amber-600 dark:text-amber-400 hover:underline">Change file</button>
+        </div>
+        <div class="flex justify-center bg-gray-50 dark:bg-gray-800 rounded-lg p-4 overflow-auto max-h-[500px]">
+          <canvas id="preview-canvas" class="max-w-full shadow-lg rounded"></canvas>
+        </div>
+      </div>
+
+      <!-- Editing tools tabs -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+        <div class="flex flex-wrap gap-2 mb-5 border-b border-gray-100 dark:border-gray-800 pb-4">
+          <button class="tab-btn active" data-tab="crop">✂️ Crop</button>
+          <button class="tab-btn" data-tab="resize">📐 Resize</button>
+          <button class="tab-btn" data-tab="transform">🔄 Transform</button>
+          <button class="tab-btn" data-tab="adjust">🌟 Adjust</button>
+          <button class="tab-btn" data-tab="watermark">💧 Watermark</button>
+          <button class="tab-btn" data-tab="border">🖼️ Border</button>
+          <button class="tab-btn" data-tab="blur">🔮 Blur</button>
+        </div>
+
+        <!-- Crop panel -->
+        <div id="panel-crop" class="tab-panel">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Crop Image</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Left (px)</label>
+              <input id="crop-left" type="number" min="0" value="0" class="input-field"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Top (px)</label>
+              <input id="crop-top" type="number" min="0" value="0" class="input-field"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Right (px)</label>
+              <input id="crop-right" type="number" min="0" class="input-field"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bottom (px)</label>
+              <input id="crop-bottom" type="number" min="0" class="input-field"/>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Aspect Ratio Presets</label>
+            <select id="crop-preset" class="input-field">
+              <option value="">Custom</option>
+              <option value="1:1">1:1 (Square)</option>
+              <option value="16:9">16:9 (Widescreen)</option>
+              <option value="9:16">9:16 (Portrait)</option>
+              <option value="4:3">4:3 (Standard)</option>
+              <option value="3:2">3:2 (Photo)</option>
+            </select>
+          </div>
+          <button id="apply-crop" class="btn-apply">Apply Crop</button>
+        </div>
+
+        <!-- Resize panel -->
+        <div id="panel-resize" class="tab-panel hidden">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Resize Image</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Width (px)</label>
+              <input id="resize-w" type="number" min="1" max="10000" class="input-field"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Height (px)</label>
+              <input id="resize-h" type="number" min="1" max="10000" class="input-field"/>
+            </div>
+            <div class="flex items-end">
+              <label class="flex items-center gap-2 h-9 cursor-pointer">
+                <input type="checkbox" id="resize-ratio" checked class="w-4 h-4 accent-amber-500 rounded"/>
+                <span class="text-xs text-gray-600 dark:text-gray-400">Keep ratio</span>
+              </label>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Scale Factor</label>
+            <div class="flex gap-2">
+              <button class="scale-btn" data-scale="0.25">25%</button>
+              <button class="scale-btn" data-scale="0.5">50%</button>
+              <button class="scale-btn" data-scale="0.75">75%</button>
+              <button class="scale-btn" data-scale="1.5">150%</button>
+              <button class="scale-btn" data-scale="2">200%</button>
+            </div>
+          </div>
+          <button id="apply-resize" class="btn-apply">Apply Resize</button>
+        </div>
+
+        <!-- Transform panel -->
+        <div id="panel-transform" class="tab-panel hidden">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Transform</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <button id="rotate-90" class="action-btn">↻ Rotate 90°</button>
+            <button id="rotate-180" class="action-btn">↻ Rotate 180°</button>
+            <button id="rotate-270" class="action-btn">↺ Rotate 270°</button>
+            <button id="flip-h" class="action-btn">↔ Flip Horizontal</button>
+            <button id="flip-v" class="action-btn">↕ Flip Vertical</button>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Custom Rotation: <span id="rotate-val">0°</span></label>
+            <input id="rotate-custom" type="range" min="0" max="360" value="0" class="w-full accent-amber-500"/>
+          </div>
+          <button id="apply-rotate-custom" class="btn-apply">Apply Custom Rotation</button>
+        </div>
+
+        <!-- Adjust panel -->
+        <div id="panel-adjust" class="tab-panel hidden">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Adjustments</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Brightness: <span id="brightness-val">100%</span></label>
+              <input id="brightness" type="range" min="0" max="300" value="100" class="w-full accent-amber-500"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Contrast: <span id="contrast-val">100%</span></label>
+              <input id="contrast" type="range" min="0" max="300" value="100" class="w-full accent-amber-500"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Saturation: <span id="saturation-val">100%</span></label>
+              <input id="saturation" type="range" min="0" max="300" value="100" class="w-full accent-amber-500"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Sharpness: <span id="sharpness-val">0</span></label>
+              <input id="sharpness" type="range" min="0" max="10" value="0" class="w-full accent-amber-500"/>
+            </div>
+          </div>
+          <button id="apply-adjust" class="btn-apply mt-4">Apply Adjustments</button>
+        </div>
+
+        <!-- Watermark panel -->
+        <div id="panel-watermark" class="tab-panel hidden">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Text Watermark</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Text</label>
+              <input id="wm-text" type="text" placeholder="© My Company" class="input-field"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Position</label>
+              <select id="wm-position" class="input-field">
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="top-left">Top Left</option>
+                <option value="center">Center</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Font Size (px)</label>
+              <input id="wm-size" type="number" min="8" max="200" value="24" class="input-field"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Color</label>
+              <input id="wm-color" type="color" value="#ffffff" class="w-full h-9 rounded-lg cursor-pointer"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Opacity: <span id="wm-opacity-val">50%</span></label>
+              <input id="wm-opacity" type="range" min="0" max="100" value="50" class="w-full accent-amber-500"/>
+            </div>
+          </div>
+          <button id="apply-watermark" class="btn-apply">Apply Watermark</button>
+        </div>
+
+        <!-- Border panel -->
+        <div id="panel-border" class="tab-panel hidden">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Border & Padding</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Border Width (px)</label>
+              <input id="border-width" type="number" min="0" max="100" value="5" class="input-field"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Border Color</label>
+              <input id="border-color" type="color" value="#000000" class="w-full h-9 rounded-lg cursor-pointer"/>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Padding (px)</label>
+              <input id="border-padding" type="number" min="0" max="200" value="0" class="input-field"/>
+            </div>
+          </div>
+          <button id="apply-border" class="btn-apply">Apply Border</button>
+        </div>
+
+        <!-- Blur panel -->
+        <div id="panel-blur" class="tab-panel hidden">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Blur</h3>
+          <div class="mb-4">
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Blur Radius: <span id="blur-val">0</span>px</label>
+            <input id="blur-radius" type="range" min="0" max="30" value="0" class="w-full accent-amber-500"/>
+          </div>
+          <button id="apply-blur" class="btn-apply">Apply Blur</button>
+        </div>
+      </div>
+
+      <!-- Actions bar -->
+      <div class="flex flex-wrap gap-3 mb-6">
+        <button id="undo-btn" class="action-btn" disabled>↩ Undo</button>
+        <button id="reset-btn" class="action-btn">🔄 Reset to Original</button>
+        <div class="flex-1"></div>
+        <select id="save-format" class="input-field w-auto">
+          <option value="image/png">PNG</option>
+          <option value="image/jpeg">JPG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400 mr-1">Quality:</label>
+          <input id="save-quality" type="number" min="10" max="100" value="92" class="input-field w-16 inline-block"/>
+        </div>
+        <button id="save-btn" class="px-5 py-2.5 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors text-sm">💾 Save & Download</button>
+      </div>
+    </div>
+
+    <!-- Info section -->
+    <div class="prose dark:prose-invert prose-sm max-w-none">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Image Editing Features</h2>
+      <ul class="text-gray-600 dark:text-gray-400 text-sm">
+        <li><strong>Crop</strong> — Cut images to specific dimensions or aspect ratios (1:1, 16:9, 4:3, etc.)</li>
+        <li><strong>Resize</strong> — Scale images by percentage or to exact pixel dimensions with aspect ratio lock</li>
+        <li><strong>Transform</strong> — Rotate (90°, 180°, 270°, custom angle) and flip (horizontal/vertical)</li>
+        <li><strong>Adjustments</strong> — Fine-tune brightness, contrast, saturation, and sharpness</li>
+        <li><strong>Watermark</strong> — Add text watermarks with configurable position, size, color, and opacity</li>
+        <li><strong>Border</strong> — Add solid borders and padding around images</li>
+        <li><strong>Blur</strong> — Apply Gaussian blur with adjustable radius</li>
+        <li><strong>Web Optimization</strong> — Export as PNG, JPG, or WebP with quality control for smallest file size</li>
+      </ul>
+      <p class="text-gray-600 dark:text-gray-400">All processing happens locally in your browser using the Canvas API. Your images are never uploaded to any server.</p>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .tab-btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; color: #6b7280; background: transparent; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; }
+  .tab-btn:hover { color: #f59e0b; background: #fef3c7; }
+  .tab-btn.active { color: #d97706; background: #fef3c7; border-color: #fbbf24; font-weight: 600; }
+  :global(.dark) .tab-btn:hover { background: #1f2937; }
+  :global(.dark) .tab-btn.active { background: #292524; border-color: #d97706; color: #fbbf24; }
+  .input-field { width: 100%; height: 36px; padding: 0 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; color: #111827; }
+  :global(.dark) .input-field { background: #1f2937; border-color: #374151; color: #f9fafb; }
+  .input-field:focus { outline: none; box-shadow: 0 0 0 2px #f59e0b40; border-color: #f59e0b; }
+  .btn-apply { padding: 10px 20px; background: #f59e0b; color: #fff; font-weight: 600; font-size: 13px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s; }
+  .btn-apply:hover { background: #d97706; }
+  .action-btn { padding: 8px 14px; background: #1f2937; color: #f9fafb; font-size: 12px; border-radius: 8px; border: 1px solid #374151; cursor: pointer; transition: all 0.2s; }
+  .action-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .scale-btn { padding: 6px 12px; background: #111827; color: #d1d5db; font-size: 11px; border-radius: 6px; border: 1px solid #374151; cursor: pointer; transition: all 0.2s; }
+  .scale-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+</style>
+
+<script>
+  let originalImage: HTMLImageElement | null = null;
+  let currentCanvas: HTMLCanvasElement;
+  let history: ImageData[] = [];
+  let currentWidth = 0;
+  let currentHeight = 0;
+
+  const dropZone = document.getElementById('drop-zone')!;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const selectBtn = document.getElementById('select-btn')!;
+  const workspace = document.getElementById('editor-workspace')!;
+  const previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
+  const fileNameEl = document.getElementById('file-name')!;
+  const fileInfoEl = document.getElementById('file-info')!;
+  const changeFileBtn = document.getElementById('change-file')!;
+
+  // File selection
+  selectBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-amber-400'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-amber-400'));
+  dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-amber-400'); if (e.dataTransfer?.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', () => { if (fileInput.files?.[0]) handleFile(fileInput.files[0]); });
+  changeFileBtn.addEventListener('click', () => fileInput.click());
+
+  function handleFile(file: File) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      originalImage = img;
+      currentWidth = img.naturalWidth;
+      currentHeight = img.naturalHeight;
+      fileNameEl.textContent = file.name;
+      fileInfoEl.textContent = `${currentWidth}×${currentHeight} • ${formatSize(file.size)}`;
+
+      // Draw to canvas
+      previewCanvas.width = currentWidth;
+      previewCanvas.height = currentHeight;
+      const ctx = previewCanvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      history = [ctx.getImageData(0, 0, currentWidth, currentHeight)];
+
+      // Update crop fields
+      (document.getElementById('crop-right') as HTMLInputElement).value = currentWidth.toString();
+      (document.getElementById('crop-bottom') as HTMLInputElement).value = currentHeight.toString();
+      (document.getElementById('resize-w') as HTMLInputElement).value = currentWidth.toString();
+      (document.getElementById('resize-h') as HTMLInputElement).value = currentHeight.toString();
+
+      dropZone.classList.add('hidden');
+      workspace.classList.remove('hidden');
+    };
+    img.src = url;
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function pushHistory() {
+    const ctx = previewCanvas.getContext('2d')!;
+    history.push(ctx.getImageData(0, 0, previewCanvas.width, previewCanvas.height));
+    if (history.length > 20) history.shift();
+    (document.getElementById('undo-btn') as HTMLButtonElement).disabled = history.length <= 1;
+  }
+
+  function updateDimensions() {
+    currentWidth = previewCanvas.width;
+    currentHeight = previewCanvas.height;
+    fileInfoEl.textContent = `${currentWidth}×${currentHeight}`;
+  }
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`panel-${(btn as HTMLElement).dataset.tab}`)!.classList.remove('hidden');
+    });
+  });
+
+  // Crop
+  document.getElementById('apply-crop')!.addEventListener('click', () => {
+    const left = parseInt((document.getElementById('crop-left') as HTMLInputElement).value) || 0;
+    const top = parseInt((document.getElementById('crop-top') as HTMLInputElement).value) || 0;
+    const right = parseInt((document.getElementById('crop-right') as HTMLInputElement).value) || currentWidth;
+    const bottom = parseInt((document.getElementById('crop-bottom') as HTMLInputElement).value) || currentHeight;
+    const w = right - left;
+    const h = bottom - top;
+    if (w <= 0 || h <= 0) return;
+
+    const ctx = previewCanvas.getContext('2d')!;
+    const imageData = ctx.getImageData(left, top, w, h);
+    previewCanvas.width = w;
+    previewCanvas.height = h;
+    ctx.putImageData(imageData, 0, 0);
+    updateDimensions();
+    pushHistory();
+  });
+
+  // Crop preset
+  document.getElementById('crop-preset')!.addEventListener('change', (e) => {
+    const val = (e.target as HTMLSelectElement).value;
+    if (!val) return;
+    const [rw, rh] = val.split(':').map(Number);
+    const ratio = rw / rh;
+    let w = currentWidth;
+    let h = Math.round(w / ratio);
+    if (h > currentHeight) { h = currentHeight; w = Math.round(h * ratio); }
+    const left = Math.round((currentWidth - w) / 2);
+    const top = Math.round((currentHeight - h) / 2);
+    (document.getElementById('crop-left') as HTMLInputElement).value = left.toString();
+    (document.getElementById('crop-top') as HTMLInputElement).value = top.toString();
+    (document.getElementById('crop-right') as HTMLInputElement).value = (left + w).toString();
+    (document.getElementById('crop-bottom') as HTMLInputElement).value = (top + h).toString();
+  });
+
+  // Resize
+  const resizeW = document.getElementById('resize-w') as HTMLInputElement;
+  const resizeH = document.getElementById('resize-h') as HTMLInputElement;
+  const resizeRatio = document.getElementById('resize-ratio') as HTMLInputElement;
+
+  resizeW.addEventListener('input', () => {
+    if (resizeRatio.checked && resizeW.value && currentWidth) {
+      resizeH.value = Math.round(parseInt(resizeW.value) * currentHeight / currentWidth).toString();
+    }
+  });
+  resizeH.addEventListener('input', () => {
+    if (resizeRatio.checked && resizeH.value && currentHeight) {
+      resizeW.value = Math.round(parseInt(resizeH.value) * currentWidth / currentHeight).toString();
+    }
+  });
+
+  document.querySelectorAll('.scale-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const scale = parseFloat((btn as HTMLElement).dataset.scale || '1');
+      resizeW.value = Math.round(currentWidth * scale).toString();
+      resizeH.value = Math.round(currentHeight * scale).toString();
+    });
+  });
+
+  document.getElementById('apply-resize')!.addEventListener('click', () => {
+    const w = parseInt(resizeW.value) || currentWidth;
+    const h = parseInt(resizeH.value) || currentHeight;
+    const ctx = previewCanvas.getContext('2d')!;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = previewCanvas.width;
+    tempCanvas.height = previewCanvas.height;
+    tempCanvas.getContext('2d')!.drawImage(previewCanvas, 0, 0);
+    previewCanvas.width = w;
+    previewCanvas.height = h;
+    ctx.drawImage(tempCanvas, 0, 0, w, h);
+    updateDimensions();
+    pushHistory();
+  });
+
+  // Transform
+  function rotateCanvas(degrees: number) {
+    const ctx = previewCanvas.getContext('2d')!;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = previewCanvas.width;
+    tempCanvas.height = previewCanvas.height;
+    tempCanvas.getContext('2d')!.drawImage(previewCanvas, 0, 0);
+
+    const rad = degrees * Math.PI / 180;
+    if (degrees === 90 || degrees === 270) {
+      previewCanvas.width = tempCanvas.height;
+      previewCanvas.height = tempCanvas.width;
+    }
+    ctx.save();
+    ctx.translate(previewCanvas.width / 2, previewCanvas.height / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(tempCanvas, -tempCanvas.width / 2, -tempCanvas.height / 2);
+    ctx.restore();
+    updateDimensions();
+    pushHistory();
+  }
+
+  document.getElementById('rotate-90')!.addEventListener('click', () => rotateCanvas(90));
+  document.getElementById('rotate-180')!.addEventListener('click', () => rotateCanvas(180));
+  document.getElementById('rotate-270')!.addEventListener('click', () => rotateCanvas(270));
+
+  document.getElementById('flip-h')!.addEventListener('click', () => {
+    const ctx = previewCanvas.getContext('2d')!;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = previewCanvas.width;
+    tempCanvas.height = previewCanvas.height;
+    tempCanvas.getContext('2d')!.drawImage(previewCanvas, 0, 0);
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.drawImage(tempCanvas, -previewCanvas.width, 0);
+    ctx.restore();
+    pushHistory();
+  });
+
+  document.getElementById('flip-v')!.addEventListener('click', () => {
+    const ctx = previewCanvas.getContext('2d')!;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = previewCanvas.width;
+    tempCanvas.height = previewCanvas.height;
+    tempCanvas.getContext('2d')!.drawImage(previewCanvas, 0, 0);
+    ctx.save();
+    ctx.scale(1, -1);
+    ctx.drawImage(tempCanvas, 0, -previewCanvas.height);
+    ctx.restore();
+    pushHistory();
+  });
+
+  // Custom rotation slider
+  document.getElementById('rotate-custom')!.addEventListener('input', (e) => {
+    document.getElementById('rotate-val')!.textContent = (e.target as HTMLInputElement).value + '°';
+  });
+  document.getElementById('apply-rotate-custom')!.addEventListener('click', () => {
+    const degrees = parseInt((document.getElementById('rotate-custom') as HTMLInputElement).value);
+    if (degrees === 0) return;
+    rotateCanvas(degrees);
+  });
+
+  // Adjustments
+  document.getElementById('brightness')!.addEventListener('input', (e) => {
+    document.getElementById('brightness-val')!.textContent = (e.target as HTMLInputElement).value + '%';
+  });
+  document.getElementById('contrast')!.addEventListener('input', (e) => {
+    document.getElementById('contrast-val')!.textContent = (e.target as HTMLInputElement).value + '%';
+  });
+  document.getElementById('saturation')!.addEventListener('input', (e) => {
+    document.getElementById('saturation-val')!.textContent = (e.target as HTMLInputElement).value + '%';
+  });
+  document.getElementById('sharpness')!.addEventListener('input', (e) => {
+    document.getElementById('sharpness-val')!.textContent = (e.target as HTMLInputElement).value;
+  });
+
+  document.getElementById('apply-adjust')!.addEventListener('click', () => {
+    const brightness = parseInt((document.getElementById('brightness') as HTMLInputElement).value) / 100;
+    const contrast = parseInt((document.getElementById('contrast') as HTMLInputElement).value) / 100;
+    const saturation = parseInt((document.getElementById('saturation') as HTMLInputElement).value) / 100;
+
+    const ctx = previewCanvas.getContext('2d')!;
+    ctx.filter = `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = previewCanvas.width;
+    tempCanvas.height = previewCanvas.height;
+    tempCanvas.getContext('2d')!.drawImage(previewCanvas, 0, 0);
+    ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+    ctx.drawImage(tempCanvas, 0, 0);
+    ctx.filter = 'none';
+    pushHistory();
+  });
+
+  // Watermark
+  document.getElementById('wm-opacity')!.addEventListener('input', (e) => {
+    document.getElementById('wm-opacity-val')!.textContent = (e.target as HTMLInputElement).value + '%';
+  });
+
+  document.getElementById('apply-watermark')!.addEventListener('click', () => {
+    const text = (document.getElementById('wm-text') as HTMLInputElement).value;
+    if (!text) return;
+    const position = (document.getElementById('wm-position') as HTMLSelectElement).value;
+    const size = parseInt((document.getElementById('wm-size') as HTMLInputElement).value) || 24;
+    const color = (document.getElementById('wm-color') as HTMLInputElement).value;
+    const opacity = parseInt((document.getElementById('wm-opacity') as HTMLInputElement).value) / 100;
+
+    const ctx = previewCanvas.getContext('2d')!;
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.font = `${size}px Inter, system-ui, sans-serif`;
+    ctx.fillStyle = color;
+
+    const metrics = ctx.measureText(text);
+    const margin = 20;
+    let x = margin, y = previewCanvas.height - margin;
+
+    if (position === 'top-left') { x = margin; y = size + margin; }
+    else if (position === 'top-right') { x = previewCanvas.width - metrics.width - margin; y = size + margin; }
+    else if (position === 'bottom-left') { x = margin; y = previewCanvas.height - margin; }
+    else if (position === 'bottom-right') { x = previewCanvas.width - metrics.width - margin; y = previewCanvas.height - margin; }
+    else if (position === 'center') { x = (previewCanvas.width - metrics.width) / 2; y = (previewCanvas.height + size) / 2; }
+
+    ctx.fillText(text, x, y);
+    ctx.restore();
+    pushHistory();
+  });
+
+  // Border
+  document.getElementById('apply-border')!.addEventListener('click', () => {
+    const borderW = parseInt((document.getElementById('border-width') as HTMLInputElement).value) || 0;
+    const borderColor = (document.getElementById('border-color') as HTMLInputElement).value;
+    const padding = parseInt((document.getElementById('border-padding') as HTMLInputElement).value) || 0;
+
+    const total = borderW + padding;
+    const newW = previewCanvas.width + total * 2;
+    const newH = previewCanvas.height + total * 2;
+
+    const ctx = previewCanvas.getContext('2d')!;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = previewCanvas.width;
+    tempCanvas.height = previewCanvas.height;
+    tempCanvas.getContext('2d')!.drawImage(previewCanvas, 0, 0);
+
+    previewCanvas.width = newW;
+    previewCanvas.height = newH;
+
+    // Draw border
+    ctx.fillStyle = borderColor;
+    ctx.fillRect(0, 0, newW, newH);
+    // Draw padding (white)
+    if (padding > 0) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(borderW, borderW, newW - borderW * 2, newH - borderW * 2);
+    }
+    // Draw image
+    ctx.drawImage(tempCanvas, total, total);
+    updateDimensions();
+    pushHistory();
+  });
+
+  // Blur
+  document.getElementById('blur-radius')!.addEventListener('input', (e) => {
+    document.getElementById('blur-val')!.textContent = (e.target as HTMLInputElement).value;
+  });
+
+  document.getElementById('apply-blur')!.addEventListener('click', () => {
+    const radius = parseInt((document.getElementById('blur-radius') as HTMLInputElement).value) || 0;
+    if (radius === 0) return;
+    const ctx = previewCanvas.getContext('2d')!;
+    ctx.filter = `blur(${radius}px)`;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = previewCanvas.width;
+    tempCanvas.height = previewCanvas.height;
+    tempCanvas.getContext('2d')!.drawImage(previewCanvas, 0, 0);
+    ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+    ctx.drawImage(tempCanvas, 0, 0);
+    ctx.filter = 'none';
+    pushHistory();
+  });
+
+  // Undo
+  document.getElementById('undo-btn')!.addEventListener('click', () => {
+    if (history.length <= 1) return;
+    history.pop();
+    const last = history[history.length - 1];
+    previewCanvas.width = last.width;
+    previewCanvas.height = last.height;
+    previewCanvas.getContext('2d')!.putImageData(last, 0, 0);
+    updateDimensions();
+    (document.getElementById('undo-btn') as HTMLButtonElement).disabled = history.length <= 1;
+  });
+
+  // Reset
+  document.getElementById('reset-btn')!.addEventListener('click', () => {
+    if (!originalImage) return;
+    previewCanvas.width = originalImage.naturalWidth;
+    previewCanvas.height = originalImage.naturalHeight;
+    previewCanvas.getContext('2d')!.drawImage(originalImage, 0, 0);
+    currentWidth = originalImage.naturalWidth;
+    currentHeight = originalImage.naturalHeight;
+    history = [previewCanvas.getContext('2d')!.getImageData(0, 0, currentWidth, currentHeight)];
+    updateDimensions();
+    (document.getElementById('undo-btn') as HTMLButtonElement).disabled = true;
+  });
+
+  // Save & Download
+  document.getElementById('save-btn')!.addEventListener('click', () => {
+    const format = (document.getElementById('save-format') as HTMLSelectElement).value;
+    const quality = parseInt((document.getElementById('save-quality') as HTMLInputElement).value) / 100;
+    const ext = format === 'image/jpeg' ? 'jpg' : format === 'image/webp' ? 'webp' : 'png';
+
+    previewCanvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `edited-image.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, format, quality);
+  });
+</script>

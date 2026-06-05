@@ -1,0 +1,875 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Map Tools — Distance, Nearby Places, Route Planner" description="Free map tools powered by Amazon Location Service. Measure distance between places, explore nearby restaurants/shops/attractions, plan routes, and discover interesting travel facts." keywords="map tools, distance map, nearby places, find restaurants near me, route planner, distance calculator, explore area, places search, world map">
+  <div class="max-w-5xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🗺️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Map Tools</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Distance calculator, nearby explorer, and route planner — all powered by Amazon Location Service.</p>
+    </div>
+
+    <!-- API Key notice -->
+    <div id="api-key-notice" class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4 mb-6">
+      <p class="text-sm text-amber-800 dark:text-amber-200">
+        <strong>Setup Required:</strong> This tool uses Amazon Location Service. Enter your API key below to get started.
+        <a href="https://aws.amazon.com/location/" target="_blank" class="underline hover:text-amber-600">Get a free API key →</a>
+      </p>
+      <div class="mt-3 flex gap-2">
+        <input id="api-key-input" type="password" placeholder="Enter your Amazon Location API Key" class="flex-1 h-9 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+        <select id="region-select" class="h-9 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+          <option value="us-east-1">us-east-1</option>
+          <option value="us-west-2">us-west-2</option>
+          <option value="eu-west-1">eu-west-1</option>
+          <option value="eu-central-1">eu-central-1</option>
+          <option value="ap-southeast-1">ap-southeast-1</option>
+        </select>
+        <button id="save-key-btn" class="h-9 px-4 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors text-sm">Connect</button>
+      </div>
+    </div>
+
+    <!-- Main app (hidden until key is set) -->
+    <div id="app-container" class="hidden">
+      <!-- Mode selector -->
+      <div class="flex flex-wrap gap-2 mb-5 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+        <button class="mode-btn active" data-mode="distance">📏 Distance Calculator</button>
+        <button class="mode-btn" data-mode="nearby">🍽️ Nearby Explorer</button>
+        <button class="mode-btn" data-mode="reverse">📍 What's Here?</button>
+      </div>
+
+      <!-- ═══════════════════ DISTANCE MODE ═══════════════════ -->
+      <div id="mode-distance">
+      <!-- Step indicator -->
+      <div class="flex items-center gap-2 mb-4 text-xs">
+        <span id="step-1" class="step-badge active">1. Search Origin</span>
+        <span class="text-gray-400">→</span>
+        <span id="step-2" class="step-badge">2. Pin Origin</span>
+        <span class="text-gray-400">→</span>
+        <span id="step-3" class="step-badge">3. Search Destination</span>
+        <span class="text-gray-400">→</span>
+        <span id="step-4" class="step-badge">4. Pin Destination</span>
+        <span class="text-gray-400">→</span>
+        <span id="step-5" class="step-badge">5. Results</span>
+      </div>
+
+      <!-- Search bars -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">📍 Origin</label>
+          <div class="relative">
+            <input id="origin-search" type="text" placeholder="Search for a place..." class="w-full h-10 px-3 pr-10 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"/>
+            <div id="origin-suggestions" class="suggestions-dropdown hidden"></div>
+          </div>
+          <div id="origin-info" class="mt-1 text-xs text-green-600 dark:text-green-400 hidden"></div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">📍 Destination</label>
+          <div class="relative">
+            <input id="dest-search" type="text" placeholder="Search for destination..." disabled class="w-full h-10 px-3 pr-10 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"/>
+            <div id="dest-suggestions" class="suggestions-dropdown hidden"></div>
+          </div>
+          <div id="dest-info" class="mt-1 text-xs text-red-600 dark:text-red-400 hidden"></div>
+        </div>
+      </div>
+
+      <!-- Map container -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden mb-6 shadow-sm">
+        <div id="map" style="height: 500px; width: 100%;"></div>
+      </div>
+
+      <!-- Pin buttons -->
+      <div id="pin-controls" class="flex gap-3 mb-6 hidden">
+        <button id="pin-origin-btn" class="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors text-sm hidden">📌 Pin Origin Here</button>
+        <button id="pin-dest-btn" class="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors text-sm hidden">📌 Pin Destination Here</button>
+        <button id="reset-btn" class="px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors text-sm">🔄 Reset</button>
+      </div>
+
+      <!-- Results panel -->
+      <div id="results-panel" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <span>📊</span> Distance & Travel Facts
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+            <div id="result-distance" class="text-xl font-bold text-amber-500">—</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Distance</div>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+            <div id="result-driving" class="text-xl font-bold text-blue-500">—</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">🚗 Driving</div>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+            <div id="result-walking" class="text-xl font-bold text-green-500">—</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">🚶 Walking</div>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+            <div id="result-flight" class="text-xl font-bold text-purple-500">—</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">✈️ Flight</div>
+          </div>
+        </div>
+
+        <!-- Fun facts -->
+        <div id="fun-facts" class="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 rounded-lg p-4">
+          <h3 class="text-sm font-semibold text-amber-800 dark:text-amber-200 mb-2">✨ Interesting Facts</h3>
+          <ul id="facts-list" class="text-sm text-amber-700 dark:text-amber-300 space-y-1"></ul>
+        </div>
+      </div>
+    </div>
+    </div><!-- /mode-distance -->
+
+    <!-- ═══════════════════ NEARBY MODE ═══════════════════ -->
+    <div id="mode-nearby" class="hidden">
+      <div class="mb-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Search for a location, then explore what's nearby — restaurants, shops, attractions, hotels, and more.</p>
+        <div class="relative mb-3">
+          <input id="nearby-search" type="text" placeholder="Where are you? Search a place..." class="w-full h-10 px-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          <div id="nearby-suggestions" class="suggestions-dropdown hidden"></div>
+        </div>
+        <div id="nearby-location-info" class="text-xs text-amber-600 dark:text-amber-400 mb-3 hidden"></div>
+
+        <!-- Category buttons -->
+        <div id="nearby-categories" class="flex flex-wrap gap-2 hidden">
+          <button class="nearby-cat-btn" data-cat="restaurant">🍽️ Restaurants</button>
+          <button class="nearby-cat-btn" data-cat="coffee_shop">☕ Coffee</button>
+          <button class="nearby-cat-btn" data-cat="grocery">🛒 Grocery</button>
+          <button class="nearby-cat-btn" data-cat="hotel">🏨 Hotels</button>
+          <button class="nearby-cat-btn" data-cat="fueling_station">⛽ Fuel</button>
+          <button class="nearby-cat-btn" data-cat="pharmacy">💊 Pharmacy</button>
+          <button class="nearby-cat-btn" data-cat="bank">🏦 Banks</button>
+          <button class="nearby-cat-btn" data-cat="hospital">🏥 Hospital</button>
+          <button class="nearby-cat-btn" data-cat="parking">🅿️ Parking</button>
+          <button class="nearby-cat-btn" data-cat="tourist_attraction">🏛️ Attractions</button>
+          <button class="nearby-cat-btn" data-cat="shopping_mall">🛍️ Shopping</button>
+          <button class="nearby-cat-btn" data-cat="park">🌳 Parks</button>
+        </div>
+      </div>
+
+      <!-- Nearby map -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden mb-4 shadow-sm">
+        <div id="nearby-map" style="height: 450px; width: 100%;"></div>
+      </div>
+
+      <!-- Nearby results list -->
+      <div id="nearby-results" class="hidden">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">📋 Results</h3>
+        <div id="nearby-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+      </div>
+    </div><!-- /mode-nearby -->
+
+    <!-- ═══════════════════ REVERSE GEOCODE MODE ═══════════════════ -->
+    <div id="mode-reverse" class="hidden">
+      <div class="mb-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Click anywhere on the map to find out the address, coordinates, and nearby information for that point.</p>
+      </div>
+
+      <!-- Reverse map -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden mb-4 shadow-sm">
+        <div id="reverse-map" style="height: 450px; width: 100%;"></div>
+      </div>
+
+      <!-- Reverse result -->
+      <div id="reverse-result" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">📍 Location Details</h3>
+        <div id="reverse-address" class="text-base font-medium text-gray-900 dark:text-white mb-2"></div>
+        <div id="reverse-coords" class="text-xs text-gray-500 dark:text-gray-400 font-mono mb-3"></div>
+        <div id="reverse-details" class="grid grid-cols-2 gap-2 text-xs"></div>
+      </div>
+    </div><!-- /mode-reverse -->
+
+    <!-- Info section -->
+    <div class="prose dark:prose-invert prose-sm max-w-none mt-8">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">About Map Tools</h2>
+      <p class="text-gray-600 dark:text-gray-400">This tool uses <strong>Amazon Location Service</strong> for accurate geocoding, place search, route calculation, and nearby place discovery. All measurements use real road networks for driving/walking estimates, and great-circle (Haversine) distance for straight-line and flight estimates.</p>
+      <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Three Modes</h3>
+      <ul class="text-gray-600 dark:text-gray-400 text-sm">
+        <li><strong>📏 Distance Calculator</strong> — Pin two places and get driving/walking/flight times with fun facts</li>
+        <li><strong>🍽️ Nearby Explorer</strong> — Search a location, then explore restaurants, coffee, shopping, hotels, attractions, parks, fuel stations, pharmacies, hospitals, banks, and parking nearby</li>
+        <li><strong>📍 What's Here?</strong> — Click anywhere on the map to reverse-geocode and get the full address and coordinates</li>
+      </ul>
+      <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Powered By</h3>
+      <ul class="text-gray-600 dark:text-gray-400 text-sm">
+        <li><strong>Amazon Location Service</strong> — Places (Suggest, GetPlace, SearchNearby, ReverseGeocode), Routes (CalculateRoutes), and Maps (Dynamic tiles via MapLibre)</li>
+        <li><strong>MapLibre GL JS</strong> — Open-source map rendering with pan, zoom, markers, popups, and route visualization</li>
+      </ul>
+      <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Fun Facts</h3>
+      <ul class="text-gray-600 dark:text-gray-400 text-sm">
+        <li>The longest drivable distance on Earth is from Sagres, Portugal to Khasan, Russia (~14,000 km)</li>
+        <li>Light travels 299,792 km per second — it could circle the Earth 7.5 times in 1 second</li>
+        <li>The International Space Station orbits at 28,000 km/h — it circles Earth every 90 minutes</li>
+        <li>A commercial jet cruises at about 900 km/h (Mach 0.85)</li>
+        <li>The average walking speed is 5 km/h — a person walks roughly 160,000 km in a lifetime</li>
+      </ul>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .step-badge { padding: 4px 10px; border-radius: 100px; background: #1f2937; color: #6b7280; font-weight: 500; transition: all 0.2s; }
+  .step-badge.active { background: #f59e0b; color: #fff; }
+  .step-badge.done { background: #16a34a; color: #fff; }
+  .mode-btn { padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #6b7280; background: transparent; border: none; cursor: pointer; transition: all 0.2s; }
+  .mode-btn:hover { color: #d97706; background: #fef3c7; }
+  .mode-btn.active { color: #fff; background: #f59e0b; box-shadow: 0 2px 6px rgba(245,158,11,0.3); }
+  :global(.dark) .mode-btn:hover { background: #292524; }
+  :global(.dark) .mode-btn.active { background: #d97706; }
+  .nearby-cat-btn { padding: 6px 12px; border-radius: 100px; font-size: 12px; font-weight: 500; color: #374151; background: #f3f4f6; border: 1px solid #e5e7eb; cursor: pointer; transition: all 0.2s; }
+  .nearby-cat-btn:hover { border-color: #f59e0b; color: #d97706; background: #fef3c7; }
+  .nearby-cat-btn.active { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  :global(.dark) .nearby-cat-btn { color: #d1d5db; background: #1f2937; border-color: #374151; }
+  :global(.dark) .nearby-cat-btn:hover { background: #292524; border-color: #d97706; color: #fbbf24; }
+  :global(.dark) .nearby-cat-btn.active { background: #d97706; color: #fff; }
+  .suggestions-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto; z-index: 100; }
+  :global(.dark) .suggestions-dropdown { background: #1f2937; border-color: #374151; }
+  .suggestion-item { padding: 8px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid #f3f4f6; color: #111827; }
+  :global(.dark) .suggestion-item { border-color: #374151; color: #f9fafb; }
+  .suggestion-item:hover { background: #fef3c7; }
+  :global(.dark) .suggestion-item:hover { background: #292524; }
+  .suggestion-item:last-child { border-bottom: none; }
+</style>
+
+<script>
+  // State
+  let apiKey = '';
+  let region = 'us-east-1';
+  let map: any = null;
+  let originMarker: any = null;
+  let destMarker: any = null;
+  let originCoords: [number, number] | null = null;
+  let destCoords: [number, number] | null = null;
+  let originName = '';
+  let destName = '';
+  let currentStep = 1;
+  let searchTimeout: any = null;
+
+  // DOM references
+  const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+  const regionSelect = document.getElementById('region-select') as HTMLSelectElement;
+  const saveKeyBtn = document.getElementById('save-key-btn')!;
+  const apiKeyNotice = document.getElementById('api-key-notice')!;
+  const appContainer = document.getElementById('app-container')!;
+  const originSearch = document.getElementById('origin-search') as HTMLInputElement;
+  const destSearch = document.getElementById('dest-search') as HTMLInputElement;
+  const originSuggestions = document.getElementById('origin-suggestions')!;
+  const destSuggestions = document.getElementById('dest-suggestions')!;
+  const originInfo = document.getElementById('origin-info')!;
+  const destInfo = document.getElementById('dest-info')!;
+  const pinControls = document.getElementById('pin-controls')!;
+  const pinOriginBtn = document.getElementById('pin-origin-btn')!;
+  const pinDestBtn = document.getElementById('pin-dest-btn')!;
+  const resetBtn = document.getElementById('reset-btn')!;
+  const resultsPanel = document.getElementById('results-panel')!;
+
+  // Check for stored API key
+  const storedKey = localStorage.getItem('xc24-amazon-location-key');
+  const storedRegion = localStorage.getItem('xc24-amazon-location-region');
+  if (storedKey) {
+    apiKey = storedKey;
+    region = storedRegion || 'us-east-1';
+    initApp();
+  }
+
+  // Save API key
+  saveKeyBtn.addEventListener('click', () => {
+    const key = apiKeyInput.value.trim();
+    const reg = regionSelect.value;
+    if (!key) return;
+    apiKey = key;
+    region = reg;
+    localStorage.setItem('xc24-amazon-location-key', key);
+    localStorage.setItem('xc24-amazon-location-region', reg);
+    initApp();
+  });
+
+  function initApp() {
+    apiKeyNotice.classList.add('hidden');
+    appContainer.classList.remove('hidden');
+    initMap();
+  }
+
+  function initMap() {
+    const styleUrl = `https://maps.geo.${region}.amazonaws.com/v2/styles/Standard/descriptor?key=${apiKey}`;
+
+    map = new (window as any).maplibregl.Map({
+      container: 'map',
+      style: styleUrl,
+      center: [0, 20],
+      zoom: 2,
+      validateStyle: false,
+    });
+
+    map.addControl(new (window as any).maplibregl.NavigationControl(), 'top-right');
+
+    map.on('error', (e: any) => {
+      console.error('Map error:', e);
+    });
+  }
+
+  // Step management
+  function setStep(step: number) {
+    currentStep = step;
+    for (let i = 1; i <= 5; i++) {
+      const el = document.getElementById(`step-${i}`)!;
+      el.classList.remove('active', 'done');
+      if (i < step) el.classList.add('done');
+      else if (i === step) el.classList.add('active');
+    }
+  }
+
+  // Geocoding via Amazon Location Service (using fetch directly with API key)
+  async function searchPlaces(query: string): Promise<any[]> {
+    if (!query || query.length < 3) return [];
+    try {
+      const url = `https://places.geo.${region}.amazonaws.com/v2/suggest?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ QueryText: query, MaxResults: 5 }),
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.ResultItems || [];
+    } catch (e) {
+      console.error('Search error:', e);
+      return [];
+    }
+  }
+
+  async function geocodePlace(placeId: string): Promise<any> {
+    try {
+      const url = `https://places.geo.${region}.amazonaws.com/v2/get-place?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ PlaceId: placeId }),
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (e) {
+      console.error('Geocode error:', e);
+      return null;
+    }
+  }
+
+  async function calculateRoute(origin: [number, number], destination: [number, number], travelMode: string): Promise<any> {
+    try {
+      const url = `https://routes.geo.${region}.amazonaws.com/v2/routes?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Origin: origin,
+          Destination: destination,
+          TravelMode: travelMode,
+          LegGeometryFormat: 'Simple',
+        }),
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (e) {
+      console.error('Route error:', e);
+      return null;
+    }
+  }
+
+  // Search input handlers
+  function setupSearch(input: HTMLInputElement, suggestionsEl: HTMLElement, onSelect: (item: any) => void) {
+    input.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      const query = input.value.trim();
+      if (query.length < 3) { suggestionsEl.classList.add('hidden'); return; }
+      searchTimeout = setTimeout(async () => {
+        const results = await searchPlaces(query);
+        if (results.length === 0) { suggestionsEl.classList.add('hidden'); return; }
+        suggestionsEl.innerHTML = results.map((item: any) => {
+          const label = item.Title || item.Address?.Label || 'Unknown place';
+          return `<div class="suggestion-item" data-place-id="${item.Place?.PlaceId || ''}" data-title="${label}">${label}</div>`;
+        }).join('');
+        suggestionsEl.classList.remove('hidden');
+
+        suggestionsEl.querySelectorAll('.suggestion-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const placeId = (el as HTMLElement).dataset.placeId;
+            const title = (el as HTMLElement).dataset.title || '';
+            input.value = title;
+            suggestionsEl.classList.add('hidden');
+            onSelect({ placeId, title });
+          });
+        });
+      }, 300);
+    });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!input.contains(e.target as Node) && !suggestionsEl.contains(e.target as Node)) {
+        suggestionsEl.classList.add('hidden');
+      }
+    });
+  }
+
+  // Origin search
+  setupSearch(originSearch, originSuggestions, async (item) => {
+    if (item.placeId) {
+      const place = await geocodePlace(item.placeId);
+      if (place && place.Position) {
+        const coords: [number, number] = [place.Position[0], place.Position[1]];
+        originName = item.title;
+        showOriginOnMap(coords);
+        setStep(2);
+        pinControls.classList.remove('hidden');
+        pinOriginBtn.classList.remove('hidden');
+      }
+    }
+  });
+
+  // Destination search
+  setupSearch(destSearch, destSuggestions, async (item) => {
+    if (item.placeId) {
+      const place = await geocodePlace(item.placeId);
+      if (place && place.Position) {
+        const coords: [number, number] = [place.Position[0], place.Position[1]];
+        destName = item.title;
+        showDestOnMap(coords);
+        setStep(4);
+        pinDestBtn.classList.remove('hidden');
+      }
+    }
+  });
+
+  function showOriginOnMap(coords: [number, number]) {
+    if (originMarker) originMarker.remove();
+    originMarker = new (window as any).maplibregl.Marker({ color: '#22c55e', draggable: true })
+      .setLngLat(coords)
+      .setPopup(new (window as any).maplibregl.Popup({ offset: 25 }).setHTML(`<strong>Origin:</strong> ${originName}`))
+      .addTo(map);
+    originMarker.on('dragend', () => {
+      const lngLat = originMarker.getLngLat();
+      originCoords = [lngLat.lng, lngLat.lat];
+    });
+    originCoords = coords;
+    map.flyTo({ center: coords, zoom: 10 });
+    originInfo.textContent = `📍 ${originName} [${coords[1].toFixed(4)}, ${coords[0].toFixed(4)}]`;
+    originInfo.classList.remove('hidden');
+  }
+
+  function showDestOnMap(coords: [number, number]) {
+    if (destMarker) destMarker.remove();
+    destMarker = new (window as any).maplibregl.Marker({ color: '#ef4444', draggable: true })
+      .setLngLat(coords)
+      .setPopup(new (window as any).maplibregl.Popup({ offset: 25 }).setHTML(`<strong>Destination:</strong> ${destName}`))
+      .addTo(map);
+    destMarker.on('dragend', () => {
+      const lngLat = destMarker.getLngLat();
+      destCoords = [lngLat.lng, lngLat.lat];
+    });
+    destCoords = coords;
+    map.flyTo({ center: coords, zoom: 10 });
+    destInfo.textContent = `📍 ${destName} [${coords[1].toFixed(4)}, ${coords[0].toFixed(4)}]`;
+    destInfo.classList.remove('hidden');
+  }
+
+  // Pin buttons
+  pinOriginBtn.addEventListener('click', () => {
+    if (!originCoords) return;
+    pinOriginBtn.classList.add('hidden');
+    setStep(3);
+    destSearch.disabled = false;
+    destSearch.classList.remove('opacity-50');
+    destSearch.focus();
+  });
+
+  pinDestBtn.addEventListener('click', async () => {
+    if (!destCoords || !originCoords) return;
+    pinDestBtn.classList.add('hidden');
+    setStep(5);
+    await computeResults();
+  });
+
+  // Reset
+  resetBtn.addEventListener('click', () => {
+    if (originMarker) originMarker.remove();
+    if (destMarker) destMarker.remove();
+    originMarker = null;
+    destMarker = null;
+    originCoords = null;
+    destCoords = null;
+    originName = '';
+    destName = '';
+    originSearch.value = '';
+    destSearch.value = '';
+    destSearch.disabled = true;
+    destSearch.classList.add('opacity-50');
+    originInfo.classList.add('hidden');
+    destInfo.classList.add('hidden');
+    pinControls.classList.add('hidden');
+    pinOriginBtn.classList.add('hidden');
+    pinDestBtn.classList.add('hidden');
+    resultsPanel.classList.add('hidden');
+    setStep(1);
+
+    // Remove route line if present
+    if (map.getLayer('route-line')) map.removeLayer('route-line');
+    if (map.getSource('route')) map.removeSource('route');
+
+    map.flyTo({ center: [0, 20], zoom: 2 });
+  });
+
+  // Compute results
+  async function computeResults() {
+    if (!originCoords || !destCoords) return;
+
+    // Calculate straight-line distance (Haversine)
+    const straightDist = haversine(originCoords[1], originCoords[0], destCoords[1], destCoords[0]);
+
+    // Try to calculate driving route
+    let drivingDist = straightDist;
+    let drivingDuration = 0;
+    let routeCoords: any[] = [];
+
+    const carRoute = await calculateRoute(originCoords, destCoords, 'Car');
+    if (carRoute && carRoute.Routes && carRoute.Routes.length > 0) {
+      const route = carRoute.Routes[0];
+      drivingDist = route.Summary.Distance / 1000; // meters to km
+      drivingDuration = route.Summary.Duration; // seconds
+      if (route.Legs && route.Legs[0] && route.Legs[0].Geometry) {
+        routeCoords = route.Legs[0].Geometry.LineString || [];
+      }
+    }
+
+    // Draw route on map
+    if (routeCoords.length > 0) {
+      if (map.getLayer('route-line')) map.removeLayer('route-line');
+      if (map.getSource('route')) map.removeSource('route');
+
+      map.addSource('route', {
+        type: 'geojson',
+        data: { type: 'Feature', geometry: { type: 'LineString', coordinates: routeCoords }, properties: {} },
+      });
+      map.addLayer({
+        id: 'route-line',
+        type: 'line',
+        source: 'route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#3b82f6', 'line-width': 4, 'line-opacity': 0.8 },
+      });
+
+      // Fit bounds to show route
+      const bounds = new (window as any).maplibregl.LngLatBounds();
+      routeCoords.forEach((c: any) => bounds.extend(c));
+      map.fitBounds(bounds, { padding: 60 });
+    }
+
+    // Calculate times
+    const walkingSpeed = 5; // km/h
+    const flightSpeed = 900; // km/h
+    const walkingTime = straightDist / walkingSpeed;
+    const flightTime = straightDist / flightSpeed;
+    const drivingTime = drivingDuration > 0 ? drivingDuration / 3600 : drivingDist / 80;
+
+    // Display results
+    document.getElementById('result-distance')!.textContent = formatDistance(straightDist);
+    document.getElementById('result-driving')!.textContent = formatDuration(drivingTime);
+    document.getElementById('result-walking')!.textContent = formatDuration(walkingTime);
+    document.getElementById('result-flight')!.textContent = formatDuration(flightTime);
+
+    // Fun facts
+    const facts = generateFacts(straightDist, drivingDist, drivingTime, walkingTime, flightTime);
+    const factsList = document.getElementById('facts-list')!;
+    factsList.innerHTML = facts.map(f => `<li>• ${f}</li>`).join('');
+
+    resultsPanel.classList.remove('hidden');
+    resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Haversine formula
+  function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function formatDistance(km: number): string {
+    if (km < 1) return `${Math.round(km * 1000)} m`;
+    if (km < 100) return `${km.toFixed(1)} km`;
+    return `${Math.round(km).toLocaleString()} km`;
+  }
+
+  function formatDuration(hours: number): string {
+    if (hours < 1) return `${Math.round(hours * 60)} min`;
+    if (hours < 24) return `${Math.floor(hours)}h ${Math.round((hours % 1) * 60)}m`;
+    const days = Math.floor(hours / 24);
+    const remainHours = Math.round(hours % 24);
+    if (days < 7) return `${days}d ${remainHours}h`;
+    return `${days} days`;
+  }
+
+  function generateFacts(straightKm: number, drivingKm: number, drivingHours: number, walkingHours: number, flightHours: number): string[] {
+    const facts: string[] = [];
+
+    // Speed of light comparison
+    const lightSeconds = straightKm / 299792;
+    if (lightSeconds < 1) {
+      facts.push(`Light would cover this distance in ${(lightSeconds * 1000).toFixed(1)} milliseconds`);
+    } else {
+      facts.push(`Light would cover this distance in ${lightSeconds.toFixed(2)} seconds`);
+    }
+
+    // ISS comparison
+    const issHours = straightKm / 28000;
+    facts.push(`The International Space Station would cover this in ${formatDuration(issHours)}`);
+
+    // Walking comparison
+    if (walkingHours > 24) {
+      const marathons = straightKm / 42.195;
+      facts.push(`This is equivalent to ${marathons.toFixed(1)} marathons`);
+    }
+
+    // Driving vs straight line
+    if (drivingKm > straightKm * 1.1) {
+      const detour = ((drivingKm / straightKm - 1) * 100).toFixed(0);
+      facts.push(`The driving route is ${detour}% longer than a straight line`);
+    }
+
+    // Earth circumference comparison
+    const earthPct = (straightKm / 40075 * 100).toFixed(1);
+    facts.push(`This is ${earthPct}% of the Earth's circumference`);
+
+    // Fastest known animal comparison
+    const cheetahHours = straightKm / 112;
+    facts.push(`A cheetah at top speed would take ${formatDuration(cheetahHours)}`);
+
+    // Sound comparison
+    const soundSeconds = straightKm / 0.343;
+    if (soundSeconds < 3600) {
+      facts.push(`Sound would take ${formatDuration(soundSeconds / 3600)} to travel this far`);
+    }
+
+    return facts.slice(0, 6);
+  }
+
+  // ═══════════════════ MODE SWITCHING ═══════════════════
+  let nearbyMap: any = null;
+  let reverseMap: any = null;
+  let nearbyCenter: [number, number] | null = null;
+  let nearbyMarkers: any[] = [];
+
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = (btn as HTMLElement).dataset.mode!;
+      document.getElementById('mode-distance')!.classList.toggle('hidden', mode !== 'distance');
+      document.getElementById('mode-nearby')!.classList.toggle('hidden', mode !== 'nearby');
+      document.getElementById('mode-reverse')!.classList.toggle('hidden', mode !== 'reverse');
+
+      // Initialize maps on first show
+      if (mode === 'nearby' && !nearbyMap) initNearbyMap();
+      if (mode === 'reverse' && !reverseMap) initReverseMap();
+    });
+  });
+
+  // ═══════════════════ NEARBY EXPLORER ═══════════════════
+  function initNearbyMap() {
+    const styleUrl = `https://maps.geo.${region}.amazonaws.com/v2/styles/Standard/descriptor?key=${apiKey}`;
+    nearbyMap = new (window as any).maplibregl.Map({
+      container: 'nearby-map',
+      style: styleUrl,
+      center: [0, 20],
+      zoom: 2,
+      validateStyle: false,
+    });
+    nearbyMap.addControl(new (window as any).maplibregl.NavigationControl(), 'top-right');
+  }
+
+  // Nearby search setup
+  const nearbySearchInput = document.getElementById('nearby-search') as HTMLInputElement;
+  const nearbySuggestionsEl = document.getElementById('nearby-suggestions')!;
+  const nearbyLocationInfo = document.getElementById('nearby-location-info')!;
+  const nearbyCategories = document.getElementById('nearby-categories')!;
+
+  setupSearch(nearbySearchInput, nearbySuggestionsEl, async (item) => {
+    if (item.placeId) {
+      const place = await geocodePlace(item.placeId);
+      if (place && place.Position) {
+        nearbyCenter = [place.Position[0], place.Position[1]];
+        nearbyLocationInfo.textContent = `📍 Exploring near: ${item.title}`;
+        nearbyLocationInfo.classList.remove('hidden');
+        nearbyCategories.classList.remove('hidden');
+
+        // Clear existing markers
+        nearbyMarkers.forEach(m => m.remove());
+        nearbyMarkers = [];
+
+        // Add center marker
+        const marker = new (window as any).maplibregl.Marker({ color: '#f59e0b' })
+          .setLngLat(nearbyCenter)
+          .setPopup(new (window as any).maplibregl.Popup().setHTML(`<strong>${item.title}</strong>`))
+          .addTo(nearbyMap);
+        nearbyMarkers.push(marker);
+
+        nearbyMap.flyTo({ center: nearbyCenter, zoom: 14 });
+      }
+    }
+  });
+
+  // Category buttons
+  document.querySelectorAll('.nearby-cat-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!nearbyCenter) return;
+      document.querySelectorAll('.nearby-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const category = (btn as HTMLElement).dataset.cat!;
+      await searchNearbyPlaces(nearbyCenter, category);
+    });
+  });
+
+  async function searchNearbyPlaces(position: [number, number], category: string) {
+    try {
+      const url = `https://places.geo.${region}.amazonaws.com/v2/search-nearby?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          QueryPosition: position,
+          MaxResults: 20,
+          MaxDistance: 5000,
+          Filter: { IncludeCategories: [category] },
+        }),
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      displayNearbyResults(data.ResultItems || []);
+    } catch (e) {
+      console.error('Nearby search error:', e);
+    }
+  }
+
+  function displayNearbyResults(results: any[]) {
+    // Remove old result markers (keep the center marker)
+    nearbyMarkers.slice(1).forEach(m => m.remove());
+    nearbyMarkers = nearbyMarkers.slice(0, 1);
+
+    const listEl = document.getElementById('nearby-list')!;
+    const resultsPanel = document.getElementById('nearby-results')!;
+
+    if (results.length === 0) {
+      listEl.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">No results found nearby. Try a different category.</p>';
+      resultsPanel.classList.remove('hidden');
+      return;
+    }
+
+    // Add markers for each result
+    const colors = ['#ef4444', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'];
+    results.forEach((place: any, i: number) => {
+      const color = colors[i % colors.length];
+      const marker = new (window as any).maplibregl.Marker({ color })
+        .setLngLat(place.Position)
+        .setPopup(new (window as any).maplibregl.Popup({ offset: 25 }).setHTML(
+          `<strong>${place.Title}</strong><br/><span style="font-size:11px;color:#666;">${place.Address?.Label || ''}</span>${place.Distance ? `<br/><span style="font-size:11px;color:#f59e0b;">${Math.round(place.Distance)}m away</span>` : ''}`
+        ))
+        .addTo(nearbyMap);
+      nearbyMarkers.push(marker);
+    });
+
+    // Fit bounds to show all results
+    const bounds = new (window as any).maplibregl.LngLatBounds();
+    if (nearbyCenter) bounds.extend(nearbyCenter);
+    results.forEach((p: any) => bounds.extend(p.Position));
+    nearbyMap.fitBounds(bounds, { padding: 50 });
+
+    // Render list
+    listEl.innerHTML = results.map((place: any, i: number) => {
+      const dist = place.Distance ? `${Math.round(place.Distance)}m` : '';
+      return `<div class="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm">
+        <span class="text-lg">${i + 1}</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-gray-900 dark:text-white truncate">${place.Title}</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${place.Address?.Label || ''}</div>
+        </div>
+        ${dist ? `<span class="text-xs text-amber-600 dark:text-amber-400 font-semibold shrink-0">${dist}</span>` : ''}
+      </div>`;
+    }).join('');
+    resultsPanel.classList.remove('hidden');
+  }
+
+  // ═══════════════════ REVERSE GEOCODE (WHAT'S HERE?) ═══════════════════
+  let reverseMarker: any = null;
+
+  function initReverseMap() {
+    const styleUrl = `https://maps.geo.${region}.amazonaws.com/v2/styles/Standard/descriptor?key=${apiKey}`;
+    reverseMap = new (window as any).maplibregl.Map({
+      container: 'reverse-map',
+      style: styleUrl,
+      center: [0, 20],
+      zoom: 2,
+      validateStyle: false,
+    });
+    reverseMap.addControl(new (window as any).maplibregl.NavigationControl(), 'top-right');
+
+    reverseMap.on('click', async (e: any) => {
+      const { lng, lat } = e.lngLat;
+      await reverseGeocode([lng, lat]);
+    });
+  }
+
+  async function reverseGeocode(position: [number, number]) {
+    // Place marker
+    if (reverseMarker) reverseMarker.remove();
+    reverseMarker = new (window as any).maplibregl.Marker({ color: '#8b5cf6' })
+      .setLngLat(position)
+      .addTo(reverseMap);
+
+    reverseMap.flyTo({ center: position, zoom: 14 });
+
+    try {
+      const url = `https://places.geo.${region}.amazonaws.com/v2/reverse-geocode?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ QueryPosition: position, MaxResults: 1 }),
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      const result = data.ResultItems?.[0];
+
+      const resultEl = document.getElementById('reverse-result')!;
+      const addressEl = document.getElementById('reverse-address')!;
+      const coordsEl = document.getElementById('reverse-coords')!;
+      const detailsEl = document.getElementById('reverse-details')!;
+
+      if (result) {
+        addressEl.textContent = result.Address?.Label || result.Title || 'Unknown location';
+        coordsEl.textContent = `Lat: ${position[1].toFixed(6)}, Lng: ${position[0].toFixed(6)}`;
+
+        const details: string[] = [];
+        if (result.Address?.Country?.Name) details.push(`<div class="bg-gray-50 dark:bg-gray-800 rounded p-2"><span class="text-gray-500">Country:</span> <strong>${result.Address.Country.Name}</strong></div>`);
+        if (result.Address?.Region?.Name) details.push(`<div class="bg-gray-50 dark:bg-gray-800 rounded p-2"><span class="text-gray-500">Region:</span> <strong>${result.Address.Region.Name}</strong></div>`);
+        if (result.Address?.Municipality) details.push(`<div class="bg-gray-50 dark:bg-gray-800 rounded p-2"><span class="text-gray-500">City:</span> <strong>${result.Address.Municipality}</strong></div>`);
+        if (result.Address?.PostalCode) details.push(`<div class="bg-gray-50 dark:bg-gray-800 rounded p-2"><span class="text-gray-500">Postal:</span> <strong>${result.Address.PostalCode}</strong></div>`);
+        if (result.Address?.Street) details.push(`<div class="bg-gray-50 dark:bg-gray-800 rounded p-2"><span class="text-gray-500">Street:</span> <strong>${result.Address.Street}</strong></div>`);
+        if (result.Address?.AddressNumber) details.push(`<div class="bg-gray-50 dark:bg-gray-800 rounded p-2"><span class="text-gray-500">Number:</span> <strong>${result.Address.AddressNumber}</strong></div>`);
+        detailsEl.innerHTML = details.join('');
+      } else {
+        addressEl.textContent = 'No address found for this location';
+        coordsEl.textContent = `Lat: ${position[1].toFixed(6)}, Lng: ${position[0].toFixed(6)}`;
+        detailsEl.innerHTML = '';
+      }
+
+      resultEl.classList.remove('hidden');
+    } catch (e) {
+      console.error('Reverse geocode error:', e);
+    }
+  }
+</script>
+
+<!-- MapLibre CSS & JS loaded from CDN -->
+<Fragment set:html={'<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" />'} />
+<script is:inline src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>

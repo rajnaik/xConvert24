@@ -1,0 +1,145 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Code Scans | xConvert24 Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-link { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .controls { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .sort-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: #111827; border: 1px solid #1f2937; border-radius: 8px; font-size: 12px; color: #9ca3af; cursor: pointer; transition: all 0.2s; }
+    .sort-btn:hover { border-color: #fbbf24; color: #fbbf24; }
+    .sort-btn.active { border-color: #fbbf24; color: #fbbf24; background: #1f2937; }
+    .sort-arrow { font-size: 14px; transition: transform 0.2s; }
+    .sort-arrow.asc { transform: rotate(180deg); }
+    .scan-list { display: flex; flex-direction: column; gap: 12px; }
+    .scan-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px 20px; transition: border-color 0.2s; }
+    .scan-card:hover { border-color: #374151; }
+    .scan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .scan-version { font-size: 14px; font-weight: 700; color: #fbbf24; font-family: monospace; }
+    .scan-date { font-size: 11px; color: #6b7280; }
+    .scan-status { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+    .status-passed { background: #16a34a20; color: #4ade80; }
+    .status-failed { background: #dc262620; color: #f87171; }
+    .status-warning { background: #d9770620; color: #fb923c; }
+    .scan-details { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-bottom: 10px; }
+    .detail-item { background: #0f172a; border-radius: 6px; padding: 8px 10px; }
+    .detail-label { font-size: 9px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .detail-value { font-size: 12px; color: #f9fafb; font-weight: 600; margin-top: 2px; font-family: monospace; }
+    .detail-value.bugs { color: #f87171; }
+    .detail-value.vulns { color: #fb923c; }
+    .detail-value.smells { color: #fbbf24; }
+    .scan-summary { font-size: 11px; color: #9ca3af; margin-top: 6px; padding: 6px 8px; background: #0f172a; border-radius: 4px; }
+    .empty-state { text-align: center; padding: 40px; color: #6b7280; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🛡️ Code Scans</div>
+    <a href="/admin" class="back-link">← Dashboard</a>
+  </div>
+
+  <div class="container">
+    <h1>🛡️ Code Scans</h1>
+    <p class="subtitle">SonarQube code scan results — top 10, sortable by date.</p>
+
+    <div class="controls">
+      <button id="sort-toggle" class="sort-btn active">
+        <span>Sort by Date</span>
+        <span id="sort-arrow" class="sort-arrow">↓</span>
+      </button>
+      <span id="sort-label" style="font-size:11px;color:#6b7280;">Latest first</span>
+    </div>
+
+    <div id="scan-list" class="scan-list">
+      <div class="empty-state">Loading code scans...</div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    var sortDesc = true;
+    var allScans = [];
+
+    function renderScans(scans) {
+      var container = document.getElementById('scan-list');
+
+      if (!scans.length) {
+        container.innerHTML = '<div class="empty-state">No code scans recorded yet. Scans are logged after the build step in the CI pipeline.</div>';
+        return;
+      }
+
+      container.innerHTML = scans.slice(0, 10).map(function(s) {
+        var statusClass = s.status === 'passed' ? 'status-passed' : s.status === 'warning' ? 'status-warning' : 'status-failed';
+        var statusText = s.status === 'passed' ? '✓ Passed' : s.status === 'warning' ? '⚠ Warning' : '✗ Failed';
+        var date = new Date(s.timestamp);
+        var dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+        return '<div class="scan-card">' +
+          '<div class="scan-header">' +
+            '<div style="display:flex;align-items:center;gap:10px;">' +
+              '<span class="scan-version">v' + s.version + '</span>' +
+              (s.branch ? '<span style="font-size:10px;color:#6b7280;font-family:monospace;">(' + s.branch + ')</span>' : '') +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+              '<span class="scan-status ' + statusClass + '">' + statusText + '</span>' +
+              '<span class="scan-date">' + dateStr + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="scan-details">' +
+            '<div class="detail-item"><div class="detail-label">Bugs</div><div class="detail-value bugs">' + (s.bugs || 0) + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Vulnerabilities</div><div class="detail-value vulns">' + (s.vulnerabilities || 0) + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Code Smells</div><div class="detail-value smells">' + (s.code_smells || 0) + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Coverage</div><div class="detail-value">' + (s.coverage || '—') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Duplications</div><div class="detail-value">' + (s.duplications || '—') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Duration</div><div class="detail-value">' + (s.duration || '—') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Scanner</div><div class="detail-value">' + (s.scanner || 'sonarqube') + '</div></div>' +
+          '</div>' +
+          (s.summary ? '<div class="scan-summary">' + s.summary + '</div>' : '') +
+          (s.commit_hash ? '<div style="font-size:10px;color:#4b5563;margin-top:4px;font-family:monospace;">Commit: ' + s.commit_hash.substring(0, 8) + '</div>' : '') +
+        '</div>';
+      }).join('');
+    }
+
+    function sortAndRender() {
+      var sorted = allScans.slice().sort(function(a, b) {
+        var ta = new Date(a.timestamp).getTime();
+        var tb = new Date(b.timestamp).getTime();
+        return sortDesc ? (tb - ta) : (ta - tb);
+      });
+      renderScans(sorted);
+    }
+
+    document.getElementById('sort-toggle').addEventListener('click', function() {
+      sortDesc = !sortDesc;
+      var arrow = document.getElementById('sort-arrow');
+      var label = document.getElementById('sort-label');
+      arrow.classList.toggle('asc', !sortDesc);
+      arrow.textContent = sortDesc ? '↓' : '↑';
+      label.textContent = sortDesc ? 'Latest first' : 'Oldest first';
+      sortAndRender();
+    });
+
+    fetch('/api/code-scans?limit=10')
+      .then(function(r) { if (!r.ok) throw new Error('not available'); return r.json(); })
+      .then(function(data) { allScans = data.scans || []; sortAndRender(); })
+      .catch(function() {
+        document.getElementById('scan-list').innerHTML = '<div class="empty-state">Code scan data is stored in D1 (production only). Visit <a href="https://www.xconvert24.com/admin/code-scans" style="color:#fbbf24;">the live admin</a> to see results.</div>';
+      });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Code Review Pre-Build Gate",
+  "description": "Enforces the CI pipeline: 1. Write code → 2. Run tests → 3. Code review (SonarQube) → 4. Build → 5. Deploy. The build step MUST NOT proceed unless both tests pass AND code review passes. Log the code review result to the database via POST /api/code-reviews.",
+  "version": "1.0.0",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": ["shell"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "IMPORTANT CI PIPELINE GATE: If the command about to be run is 'astro build', 'npm run build', or 'npm run deploy', STOP and verify the following pipeline steps have been completed in order:\n\n1. TESTS: Tests must have been run and passed. If not, run 'npx playwright test' first.\n2. CODE REVIEW: A SonarQube code review must have been performed and passed (no critical issues). If not, perform a code scan first.\n3. Only if BOTH steps above passed, proceed with the build.\n\nIf either step failed, do NOT proceed with the build. Inform the user which step failed.\n\nAfter a successful code review, log it to the database by calling POST /api/code-reviews with the review results (version, status, issues_found, etc.).\n\nIf the command is NOT a build/deploy command, allow it to proceed normally."
+  }
+}
