@@ -1,0 +1,328 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SEO Editor | xConvert24 Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-link { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 2px; margin-bottom: 20px; background: #111827; border-radius: 10px; padding: 4px; border: 1px solid #1f2937; }
+    .tab { padding: 8px 16px; border-radius: 7px; font-size: 12px; font-weight: 500; color: #9ca3af; cursor: pointer; transition: all 0.2s; }
+    .tab:hover { color: #f9fafb; }
+    .tab.active { color: #fbbf24; background: #1f2937; }
+
+    /* Editor */
+    .editor-wrap { background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+    .editor-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #1f2937; border-bottom: 1px solid #374151; }
+    .editor-label { font-size: 13px; font-weight: 600; color: #f9fafb; }
+    .editor-actions { display: flex; gap: 8px; }
+    .btn { padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+    .btn-save { background: #16a34a; color: white; }
+    .btn-save:hover { background: #15803d; }
+    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-cancel { background: #374151; color: #d1d5db; }
+    .btn-cancel:hover { background: #4b5563; }
+    textarea { width: 100%; min-height: 450px; padding: 16px; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.6; background: #0f172a; color: #e2e8f0; border: none; resize: vertical; outline: none; }
+    textarea:focus { box-shadow: inset 0 0 0 2px #fbbf2440; }
+
+    /* Version history */
+    .versions { margin-top: 24px; background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+    .versions-header { padding: 14px 16px; background: #1f2937; border-bottom: 1px solid #374151; font-size: 13px; font-weight: 600; color: #f9fafb; display: flex; align-items: center; gap: 8px; }
+    .version-list { padding: 8px; }
+    .version-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; transition: background 0.15s; }
+    .version-item:hover { background: #1f2937; }
+    .version-meta { font-size: 12px; color: #d1d5db; }
+    .version-date { font-size: 11px; color: #6b7280; margin-top: 2px; }
+    .version-badge { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+    .badge-current { background: #16a34a20; color: #4ade80; }
+    .badge-old { background: #37415120; color: #9ca3af; }
+    .btn-revert { padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: 600; background: #fbbf2420; color: #fbbf24; border: 1px solid #fbbf2440; cursor: pointer; transition: all 0.15s; }
+    .btn-revert:hover { background: #fbbf2440; }
+
+    /* Status */
+    .status { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 12px; display: none; }
+    .status-success { background: #16a34a20; color: #4ade80; border: 1px solid #16a34a40; display: block; }
+    .status-error { background: #dc262620; color: #f87171; border: 1px solid #dc262640; display: block; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🔍 SEO Editor</div>
+    <a href="/admin" class="back-link">← Back to Dashboard</a>
+  </div>
+
+  <div class="container">
+    <h1>🔍 SEO Editor</h1>
+    <p class="subtitle">Edit SEO configuration files for www.xconvert24.com. Changes are versioned — last 5 revisions kept.</p>
+
+    <!-- File tabs -->
+    <div class="tabs">
+      <div class="tab active" data-file="robots">robots.txt</div>
+      <div class="tab" data-file="sitemap">sitemap.xml</div>
+      <div class="tab" data-file="manifest">site.webmanifest</div>
+      <div class="tab" data-file="meta">Meta Defaults</div>
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-wrap">
+      <div class="editor-toolbar">
+        <span class="editor-label" id="editor-file-label">robots.txt</span>
+        <div class="editor-actions">
+          <button id="btn-cancel" class="btn btn-cancel" disabled>Cancel</button>
+          <button id="btn-save" class="btn btn-save" disabled>Save</button>
+        </div>
+      </div>
+      <textarea id="editor" spellcheck="false" placeholder="Loading..."></textarea>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <!-- Version History -->
+    <div class="versions">
+      <div class="versions-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Version History (last 5)
+      </div>
+      <div class="version-list" id="version-list">
+        <div style="color:#6b7280;font-size:12px;text-align:center;padding:16px;">No versions yet. Save to create the first version.</div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    var STORAGE_PREFIX = 'xconvert24-seo-';
+    var MAX_VERSIONS = 5;
+
+    // Default file contents
+    var defaults = {
+      robots: "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\n\nSitemap: https://www.xconvert24.com/sitemap.xml",
+      sitemap: '',
+      manifest: '',
+      meta: ''
+    };
+
+    // Will be populated
+    var fileContents = {};
+    var currentFile = 'robots';
+    var originalContent = '';
+
+    var editor = document.getElementById('editor');
+    var btnSave = document.getElementById('btn-save');
+    var btnCancel = document.getElementById('btn-cancel');
+    var statusEl = document.getElementById('status');
+    var fileLabel = document.getElementById('editor-file-label');
+    var versionList = document.getElementById('version-list');
+
+    // Meta defaults content (from Layout.astro)
+    var metaDefaults = [
+      'site_name: xConvert24.com',
+      'site_url: https://www.xconvert24.com',
+      'default_description: Free online unit converters and calculators. Convert weight, length, temperature, currency, and more.',
+      'og_type: website',
+      'og_locale: en_US',
+      'og_image: https://www.xconvert24.com/web-app-manifest-512x512.png',
+      'twitter_card: summary',
+      'theme_color: #f59e0b',
+      'author: xConvert24.com',
+      'robots: index, follow, max-snippet:-1, max-image-preview:large',
+      'google_tag: G-XDEY4PSP7C',
+      '',
+      '# JSON-LD WebSite Schema',
+      'schema_name: xConvert24.com',
+      'schema_description: Free online unit converters and calculators for weight, length, temperature, currency, and more.',
+      'schema_search_target: https://www.xconvert24.com/search?q={search_term_string}',
+      '',
+      '# JSON-LD WebApplication Schema',
+      'app_name: xConvert24',
+      'app_category: UtilityApplication',
+      'app_operating_system: All',
+      'app_price: 0',
+      'app_currency: USD',
+    ].join('\n');
+
+    // Load files
+    function loadFileContent(file) {
+      var stored = localStorage.getItem(STORAGE_PREFIX + file + '-current');
+      if (stored) return stored;
+
+      // Return defaults
+      if (file === 'robots') return defaults.robots;
+      if (file === 'meta') return metaDefaults;
+      return ''; // Will fetch from server for sitemap/manifest
+    }
+
+    function initFiles() {
+      // Load from localStorage or fetch defaults
+      fileContents.robots = loadFileContent('robots');
+      fileContents.meta = loadFileContent('meta') || metaDefaults;
+      fileContents.sitemap = loadFileContent('sitemap');
+      fileContents.manifest = loadFileContent('manifest');
+
+      // Fetch sitemap and manifest if not stored
+      if (!fileContents.sitemap) {
+        fetch('/sitemap.xml').then(function(r) { return r.text(); }).then(function(t) {
+          fileContents.sitemap = t;
+          if (currentFile === 'sitemap') { editor.value = t; originalContent = t; }
+        }).catch(function() { fileContents.sitemap = '<!-- Failed to load sitemap.xml -->'; });
+      }
+      if (!fileContents.manifest) {
+        fetch('/site.webmanifest').then(function(r) { return r.text(); }).then(function(t) {
+          fileContents.manifest = t;
+          if (currentFile === 'manifest') { editor.value = t; originalContent = t; }
+        }).catch(function() { fileContents.manifest = '{}'; });
+      }
+
+      switchToFile('robots');
+    }
+
+    function switchToFile(file) {
+      currentFile = file;
+      var labels = { robots: 'robots.txt', sitemap: 'sitemap.xml', manifest: 'site.webmanifest', meta: 'Meta Defaults' };
+      fileLabel.textContent = labels[file] || file;
+      editor.value = fileContents[file] || '';
+      originalContent = editor.value;
+      updateButtons();
+      renderVersions();
+    }
+
+    function updateButtons() {
+      var changed = editor.value !== originalContent;
+      btnSave.disabled = !changed;
+      btnCancel.disabled = !changed;
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        // Save current content before switching
+        fileContents[currentFile] = editor.value;
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        switchToFile(tab.dataset.file);
+      });
+    });
+
+    // Editor change detection
+    editor.addEventListener('input', updateButtons);
+
+    // Save
+    btnSave.addEventListener('click', function() {
+      var content = editor.value;
+      fileContents[currentFile] = content;
+
+      // Save current version
+      localStorage.setItem(STORAGE_PREFIX + currentFile + '-current', content);
+
+      // Add to version history
+      var versions = getVersions(currentFile);
+      versions.unshift({
+        content: content,
+        timestamp: Date.now(),
+        label: 'v' + (versions.length + 1)
+      });
+      if (versions.length > MAX_VERSIONS) versions = versions.slice(0, MAX_VERSIONS);
+      localStorage.setItem(STORAGE_PREFIX + currentFile + '-versions', JSON.stringify(versions));
+
+      originalContent = content;
+      updateButtons();
+      renderVersions();
+      showStatus('Saved successfully! Version ' + versions[0].label + ' created.', 'success');
+    });
+
+    // Cancel
+    btnCancel.addEventListener('click', function() {
+      editor.value = originalContent;
+      updateButtons();
+    });
+
+    // Version history
+    function getVersions(file) {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_PREFIX + file + '-versions') || '[]');
+      } catch { return []; }
+    }
+
+    function renderVersions() {
+      var versions = getVersions(currentFile);
+      if (!versions.length) {
+        versionList.innerHTML = '<div style="color:#6b7280;font-size:12px;text-align:center;padding:16px;">No versions yet. Save to create the first version.</div>';
+        return;
+      }
+
+      versionList.innerHTML = versions.map(function(v, i) {
+        var date = new Date(v.timestamp);
+        var dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        var isCurrent = i === 0;
+        var size = new Blob([v.content]).size;
+        var sizeStr = size < 1024 ? size + ' B' : (size / 1024).toFixed(1) + ' KB';
+
+        return '<div class="version-item">' +
+          '<div>' +
+            '<div class="version-meta">' + v.label + ' — ' + sizeStr + '</div>' +
+            '<div class="version-date">' + dateStr + '</div>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<span class="version-badge ' + (isCurrent ? 'badge-current' : 'badge-old') + '">' + (isCurrent ? 'Current' : 'Previous') + '</span>' +
+            (!isCurrent ? '<button class="btn-revert" data-idx="' + i + '">Revert</button>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      // Bind revert buttons
+      versionList.querySelectorAll('.btn-revert').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var idx = parseInt(btn.dataset.idx);
+          var versions = getVersions(currentFile);
+          var version = versions[idx];
+          if (!version) return;
+
+          if (confirm('Revert to ' + version.label + '? This will become the new current version.')) {
+            editor.value = version.content;
+            fileContents[currentFile] = version.content;
+            localStorage.setItem(STORAGE_PREFIX + currentFile + '-current', version.content);
+
+            // Move reverted version to top
+            versions.unshift({
+              content: version.content,
+              timestamp: Date.now(),
+              label: 'v' + (versions.length + 1) + ' (reverted from ' + version.label + ')'
+            });
+            if (versions.length > MAX_VERSIONS) versions = versions.slice(0, MAX_VERSIONS);
+            localStorage.setItem(STORAGE_PREFIX + currentFile + '-versions', JSON.stringify(versions));
+
+            originalContent = version.content;
+            updateButtons();
+            renderVersions();
+            showStatus('Reverted to ' + version.label + ' successfully!', 'success');
+          }
+        });
+      });
+    }
+
+    function showStatus(msg, type) {
+      statusEl.textContent = msg;
+      statusEl.className = 'status status-' + type;
+      setTimeout(function() { statusEl.className = 'status'; }, 4000);
+    }
+
+    initFiles();
+  })();
+  </script>
+</body>
+</html>

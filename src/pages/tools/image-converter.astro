@@ -1,0 +1,460 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Image Converter — PNG, JPG, WebP, SVG with Resize" description="Free online image converter. Convert between PNG, JPG, WebP, BMP, and SVG. Resize images, adjust quality, and download instantly. No upload to server — all processing in your browser." keywords="image converter, png to jpg, jpg to png, webp converter, image resize, compress image, svg to png, convert image format">
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🖼️</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Image Converter</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert and resize images in your browser. No upload — everything stays on your device.</p>
+    </div>
+
+    <!-- Upload area -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-8 mb-6 text-center transition-colors hover:border-amber-400 dark:hover:border-amber-500" id="drop-zone">
+      <input type="file" id="file-input" accept="image/*,.svg" class="hidden"/>
+      <div id="upload-prompt">
+        <div class="text-4xl mb-3">📁</div>
+        <p class="text-gray-600 dark:text-gray-400 font-medium mb-1">Drop an image here or click to upload</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500">Supports PNG, JPG, WebP, BMP, GIF, SVG</p>
+        <button id="select-btn" class="mt-4 px-5 py-2.5 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors text-sm">Select File</button>
+      </div>
+      <!-- Preview (hidden initially) -->
+      <div id="preview-section" class="hidden">
+        <div class="flex items-start gap-4 text-left">
+          <img id="preview-img" class="w-32 h-32 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" alt="Preview"/>
+          <div class="flex-1 min-w-0">
+            <p id="file-name" class="text-sm font-semibold text-gray-900 dark:text-white truncate"></p>
+            <p id="file-info" class="text-xs text-gray-500 dark:text-gray-400 mt-1"></p>
+            <button id="change-file" class="mt-2 text-xs text-amber-600 dark:text-amber-400 hover:underline">Change file</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversion options -->
+    <div id="options-section" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Conversion Settings</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        <!-- Output format -->
+        <div>
+          <label for="output-format" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Convert to</label>
+          <select id="output-format" class="w-full h-11 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            <option value="image/png">PNG (lossless, transparent)</option>
+            <option value="image/jpeg">JPG (smaller file, no transparency)</option>
+            <option value="image/webp">WebP (modern, smallest file)</option>
+            <option value="image/bmp">BMP (uncompressed)</option>
+          </select>
+        </div>
+        <!-- Quality -->
+        <div>
+          <label for="quality" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Quality: <span id="quality-val" class="font-bold text-amber-600">92%</span></label>
+          <input id="quality" type="range" min="10" max="100" value="92" class="w-full h-2 rounded-full accent-amber-500 cursor-pointer mt-3"/>
+          <div class="flex justify-between text-xs text-gray-400 mt-1"><span>Small file</span><span>Best quality</span></div>
+        </div>
+      </div>
+
+      <!-- Resize options -->
+      <div class="border-t border-gray-100 dark:border-gray-800 pt-4 mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Resize</h3>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="resize-enabled" class="w-4 h-4 accent-amber-500 rounded"/>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Enable resize</span>
+          </label>
+        </div>
+        <div id="resize-controls" class="hidden grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label for="resize-w" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Width (px)</label>
+            <input id="resize-w" type="number" min="1" max="10000" placeholder="auto" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          </div>
+          <div>
+            <label for="resize-h" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Height (px)</label>
+            <input id="resize-h" type="number" min="1" max="10000" placeholder="auto" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          </div>
+          <div class="flex items-end">
+            <label class="flex items-center gap-2 h-9 cursor-pointer">
+              <input type="checkbox" id="keep-ratio" checked class="w-4 h-4 accent-amber-500 rounded"/>
+              <span class="text-xs text-gray-600 dark:text-gray-400">Keep ratio</span>
+            </label>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Presets</label>
+            <select id="resize-preset" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-900 dark:text-gray-100">
+              <option value="">Custom</option>
+              <option value="1920x1080">1920×1080 (Full HD)</option>
+              <option value="1280x720">1280×720 (HD)</option>
+              <option value="800x600">800×600</option>
+              <option value="500x500">500×500 (Square)</option>
+              <option value="256x256">256×256 (Icon)</option>
+              <option value="64x64">64×64 (Favicon)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Convert button -->
+      <button id="convert-btn" class="w-full h-12 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Convert & Download
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div id="result-section" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-green-200 dark:border-green-800 p-6 mb-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">✅</span>
+        <div>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white">Conversion complete!</p>
+          <p id="result-info" class="text-xs text-gray-500 dark:text-gray-400"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <img id="result-preview" class="w-24 h-24 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800" alt="Result"/>
+        <div class="flex-1">
+          <a id="download-link" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors text-sm" download>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download
+          </a>
+          <button id="convert-another" class="ml-3 text-sm text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400">Convert another</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download History -->
+    <div id="history-section" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-8 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Download History
+        </h2>
+        <button id="clear-history" class="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:underline hidden">Clear all</button>
+      </div>
+      <div id="history-list" class="space-y-2">
+        <p id="history-empty" class="text-xs text-gray-400 dark:text-gray-500 text-center py-4">No conversions yet. Your latest 5 downloads will appear here.</p>
+      </div>
+    </div>
+
+    <!-- Info section -->
+    <div class="prose dark:prose-invert prose-sm max-w-none">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">About Image Formats</h2>
+      <p class="text-gray-600 dark:text-gray-400"><strong>PNG</strong> (1996) — lossless compression, supports transparency. Created as a patent-free alternative to GIF. Ideal for graphics, logos, and screenshots.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>JPEG</strong> (1992) — lossy compression developed by the Joint Photographic Experts Group. Revolutionised digital photography by making photos shareable over slow internet. Still the most widely used photo format.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>WebP</strong> (2010) — created by Google, offers 25-35% smaller files than JPEG at equivalent quality. Supports both lossy and lossless compression plus transparency. Adopted by all modern browsers since 2020.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>SVG</strong> (1999) — vector format using XML. Infinitely scalable without quality loss. Used for icons, logos, and illustrations on the web.</p>
+      <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Fun Facts</h3>
+      <ul class="text-gray-600 dark:text-gray-400 text-sm">
+        <li>The first digital photograph was taken in 1957 by Russell Kirsch — a 176×176 pixel image of his baby son</li>
+        <li>JPEG was almost named "JFIF" (JPEG File Interchange Format) — thankfully the simpler name won</li>
+        <li>PNG was invented because of a patent dispute over GIF's LZW compression algorithm in 1994</li>
+        <li>WebP files are on average 26% smaller than PNG and 25-34% smaller than JPEG</li>
+        <li>The world creates approximately 1.4 trillion photos per year (2024 estimate)</li>
+      </ul>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let sourceImage: HTMLImageElement | null = null;
+  let originalWidth = 0;
+  let originalHeight = 0;
+  let fileName = '';
+
+  const dropZone = document.getElementById('drop-zone')!;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const selectBtn = document.getElementById('select-btn')!;
+  const uploadPrompt = document.getElementById('upload-prompt')!;
+  const previewSection = document.getElementById('preview-section')!;
+  const previewImg = document.getElementById('preview-img') as HTMLImageElement;
+  const fileNameEl = document.getElementById('file-name')!;
+  const fileInfoEl = document.getElementById('file-info')!;
+  const changeFileBtn = document.getElementById('change-file')!;
+  const optionsSection = document.getElementById('options-section')!;
+  const outputFormat = document.getElementById('output-format') as HTMLSelectElement;
+  const qualitySlider = document.getElementById('quality') as HTMLInputElement;
+  const qualityVal = document.getElementById('quality-val')!;
+  const resizeEnabled = document.getElementById('resize-enabled') as HTMLInputElement;
+  const resizeControls = document.getElementById('resize-controls')!;
+  const resizeW = document.getElementById('resize-w') as HTMLInputElement;
+  const resizeH = document.getElementById('resize-h') as HTMLInputElement;
+  const keepRatio = document.getElementById('keep-ratio') as HTMLInputElement;
+  const resizePreset = document.getElementById('resize-preset') as HTMLSelectElement;
+  const convertBtn = document.getElementById('convert-btn')!;
+  const resultSection = document.getElementById('result-section')!;
+  const resultInfo = document.getElementById('result-info')!;
+  const resultPreview = document.getElementById('result-preview') as HTMLImageElement;
+  const downloadLink = document.getElementById('download-link') as HTMLAnchorElement;
+  const convertAnother = document.getElementById('convert-another')!;
+  const historyList = document.getElementById('history-list')!;
+  const historyEmpty = document.getElementById('history-empty')!;
+  const clearHistoryBtn = document.getElementById('clear-history')!;
+
+  // ── File selection (fix: stop propagation on button to avoid double trigger) ──
+  selectBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.click();
+  });
+
+  dropZone.addEventListener('click', (e) => {
+    const target = e.target as Element;
+    // Only trigger if clicking the drop zone itself or the prompt text (not buttons/previews)
+    if (target.closest('#select-btn') || target.closest('#change-file') || target.closest('#preview-section')) return;
+    if (target === dropZone || target.closest('#upload-prompt')) fileInput.click();
+  });
+
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-amber-400'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-amber-400'));
+  dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-amber-400'); if (e.dataTransfer?.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', () => { if (fileInput.files?.[0]) handleFile(fileInput.files[0]); });
+  changeFileBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+
+  function handleFile(file: File) {
+    fileName = file.name;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      sourceImage = img;
+      originalWidth = img.naturalWidth;
+      originalHeight = img.naturalHeight;
+      previewImg.src = url;
+      fileNameEl.textContent = file.name;
+      fileInfoEl.textContent = `${originalWidth}×${originalHeight} • ${formatSize(file.size)} • ${file.type || 'image'}`;
+      uploadPrompt.classList.add('hidden');
+      previewSection.classList.remove('hidden');
+      optionsSection.classList.remove('hidden');
+      resultSection.classList.add('hidden');
+      resizeW.placeholder = originalWidth.toString();
+      resizeH.placeholder = originalHeight.toString();
+    };
+    img.src = url;
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  // Quality slider
+  qualitySlider.addEventListener('input', () => { qualityVal.textContent = qualitySlider.value + '%'; });
+
+  // Resize toggle
+  resizeEnabled.addEventListener('change', () => { resizeControls.classList.toggle('hidden', !resizeEnabled.checked); });
+
+  // Resize presets
+  resizePreset.addEventListener('change', () => {
+    const val = resizePreset.value;
+    if (!val) return;
+    const [w, h] = val.split('x').map(Number);
+    resizeW.value = w.toString();
+    resizeH.value = h.toString();
+  });
+
+  // Keep aspect ratio
+  resizeW.addEventListener('input', () => {
+    if (keepRatio.checked && resizeW.value && originalWidth) {
+      resizeH.value = Math.round(parseInt(resizeW.value) * originalHeight / originalWidth).toString();
+    }
+  });
+  resizeH.addEventListener('input', () => {
+    if (keepRatio.checked && resizeH.value && originalHeight) {
+      resizeW.value = Math.round(parseInt(resizeH.value) * originalWidth / originalHeight).toString();
+    }
+  });
+
+  // ── Download History (localStorage, max 5) ────────────────────────────────
+  interface HistoryEntry {
+    name: string;
+    format: string;
+    size: string;
+    dimensions: string;
+    timestamp: number;
+    dataUrl?: string; // base64 for re-download (only for small files <500KB)
+  }
+
+  const HISTORY_KEY = 'xconvert24-image-history';
+  const MAX_HISTORY = 5;
+  const MAX_REDOWNLOAD_SIZE = 512 * 1024; // 500KB
+
+  function getHistory(): HistoryEntry[] {
+    try {
+      return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    } catch { return []; }
+  }
+
+  function saveHistory(entries: HistoryEntry[]) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+  }
+
+  function addToHistory(entry: HistoryEntry) {
+    const history = getHistory();
+    history.unshift(entry);
+    saveHistory(history);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const history = getHistory();
+    if (history.length === 0) {
+      historyEmpty.classList.remove('hidden');
+      clearHistoryBtn.classList.add('hidden');
+      historyList.querySelectorAll('.history-item').forEach(el => el.remove());
+      return;
+    }
+
+    historyEmpty.classList.add('hidden');
+    clearHistoryBtn.classList.remove('hidden');
+
+    // Remove existing items
+    historyList.querySelectorAll('.history-item').forEach(el => el.remove());
+
+    history.forEach((entry, idx) => {
+      const div = document.createElement('div');
+      div.className = 'history-item flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg';
+
+      const timeAgo = getTimeAgo(entry.timestamp);
+      const hasRedownload = !!entry.dataUrl;
+
+      div.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center text-white text-xs font-bold shrink-0">${entry.format.toUpperCase().slice(0, 3)}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-medium text-gray-900 dark:text-white truncate">${escapeHtml(entry.name)}</p>
+          <p class="text-xs text-gray-400 dark:text-gray-500">${entry.dimensions} • ${entry.size} • ${timeAgo}</p>
+        </div>
+        ${hasRedownload ? `<button class="redownload-btn shrink-0 p-1.5 text-green-500 hover:text-green-600 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" data-idx="${idx}" title="Re-download">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        </button>` : ''}
+        <button class="remove-history-btn shrink-0 p-1.5 text-red-400 hover:text-red-500 dark:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" data-idx="${idx}" title="Remove">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      `;
+      historyList.appendChild(div);
+    });
+
+    // Bind re-download buttons
+    historyList.querySelectorAll('.redownload-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
+        const entry = getHistory()[idx];
+        if (entry?.dataUrl) {
+          const a = document.createElement('a');
+          a.href = entry.dataUrl;
+          a.download = entry.name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      });
+    });
+
+    // Bind remove buttons
+    historyList.querySelectorAll('.remove-history-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
+        const history = getHistory();
+        history.splice(idx, 1);
+        saveHistory(history);
+        renderHistory();
+      });
+    });
+  }
+
+  function getTimeAgo(timestamp: number): string {
+    const diff = Date.now() - timestamp;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  }
+
+  function escapeHtml(str: string): string {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Clear all history
+  clearHistoryBtn.addEventListener('click', () => {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+  });
+
+  // Render history on load
+  renderHistory();
+
+  // ── Convert ───────────────────────────────────────────────────────────────
+  convertBtn.addEventListener('click', () => {
+    if (!sourceImage) return;
+    const format = outputFormat.value;
+    const quality = parseInt(qualitySlider.value) / 100;
+
+    let w = originalWidth;
+    let h = originalHeight;
+    if (resizeEnabled.checked) {
+      if (resizeW.value) w = parseInt(resizeW.value);
+      if (resizeH.value) h = parseInt(resizeH.value);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d')!;
+
+    // White background for JPEG (no transparency)
+    if (format === 'image/jpeg' || format === 'image/bmp') {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    ctx.drawImage(sourceImage, 0, 0, w, h);
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const ext = format.split('/')[1] === 'jpeg' ? 'jpg' : format.split('/')[1];
+      const baseName = fileName.replace(/\.[^.]+$/, '');
+      const outputName = `${baseName}-converted.${ext}`;
+
+      resultPreview.src = url;
+      downloadLink.href = url;
+      downloadLink.download = outputName;
+      resultInfo.textContent = `${w}×${h} • ${formatSize(blob.size)} • ${ext.toUpperCase()}`;
+      resultSection.classList.remove('hidden');
+
+      // Add to history
+      const historyEntry: HistoryEntry = {
+        name: outputName,
+        format: ext,
+        size: formatSize(blob.size),
+        dimensions: `${w}×${h}`,
+        timestamp: Date.now(),
+      };
+
+      // Store data URL for re-download if file is small enough
+      if (blob.size <= MAX_REDOWNLOAD_SIZE) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          historyEntry.dataUrl = reader.result as string;
+          addToHistory(historyEntry);
+        };
+        reader.readAsDataURL(blob);
+      } else {
+        addToHistory(historyEntry);
+      }
+
+      // Scroll to result
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, format, quality);
+  });
+
+  // Convert another
+  convertAnother.addEventListener('click', () => {
+    resultSection.classList.add('hidden');
+    fileInput.click();
+  });
+</script>

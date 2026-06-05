@@ -1,0 +1,491 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Video Converter — MP4, WebM with Trim & Resize" description="Free online video converter. Convert between MP4 and WebM formats, trim clips, and resize — all in your browser. No upload to server." keywords="video converter, mp4 to webm, webm to mp4, convert video, video format converter, trim video online, resize video, free video converter">
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🎥</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Video Converter</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert and trim video files in your browser. No upload — everything stays on your device.</p>
+    </div>
+
+    <!-- Upload area -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-8 mb-6 text-center transition-colors hover:border-rose-400 dark:hover:border-rose-500" id="drop-zone">
+      <input type="file" id="file-input" accept="video/*" class="hidden"/>
+      <div id="upload-prompt">
+        <div class="text-4xl mb-3">🎬</div>
+        <p class="text-gray-600 dark:text-gray-400 font-medium mb-1">Drop a video file here or click to upload</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500">Supports MP4, WebM, OGG, MOV (browser-decodable formats)</p>
+        <button id="select-btn" class="mt-4 px-5 py-2.5 bg-rose-500 text-white font-semibold rounded-lg hover:bg-rose-600 transition-colors text-sm">Select File</button>
+      </div>
+      <!-- Preview (hidden initially) -->
+      <div id="preview-section" class="hidden">
+        <div class="flex items-start gap-4 text-left">
+          <video id="video-preview" class="w-40 h-24 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-black" muted></video>
+          <div class="flex-1 min-w-0">
+            <p id="file-name" class="text-sm font-semibold text-gray-900 dark:text-white truncate"></p>
+            <p id="file-info" class="text-xs text-gray-500 dark:text-gray-400 mt-1"></p>
+            <button id="change-file" class="mt-2 text-xs text-rose-600 dark:text-rose-400 hover:underline">Change file</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversion options -->
+    <div id="options-section" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Conversion Settings</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        <!-- Output format -->
+        <div>
+          <label for="output-format" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Convert to</label>
+          <select id="output-format" class="w-full h-11 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <option value="video/webm">WebM (VP8/VP9, modern browsers)</option>
+            <option value="video/mp4">MP4 (H.264, universal playback)</option>
+          </select>
+        </div>
+        <!-- Quality -->
+        <div>
+          <label for="video-bitrate" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Video Quality</label>
+          <select id="video-bitrate" class="w-full h-11 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <option value="5000000">High (5 Mbps)</option>
+            <option value="2500000" selected>Medium (2.5 Mbps)</option>
+            <option value="1000000">Low (1 Mbps)</option>
+            <option value="500000">Very Low (500 kbps)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Trim options -->
+      <div class="border-t border-gray-100 dark:border-gray-800 pt-4 mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Trim Video</h3>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="trim-enabled" class="w-4 h-4 accent-rose-500 rounded"/>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Enable trim</span>
+          </label>
+        </div>
+        <div id="trim-controls" class="hidden grid grid-cols-2 gap-3">
+          <div>
+            <label for="trim-start" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Start (seconds)</label>
+            <input id="trim-start" type="number" min="0" step="0.1" value="0" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"/>
+          </div>
+          <div>
+            <label for="trim-end" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">End (seconds)</label>
+            <input id="trim-end" type="number" min="0" step="0.1" placeholder="full length" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resize options -->
+      <div class="border-t border-gray-100 dark:border-gray-800 pt-4 mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Resize</h3>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="resize-enabled" class="w-4 h-4 accent-rose-500 rounded"/>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Enable resize</span>
+          </label>
+        </div>
+        <div id="resize-controls" class="hidden grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="resize-w" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Width (px)</label>
+            <input id="resize-w" type="number" min="1" max="7680" placeholder="auto" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"/>
+          </div>
+          <div>
+            <label for="resize-h" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Height (px)</label>
+            <input id="resize-h" type="number" min="1" max="4320" placeholder="auto" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"/>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Presets</label>
+            <select id="resize-preset" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-900 dark:text-gray-100">
+              <option value="">Custom</option>
+              <option value="1920x1080">1920×1080 (1080p)</option>
+              <option value="1280x720">1280×720 (720p)</option>
+              <option value="854x480">854×480 (480p)</option>
+              <option value="640x360">640×360 (360p)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Convert button -->
+      <button id="convert-btn" class="w-full h-12 bg-rose-500 text-white font-semibold rounded-lg hover:bg-rose-600 transition-colors flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Convert & Download
+      </button>
+      <div id="progress-bar" class="hidden mt-3">
+        <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div id="progress-fill" class="h-full bg-rose-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progress-text" class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">Processing...</p>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="result-section" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-green-200 dark:border-green-800 p-6 mb-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">✅</span>
+        <div>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white">Conversion complete!</p>
+          <p id="result-info" class="text-xs text-gray-500 dark:text-gray-400"></p>
+        </div>
+      </div>
+      <div class="flex flex-col gap-3">
+        <video id="result-video" controls class="w-full max-h-48 rounded-lg bg-black"></video>
+        <div class="flex items-center gap-3">
+          <a id="download-link" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors text-sm" download>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download
+          </a>
+          <button id="convert-another" class="text-sm text-gray-500 dark:text-gray-400 hover:text-rose-600 dark:hover:text-rose-400">Convert another</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download History -->
+    <div id="history-section" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-8 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Download History
+        </h2>
+        <button id="clear-history" class="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:underline hidden">Clear all</button>
+      </div>
+      <div id="history-list" class="space-y-2">
+        <p id="history-empty" class="text-xs text-gray-400 dark:text-gray-500 text-center py-4">No conversions yet. Your latest 5 downloads will appear here.</p>
+      </div>
+    </div>
+
+    <!-- Info section -->
+    <div class="prose dark:prose-invert prose-sm max-w-none">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">About Video Conversion</h2>
+      <p class="text-gray-600 dark:text-gray-400">This converter uses the browser's built-in video decoding and MediaRecorder API to re-encode your video. All processing happens locally — your files never leave your device.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>WebM</strong> — Open format using VP8/VP9 video + Opus audio. Excellent compression, supported by all modern browsers. Ideal for web use.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>MP4</strong> — Most universally compatible format using H.264 video. Plays on virtually every device and platform.</p>
+      <p class="text-gray-600 dark:text-gray-400 text-xs italic mt-4">Note: Browser-based video conversion works with formats your browser can natively decode. Processing speed depends on your device. For large files or advanced codecs (H.265, AV1), desktop tools like FFmpeg or HandBrake are recommended.</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let videoFile: File | null = null;
+  let videoDuration = 0;
+  let videoWidth = 0;
+  let videoHeight = 0;
+  let fileName = '';
+
+  const dropZone = document.getElementById('drop-zone')!;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const selectBtn = document.getElementById('select-btn')!;
+  const uploadPrompt = document.getElementById('upload-prompt')!;
+  const previewSection = document.getElementById('preview-section')!;
+  const videoPreview = document.getElementById('video-preview') as HTMLVideoElement;
+  const fileNameEl = document.getElementById('file-name')!;
+  const fileInfoEl = document.getElementById('file-info')!;
+  const changeFileBtn = document.getElementById('change-file')!;
+  const optionsSection = document.getElementById('options-section')!;
+  const outputFormat = document.getElementById('output-format') as HTMLSelectElement;
+  const videoBitrate = document.getElementById('video-bitrate') as HTMLSelectElement;
+  const trimEnabled = document.getElementById('trim-enabled') as HTMLInputElement;
+  const trimControls = document.getElementById('trim-controls')!;
+  const trimStart = document.getElementById('trim-start') as HTMLInputElement;
+  const trimEnd = document.getElementById('trim-end') as HTMLInputElement;
+  const resizeEnabled = document.getElementById('resize-enabled') as HTMLInputElement;
+  const resizeControls = document.getElementById('resize-controls')!;
+  const resizeW = document.getElementById('resize-w') as HTMLInputElement;
+  const resizeH = document.getElementById('resize-h') as HTMLInputElement;
+  const resizePreset = document.getElementById('resize-preset') as HTMLSelectElement;
+  const convertBtn = document.getElementById('convert-btn')!;
+  const progressBar = document.getElementById('progress-bar')!;
+  const progressFill = document.getElementById('progress-fill')!;
+  const progressText = document.getElementById('progress-text')!;
+  const resultSection = document.getElementById('result-section')!;
+  const resultInfo = document.getElementById('result-info')!;
+  const resultVideo = document.getElementById('result-video') as HTMLVideoElement;
+  const downloadLink = document.getElementById('download-link') as HTMLAnchorElement;
+  const convertAnother = document.getElementById('convert-another')!;
+  const historyList = document.getElementById('history-list')!;
+  const historyEmpty = document.getElementById('history-empty')!;
+  const clearHistoryBtn = document.getElementById('clear-history')!;
+
+  // File selection
+  selectBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+  dropZone.addEventListener('click', (e) => {
+    const target = e.target as Element;
+    if (target.closest('#select-btn') || target.closest('#change-file') || target.closest('#preview-section')) return;
+    if (target === dropZone || target.closest('#upload-prompt')) fileInput.click();
+  });
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-rose-400'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-rose-400'));
+  dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-rose-400'); if (e.dataTransfer?.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', () => { if (fileInput.files?.[0]) handleFile(fileInput.files[0]); });
+  changeFileBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+
+  function handleFile(file: File) {
+    videoFile = file;
+    fileName = file.name;
+    const url = URL.createObjectURL(file);
+    videoPreview.src = url;
+    fileNameEl.textContent = file.name;
+
+    videoPreview.onloadedmetadata = () => {
+      videoDuration = videoPreview.duration;
+      videoWidth = videoPreview.videoWidth;
+      videoHeight = videoPreview.videoHeight;
+      fileInfoEl.textContent = `${videoWidth}×${videoHeight} • ${formatDuration(videoDuration)} • ${formatSize(file.size)}`;
+      trimEnd.placeholder = videoDuration.toFixed(1);
+      resizeW.placeholder = videoWidth.toString();
+      resizeH.placeholder = videoHeight.toString();
+    };
+
+    uploadPrompt.classList.add('hidden');
+    previewSection.classList.remove('hidden');
+    optionsSection.classList.remove('hidden');
+    resultSection.classList.add('hidden');
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function formatDuration(sec: number): string {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  // Toggles
+  trimEnabled.addEventListener('change', () => { trimControls.classList.toggle('hidden', !trimEnabled.checked); });
+  resizeEnabled.addEventListener('change', () => { resizeControls.classList.toggle('hidden', !resizeEnabled.checked); });
+  resizePreset.addEventListener('change', () => {
+    const val = resizePreset.value;
+    if (!val) return;
+    const [w, h] = val.split('x').map(Number);
+    resizeW.value = w.toString();
+    resizeH.value = h.toString();
+  });
+
+  // Convert
+  convertBtn.addEventListener('click', async () => {
+    if (!videoFile) return;
+
+    const format = outputFormat.value;
+    const bitrate = parseInt(videoBitrate.value);
+    const startTime = trimEnabled.checked ? parseFloat(trimStart.value) || 0 : 0;
+    const endTime = trimEnabled.checked && trimEnd.value ? parseFloat(trimEnd.value) : videoDuration;
+    const duration = endTime - startTime;
+
+    let outW = videoWidth;
+    let outH = videoHeight;
+    if (resizeEnabled.checked) {
+      if (resizeW.value) outW = parseInt(resizeW.value);
+      if (resizeH.value) outH = parseInt(resizeH.value);
+    }
+
+    progressBar.classList.remove('hidden');
+    progressFill.style.width = '5%';
+    progressFill.classList.remove('bg-red-500');
+    progressFill.classList.add('bg-rose-500');
+    progressText.textContent = 'Preparing video...';
+    convertBtn.classList.add('opacity-50', 'pointer-events-none');
+
+    try {
+      // Create a video element for playback
+      const video = document.createElement('video');
+      video.src = URL.createObjectURL(videoFile);
+      video.muted = true;
+      video.currentTime = startTime;
+
+      await new Promise<void>((resolve) => {
+        video.onloadeddata = () => resolve();
+        video.load();
+      });
+
+      // Create canvas for frame capture
+      const canvas = document.createElement('canvas');
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext('2d')!;
+
+      // Get canvas stream + audio from video
+      const canvasStream = canvas.captureStream(30); // 30fps
+      // Try to capture audio
+      try {
+        const audioCtx = new AudioContext();
+        const source = audioCtx.createMediaElementSource(video);
+        const dest = audioCtx.createMediaStreamDestination();
+        source.connect(dest);
+        source.connect(audioCtx.destination);
+        dest.stream.getAudioTracks().forEach(t => canvasStream.addTrack(t));
+      } catch { /* no audio track or not supported */ }
+
+      // Set up MediaRecorder
+      const mimeType = format === 'video/mp4'
+        ? (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1') ? 'video/mp4;codecs=avc1' : 'video/webm')
+        : 'video/webm;codecs=vp8,opus';
+
+      const recorder = new MediaRecorder(canvasStream, {
+        mimeType: MediaRecorder.isTypeSupported(mimeType) ? mimeType : 'video/webm',
+        videoBitsPerSecond: bitrate,
+      });
+
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+
+      const recordingDone = new Promise<Blob>((resolve) => {
+        recorder.onstop = () => {
+          const actualMime = recorder.mimeType || format;
+          resolve(new Blob(chunks, { type: actualMime }));
+        };
+      });
+
+      recorder.start(100); // collect in 100ms chunks
+      video.currentTime = startTime;
+      video.play();
+
+      progressFill.style.width = '20%';
+      progressText.textContent = 'Recording frames...';
+
+      // Draw frames to canvas
+      const drawFrame = () => {
+        if (video.currentTime >= endTime || video.ended) {
+          recorder.stop();
+          video.pause();
+          return;
+        }
+        ctx.drawImage(video, 0, 0, outW, outH);
+        const progress = ((video.currentTime - startTime) / duration) * 70 + 20;
+        progressFill.style.width = `${Math.min(progress, 90)}%`;
+        progressText.textContent = `Processing ${formatDuration(video.currentTime - startTime)} / ${formatDuration(duration)}`;
+        requestAnimationFrame(drawFrame);
+      };
+
+      video.onseeked = () => { requestAnimationFrame(drawFrame); };
+      requestAnimationFrame(drawFrame);
+
+      const blob = await recordingDone;
+
+      progressFill.style.width = '95%';
+      progressText.textContent = 'Finalising...';
+
+      const url = URL.createObjectURL(blob);
+      const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+      const baseName = fileName.replace(/\.[^.]+$/, '');
+      const outputName = `${baseName}-converted.${ext}`;
+
+      resultVideo.src = url;
+      downloadLink.href = url;
+      downloadLink.download = outputName;
+      resultInfo.textContent = `${outW}×${outH} • ${formatDuration(duration)} • ${formatSize(blob.size)} • ${ext.toUpperCase()}`;
+      resultSection.classList.remove('hidden');
+
+      // Add to history
+      const historyEntry: HistoryEntry = {
+        name: outputName,
+        format: ext,
+        size: formatSize(blob.size),
+        duration: formatDuration(duration),
+        dimensions: `${outW}×${outH}`,
+        timestamp: Date.now(),
+      };
+      // Videos are typically too large for localStorage re-download
+      addToHistory(historyEntry);
+
+      progressFill.style.width = '100%';
+      setTimeout(() => { progressBar.classList.add('hidden'); }, 500);
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      progressText.textContent = 'Error: ' + (err as Error).message;
+      progressFill.style.width = '100%';
+      progressFill.classList.add('bg-red-500');
+      progressFill.classList.remove('bg-rose-500');
+    }
+
+    convertBtn.classList.remove('opacity-50', 'pointer-events-none');
+  });
+
+  convertAnother.addEventListener('click', () => { resultSection.classList.add('hidden'); fileInput.click(); });
+
+  // ── Download History (localStorage, max 5) ────────────────────────────────
+  interface HistoryEntry {
+    name: string;
+    format: string;
+    size: string;
+    duration: string;
+    dimensions: string;
+    timestamp: number;
+    dataUrl?: string;
+  }
+
+  const HISTORY_KEY = 'xconvert24-video-history';
+  const MAX_HISTORY = 5;
+
+  function getHistory(): HistoryEntry[] {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+  }
+
+  function saveHistory(entries: HistoryEntry[]) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+  }
+
+  function addToHistory(entry: HistoryEntry) {
+    const history = getHistory();
+    history.unshift(entry);
+    saveHistory(history);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const history = getHistory();
+    if (history.length === 0) {
+      historyEmpty.classList.remove('hidden');
+      clearHistoryBtn.classList.add('hidden');
+      historyList.querySelectorAll('.history-item').forEach(el => el.remove());
+      return;
+    }
+    historyEmpty.classList.add('hidden');
+    clearHistoryBtn.classList.remove('hidden');
+    historyList.querySelectorAll('.history-item').forEach(el => el.remove());
+
+    history.forEach((entry, idx) => {
+      const div = document.createElement('div');
+      div.className = 'history-item flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg';
+      const timeAgo = getTimeAgo(entry.timestamp);
+      div.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-400 to-red-600 flex items-center justify-center text-white text-xs font-bold shrink-0">${entry.format.toUpperCase()}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-medium text-gray-900 dark:text-white truncate">${escapeHtml(entry.name)}</p>
+          <p class="text-xs text-gray-400 dark:text-gray-500">${entry.dimensions} • ${entry.duration} • ${entry.size} • ${timeAgo}</p>
+        </div>
+        <button class="remove-history-btn shrink-0 p-1.5 text-red-400 hover:text-red-500 dark:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" data-idx="${idx}" title="Remove"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      `;
+      historyList.appendChild(div);
+    });
+
+    historyList.querySelectorAll('.remove-history-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
+        const h = getHistory(); h.splice(idx, 1); saveHistory(h); renderHistory();
+      });
+    });
+  }
+
+  function getTimeAgo(ts: number): string {
+    const d = Date.now() - ts; const m = Math.floor(d / 60000);
+    if (m < 1) return 'just now'; if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
+
+  function escapeHtml(s: string): string { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  clearHistoryBtn.addEventListener('click', () => { localStorage.removeItem(HISTORY_KEY); renderHistory(); });
+  renderHistory();
+</script>

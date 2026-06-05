@@ -1,0 +1,186 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wallet | xConvert24 Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #9945FF, #14F195); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-link { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 600px; margin: 0 auto; padding: 48px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
+    .wallet-card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 32px; text-align: center; }
+    .padlock { font-size: 48px; margin-bottom: 16px; transition: transform 0.3s; }
+    .padlock.unlocked { transform: rotate(-15deg); }
+    .wallet-label { font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .wallet-address { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #f9fafb; background: #0f172a; padding: 14px 18px; border-radius: 10px; border: 1px solid #1f2937; word-break: break-all; margin-bottom: 16px; min-height: 48px; display: flex; align-items: center; justify-content: center; }
+    .wallet-input { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #f9fafb; background: #0f172a; padding: 14px 18px; border-radius: 10px; border: 2px solid #9945FF; width: 100%; text-align: center; margin-bottom: 16px; outline: none; }
+    .wallet-input:focus { border-color: #14F195; box-shadow: 0 0 0 3px rgba(20,241,149,0.2); }
+    .btn { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+    .btn-unlock { background: #374151; color: #d1d5db; }
+    .btn-unlock:hover { background: #4b5563; }
+    .btn-save { background: #14F195; color: #000; }
+    .btn-save:hover { background: #0dd67c; }
+    .btn-cancel { background: #374151; color: #d1d5db; margin-left: 8px; }
+    .btn-cancel:hover { background: #4b5563; }
+    .status { margin-top: 12px; font-size: 12px; }
+    .status-ok { color: #4ade80; }
+    .status-err { color: #f87171; }
+    .auth-prompt { margin-top: 16px; padding: 16px; background: #1f2937; border-radius: 10px; }
+    .auth-prompt label { font-size: 12px; color: #9ca3af; display: block; margin-bottom: 6px; }
+    .auth-prompt input { width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid #374151; background: #0f172a; color: #f9fafb; font-size: 13px; outline: none; }
+    .auth-prompt input:focus { border-color: #9945FF; }
+    .updated-at { font-size: 11px; color: #6b7280; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🔐 Wallet</div>
+    <a href="/admin" class="back-link">← Dashboard</a>
+  </div>
+
+  <div class="container">
+    <h1>🔐 Wallet Management</h1>
+    <p class="subtitle">Manage the donation wallet address displayed on the Support page.</p>
+
+    <div class="wallet-card">
+      <div class="padlock" id="padlock">🔒</div>
+      <div class="wallet-label">Solana (SOL) Wallet Address</div>
+
+      <!-- Locked state -->
+      <div id="locked-view">
+        <div class="wallet-address" id="display-address">Loading...</div>
+        <button class="btn btn-unlock" id="unlock-btn">🔓 Unlock to Edit</button>
+      </div>
+
+      <!-- Auth prompt (hidden) -->
+      <div id="auth-view" style="display:none;">
+        <div class="auth-prompt">
+          <label for="auth-email">Re-authenticate: Enter admin email</label>
+          <input type="email" id="auth-email" placeholder="Enter your admin email..." autocomplete="email"/>
+          <div style="margin-top:10px; display:flex; gap:8px; justify-content:center;">
+            <button class="btn btn-save" id="auth-confirm" style="background:#9945FF; color:white;">Verify</button>
+            <button class="btn btn-cancel" id="auth-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit state (hidden) -->
+      <div id="edit-view" style="display:none;">
+        <input type="text" class="wallet-input" id="edit-address" placeholder="Enter Solana wallet address..."/>
+        <div>
+          <button class="btn btn-save" id="save-btn">💾 Save</button>
+          <button class="btn btn-cancel" id="cancel-btn">Cancel</button>
+        </div>
+      </div>
+
+      <div class="status" id="status"></div>
+      <div class="updated-at" id="updated-at"></div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    var ADMIN_EMAIL = 'raj007@gmail.com'; // Must match to unlock
+    var padlock = document.getElementById('padlock');
+    var lockedView = document.getElementById('locked-view');
+    var authView = document.getElementById('auth-view');
+    var editView = document.getElementById('edit-view');
+    var displayAddress = document.getElementById('display-address');
+    var editAddress = document.getElementById('edit-address');
+    var statusEl = document.getElementById('status');
+    var updatedAt = document.getElementById('updated-at');
+
+    var currentAddress = '';
+
+    // Load current wallet
+    fetch('/api/wallet')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        currentAddress = data.address || '';
+        displayAddress.textContent = currentAddress || '(not set)';
+        if (data.updated_at) updatedAt.textContent = 'Last updated: ' + new Date(data.updated_at).toLocaleString();
+      })
+      .catch(function() { displayAddress.textContent = '(failed to load)'; });
+
+    // Unlock → show auth
+    document.getElementById('unlock-btn').addEventListener('click', function() {
+      lockedView.style.display = 'none';
+      authView.style.display = 'block';
+      document.getElementById('auth-email').focus();
+    });
+
+    // Auth cancel
+    document.getElementById('auth-cancel').addEventListener('click', function() {
+      authView.style.display = 'none';
+      lockedView.style.display = 'block';
+    });
+
+    // Auth confirm
+    document.getElementById('auth-confirm').addEventListener('click', function() {
+      var email = document.getElementById('auth-email').value.trim().toLowerCase();
+      if (email === ADMIN_EMAIL.toLowerCase()) {
+        authView.style.display = 'none';
+        editView.style.display = 'block';
+        editAddress.value = currentAddress;
+        padlock.textContent = '🔓';
+        padlock.classList.add('unlocked');
+        statusEl.textContent = '';
+      } else {
+        statusEl.textContent = '❌ Authentication failed. Email does not match.';
+        statusEl.className = 'status status-err';
+      }
+    });
+
+    // Cancel edit
+    document.getElementById('cancel-btn').addEventListener('click', function() {
+      editView.style.display = 'none';
+      lockedView.style.display = 'block';
+      padlock.textContent = '🔒';
+      padlock.classList.remove('unlocked');
+      statusEl.textContent = '';
+    });
+
+    // Save
+    document.getElementById('save-btn').addEventListener('click', function() {
+      var newAddress = editAddress.value.trim();
+      if (newAddress.length < 10) { statusEl.textContent = '❌ Address too short'; statusEl.className = 'status status-err'; return; }
+
+      fetch('/api/wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: newAddress })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.success) {
+          currentAddress = newAddress;
+          displayAddress.textContent = newAddress;
+          editView.style.display = 'none';
+          lockedView.style.display = 'block';
+          padlock.textContent = '🔒';
+          padlock.classList.remove('unlocked');
+          statusEl.textContent = '✓ Wallet address updated successfully';
+          statusEl.className = 'status status-ok';
+          updatedAt.textContent = 'Last updated: ' + new Date().toLocaleString();
+        } else {
+          statusEl.textContent = '❌ ' + (data.error || 'Save failed');
+          statusEl.className = 'status status-err';
+        }
+      })
+      .catch(function() { statusEl.textContent = '❌ Network error'; statusEl.className = 'status status-err'; });
+    });
+  })();
+  </script>
+</body>
+</html>

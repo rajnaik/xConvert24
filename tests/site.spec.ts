@@ -272,3 +272,53 @@ test.afterAll(async ({ request }) => {
     }
   }
 });
+
+// ─── Security: Employee/Agent Details Not Exposed ──────────────────────────────
+
+test.describe('Security: No employee details on public pages', () => {
+  const sensitiveTerms = [
+    'Sentinel',           // Agent name (contagion tracker)
+    'Quill',             // Agent name (content strategist)
+    'Archer',            // Agent name (SEO champion)
+    'raj007@gmail',      // Admin email
+    'xconvert24@gmail',  // Support email (should be masked)
+    'AUTH_SECRET',       // Environment variable names
+    'GOOGLE_CLIENT_SECRET',
+    'ADMIN_EMAIL',
+  ];
+
+  const publicPages = [
+    '/',
+    '/about',
+    '/contact',
+    '/faq',
+    '/guide',
+    '/convert/weight',
+    '/convert/temperature',
+    '/tools/bmi',
+    '/tools/contagion',
+    '/tools/guitar-tuner',
+    '/releases',
+    '/blog',
+  ];
+
+  for (const pagePath of publicPages) {
+    test(`${pagePath} does not expose sensitive employee/agent details`, async ({ page }) => {
+      await page.goto(pagePath);
+      const bodyText = await page.textContent('body') || '';
+
+      for (const term of sensitiveTerms) {
+        const found = bodyText.includes(term);
+        if (found) {
+          bugsFound.push({
+            page: pagePath,
+            href: pagePath,
+            severity: 'high',
+            description: `Sensitive term "${term}" found exposed on public page`,
+          });
+        }
+        expect(found, `"${term}" should not appear on ${pagePath}`).toBe(false);
+      }
+    });
+  }
+});

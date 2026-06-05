@@ -1,0 +1,116 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="My Profile — ConvertCoins" description="Track your ConvertCoins, streak, level, and activity on xConvert24.com." keywords="profile, convertcoins, rewards, streak, gamification">
+  <div class="max-w-2xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">🪙</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Your ConvertCoins balance, streak, and activity.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 text-center shadow-sm">
+        <p class="text-3xl font-bold text-amber-500" id="p-coins">0</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">🪙 Coins</p>
+      </div>
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 text-center shadow-sm">
+        <p class="text-3xl font-bold text-orange-500" id="p-streak">0</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">🔥 Day Streak</p>
+      </div>
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 text-center shadow-sm">
+        <p class="text-3xl font-bold text-purple-500" id="p-level">1</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">⭐ Level</p>
+      </div>
+    </div>
+
+    <!-- How to earn -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">How to Earn ConvertCoins</h2>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="text-xs text-gray-600 dark:text-gray-400">📐 First conversion of the day</span>
+          <span class="text-xs font-bold text-amber-600">+5 🪙</span>
+        </div>
+        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="text-xs text-gray-600 dark:text-gray-400">🔄 Use 3 different converters in one session</span>
+          <span class="text-xs font-bold text-amber-600">+10 🪙</span>
+        </div>
+        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="text-xs text-gray-600 dark:text-gray-400">🔥 7-day visit streak</span>
+          <span class="text-xs font-bold text-amber-600">+50 🪙</span>
+        </div>
+        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="text-xs text-gray-600 dark:text-gray-400">🔥 30-day visit streak</span>
+          <span class="text-xs font-bold text-amber-600">+200 🪙</span>
+        </div>
+        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="text-xs text-gray-600 dark:text-gray-400">📱 Add to Home Screen</span>
+          <span class="text-xs font-bold text-amber-600">+100 🪙</span>
+        </div>
+        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="text-xs text-gray-600 dark:text-gray-400">🐛 Report a bug (validated)</span>
+          <span class="text-xs font-bold text-amber-600">+25 🪙</span>
+        </div>
+        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="text-xs text-gray-600 dark:text-gray-400">💡 Suggest a feature (rated 4+ stars)</span>
+          <span class="text-xs font-bold text-amber-600">+30 🪙</span>
+        </div>
+        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="text-xs text-gray-600 dark:text-gray-400">📖 Read a blog post</span>
+          <span class="text-xs font-bold text-amber-600">+5 🪙</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level progression -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Level Progression</h2>
+      <div class="mb-3">
+        <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Level <span id="p-current-level">1</span></span>
+          <span id="p-progress-text">0 / 100 coins to next level</span>
+        </div>
+        <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div id="p-progress-bar" class="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all" style="width: 0%"></div>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400 dark:text-gray-500">Every 100 coins earned = 1 level up. Keep converting!</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  function getUid(): string {
+    let uid = localStorage.getItem('xconvert24-uid');
+    if (!uid) { uid = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem('xconvert24-uid', uid); }
+    return uid;
+  }
+
+  async function loadProfile() {
+    const uid = getUid();
+    try {
+      const res = await fetch(`/api/coins?uid=${uid}`);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      document.getElementById('p-coins')!.textContent = (data.coins || 0).toString();
+      document.getElementById('p-streak')!.textContent = (data.streak || 0).toString();
+      document.getElementById('p-level')!.textContent = (data.level || 1).toString();
+      document.getElementById('p-current-level')!.textContent = (data.level || 1).toString();
+
+      const totalEarned = data.total_earned || 0;
+      const levelCoins = totalEarned % 100;
+      const progressPct = Math.min(100, levelCoins);
+      document.getElementById('p-progress-bar')!.style.width = progressPct + '%';
+      document.getElementById('p-progress-text')!.textContent = `${levelCoins} / 100 coins to next level`;
+    } catch {}
+  }
+
+  loadProfile();
+</script>

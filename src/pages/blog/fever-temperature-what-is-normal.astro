@@ -1,6 +1,10 @@
 ---
-export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
 <Layout title="What Temperature is a Fever? C vs F Reference" description="Learn what body temperature counts as a fever in both Celsius and Fahrenheit. Includes normal ranges for adults and children with clear thresholds." keywords="fever temperature, normal body temperature, fever celsius, fever fahrenheit, what is a fever, body temperature chart, fever in children">
@@ -65,6 +69,10 @@ import Layout from '../../layouts/Layout.astro';
       <div class="border-t border-gray-200 dark:border-gray-800 mt-10 pt-8 not-prose">
         <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Try It Now</h3>
         <a href="/convert/temperature" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-colors">Open Temperature Converter →</a>
+      </div>
+    
+      <div class="not-prose mt-8 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔗 Try our converter: <a href="/convert/temperature" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Open Converter →</a></p>
       </div>
     </article>
   </div>

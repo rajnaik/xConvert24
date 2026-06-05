@@ -15,7 +15,7 @@ export const GET: APIRoute = async () => {
   }
 
   const { results } = await db.prepare(
-    'SELECT id, title, description, category, votes_count, votes_total, rating, created_at FROM suggestions ORDER BY rating DESC, created_at DESC'
+    'SELECT id, title, description, category, COALESCE(votes_count, 0) as votes_count, COALESCE(votes_total, 0) as votes_total, CASE WHEN COALESCE(votes_count, 0) > 0 THEN CAST(votes_total AS REAL) / votes_count ELSE 0 END as rating, created_at FROM suggestions ORDER BY rating DESC, created_at DESC'
   ).all();
 
   return new Response(JSON.stringify({ suggestions: results }), {

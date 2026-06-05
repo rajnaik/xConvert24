@@ -1,0 +1,489 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Audio Converter — MP3, WAV, OGG, WebM" description="Free online audio converter. Convert between WAV, MP3, OGG, and WebM audio formats in your browser. No upload to server — all processing stays on your device." keywords="audio converter, wav to mp3, mp3 converter, ogg converter, convert audio, audio format converter, free audio converter online">
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🎵</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Audio Converter</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert audio files in your browser. No upload — everything stays on your device.</p>
+    </div>
+
+    <!-- Upload area -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 p-8 mb-6 text-center transition-colors hover:border-purple-400 dark:hover:border-purple-500" id="drop-zone">
+      <input type="file" id="file-input" accept="audio/*" class="hidden"/>
+      <div id="upload-prompt">
+        <div class="text-4xl mb-3">🎶</div>
+        <p class="text-gray-600 dark:text-gray-400 font-medium mb-1">Drop an audio file here or click to upload</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500">Supports MP3, WAV, OGG, WebM, AAC, FLAC, M4A</p>
+        <button id="select-btn" class="mt-4 px-5 py-2.5 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors text-sm">Select File</button>
+      </div>
+      <!-- Preview (hidden initially) -->
+      <div id="preview-section" class="hidden">
+        <div class="flex items-start gap-4 text-left">
+          <div class="w-32 h-20 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+            <audio id="audio-preview" controls class="w-full h-10 px-2" style="max-width: 120px;"></audio>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p id="file-name" class="text-sm font-semibold text-gray-900 dark:text-white truncate"></p>
+            <p id="file-info" class="text-xs text-gray-500 dark:text-gray-400 mt-1"></p>
+            <button id="change-file" class="mt-2 text-xs text-purple-600 dark:text-purple-400 hover:underline">Change file</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversion options -->
+    <div id="options-section" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Conversion Settings</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        <!-- Output format -->
+        <div>
+          <label for="output-format" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Convert to</label>
+          <select id="output-format" class="w-full h-11 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="audio/wav">WAV (uncompressed, lossless)</option>
+            <option value="audio/webm">WebM (Opus codec, modern)</option>
+            <option value="audio/ogg">OGG (Vorbis, open-source)</option>
+          </select>
+        </div>
+        <!-- Bitrate / quality -->
+        <div>
+          <label for="bitrate" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">Bitrate</label>
+          <select id="bitrate" class="w-full h-11 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="320000">320 kbps (High quality)</option>
+            <option value="192000" selected>192 kbps (Standard)</option>
+            <option value="128000">128 kbps (Compact)</option>
+            <option value="64000">64 kbps (Small file)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Trim options -->
+      <div class="border-t border-gray-100 dark:border-gray-800 pt-4 mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Trim Audio</h3>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="trim-enabled" class="w-4 h-4 accent-purple-500 rounded"/>
+            <span class="text-xs text-gray-500 dark:text-gray-400">Enable trim</span>
+          </label>
+        </div>
+        <div id="trim-controls" class="hidden grid grid-cols-2 gap-3">
+          <div>
+            <label for="trim-start" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Start (seconds)</label>
+            <input id="trim-start" type="number" min="0" step="0.1" value="0" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+          </div>
+          <div>
+            <label for="trim-end" class="block text-xs text-gray-500 dark:text-gray-400 mb-1">End (seconds)</label>
+            <input id="trim-end" type="number" min="0" step="0.1" placeholder="full length" class="w-full h-9 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Convert button -->
+      <button id="convert-btn" class="w-full h-12 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Convert & Download
+      </button>
+      <div id="progress-bar" class="hidden mt-3">
+        <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div id="progress-fill" class="h-full bg-purple-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progress-text" class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">Processing...</p>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="result-section" class="hidden bg-white dark:bg-gray-900 rounded-xl border border-green-200 dark:border-green-800 p-6 mb-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">✅</span>
+        <div>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white">Conversion complete!</p>
+          <p id="result-info" class="text-xs text-gray-500 dark:text-gray-400"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <audio id="result-audio" controls class="h-10"></audio>
+        <div class="flex-1">
+          <a id="download-link" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors text-sm" download>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download
+          </a>
+          <button id="convert-another" class="ml-3 text-sm text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400">Convert another</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download History -->
+    <div id="history-section" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-8 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Download History
+        </h2>
+        <button id="clear-history" class="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 hover:underline hidden">Clear all</button>
+      </div>
+      <div id="history-list" class="space-y-2">
+        <p id="history-empty" class="text-xs text-gray-400 dark:text-gray-500 text-center py-4">No conversions yet. Your latest 5 downloads will appear here.</p>
+      </div>
+    </div>
+
+    <!-- Info section -->
+    <div class="prose dark:prose-invert prose-sm max-w-none">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">About Audio Conversion</h2>
+      <p class="text-gray-600 dark:text-gray-400">This converter uses the Web Audio API to decode your audio file, then re-encodes it using the MediaRecorder API in your chosen format — entirely in-browser with no server upload.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>WAV</strong> — Uncompressed PCM audio. Largest file size but zero quality loss. Best for editing and archival.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>WebM (Opus)</strong> — Modern codec with excellent compression. Great for voice and music at low bitrates.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>OGG (Vorbis)</strong> — Open-source lossy codec. Good quality at moderate bitrates. Widely supported in browsers.</p>
+      <p class="text-gray-600 dark:text-gray-400 text-xs italic mt-4">Note: Browser-based conversion supports formats natively decodable by your browser. For broader format support (FLAC encoding, AAC), desktop tools like FFmpeg are recommended.</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let audioBuffer: AudioBuffer | null = null;
+  let sourceFile: File | null = null;
+  let fileName = '';
+
+  const dropZone = document.getElementById('drop-zone')!;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const selectBtn = document.getElementById('select-btn')!;
+  const uploadPrompt = document.getElementById('upload-prompt')!;
+  const previewSection = document.getElementById('preview-section')!;
+  const audioPreview = document.getElementById('audio-preview') as HTMLAudioElement;
+  const fileNameEl = document.getElementById('file-name')!;
+  const fileInfoEl = document.getElementById('file-info')!;
+  const changeFileBtn = document.getElementById('change-file')!;
+  const optionsSection = document.getElementById('options-section')!;
+  const outputFormat = document.getElementById('output-format') as HTMLSelectElement;
+  const bitrateSelect = document.getElementById('bitrate') as HTMLSelectElement;
+  const trimEnabled = document.getElementById('trim-enabled') as HTMLInputElement;
+  const trimControls = document.getElementById('trim-controls')!;
+  const trimStart = document.getElementById('trim-start') as HTMLInputElement;
+  const trimEnd = document.getElementById('trim-end') as HTMLInputElement;
+  const convertBtn = document.getElementById('convert-btn')!;
+  const progressBar = document.getElementById('progress-bar')!;
+  const progressFill = document.getElementById('progress-fill')!;
+  const progressText = document.getElementById('progress-text')!;
+  const resultSection = document.getElementById('result-section')!;
+  const resultInfo = document.getElementById('result-info')!;
+  const resultAudio = document.getElementById('result-audio') as HTMLAudioElement;
+  const downloadLink = document.getElementById('download-link') as HTMLAnchorElement;
+  const convertAnother = document.getElementById('convert-another')!;
+  const historyList = document.getElementById('history-list')!;
+  const historyEmpty = document.getElementById('history-empty')!;
+  const clearHistoryBtn = document.getElementById('clear-history')!;
+
+  // File selection
+  selectBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+  dropZone.addEventListener('click', (e) => {
+    const target = e.target as Element;
+    if (target.closest('#select-btn') || target.closest('#change-file') || target.closest('#preview-section')) return;
+    if (target === dropZone || target.closest('#upload-prompt')) fileInput.click();
+  });
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-purple-400'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-purple-400'));
+  dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-purple-400'); if (e.dataTransfer?.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', () => { if (fileInput.files?.[0]) handleFile(fileInput.files[0]); });
+  changeFileBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+
+  async function handleFile(file: File) {
+    sourceFile = file;
+    fileName = file.name;
+
+    // Show preview
+    const url = URL.createObjectURL(file);
+    audioPreview.src = url;
+    fileNameEl.textContent = file.name;
+
+    // Decode audio to get duration
+    try {
+      const arrayBuf = await file.arrayBuffer();
+      const audioCtx = new AudioContext();
+      audioBuffer = await audioCtx.decodeAudioData(arrayBuf);
+      const duration = audioBuffer.duration;
+      fileInfoEl.textContent = `${formatDuration(duration)} • ${formatSize(file.size)} • ${file.type || 'audio'}`;
+      trimEnd.placeholder = duration.toFixed(1);
+    } catch {
+      fileInfoEl.textContent = `${formatSize(file.size)} • ${file.type || 'audio'}`;
+    }
+
+    uploadPrompt.classList.add('hidden');
+    previewSection.classList.remove('hidden');
+    optionsSection.classList.remove('hidden');
+    resultSection.classList.add('hidden');
+  }
+
+  function formatSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function formatDuration(sec: number): string {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  // Trim toggle
+  trimEnabled.addEventListener('change', () => { trimControls.classList.toggle('hidden', !trimEnabled.checked); });
+
+  // Convert
+  convertBtn.addEventListener('click', async () => {
+    if (!audioBuffer) return;
+
+    const format = outputFormat.value;
+    const bitrate = parseInt(bitrateSelect.value);
+    const startTime = trimEnabled.checked ? parseFloat(trimStart.value) || 0 : 0;
+    const endTime = trimEnabled.checked && trimEnd.value ? parseFloat(trimEnd.value) : audioBuffer.duration;
+
+    // Show progress
+    progressBar.classList.remove('hidden');
+    progressFill.style.width = '10%';
+    progressText.textContent = 'Decoding audio...';
+    convertBtn.classList.add('opacity-50', 'pointer-events-none');
+
+    try {
+      // Create offline context for the trimmed duration
+      const duration = endTime - startTime;
+      const sampleRate = audioBuffer.sampleRate;
+      const channels = audioBuffer.numberOfChannels;
+      const offlineCtx = new OfflineAudioContext(channels, Math.ceil(duration * sampleRate), sampleRate);
+
+      const source = offlineCtx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(offlineCtx.destination);
+      source.start(0, startTime, duration);
+
+      progressFill.style.width = '30%';
+      progressText.textContent = 'Processing...';
+
+      const renderedBuffer = await offlineCtx.startRendering();
+
+      progressFill.style.width = '50%';
+      progressText.textContent = 'Encoding...';
+
+      // Encode using MediaRecorder via a MediaStreamDestination
+      const blob = await encodeAudio(renderedBuffer, format, bitrate);
+
+      progressFill.style.width = '90%';
+      progressText.textContent = 'Finalising...';
+
+      const url = URL.createObjectURL(blob);
+      const ext = format === 'audio/wav' ? 'wav' : format === 'audio/webm' ? 'webm' : 'ogg';
+      const baseName = fileName.replace(/\.[^.]+$/, '');
+      const outputName = `${baseName}-converted.${ext}`;
+
+      resultAudio.src = url;
+      downloadLink.href = url;
+      downloadLink.download = outputName;
+      resultInfo.textContent = `${formatDuration(duration)} • ${formatSize(blob.size)} • ${ext.toUpperCase()}`;
+      resultSection.classList.remove('hidden');
+
+      // Add to history
+      const historyEntry: HistoryEntry = {
+        name: outputName,
+        format: ext,
+        size: formatSize(blob.size),
+        duration: formatDuration(duration),
+        timestamp: Date.now(),
+      };
+
+      if (blob.size <= MAX_REDOWNLOAD_SIZE) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          historyEntry.dataUrl = reader.result as string;
+          addToHistory(historyEntry);
+        };
+        reader.readAsDataURL(blob);
+      } else {
+        addToHistory(historyEntry);
+      }
+
+      progressFill.style.width = '100%';
+      setTimeout(() => { progressBar.classList.add('hidden'); }, 500);
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      progressText.textContent = 'Error: ' + (err as Error).message;
+      progressFill.style.width = '100%';
+      progressFill.classList.add('bg-red-500');
+      progressFill.classList.remove('bg-purple-500');
+    }
+
+    convertBtn.classList.remove('opacity-50', 'pointer-events-none');
+  });
+
+  function encodeAudio(buffer: AudioBuffer, mimeType: string, bitrate: number): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      // For WAV, encode manually (MediaRecorder doesn't produce PCM WAV)
+      if (mimeType === 'audio/wav') {
+        resolve(audioBufferToWav(buffer));
+        return;
+      }
+
+      const audioCtx = new AudioContext({ sampleRate: buffer.sampleRate });
+      const dest = audioCtx.createMediaStreamDestination();
+      const source = audioCtx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(dest);
+
+      const recorder = new MediaRecorder(dest.stream, {
+        mimeType: mimeType,
+        audioBitsPerSecond: bitrate,
+      });
+
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        audioCtx.close();
+        resolve(new Blob(chunks, { type: mimeType }));
+      };
+      recorder.onerror = (e) => reject(e);
+
+      recorder.start();
+      source.start(0);
+      source.onended = () => { setTimeout(() => recorder.stop(), 100); };
+    });
+  }
+
+  function audioBufferToWav(buffer: AudioBuffer): Blob {
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const format = 1; // PCM
+    const bitsPerSample = 16;
+    const numSamples = buffer.length;
+    const dataSize = numSamples * numChannels * (bitsPerSample / 8);
+    const headerSize = 44;
+    const arrayBuffer = new ArrayBuffer(headerSize + dataSize);
+    const view = new DataView(arrayBuffer);
+
+    // WAV header
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, format, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * (bitsPerSample / 8), true);
+    view.setUint16(32, numChannels * (bitsPerSample / 8), true);
+    view.setUint16(34, bitsPerSample, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Interleave samples
+    const channels: Float32Array[] = [];
+    for (let c = 0; c < numChannels; c++) channels.push(buffer.getChannelData(c));
+
+    let offset = 44;
+    for (let i = 0; i < numSamples; i++) {
+      for (let c = 0; c < numChannels; c++) {
+        let sample = channels[c][i];
+        sample = Math.max(-1, Math.min(1, sample));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        offset += 2;
+      }
+    }
+
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+  }
+
+  function writeString(view: DataView, offset: number, str: string) {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  }
+
+  // Convert another
+  convertAnother.addEventListener('click', () => { resultSection.classList.add('hidden'); fileInput.click(); });
+
+  // ── Download History (localStorage, max 5) ────────────────────────────────
+  interface HistoryEntry {
+    name: string;
+    format: string;
+    size: string;
+    duration: string;
+    timestamp: number;
+    dataUrl?: string;
+  }
+
+  const HISTORY_KEY = 'xconvert24-audio-history';
+  const MAX_HISTORY = 5;
+  const MAX_REDOWNLOAD_SIZE = 512 * 1024;
+
+  function getHistory(): HistoryEntry[] {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
+  }
+
+  function saveHistory(entries: HistoryEntry[]) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+  }
+
+  function addToHistory(entry: HistoryEntry) {
+    const history = getHistory();
+    history.unshift(entry);
+    saveHistory(history);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const history = getHistory();
+    if (history.length === 0) {
+      historyEmpty.classList.remove('hidden');
+      clearHistoryBtn.classList.add('hidden');
+      historyList.querySelectorAll('.history-item').forEach(el => el.remove());
+      return;
+    }
+    historyEmpty.classList.add('hidden');
+    clearHistoryBtn.classList.remove('hidden');
+    historyList.querySelectorAll('.history-item').forEach(el => el.remove());
+
+    history.forEach((entry, idx) => {
+      const div = document.createElement('div');
+      div.className = 'history-item flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg';
+      const timeAgo = getTimeAgo(entry.timestamp);
+      const hasRedownload = !!entry.dataUrl;
+      div.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-400 to-violet-600 flex items-center justify-center text-white text-xs font-bold shrink-0">${entry.format.toUpperCase()}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-medium text-gray-900 dark:text-white truncate">${escapeHtml(entry.name)}</p>
+          <p class="text-xs text-gray-400 dark:text-gray-500">${entry.duration} • ${entry.size} • ${timeAgo}</p>
+        </div>
+        ${hasRedownload ? `<button class="redownload-btn shrink-0 p-1.5 text-green-500 hover:text-green-600 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors" data-idx="${idx}" title="Re-download"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>` : ''}
+        <button class="remove-history-btn shrink-0 p-1.5 text-red-400 hover:text-red-500 dark:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" data-idx="${idx}" title="Remove"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+      `;
+      historyList.appendChild(div);
+    });
+
+    historyList.querySelectorAll('.redownload-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
+        const entry = getHistory()[idx];
+        if (entry?.dataUrl) { const a = document.createElement('a'); a.href = entry.dataUrl; a.download = entry.name; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+      });
+    });
+    historyList.querySelectorAll('.remove-history-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt((e.currentTarget as HTMLElement).dataset.idx || '0');
+        const h = getHistory(); h.splice(idx, 1); saveHistory(h); renderHistory();
+      });
+    });
+  }
+
+  function getTimeAgo(ts: number): string {
+    const d = Date.now() - ts; const m = Math.floor(d / 60000);
+    if (m < 1) return 'just now'; if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
+
+  function escapeHtml(s: string): string { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  clearHistoryBtn.addEventListener('click', () => { localStorage.removeItem(HISTORY_KEY); renderHistory(); });
+  renderHistory();
+</script>

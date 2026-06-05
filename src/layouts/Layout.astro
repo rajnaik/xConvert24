@@ -5,6 +5,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 import LiveSearch from '../components/LiveSearch.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import ChatAssistant from '../components/ChatAssistant.astro';
+import { VERSION } from '../data/siteStats';
 
 interface Props {
   title: string;
@@ -44,10 +45,11 @@ const fullTitle = `${title} | xConvert24.com`;
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="xConvert24.com" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://www.xconvert24.com/logo.svg" />
-    <meta property="og:image:width" content="280" />
-    <meta property="og:image:height" content="48" />
-    <meta name="twitter:image" content="https://www.xconvert24.com/logo.svg" />
+    <meta property="og:image" content="https://www.xconvert24.com/web-app-manifest-512x512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:type" content="image/png" />
+    <meta name="twitter:image" content="https://www.xconvert24.com/web-app-manifest-512x512.png" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
@@ -57,6 +59,15 @@ const fullTitle = `${title} | xConvert24.com`;
     <!-- Technical -->
     <meta name="theme-color" content="#f59e0b" />
     <link rel="sitemap" href="/sitemap.xml" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="xConvert24" />
+
+    <!-- DNS prefetch for external services -->
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="dns-prefetch" href="https://api.coingecko.com" />
 
     <!-- JSON-LD Structured Data -->
     <script is:inline type="application/ld+json">
@@ -86,6 +97,33 @@ const fullTitle = `${title} | xConvert24.com`;
     }
     </script>
 
+    <!-- BreadcrumbList JSON-LD (dynamic per page) -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": (() => {
+        const parts = Astro.url.pathname.split('/').filter(Boolean);
+        const items = [{ "@type": "ListItem", "position": 1, "name": "Home", "item": siteUrl + "/" }];
+        let path = '';
+        const labels: Record<string, string> = {
+          convert: 'Converters', tools: 'Tools', blog: 'Blog', widgets: 'Widgets',
+          weight: 'Weight', length: 'Length', temperature: 'Temperature', area: 'Area',
+          volume: 'Volume', speed: 'Speed', data: 'Data Storage', currency: 'Currency',
+          cooking: 'Cooking', energy: 'Energy', pressure: 'Pressure', power: 'Power',
+          fuel: 'Fuel Economy', angle: 'Angle', frequency: 'Frequency', base: 'Number Base',
+          roman: 'Roman Numerals', time: 'Time', bmi: 'BMI Calculator', color: 'Color Picker',
+          clock: 'World Clock', calculator: 'Scientific Calculator', tip: 'Tip Calculator',
+          discount: 'Discount Calculator', loan: 'Loan Calculator', age: 'Age Calculator',
+        };
+        parts.forEach((part, i) => {
+          path += '/' + part;
+          const name = labels[part] || part.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+          items.push({ "@type": "ListItem", "position": i + 2, "name": name, "item": siteUrl + path });
+        });
+        return items;
+      })()
+    })} />
+
     <!-- Google Consent Mode v2 defaults (must be BEFORE gtag) -->
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
@@ -102,11 +140,13 @@ const fullTitle = `${title} | xConvert24.com`;
       });
     </script>
 
-    <!-- Google Analytics (respects consent mode) -->
-    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-BZMZ2XC247"></script>
+    <!-- Google tag (gtag.js) -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-XDEY4PSP7C"></script>
     <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-BZMZ2XC247');
+      gtag('config', 'G-XDEY4PSP7C');
     </script>
 
     <!-- Global click tracking for all interactive elements -->
@@ -171,41 +211,46 @@ const fullTitle = `${title} | xConvert24.com`;
     <!-- Main layout wrapper -->
     <div class="lg:pl-64 flex flex-col min-h-screen">
       <!-- Top header -->
-      <header role="banner" class="sticky top-0 z-20 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 lg:px-6">
-        <!-- Hamburger (mobile) -->
-        <button
-          id="hamburger-btn"
-          class="lg:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          aria-label="Open navigation menu"
-          aria-expanded="false"
-        >
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
-        </button>
+      <header role="banner" class="sticky top-0 z-20 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 px-4 lg:px-6 py-2 lg:py-0 lg:h-16 lg:flex lg:items-center lg:justify-between">
+        <!-- Top row: hamburger + logo + icons on mobile -->
+        <div class="flex items-center gap-2 h-12 lg:h-16 lg:flex-none">
+          <!-- Hamburger (mobile) — must be first and always tappable -->
+          <button
+            id="hamburger-btn"
+            class="lg:hidden p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors active:bg-gray-200 dark:active:bg-gray-700 relative z-10 shrink-0"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+            type="button"
+            onclick="document.getElementById('sidebar')?.classList.remove('-translate-x-full');document.getElementById('sidebar-backdrop')?.classList.remove('hidden');document.body.style.overflow='hidden';"
+          >
+            <svg class="w-6 h-6 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
 
-        <!-- Logo (mobile only - desktop shows in sidebar) -->
-        <a href="/" class="lg:hidden flex items-center" aria-label="xConvert24.com">
-          <svg width="275" height="68" viewBox="0 0 280 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="hdr-bg" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#4a3f5c"/>
-                <stop offset="100%" stop-color="#d97706"/>
-              </linearGradient>
-              <linearGradient id="hdr-text" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#fcd34d"/>
-                <stop offset="100%" stop-color="#d97706"/>
-              </linearGradient>
-            </defs>
-            <rect x="2" y="4" width="40" height="40" rx="10" fill="url(#hdr-bg)"/>
-            <path d="M12 36 L22 26 M22 26 L22 32 M22 26 L16 26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M32 12 L22 22 M22 22 L22 16 M22 22 L28 22" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <text x="50" y="33" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="url(#hdr-text)" letter-spacing="-0.5">xConvert24</text>
-          </svg>
-        </a>
+          <!-- Logo (mobile only - desktop shows in sidebar) -->
+          <a href="/" class="lg:hidden flex items-center shrink-0" aria-label="xConvert24.com">
+            <svg width="150" height="38" viewBox="0 0 280 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="hdr-bg" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#4a3f5c"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+                <linearGradient id="hdr-text" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#fcd34d"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+              </defs>
+              <rect x="2" y="4" width="40" height="40" rx="10" fill="url(#hdr-bg)"/>
+              <path d="M12 36 L22 26 M22 26 L22 32 M22 26 L16 26" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M32 12 L22 22 M22 22 L22 16 M22 22 L28 22" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <text x="50" y="33" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="url(#hdr-text)" letter-spacing="-0.5">xConvert24</text>
+            </svg>
+          </a>
+        </div>
 
-        <!-- Right side: search + icons -->
-        <div class="flex items-center gap-1 ml-4">
+        <!-- Icons row -->
+        <div class="flex items-center gap-1 flex-wrap lg:ml-auto">
           <!-- Live search (desktop) -->
           <div class="hidden md:block mr-2">
             <LiveSearch />
@@ -214,6 +259,26 @@ const fullTitle = `${title} | xConvert24.com`;
           <a href="/search" class="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Search">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </a>
+          <!-- Spacer -->
+          <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+          <!-- Support Us (Solana) -->
+          <a
+            href="/support"
+            class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label="Support Us"
+            title="Support Us"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 128 128" fill="none">
+              <path d="M25.6 95.5l16.3-17.1c.6-.6 1.4-1 2.3-1h78.2c1.4 0 2.2 1.7 1.2 2.8l-16.3 17.1c-.6.6-1.4 1-2.3 1H26.8c-1.4 0-2.2-1.7-1.2-2.8z" fill="url(#hdr-sol1)"/>
+              <path d="M25.6 30.2l16.3-17.1c.6-.6 1.4-1 2.3-1h78.2c1.4 0 2.2 1.7 1.2 2.8L107.3 32c-.6.6-1.4 1-2.3 1H26.8c-1.4 0-2.2-1.7-1.2-2.8z" fill="url(#hdr-sol2)"/>
+              <path d="M107.3 62.5l-16.3-17.1c-.6-.6-1.4-1-2.3-1H10.5c-1.4 0-2.2 1.7-1.2 2.8l16.3 17.1c.6.6 1.4 1 2.3 1h78.2c1.4 0 2.2-1.7 1.2-2.8z" fill="url(#hdr-sol3)"/>
+              <defs>
+                <linearGradient id="hdr-sol1" x1="5" y1="120" x2="120" y2="5"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient>
+                <linearGradient id="hdr-sol2" x1="5" y1="120" x2="120" y2="5"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient>
+                <linearGradient id="hdr-sol3" x1="5" y1="120" x2="120" y2="5"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient>
+              </defs>
             </svg>
           </a>
           <!-- Spacer -->
@@ -245,6 +310,19 @@ const fullTitle = `${title} | xConvert24.com`;
           </a>
           <!-- Spacer -->
           <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+          <!-- Watchlist (crypto) -->
+          <a
+            href="/tools/crypto-bubbles#watchlists-container"
+            class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label="My Watchlists"
+            title="My Watchlists"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
+          </a>
+          <!-- Spacer -->
+          <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
           <!-- Favourites -->
           <a
             href="/favourites"
@@ -259,10 +337,27 @@ const fullTitle = `${title} | xConvert24.com`;
           </a>
           <!-- Spacer -->
           <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+          <!-- Spacer -->
+          <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
           <ChatAssistant />
           <!-- Spacer -->
           <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
           <ThemeToggle />
+          <!-- Spacer -->
+          <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+          <!-- Install on iOS -->
+          <a
+            href="/install"
+            class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+            aria-label="Add to Home Screen"
+            title="Add to Home Screen"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="5" y="2" width="14" height="20" rx="3" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5m0 0l-2-2m2 2l2-2"/>
+            </svg>
+          </a>
           <!-- Spacer -->
           <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
           <!-- Bug report button -->
@@ -311,9 +406,15 @@ const fullTitle = `${title} | xConvert24.com`;
             </div>
           </div>
         </div>
+        <!-- ConvertCoins badge -->
+        <a href="/profile" class="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors shrink-0" title="My ConvertCoins" id="coins-badge">
+          <span class="text-sm">🪙</span>
+          <span class="text-xs font-bold text-amber-600 dark:text-amber-400" id="coins-count">0</span>
+          <span id="streak-flame" class="hidden text-sm">🔥</span>
+        </a>
         <!-- Version badge — far right of header -->
-        <a href="/releases" class="hidden sm:flex flex-col items-end leading-none shrink-0" title="Version 1.5.0" style="font-size:8px;">
-          <span class="text-amber-500 font-mono">v1.6.0</span>
+        <a href="/releases" class="hidden sm:flex flex-col items-end leading-none shrink-0" title={`Version ${VERSION}`} style="font-size:8px;">
+          <span class="text-amber-500 font-mono">v{VERSION}</span>
           <span class="text-gray-400 font-mono mt-0.5">{new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'').toUpperCase()}-{new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}</span>
         </a>
       </header>

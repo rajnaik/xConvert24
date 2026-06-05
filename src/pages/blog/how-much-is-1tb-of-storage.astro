@@ -1,6 +1,10 @@
 ---
-export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
 <Layout title="How Much is 1TB? What Can You Store?" description="Understand how much data fits in 1 terabyte of storage. Real-world examples of photos, videos, songs, and documents you can store on a 1TB drive." keywords="1TB storage, terabyte explained, how much is 1TB, storage capacity, 1TB photos, 1TB movies, hard drive capacity">
@@ -64,6 +68,10 @@ import Layout from '../../layouts/Layout.astro';
       <div class="border-t border-gray-200 dark:border-gray-800 mt-10 pt-8 not-prose">
         <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Try It Now</h3>
         <a href="/convert/data" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-colors">Open Data Converter →</a>
+      </div>
+    
+      <div class="not-prose mt-8 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔗 Try our converter: <a href="/convert/data" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Open Converter →</a></p>
       </div>
     </article>
   </div>

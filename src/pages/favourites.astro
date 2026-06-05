@@ -57,23 +57,24 @@ import Layout from '../layouts/Layout.astro';
     emptyEl.classList.add('hidden');
 
     listEl.innerHTML = favs.map(f => `
-      <div class="relative bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm hover:border-red-300 dark:hover:border-red-700 hover:shadow-md transition-all group aspect-square flex flex-col items-center justify-center p-4 text-center overflow-hidden">
+      <a href="${f.href}" class="relative bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm hover:border-red-300 dark:hover:border-red-700 hover:shadow-md transition-all group aspect-square flex flex-col items-center justify-center p-4 text-center overflow-hidden no-underline">
         <!-- Background heart -->
         <span class="absolute inset-0 flex items-center justify-center pointer-events-none select-none leading-none" style="font-size:140px;color:rgba(252,165,165,0.2);">❤️</span>
         <!-- Remove button -->
-        <button data-remove="${f.href}" class="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm" aria-label="Remove from favourites" title="Unfavourite">
+        <button data-remove="${f.href}" class="remove-fav-btn absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm" aria-label="Remove from favourites" title="Unfavourite">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
         <!-- Content -->
-        <a href="${f.href}" class="relative z-[1] flex flex-col items-center gap-2 w-full">
+        <div class="relative z-[1] flex flex-col items-center gap-2 w-full">
           <div class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors truncate w-full">${f.name}</div>
           ${f.category ? `<div class="text-xs text-gray-400 truncate w-full">${f.category}</div>` : ''}
-        </a>
-      </div>
+        </div>
+      </a>
     `).join('');
 
-    listEl.querySelectorAll('[data-remove]').forEach(btn => {
+    listEl.querySelectorAll('.remove-fav-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         const href = (btn as HTMLElement).dataset.remove!;
         const updated = getFavs().filter(f => f.href !== href);

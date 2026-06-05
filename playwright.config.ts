@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 30000,
   retries: 0,
   use: {
-    baseURL: 'https://xconvert24-com.xconvert.workers.dev',
+    baseURL: 'https://www.xconvert24.com',
     headless: true,
   },
 });

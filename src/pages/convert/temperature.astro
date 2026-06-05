@@ -47,6 +47,61 @@ const units = [
       <div id="formula" aria-live="polite" class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 font-mono">°F = (°C × 9/5) + 32</div>
     </div>
 
+    <!-- Thermometer Visual -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Visual Thermometer</h2>
+      <div class="flex items-center gap-8 justify-center">
+        <!-- SVG Thermometer -->
+        <div class="relative" style="width: 60px; height: 280px;">
+          <!-- Thermometer body -->
+          <svg width="60" height="280" viewBox="0 0 60 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer body -->
+            <rect x="18" y="10" width="24" height="210" rx="12" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.5"/>
+            <!-- Bulb -->
+            <circle cx="30" cy="245" r="25" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1.5"/>
+            <!-- Inner tube (mercury) -->
+            <rect id="thermo-tube" x="24" y="20" width="12" height="190" rx="6" fill="#d1d5db"/>
+            <!-- Mercury fill (dynamic) -->
+            <rect id="thermo-fill" x="24" y="110" width="12" height="100" rx="6" fill="#ef4444"/>
+            <!-- Bulb fill -->
+            <circle id="thermo-bulb" cx="30" cy="245" r="18" fill="#ef4444"/>
+            <!-- Scale marks -->
+            <line x1="43" y1="25" x2="50" y2="25" stroke="#6b7280" stroke-width="1"/>
+            <text x="53" y="29" font-size="8" fill="#6b7280" font-family="Inter,sans-serif">100°</text>
+            <line x1="43" y1="72" x2="48" y2="72" stroke="#6b7280" stroke-width="0.5"/>
+            <line x1="43" y1="120" x2="50" y2="120" stroke="#6b7280" stroke-width="1"/>
+            <text x="53" y="124" font-size="8" fill="#6b7280" font-family="Inter,sans-serif">50°</text>
+            <line x1="43" y1="167" x2="48" y2="167" stroke="#6b7280" stroke-width="0.5"/>
+            <line x1="43" y1="215" x2="50" y2="215" stroke="#6b7280" stroke-width="1"/>
+            <text x="53" y="219" font-size="8" fill="#6b7280" font-family="Inter,sans-serif">0°</text>
+          </svg>
+          <!-- Temperature display on thermometer -->
+          <div id="thermo-temp-display" class="absolute left-0 right-0 text-center font-bold text-sm" style="top: 235px; color: white;">37°C</div>
+        </div>
+        <!-- Slider & readouts -->
+        <div class="flex flex-col items-center gap-4 flex-1 max-w-xs">
+          <div class="text-center">
+            <p id="thermo-celsius" class="text-4xl font-bold text-gray-900 dark:text-white">37°C</p>
+            <p id="thermo-fahrenheit" class="text-xl text-gray-500 dark:text-gray-400 mt-1">98.6°F</p>
+            <p id="thermo-kelvin" class="text-base text-gray-400 dark:text-gray-500 mt-0.5">310.15 K</p>
+          </div>
+          <!-- Temperature description -->
+          <div id="thermo-desc" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">Body Temperature</div>
+          <!-- Slider -->
+          <div class="w-full">
+            <input id="thermo-slider" type="range" min="-50" max="150" value="37" class="w-full h-3 rounded-full appearance-none cursor-pointer" style="background: linear-gradient(to right, #3b82f6, #6b7280, #f59e0b, #ef4444);"/>
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+              <span>-50°C</span>
+              <span>0°C</span>
+              <span>50°C</span>
+              <span>100°C</span>
+              <span>150°C</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
       <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
         <h2 class="font-semibold text-gray-900 dark:text-white">Common Temperatures</h2>
@@ -145,4 +200,70 @@ const units = [
     const tmp = fromUnit.value; fromUnit.value = toUnit.value; toUnit.value = tmp; update();
   });
   update();
+
+  // ── Thermometer visual ──────────────────────────────────────────────────
+  const thermoSlider = document.getElementById('thermo-slider') as HTMLInputElement;
+  const thermoFill = document.getElementById('thermo-fill')!;
+  const thermoBulb = document.getElementById('thermo-bulb')!;
+  const thermoCelsius = document.getElementById('thermo-celsius')!;
+  const thermoFahrenheit = document.getElementById('thermo-fahrenheit')!;
+  const thermoKelvin = document.getElementById('thermo-kelvin')!;
+  const thermoDesc = document.getElementById('thermo-desc')!;
+  const thermoTempDisplay = document.getElementById('thermo-temp-display')!;
+
+  function updateThermometer() {
+    const celsius = parseFloat(thermoSlider.value);
+    const fahrenheit = celsius * 9 / 5 + 32;
+    const kelvin = celsius + 273.15;
+
+    thermoCelsius.textContent = `${celsius}°C`;
+    thermoFahrenheit.textContent = `${fahrenheit.toFixed(1)}°F`;
+    thermoKelvin.textContent = `${kelvin.toFixed(2)} K`;
+    thermoTempDisplay.textContent = `${celsius}°`;
+
+    // Calculate fill height (range: -50 to 150 maps to tube y:215 down to y:25)
+    const pct = (celsius - (-50)) / (150 - (-50)); // 0 to 1
+    const tubeTop = 25;
+    const tubeBottom = 215;
+    const tubeHeight = tubeBottom - tubeTop;
+    const fillHeight = pct * tubeHeight;
+    const fillY = tubeBottom - fillHeight;
+
+    thermoFill.setAttribute('y', fillY.toString());
+    thermoFill.setAttribute('height', fillHeight.toString());
+
+    // Color gradient: blue (cold) → gray → orange → red (hot)
+    let color: string;
+    if (celsius <= -20) color = '#2563eb'; // deep blue
+    else if (celsius <= 0) { const t = (celsius + 20) / 20; color = interpolateColor('#2563eb', '#6b7280', t); }
+    else if (celsius <= 30) { const t = celsius / 30; color = interpolateColor('#6b7280', '#f59e0b', t); }
+    else if (celsius <= 60) { const t = (celsius - 30) / 30; color = interpolateColor('#f59e0b', '#ef4444', t); }
+    else { const t = Math.min(1, (celsius - 60) / 90); color = interpolateColor('#ef4444', '#7f1d1d', t); }
+
+    thermoFill.setAttribute('fill', color);
+    thermoBulb.setAttribute('fill', color);
+
+    // Description
+    let desc = '';
+    if (celsius <= -40) desc = '🥶 Extreme Cold';
+    else if (celsius <= -10) desc = '❄️ Freezing';
+    else if (celsius <= 0) desc = '🧊 Below Freezing';
+    else if (celsius <= 15) desc = '🧥 Cold';
+    else if (celsius <= 25) desc = '😊 Room Temperature';
+    else if (celsius <= 37) desc = '🌤️ Warm';
+    else if (celsius <= 45) desc = '🔥 Hot';
+    else if (celsius <= 100) desc = '♨️ Very Hot';
+    else desc = '🌋 Extreme Heat';
+    thermoDesc.textContent = desc;
+  }
+
+  function interpolateColor(c1: string, c2: string, t: number): string {
+    const r1 = parseInt(c1.slice(1, 3), 16), g1 = parseInt(c1.slice(3, 5), 16), b1 = parseInt(c1.slice(5, 7), 16);
+    const r2 = parseInt(c2.slice(1, 3), 16), g2 = parseInt(c2.slice(3, 5), 16), b2 = parseInt(c2.slice(5, 7), 16);
+    const r = Math.round(r1 + (r2 - r1) * t), g = Math.round(g1 + (g2 - g1) * t), b = Math.round(b1 + (b2 - b1) * t);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  thermoSlider.addEventListener('input', updateThermometer);
+  updateThermometer();
 </script>

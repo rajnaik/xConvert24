@@ -1,0 +1,146 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+import { VERSION } from '../../data/siteStats';
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test Results | xConvert24 Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-link { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .summary-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .summary-item { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px 18px; text-align: center; min-width: 100px; }
+    .summary-value { font-size: 24px; font-weight: 700; }
+    .summary-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+    .val-pass { color: #4ade80; }
+    .val-fail { color: #f87171; }
+    .val-skip { color: #fbbf24; }
+    .val-total { color: #60a5fa; }
+    .run-list { display: flex; flex-direction: column; gap: 16px; }
+    .run-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+    .run-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #1f2937; border-bottom: 1px solid #374151; cursor: pointer; }
+    .run-header:hover { background: #1f2937e0; }
+    .run-version { font-size: 13px; font-weight: 700; color: #fbbf24; font-family: monospace; }
+    .run-meta { font-size: 11px; color: #6b7280; display: flex; align-items: center; gap: 10px; }
+    .run-badge { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+    .badge-pass { background: #16a34a20; color: #4ade80; }
+    .badge-fail { background: #dc262620; color: #f87171; }
+    .badge-partial { background: #fbbf2420; color: #fbbf24; }
+    .run-body { padding: 12px 18px; display: none; }
+    .run-body.open { display: block; }
+    .test-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; font-size: 12px; }
+    .test-row:hover { background: #0f172a; }
+    .test-icon { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+    .icon-pass { background: #16a34a; color: white; }
+    .icon-fail { background: #dc2626; color: white; }
+    .icon-skip { background: #ca8a04; color: white; }
+    .test-name { flex: 1; color: #d1d5db; }
+    .test-duration { font-size: 10px; color: #6b7280; font-family: monospace; }
+    .empty-state { text-align: center; padding: 40px; color: #6b7280; font-size: 13px; }
+    .run-btn { padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .run-btn:hover { background: #15803d; }
+    .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🧪 Test Results</div>
+    <a href="/admin" class="back-link">← Dashboard</a>
+  </div>
+
+  <div class="container">
+    <h1>🧪 Test Results</h1>
+    <p class="subtitle">Post-build test runs against www.xconvert24.com. Latest on top.</p>
+
+    <!-- Summary from latest run -->
+    <div class="summary-bar" id="summary-bar">
+      <div class="summary-item"><div class="summary-value val-total" id="sum-total">—</div><div class="summary-label">Total</div></div>
+      <div class="summary-item"><div class="summary-value val-pass" id="sum-pass">—</div><div class="summary-label">Passed</div></div>
+      <div class="summary-item"><div class="summary-value val-fail" id="sum-fail">—</div><div class="summary-label">Failed</div></div>
+      <div class="summary-item"><div class="summary-value val-skip" id="sum-skip">—</div><div class="summary-label">Skipped</div></div>
+    </div>
+
+    <div id="run-list" class="run-list">
+      <div class="empty-state">No test runs recorded yet. Tests run automatically after each deploy.</div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    function renderRuns(runs) {
+      var container = document.getElementById('run-list');
+      var sumTotal = document.getElementById('sum-total');
+      var sumPass = document.getElementById('sum-pass');
+      var sumFail = document.getElementById('sum-fail');
+      var sumSkip = document.getElementById('sum-skip');
+
+      if (!runs.length) {
+        container.innerHTML = '<div class="empty-state">No test runs recorded yet. Tests run automatically after each deploy.</div>';
+        return;
+      }
+
+      // Summary from latest run
+      var latest = runs[0];
+      sumTotal.textContent = latest.total || 0;
+      sumPass.textContent = latest.passed || 0;
+      sumFail.textContent = latest.failed || 0;
+      sumSkip.textContent = latest.skipped || 0;
+
+      container.innerHTML = runs.map(function(run, idx) {
+        var date = new Date(run.timestamp);
+        var dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        var allPass = run.failed === 0;
+        var badgeClass = allPass ? 'badge-pass' : run.passed > 0 ? 'badge-partial' : 'badge-fail';
+        var badgeText = allPass ? '✓ All Passed' : run.failed + ' Failed';
+
+        var tests = run.tests || [];
+        var testsHtml = tests.map(function(t) {
+          var iconClass = t.status === 'pass' ? 'icon-pass' : t.status === 'fail' ? 'icon-fail' : 'icon-skip';
+          var icon = t.status === 'pass' ? '✓' : t.status === 'fail' ? '✗' : '—';
+          return '<div class="test-row"><div class="test-icon ' + iconClass + '">' + icon + '</div><span class="test-name">' + escapeHtml(t.name) + '</span><span class="test-duration">' + (t.duration || '') + '</span></div>';
+        }).join('');
+
+        return '<div class="run-card">' +
+          '<div class="run-header" data-idx="' + idx + '">' +
+            '<div><span class="run-version">v' + (run.version || '?') + '</span></div>' +
+            '<div class="run-meta"><span class="run-badge ' + badgeClass + '">' + badgeText + '</span><span>' + run.total + ' tests • ' + (run.duration || '—') + '</span><span>' + dateStr + '</span></div>' +
+          '</div>' +
+          '<div class="run-body" id="run-body-' + idx + '">' + testsHtml + '</div>' +
+        '</div>';
+      }).join('');
+
+      // Toggle expand
+      container.querySelectorAll('.run-header').forEach(function(hdr) {
+        hdr.addEventListener('click', function() {
+          var idx = hdr.getAttribute('data-idx');
+          var body = document.getElementById('run-body-' + idx);
+          body.classList.toggle('open');
+        });
+      });
+    }
+
+    function escapeHtml(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // Fetch from API (with fallback for local dev)
+    fetch('/api/test-runs')
+      .then(function(r) { if (!r.ok) throw new Error('not available'); return r.json(); })
+      .then(function(data) { renderRuns(data.runs || []); })
+      .catch(function() {
+        document.getElementById('run-list').innerHTML = '<div class="empty-state">Test data is stored in D1 (production only). Visit <a href="https://www.xconvert24.com/admin/tests" style="color:#fbbf24;">the live admin</a> to see results, or deploy first.</div>';
+      });
+  })();
+  </script>
+</body>
+</html>

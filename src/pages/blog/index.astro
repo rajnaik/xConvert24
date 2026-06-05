@@ -1,54 +1,68 @@
 ---
-export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
+import { getPublishedSlugs } from '../../lib/blogGate';
 
-const posts = [
-  {
-    slug: 'how-to-convert-celsius-to-fahrenheit',
-    title: 'How to Convert Celsius to Fahrenheit (With Quick Mental Math)',
-    excerpt: 'Learn the formula, shortcuts, and when you need each scale. Plus a handy chart for common temperatures.',
-    date: 'June 4, 2025',
-    readTime: '4 min',
-    category: 'Temperature',
-    icon: '🌡️',
-  },
-  {
-    slug: 'kg-to-lbs-conversion-guide',
-    title: 'Kilograms to Pounds: The Complete Conversion Guide',
-    excerpt: 'Everything you need to know about converting kg to lbs — formulas, shortcuts, charts, and real-world examples.',
-    date: 'June 4, 2025',
-    readTime: '5 min',
-    category: 'Weight',
-    icon: '⚖️',
-  },
-  {
-    slug: 'metric-vs-imperial-which-countries',
-    title: 'Metric vs Imperial: Which Countries Use Which System?',
-    excerpt: 'Only 3 countries still officially use the imperial system. Here\'s the full breakdown and why it matters for travellers.',
-    date: 'June 4, 2025',
-    readTime: '6 min',
-    category: 'General',
-    icon: '🌍',
-  },
-  {
-    slug: 'tipping-guide-around-the-world',
-    title: 'Tipping Etiquette Around the World: A Complete Guide',
-    excerpt: 'From 20% in the US to "don\'t tip" in Japan. Know the customs before you travel.',
-    date: 'June 4, 2025',
-    readTime: '5 min',
-    category: 'Finance',
-    icon: '💰',
-  },
-  {
-    slug: 'understanding-cryptocurrency-market-cap',
-    title: 'What is Crypto Market Cap and Why Does It Matter?',
-    excerpt: 'Market cap explained simply — how it\'s calculated, what it tells you, and why price alone is misleading.',
-    date: 'June 4, 2025',
-    readTime: '4 min',
-    category: 'Crypto',
-    icon: '₿',
-  },
+// All blog posts with metadata
+const allPosts = [
+  { slug: 'how-to-convert-celsius-to-fahrenheit', title: 'How to Convert Celsius to Fahrenheit (With Quick Mental Math)', excerpt: 'Learn the formula, shortcuts, and when you need each scale.', date: 'June 5, 2025', readTime: '4 min', category: 'Temperature', icon: '🌡️' },
+  { slug: 'how-to-convert-kg-to-lbs', title: 'Kilograms to Pounds: The Complete Conversion Guide', excerpt: 'Everything you need to know about converting kg to lbs.', date: 'June 5, 2025', readTime: '5 min', category: 'Weight', icon: '⚖️' },
+  { slug: 'how-tall-is-6-feet-in-cm', title: 'How Tall is 6 Feet in Centimetres?', excerpt: 'Height conversions explained for international contexts.', date: 'June 6, 2025', readTime: '3 min', category: 'Length', icon: '📏' },
+  { slug: 'cups-to-ml-baking-conversion', title: 'Cups to Millilitres: Baking Conversion Guide', excerpt: 'Convert cup measurements to ml for international recipes.', date: 'June 7, 2025', readTime: '4 min', category: 'Cooking', icon: '🍳' },
+  { slug: 'speed-limits-around-the-world', title: 'Speed Limits Around the World (km/h vs mph)', excerpt: 'A global comparison of speed limits and unit systems.', date: 'June 8, 2025', readTime: '5 min', category: 'Speed', icon: '🚀' },
+  { slug: 'understanding-tire-pressure-psi', title: 'Understanding Tyre Pressure: PSI, Bar & kPa', excerpt: 'What your tyre pressure numbers mean and how to convert.', date: 'June 9, 2025', readTime: '4 min', category: 'Pressure', icon: '🔩' },
+  { slug: 'mb-vs-gb-explained-simply', title: 'MB vs GB Explained Simply', excerpt: 'Data storage units demystified for everyday use.', date: 'June 10, 2025', readTime: '3 min', category: 'Data', icon: '💾' },
+  { slug: 'world-time-zones-explained', title: 'World Time Zones Explained', excerpt: 'How time zones work, UTC offsets, and daylight saving.', date: 'June 11, 2025', readTime: '5 min', category: 'Time', icon: '🌍' },
+  { slug: 'horsepower-vs-kilowatts-cars', title: 'Horsepower vs Kilowatts: Car Power Explained', excerpt: 'What HP and kW mean for your vehicle.', date: 'June 12, 2025', readTime: '4 min', category: 'Power', icon: '🔋' },
+  { slug: 'driving-distances-km-vs-miles', title: 'Driving Distances: km vs Miles', excerpt: 'Quick conversions for road trips across borders.', date: 'June 13, 2025', readTime: '3 min', category: 'Length', icon: '📏' },
+  { slug: 'calories-vs-kilocalories', title: 'Calories vs Kilocalories: What You Actually Burn', excerpt: 'The confusing cal/kcal distinction explained.', date: 'June 14, 2025', readTime: '4 min', category: 'Energy', icon: '⚡' },
+  { slug: 'gold-weight-troy-ounces', title: 'Gold Weight: Troy Ounces Explained', excerpt: 'Why gold uses a different ounce system.', date: 'June 15, 2025', readTime: '4 min', category: 'Weight', icon: '⚖️' },
+  { slug: 'how-much-is-1tb-of-storage', title: 'How Much is 1TB of Storage?', excerpt: 'Putting terabytes in real-world perspective.', date: 'June 16, 2025', readTime: '3 min', category: 'Data', icon: '💾' },
+  { slug: 'mortgage-vs-rent-calculator-guide', title: 'Mortgage vs Rent: Calculator Guide', excerpt: 'When buying makes financial sense vs renting.', date: 'June 17, 2025', readTime: '6 min', category: 'Finance', icon: '🏦' },
+  { slug: 'oven-temperatures-celsius-fahrenheit', title: 'Oven Temperatures: °C to °F Chart', excerpt: 'Essential cooking temperature conversions.', date: 'June 18, 2025', readTime: '3 min', category: 'Temperature', icon: '🌡️' },
+  { slug: 'internet-speed-mbps-explained', title: 'Internet Speed: Mbps Explained', excerpt: 'What your download speed actually means.', date: 'June 19, 2025', readTime: '4 min', category: 'Data', icon: '💾' },
+  { slug: 'healthy-weight-loss-rate-per-week', title: 'Healthy Weight Loss Rate Per Week', excerpt: 'How many kg/lbs per week is safe to lose.', date: 'June 20, 2025', readTime: '4 min', category: 'Health', icon: '🧍' },
+  { slug: 'fever-temperature-what-is-normal', title: 'Fever Temperature: What is Normal?', excerpt: 'Normal body temperature ranges in °C and °F.', date: 'June 21, 2025', readTime: '3 min', category: 'Temperature', icon: '🌡️' },
+  { slug: 'binary-vs-decimal-storage-confusion', title: 'Binary vs Decimal Storage Confusion', excerpt: 'Why your 1TB drive only shows 931 GB.', date: 'June 22, 2025', readTime: '4 min', category: 'Data', icon: '💾' },
+  { slug: 'best-time-to-exchange-currency', title: 'Best Time to Exchange Currency', excerpt: 'Tips for getting the best exchange rates.', date: 'June 23, 2025', readTime: '5 min', category: 'Currency', icon: '💱' },
+  { slug: 'understanding-cryptocurrency-basics', title: 'Understanding Cryptocurrency Basics', excerpt: 'Bitcoin, blockchain, and market cap explained.', date: 'June 24, 2025', readTime: '6 min', category: 'Crypto', icon: '₿' },
+  { slug: 'feet-and-inches-to-cm-height', title: 'Feet and Inches to CM: Height Conversion', excerpt: 'Convert height between imperial and metric.', date: 'June 25, 2025', readTime: '3 min', category: 'Length', icon: '📏' },
+  { slug: 'how-many-days-until-christmas', title: 'How Many Days Until Christmas?', excerpt: 'Date calculator fun and countdown math.', date: 'June 26, 2025', readTime: '3 min', category: 'Time', icon: '📅' },
+  { slug: 'how-many-liters-in-a-gallon', title: 'How Many Litres in a Gallon?', excerpt: 'US vs UK gallons and litre conversions.', date: 'June 27, 2025', readTime: '4 min', category: 'Volume', icon: '🧪' },
+  { slug: 'body-weight-metric-vs-imperial', title: 'Body Weight: Metric vs Imperial', excerpt: 'Why different countries weigh people differently.', date: 'June 28, 2025', readTime: '4 min', category: 'Weight', icon: '⚖️' },
+  { slug: 'wind-speed-knots-to-mph', title: 'Wind Speed: Knots to MPH', excerpt: 'Maritime and aviation speed conversions.', date: 'June 29, 2025', readTime: '3 min', category: 'Speed', icon: '🚀' },
+  { slug: 'fuel-economy-mpg-vs-l100km', title: 'Fuel Economy: MPG vs L/100km', excerpt: 'Comparing fuel efficiency across systems.', date: 'June 30, 2025', readTime: '4 min', category: 'Fuel', icon: '⛽' },
+  { slug: 'what-is-a-stone-in-weight', title: 'What is a Stone in Weight?', excerpt: 'The UK stone measurement explained.', date: 'July 1, 2025', readTime: '3 min', category: 'Weight', icon: '⚖️' },
+  { slug: 'room-measurements-meters-to-feet', title: 'Room Measurements: Metres to Feet', excerpt: 'Measuring rooms when buying/renting property.', date: 'July 2, 2025', readTime: '4 min', category: 'Length', icon: '📏' },
+  { slug: 'tablespoon-to-ml-medicine', title: 'Tablespoon to ML: Medicine Dosing', excerpt: 'Accurate liquid medication measurements.', date: 'July 3, 2025', readTime: '3 min', category: 'Cooking', icon: '🍳' },
+  { slug: 'rgb-vs-cmyk-when-to-use', title: 'RGB vs CMYK: When to Use Each', excerpt: 'Colour models for screen vs print.', date: 'July 4, 2025', readTime: '4 min', category: 'Creative', icon: '🎨' },
+  { slug: 'how-far-is-a-nautical-mile', title: 'How Far is a Nautical Mile?', excerpt: 'Why sailors use a different mile.', date: 'July 5, 2025', readTime: '3 min', category: 'Length', icon: '📏' },
+  { slug: 'bmi-limitations-muscle-vs-fat', title: 'BMI Limitations: Muscle vs Fat', excerpt: 'Why BMI alone does not tell the full story.', date: 'July 6, 2025', readTime: '4 min', category: 'Health', icon: '🧍' },
+  { slug: 'compound-interest-explained', title: 'Compound Interest Explained', excerpt: 'How your money grows exponentially over time.', date: 'July 7, 2025', readTime: '5 min', category: 'Finance', icon: '🏦' },
+  { slug: 'miles-to-kilometers-running', title: 'Miles to Kilometres: For Runners', excerpt: '5K, 10K, half marathon distances explained.', date: 'July 8, 2025', readTime: '3 min', category: 'Length', icon: '📏' },
+  { slug: 'age-calculator-exact-days-alive', title: 'Age Calculator: Exact Days Alive', excerpt: 'Calculate your precise age in days, hours, seconds.', date: 'July 9, 2025', readTime: '3 min', category: 'Time', icon: '🎂' },
+  { slug: 'baby-weight-conversion-chart', title: 'Baby Weight Conversion Chart', excerpt: 'Newborn weight in kg, lbs, and oz.', date: 'July 10, 2025', readTime: '3 min', category: 'Weight', icon: '⚖️' },
+  { slug: 'pomodoro-technique-timer-guide', title: 'Pomodoro Technique Timer Guide', excerpt: 'Time management with 25-minute focus blocks.', date: 'July 11, 2025', readTime: '4 min', category: 'Time', icon: '⏱️' },
+  { slug: 'us-vs-uk-pint-difference', title: 'US vs UK Pint: The Difference', excerpt: 'Why a British pint is bigger than an American one.', date: 'July 12, 2025', readTime: '3 min', category: 'Volume', icon: '🧪' },
+  { slug: 'luggage-weight-kg-to-lbs', title: 'Luggage Weight: kg to lbs for Travel', excerpt: 'Airline weight limits and conversions.', date: 'July 13, 2025', readTime: '3 min', category: 'Weight', icon: '⚖️' },
+  { slug: 'what-is-mach-speed', title: 'What is Mach Speed?', excerpt: 'The speed of sound and supersonic travel.', date: 'July 14, 2025', readTime: '4 min', category: 'Speed', icon: '🚀' },
+  { slug: 'weather-temperature-conversion-travel', title: 'Weather Temperature for Travel', excerpt: 'Converting forecasts for your destination.', date: 'July 15, 2025', readTime: '3 min', category: 'Temperature', icon: '🌡️' },
+  { slug: 'hex-color-codes-explained', title: 'Hex Colour Codes Explained', excerpt: 'How #FF5733 becomes orange on screen.', date: 'July 16, 2025', readTime: '4 min', category: 'Creative', icon: '🎨' },
+  { slug: 'understanding-millimeters-in-engineering', title: 'Millimetres in Engineering', excerpt: 'Why precision manufacturing uses mm.', date: 'July 17, 2025', readTime: '4 min', category: 'Length', icon: '📏' },
+  { slug: 'what-is-kelvin-temperature', title: 'What is Kelvin Temperature?', excerpt: 'Absolute zero and the scientific scale.', date: 'July 18, 2025', readTime: '4 min', category: 'Temperature', icon: '🌡️' },
+  { slug: 'water-intake-liters-per-day', title: 'Water Intake: Litres Per Day', excerpt: 'How much water you really need daily.', date: 'July 19, 2025', readTime: '3 min', category: 'Volume', icon: '🧪' },
+  { slug: 'bmi-what-is-a-healthy-weight', title: 'BMI: What is a Healthy Weight?', excerpt: 'Understanding BMI categories and ranges.', date: 'July 20, 2025', readTime: '4 min', category: 'Health', icon: '🧍' },
+  { slug: 'grams-to-ounces-for-cooking', title: 'Grams to Ounces for Cooking', excerpt: 'Kitchen weight conversions made simple.', date: 'July 21, 2025', readTime: '3 min', category: 'Cooking', icon: '🍳' },
+  { slug: 'freezing-and-boiling-points-all-scales', title: 'Freezing & Boiling Points: All Scales', excerpt: 'Compare C, F, K at key temperature landmarks.', date: 'July 22, 2025', readTime: '3 min', category: 'Temperature', icon: '🌡️' },
+  { slug: 'how-exchange-rates-work', title: 'How Exchange Rates Work', excerpt: 'Supply, demand, and central bank influence.', date: 'July 23, 2025', readTime: '5 min', category: 'Currency', icon: '💱' },
+  { slug: 'why-world-uses-different-units', title: 'Why the World Uses Different Units', excerpt: 'The history behind metric vs imperial.', date: 'July 24, 2025', readTime: '6 min', category: 'General', icon: '🌍' },
 ];
+
+// Get published slugs from D1 (on production) or show all (local dev)
+const publishedSlugs = await getPublishedSlugs();
+const isProduction = publishedSlugs.length > 0;
+const posts = isProduction 
+  ? allPosts.filter(p => publishedSlugs.includes(p.slug))
+  : allPosts; // Show all on local dev
 ---
 
 <Layout title="Blog — Conversion Tips, Guides & Insights" description="Helpful articles about unit conversion, measurement systems, currency exchange, crypto, and everyday calculation tips." keywords="conversion blog, unit converter tips, metric imperial guide, currency exchange explained, crypto market cap">

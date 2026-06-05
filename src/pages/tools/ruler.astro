@@ -1,0 +1,359 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Online Ruler — Measure in CM, MM & Inches" description="Free online ruler for your screen. Measure objects in centimeters, millimeters, and inches. Calibrate for accurate real-world measurements on any device." keywords="online ruler, screen ruler, virtual ruler, measure cm, measure inches, pixel ruler, actual size ruler, calibrate screen">
+  <div class="max-w-4xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">📏</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Online Ruler</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Place an object against your screen to measure it. Calibrate first for accurate results.</p>
+    </div>
+
+    <!-- Controls row -->
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <!-- Unit selector -->
+      <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <button data-unit="cm" class="unit-btn px-3 py-1.5 rounded-md text-xs font-semibold bg-amber-500 text-white">CM</button>
+        <button data-unit="mm" class="unit-btn px-3 py-1.5 rounded-md text-xs font-semibold text-gray-500 dark:text-gray-400">MM</button>
+        <button data-unit="in" class="unit-btn px-3 py-1.5 rounded-md text-xs font-semibold text-gray-500 dark:text-gray-400">Inches</button>
+      </div>
+      <!-- Orientation -->
+      <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <label class="flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer text-xs font-semibold transition-colors" id="orient-h-label">
+          <input type="radio" name="orientation" value="horizontal" checked class="hidden" id="orient-h"/>
+          <span>↔ Horizontal</span>
+        </label>
+        <label class="flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer text-xs font-semibold text-gray-500 dark:text-gray-400 transition-colors" id="orient-v-label">
+          <input type="radio" name="orientation" value="vertical" class="hidden" id="orient-v"/>
+          <span>↕ Vertical</span>
+        </label>
+      </div>
+      <!-- Pick up / Drop -->
+      <button id="pickup-btn" class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg text-xs font-semibold text-gray-600 dark:text-gray-300 transition-colors border border-gray-200 dark:border-gray-700">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/></svg>
+        <span id="pickup-label">Pick Up</span>
+      </button>
+    </div>
+
+    <!-- Calibration -->
+    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-4 mb-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">Calibrate for Accuracy</h2>
+          <p class="text-xs text-amber-700 dark:text-amber-400">Hold a credit card (85.6mm) against the ruler and adjust PPI until it matches.</p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="ppi-minus" class="w-7 h-7 flex items-center justify-center rounded bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 font-bold text-sm hover:bg-amber-300 dark:hover:bg-amber-700">−</button>
+          <input id="ppi-input" type="number" min="50" max="600" value="96" class="w-16 h-7 text-center text-sm font-mono font-bold bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 rounded text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+          <button id="ppi-plus" class="w-7 h-7 flex items-center justify-center rounded bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 font-bold text-sm hover:bg-amber-300 dark:hover:bg-amber-700">+</button>
+          <!-- Auto-detect toggle -->
+          <label class="flex items-center gap-1.5 ml-2 cursor-pointer">
+            <div class="relative">
+              <input type="checkbox" id="auto-ppi" class="sr-only"/>
+              <div class="w-8 h-4 bg-gray-300 dark:bg-gray-600 rounded-full transition-colors" id="auto-ppi-track"></div>
+              <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform" id="auto-ppi-dot"></div>
+            </div>
+            <span class="text-xs text-amber-700 dark:text-amber-400 font-medium">Auto-detect</span>
+          </label>
+          <button id="ppi-reset" class="px-2 h-7 text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline">Reset</button>
+        </div>
+      </div>
+      <p class="text-xs text-amber-600 dark:text-amber-500 mt-2" id="ppi-info">Browser reports device pixel ratio: <span id="dpr-value"></span> → estimated PPI: <span id="estimated-ppi"></span></p>
+    </div>
+
+    <!-- Ruler container (moveable) -->
+    <div id="ruler-wrapper" class="relative" style="touch-action: none;">
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+        <canvas id="ruler-canvas" class="cursor-crosshair" style="width: 200px; height: 50vh; min-height: 300px;"></canvas>
+      </div>
+    </div>
+
+    <!-- Measurement readout -->
+    <div class="mt-4 flex items-center justify-center gap-4">
+      <div class="text-center">
+        <p class="text-xs text-gray-500 dark:text-gray-400">Measurement</p>
+        <p id="measurement-readout" class="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">0.00 cm</p>
+      </div>
+    </div>
+    <p class="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">Click and drag on the ruler to measure a length</p>
+
+    <!-- Info -->
+    <div class="mt-8 prose dark:prose-invert prose-sm max-w-none">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">How to Use</h2>
+      <ol class="text-gray-600 dark:text-gray-400 text-sm">
+        <li><strong>Calibrate</strong> — Turn on Auto-detect or manually adjust PPI. Verify with a credit card (85.6mm / 3.37").</li>
+        <li><strong>Choose unit</strong> — CM, MM, or Inches.</li>
+        <li><strong>Choose orientation</strong> — Horizontal or Vertical.</li>
+        <li><strong>Measure</strong> — Click and drag along the ruler, or place an object against the screen.</li>
+        <li><strong>Pick Up</strong> — Click "Pick Up" to make the ruler moveable. Drag it anywhere on screen and click "Drop" to anchor it.</li>
+      </ol>
+      <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">About Auto-detect</h3>
+      <p class="text-gray-600 dark:text-gray-400">The browser reports your device's pixel ratio (DPR). We multiply your screen's CSS pixel resolution by DPR to estimate physical PPI. This is a good starting point but may not be exact — a credit card test gives the best calibration.</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const canvas = document.getElementById('ruler-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const ppiInput = document.getElementById('ppi-input') as HTMLInputElement;
+  const ppiMinus = document.getElementById('ppi-minus')!;
+  const ppiPlus = document.getElementById('ppi-plus')!;
+  const ppiReset = document.getElementById('ppi-reset')!;
+  const readout = document.getElementById('measurement-readout')!;
+  const rulerWrapper = document.getElementById('ruler-wrapper')!;
+  const pickupBtn = document.getElementById('pickup-btn')!;
+  const pickupLabel = document.getElementById('pickup-label')!;
+  const autoPpiCheckbox = document.getElementById('auto-ppi') as HTMLInputElement;
+  const autoPpiTrack = document.getElementById('auto-ppi-track')!;
+  const autoPpiDot = document.getElementById('auto-ppi-dot')!;
+  const dprValueEl = document.getElementById('dpr-value')!;
+  const estimatedPpiEl = document.getElementById('estimated-ppi')!;
+
+  let currentUnit = 'cm';
+  let orientation = 'horizontal';
+  let ppi = parseFloat(localStorage.getItem('xconvert24-ruler-ppi') || '0');
+  let isPickedUp = false;
+  let isDragging = false;
+  let dragStart = 0;
+  let dragEnd = 0;
+  let rulerOffsetX = 0;
+  let rulerOffsetY = 0;
+  let moveStartX = 0;
+  let moveStartY = 0;
+
+  // Auto-detect PPI
+  const dpr = window.devicePixelRatio || 1;
+  const estimatedPpi = Math.round(96 * dpr); // CSS reference pixel is 96dpi
+  dprValueEl.textContent = dpr.toFixed(2);
+  estimatedPpiEl.textContent = estimatedPpi.toString();
+
+  if (!ppi) { ppi = estimatedPpi; ppiInput.value = ppi.toString(); }
+  else { ppiInput.value = ppi.toString(); }
+
+  // Auto-detect toggle
+  const autoDetectStored = localStorage.getItem('xconvert24-ruler-auto') === '1';
+  if (autoDetectStored) { enableAutoDetect(); }
+
+  function enableAutoDetect() {
+    autoPpiCheckbox.checked = true;
+    autoPpiTrack.classList.add('!bg-amber-500');
+    autoPpiDot.classList.add('!translate-x-4');
+    ppi = estimatedPpi;
+    ppiInput.value = ppi.toString();
+    ppiInput.disabled = true;
+    localStorage.setItem('xconvert24-ruler-auto', '1');
+    savePpi();
+    drawRuler();
+  }
+
+  function disableAutoDetect() {
+    autoPpiCheckbox.checked = false;
+    autoPpiTrack.classList.remove('!bg-amber-500');
+    autoPpiDot.classList.remove('!translate-x-4');
+    ppiInput.disabled = false;
+    localStorage.setItem('xconvert24-ruler-auto', '0');
+  }
+
+  autoPpiTrack.parentElement!.addEventListener('click', () => {
+    if (autoPpiCheckbox.checked) disableAutoDetect();
+    else enableAutoDetect();
+  });
+
+  // Unit buttons
+  document.querySelectorAll('.unit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentUnit = (btn as HTMLElement).dataset.unit!;
+      document.querySelectorAll('.unit-btn').forEach(b => {
+        const active = (b as HTMLElement).dataset.unit === currentUnit;
+        (b as HTMLElement).className = `unit-btn px-3 py-1.5 rounded-md text-xs font-semibold ${active ? 'bg-amber-500 text-white' : 'text-gray-500 dark:text-gray-400'}`;
+      });
+      drawRuler();
+    });
+  });
+
+  // Orientation
+  const orientH = document.getElementById('orient-h') as HTMLInputElement;
+  const orientV = document.getElementById('orient-v') as HTMLInputElement;
+  const orientHLabel = document.getElementById('orient-h-label')!;
+  const orientVLabel = document.getElementById('orient-v-label')!;
+
+  function setOrientation(val: string) {
+    orientation = val;
+    if (val === 'horizontal') {
+      canvas.style.width = '200px'; canvas.style.height = '50vh'; canvas.style.minHeight = '300px';
+      orientHLabel.className = 'flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer text-xs font-semibold bg-amber-500 text-white transition-colors';
+      orientVLabel.className = 'flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer text-xs font-semibold text-gray-500 dark:text-gray-400 transition-colors';
+    } else {
+      canvas.style.width = '50vw'; canvas.style.height = '80vh'; canvas.style.minHeight = '400px';
+      orientVLabel.className = 'flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer text-xs font-semibold bg-amber-500 text-white transition-colors';
+      orientHLabel.className = 'flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer text-xs font-semibold text-gray-500 dark:text-gray-400 transition-colors';
+    }
+    dragStart = 0; dragEnd = 0;
+    drawRuler();
+  }
+
+  orientHLabel.addEventListener('click', () => setOrientation('horizontal'));
+  orientVLabel.addEventListener('click', () => setOrientation('vertical'));
+
+  // Pick up / drop
+  pickupBtn.addEventListener('click', () => {
+    isPickedUp = !isPickedUp;
+    if (isPickedUp) {
+      pickupLabel.textContent = 'Drop';
+      rulerWrapper.style.position = 'fixed';
+      rulerWrapper.style.zIndex = '1000';
+      rulerWrapper.style.left = '50px';
+      rulerWrapper.style.top = '200px';
+      rulerWrapper.style.cursor = 'grab';
+      pickupBtn.classList.add('bg-amber-500', 'text-white', '!border-amber-500');
+    } else {
+      pickupLabel.textContent = 'Pick Up';
+      rulerWrapper.style.position = 'relative';
+      rulerWrapper.style.zIndex = '';
+      rulerWrapper.style.left = '';
+      rulerWrapper.style.top = '';
+      rulerWrapper.style.cursor = '';
+      pickupBtn.classList.remove('bg-amber-500', 'text-white', '!border-amber-500');
+    }
+  });
+
+  // Move ruler when picked up — use the WHOLE wrapper including canvas
+  rulerWrapper.addEventListener('mousedown', (e) => {
+    if (!isPickedUp) return;
+    e.preventDefault();
+    rulerWrapper.style.cursor = 'grabbing';
+    moveStartX = e.clientX - rulerWrapper.offsetLeft;
+    moveStartY = e.clientY - rulerWrapper.offsetTop;
+    const moveHandler = (ev: MouseEvent) => {
+      rulerWrapper.style.left = (ev.clientX - moveStartX) + 'px';
+      rulerWrapper.style.top = (ev.clientY - moveStartY) + 'px';
+    };
+    const upHandler = () => {
+      rulerWrapper.style.cursor = 'grab';
+      document.removeEventListener('mousemove', moveHandler);
+      document.removeEventListener('mouseup', upHandler);
+    };
+    document.addEventListener('mousemove', moveHandler);
+    document.addEventListener('mouseup', upHandler);
+  });
+
+  // PPI controls
+  ppiMinus.addEventListener('click', () => { if (ppiInput.disabled) return; ppi = Math.max(50, ppi - 1); ppiInput.value = ppi.toString(); savePpi(); drawRuler(); });
+  ppiPlus.addEventListener('click', () => { if (ppiInput.disabled) return; ppi = Math.min(600, ppi + 1); ppiInput.value = ppi.toString(); savePpi(); drawRuler(); });
+  ppiInput.addEventListener('change', () => { ppi = Math.max(50, Math.min(600, parseFloat(ppiInput.value) || 96)); ppiInput.value = ppi.toString(); savePpi(); drawRuler(); });
+  ppiReset.addEventListener('click', () => { ppi = estimatedPpi; ppiInput.value = ppi.toString(); savePpi(); drawRuler(); });
+
+  function savePpi() { localStorage.setItem('xconvert24-ruler-ppi', ppi.toString()); }
+
+  // Drag to measure on canvas (only when NOT picked up)
+  canvas.addEventListener('mousedown', (e) => { if (isPickedUp) return; isDragging = true; const pos = orientation === 'horizontal' ? e.offsetX : e.offsetY; dragStart = pos; dragEnd = pos; drawRuler(); });
+  canvas.addEventListener('mousemove', (e) => { if (isPickedUp || !isDragging) return; dragEnd = orientation === 'horizontal' ? e.offsetX : e.offsetY; drawRuler(); });
+  canvas.addEventListener('mouseup', () => { isDragging = false; });
+  canvas.addEventListener('mouseleave', () => { isDragging = false; });
+
+  canvas.addEventListener('touchstart', (e) => { if (isPickedUp) return; e.preventDefault(); isDragging = true; const rect = canvas.getBoundingClientRect(); const pos = orientation === 'horizontal' ? e.touches[0].clientX - rect.left : e.touches[0].clientY - rect.top; dragStart = pos; dragEnd = pos; drawRuler(); });
+  canvas.addEventListener('touchmove', (e) => { if (isPickedUp || !isDragging) return; e.preventDefault(); const rect = canvas.getBoundingClientRect(); dragEnd = orientation === 'horizontal' ? e.touches[0].clientX - rect.left : e.touches[0].clientY - rect.top; drawRuler(); });
+  canvas.addEventListener('touchend', () => { isDragging = false; });
+
+  function pixelsToUnit(px: number): number {
+    const inches = px / ppi;
+    if (currentUnit === 'in') return inches;
+    if (currentUnit === 'cm') return inches * 2.54;
+    return inches * 25.4;
+  }
+
+  function getUnitLabel(): string { return currentUnit === 'in' ? 'in' : currentUnit === 'cm' ? 'cm' : 'mm'; }
+
+  function drawRuler() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const isHoriz = orientation === 'horizontal';
+    const cWidth = rect.width;
+    const cHeight = rect.height;
+    canvas.width = cWidth * dpr;
+    canvas.height = cHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    const length = isHoriz ? cWidth : cHeight;
+    const thickness = isHoriz ? cHeight : cWidth;
+    const isDark = document.documentElement.classList.contains('dark');
+
+    ctx.fillStyle = isDark ? '#111827' : '#ffffff';
+    ctx.fillRect(0, 0, cWidth, cHeight);
+
+    // Ruler body
+    const grad = isHoriz ? ctx.createLinearGradient(0, 0, 0, thickness) : ctx.createLinearGradient(0, 0, thickness, 0);
+    grad.addColorStop(0, isDark ? '#1f2937' : '#fffbeb');
+    grad.addColorStop(1, isDark ? '#111827' : '#fef3c7');
+    if (isHoriz) ctx.fillRect(0, 10, cWidth, thickness - 20);
+    else ctx.fillRect(10, 0, thickness - 20, cHeight);
+
+    // Markings
+    const pxPerMm = ppi / 25.4;
+    const pxPerCm = ppi / 2.54;
+    const pxPerInch = ppi;
+
+    let majorSpacing: number, minorSpacing: number, subSpacing: number;
+    if (currentUnit === 'in') { majorSpacing = pxPerInch; minorSpacing = pxPerInch / 2; subSpacing = pxPerInch / 8; }
+    else if (currentUnit === 'cm') { majorSpacing = pxPerCm; minorSpacing = pxPerCm / 2; subSpacing = pxPerMm; }
+    else { majorSpacing = pxPerMm * 10; minorSpacing = pxPerMm * 5; subSpacing = pxPerMm; }
+
+    const totalTicks = Math.ceil(length / subSpacing);
+    ctx.strokeStyle = isDark ? '#9ca3af' : '#92400e';
+    ctx.fillStyle = isDark ? '#d1d5db' : '#78350f';
+    ctx.font = '10px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (let i = 0; i <= totalTicks; i++) {
+      const pos = i * subSpacing;
+      if (pos > length) break;
+      let tickLen: number;
+      let isLabel = false;
+
+      if (Math.abs(pos % majorSpacing) < 0.5 || Math.abs(pos % majorSpacing - majorSpacing) < 0.5) { tickLen = thickness * 0.3; isLabel = true; ctx.lineWidth = 1.5; }
+      else if (Math.abs(pos % minorSpacing) < 0.5 || Math.abs(pos % minorSpacing - minorSpacing) < 0.5) { tickLen = thickness * 0.18; ctx.lineWidth = 1; }
+      else { tickLen = thickness * 0.1; ctx.lineWidth = 0.5; }
+
+      ctx.beginPath();
+      if (isHoriz) { ctx.moveTo(pos, 10); ctx.lineTo(pos, 10 + tickLen); ctx.moveTo(pos, thickness - 10); ctx.lineTo(pos, thickness - 10 - tickLen); }
+      else { ctx.moveTo(10, pos); ctx.lineTo(10 + tickLen, pos); ctx.moveTo(thickness - 10, pos); ctx.lineTo(thickness - 10 - tickLen, pos); }
+      ctx.stroke();
+
+      if (isLabel && pos > 0) {
+        const unitVal = currentUnit === 'mm' ? Math.round(pos / pxPerMm) : currentUnit === 'cm' ? Math.round(pos / pxPerCm) : Math.round(pos / pxPerInch);
+        if (isHoriz) ctx.fillText(unitVal.toString(), pos, thickness / 2);
+        else { ctx.save(); ctx.translate(thickness / 2, pos); ctx.fillText(unitVal.toString(), 0, 0); ctx.restore(); }
+      }
+    }
+
+    // Measurement overlay
+    if (dragStart !== dragEnd) {
+      const left = Math.min(dragStart, dragEnd);
+      const right = Math.max(dragStart, dragEnd);
+      ctx.fillStyle = isDark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.2)';
+      if (isHoriz) ctx.fillRect(left, 10, right - left, thickness - 20);
+      else ctx.fillRect(10, left, thickness - 20, right - left);
+
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      if (isHoriz) { ctx.moveTo(left, 10); ctx.lineTo(left, thickness - 10); ctx.moveTo(right, 10); ctx.lineTo(right, thickness - 10); }
+      else { ctx.moveTo(10, left); ctx.lineTo(thickness - 10, left); ctx.moveTo(10, right); ctx.lineTo(thickness - 10, right); }
+      ctx.stroke(); ctx.setLineDash([]);
+
+      const measured = pixelsToUnit(right - left);
+      const decimals = currentUnit === 'mm' ? 1 : 2;
+      readout.textContent = `${measured.toFixed(decimals)} ${getUnitLabel()}`;
+    } else {
+      readout.textContent = `0.00 ${getUnitLabel()}`;
+    }
+  }
+
+  window.addEventListener('resize', drawRuler);
+  requestAnimationFrame(drawRuler);
+</script>

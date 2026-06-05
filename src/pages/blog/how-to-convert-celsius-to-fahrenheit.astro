@@ -1,6 +1,10 @@
 ---
-export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
 <Layout title="How to Convert Celsius to Fahrenheit (Formula + Quick Tricks)" description="Learn the exact formula to convert Celsius to Fahrenheit and vice versa. Includes mental math shortcuts, a temperature chart, and common examples." keywords="celsius to fahrenheit, fahrenheit to celsius, temperature conversion formula, C to F, how to convert temperature">
@@ -78,6 +82,10 @@ import Layout from '../../layouts/Layout.astro';
           <a href="/blog/kg-to-lbs-conversion-guide" class="block text-sm text-amber-600 dark:text-amber-400 hover:underline">→ Kilograms to Pounds: The Complete Conversion Guide</a>
           <a href="/blog/metric-vs-imperial-which-countries" class="block text-sm text-amber-600 dark:text-amber-400 hover:underline">→ Metric vs Imperial: Which Countries Use Which System?</a>
         </div>
+      </div>
+    
+      <div class="not-prose mt-8 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔗 Try our converter: <a href="/convert/temperature" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Open Converter →</a></p>
       </div>
     </article>
   </div>

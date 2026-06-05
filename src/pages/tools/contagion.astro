@@ -1,0 +1,424 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Contagion Tracker — Live Global Disease Data" description="Track global disease outbreaks in real-time. COVID-19, Ebola, Hantavirus and more. Live case counts, deaths, recoveries, and outbreak news powered by open disease data." keywords="contagion tracker, disease tracker, covid tracker, ebola tracker, hantavirus, pandemic data, outbreak tracker, global health, epidemic monitor">
+  <div class="max-w-5xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🦠</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Contagion Tracker</h1>
+        <span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 rounded-full">β Beta Plays</span>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Real-time global disease tracking. Data sourced from Johns Hopkins CSSE, WHO, and public health APIs.</p>
+      <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Data refreshes on page load • <span id="last-updated">Loading...</span></p>
+    </div>
+
+    <!-- Controls row -->
+    <div class="flex flex-wrap items-center gap-3 mb-6">
+      <!-- Disease selector tabs -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1">
+      <button data-disease="covid" class="disease-tab flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-amber-500 text-white transition-colors shrink-0">
+        <span class="text-lg">🦠</span> COVID-19
+      </button>
+      <button data-disease="ebola" class="disease-tab flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0">
+        <span class="text-lg">🩸</span> Ebola
+      </button>
+      <button data-disease="hantavirus" class="disease-tab flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0">
+        <span class="text-lg">🐀</span> Hantavirus
+      </button>
+      <span class="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1 shrink-0"></span>
+      <button id="pin-btn" class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-400 transition-colors shrink-0" title="Set current view as your default">
+        📌 Set as default
+      </button>
+      <span id="pin-indicator" class="hidden text-xs text-amber-600 dark:text-amber-400 font-medium shrink-0">📌 Pinned</span>
+    </div>
+
+      <!-- Auto-refresh -->
+      <div class="flex items-center gap-1 ml-auto">
+        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <select id="refresh-interval" class="px-2 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-amber-500">
+          <option value="0">Off</option>
+          <option value="10">10s</option>
+          <option value="30">30s</option>
+          <option value="60">1m</option>
+          <option value="180">3m</option>
+          <option value="300">5m</option>
+          <option value="600">10m</option>
+          <option value="900">15m</option>
+          <option value="1800">30m</option>
+          <option value="3600">1h</option>
+        </select>
+        <span id="refresh-countdown" class="text-xs text-gray-400 min-w-[36px]"></span>
+      </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div id="stats-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 text-center shadow-sm">
+        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="stat-cases">—</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Cases</p>
+      </div>
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 text-center shadow-sm">
+        <p class="text-2xl font-bold text-red-600 dark:text-red-400" id="stat-deaths">—</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Deaths</p>
+      </div>
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 text-center shadow-sm">
+        <p class="text-2xl font-bold text-green-600 dark:text-green-400" id="stat-recovered">—</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Recovered</p>
+      </div>
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 text-center shadow-sm">
+        <p class="text-2xl font-bold text-amber-600 dark:text-amber-400" id="stat-active">—</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Active</p>
+      </div>
+    </div>
+
+    <!-- Disease info panel -->
+    <div id="disease-info" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <div id="disease-content">
+        <p class="text-sm text-gray-400 text-center py-4">Loading disease data...</p>
+      </div>
+    </div>
+
+    <!-- Top affected countries -->
+    <div id="countries-panel" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mb-6 overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Top Affected Countries</h2>
+        <span class="text-xs text-gray-400" id="country-count"></span>
+      </div>
+      <div id="countries-list" class="max-h-80 overflow-y-auto">
+        <p class="text-sm text-gray-400 text-center py-8">Loading...</p>
+      </div>
+    </div>
+
+    <!-- News / Info scrolling feed -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <svg class="w-4 h-4 text-red-500 animate-pulse" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+          Key Facts & Alerts
+        </h2>
+      </div>
+      <div id="news-feed" class="p-4 max-h-64 overflow-y-auto space-y-2">
+        <p class="text-sm text-gray-400 text-center py-4">Loading alerts...</p>
+      </div>
+    </div>
+
+    <!-- Data source credit -->
+    <p class="mt-4 text-xs text-gray-400 text-center">Data from <a href="https://disease.sh" target="_blank" rel="noopener" class="text-amber-600 dark:text-amber-400 hover:underline">disease.sh</a> (open-source disease API) • Johns Hopkins CSSE • WHO</p>
+  </div>
+</Layout>
+
+<script>
+  let activeDisease = 'covid';
+
+  // Load pinned preference
+  const PIN_KEY = 'xconvert24-contagion-pinned';
+  const pinned = localStorage.getItem(PIN_KEY);
+  if (pinned && ['covid', 'ebola', 'hantavirus'].includes(pinned)) {
+    activeDisease = pinned;
+    document.getElementById('pin-indicator')!.classList.remove('hidden');
+  }
+
+  const statCases = document.getElementById('stat-cases')!;
+  const statDeaths = document.getElementById('stat-deaths')!;
+  const statRecovered = document.getElementById('stat-recovered')!;
+  const statActive = document.getElementById('stat-active')!;
+  const diseaseContent = document.getElementById('disease-content')!;
+  const countriesList = document.getElementById('countries-list')!;
+  const countryCount = document.getElementById('country-count')!;
+  const newsFeed = document.getElementById('news-feed')!;
+
+  // Pin button
+  document.getElementById('pin-btn')!.addEventListener('click', () => {
+    localStorage.setItem(PIN_KEY, activeDisease);
+    document.getElementById('pin-indicator')!.classList.remove('hidden');
+    const names: Record<string,string> = { covid: 'COVID-19', ebola: 'Ebola', hantavirus: 'Hantavirus' };
+    document.getElementById('pin-indicator')!.textContent = '📌 ' + names[activeDisease] + ' pinned';
+  });
+
+  // Disease info data
+  const diseaseInfo: Record<string, { name: string; pathogen: string; transmission: string; fatality: string; incubation: string; origin: string; status: string; facts: string[] }> = {
+    covid: {
+      name: 'COVID-19 (SARS-CoV-2)',
+      pathogen: 'Coronavirus (RNA virus)',
+      transmission: 'Airborne droplets, aerosols, contact with contaminated surfaces',
+      fatality: '~1-2% (varies by variant, age, vaccination)',
+      incubation: '2-14 days (median 5 days)',
+      origin: 'Wuhan, China — December 2019',
+      status: 'Endemic phase — seasonal waves continue',
+      facts: [
+        'First identified December 2019 in Wuhan, China',
+        'WHO declared pandemic on March 11, 2020',
+        'Over 13 billion vaccine doses administered globally',
+        'Omicron variant (2021) was most transmissible but less severe',
+        'Long COVID affects an estimated 10-20% of infected people',
+        'mRNA vaccine technology (Pfizer/Moderna) developed in record 11 months',
+      ]
+    },
+    ebola: {
+      name: 'Ebola Virus Disease (EVD)',
+      pathogen: 'Filovirus (RNA virus) — 6 known species',
+      transmission: 'Direct contact with blood/body fluids of infected, contaminated objects, infected animals',
+      fatality: '25-90% (average ~50%, varies by outbreak)',
+      incubation: '2-21 days (median 8-10 days)',
+      origin: 'Yambuku, DR Congo — 1976 (first identified)',
+      status: 'Sporadic outbreaks in Central/West Africa — latest: Uganda 2022, DRC 2024',
+      facts: [
+        'Named after the Ebola River in DR Congo where first discovered in 1976',
+        'The 2014-2016 West Africa outbreak was the largest (28,616 cases, 11,310 deaths)',
+        'First FDA-approved vaccine (rVSV-ZEBOV/Ervebo) came in 2019',
+        'Fruit bats are the suspected natural reservoir',
+        'Survivors can carry virus in semen for up to 18 months',
+        'Case fatality rate of Zaire species can reach 90% without treatment',
+      ]
+    },
+    hantavirus: {
+      name: 'Hantavirus Pulmonary Syndrome (HPS)',
+      pathogen: 'Hantavirus (Bunyavirales order, RNA virus)',
+      transmission: 'Inhaling aerosolized rodent urine/droppings/saliva, rodent bites, contaminated food',
+      fatality: '~36% for HPS (North America), ~1-15% for HFRS (Asia/Europe)',
+      incubation: '1-8 weeks (typically 2-4 weeks)',
+      origin: 'First recognised 1993, Four Corners region, USA (Sin Nombre virus)',
+      status: 'Sporadic — linked to rodent population surges. Not human-to-human (most strains)',
+      facts: [
+        'First identified in 1993 after cluster of deaths in the US Southwest',
+        'Named after Hantan River, South Korea, where virus was isolated in 1978',
+        'Carried primarily by deer mice (North America) and other rodent species',
+        'Unlike most viruses, does NOT typically spread person-to-person',
+        'Andes virus (South America) is the only strain with confirmed human-to-human transmission',
+        'Global cases estimated at 150,000-200,000 per year (mostly HFRS in Asia)',
+        'No vaccine or specific antiviral treatment currently available',
+      ]
+    }
+  };
+
+  function formatNum(n: number): string {
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return n.toLocaleString();
+  }
+
+  // Tab switching
+  document.querySelectorAll('.disease-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeDisease = (btn as HTMLElement).dataset.disease!;
+      updateTabStyles();
+      loadData();
+    });
+  });
+
+  async function loadData() {
+    const info = diseaseInfo[activeDisease];
+    renderInfo(info);
+
+    if (activeDisease === 'covid') {
+      await loadCovidData();
+    } else {
+      renderStaticData(info);
+    }
+  }
+
+  function renderInfo(info: typeof diseaseInfo['covid']) {
+    diseaseContent.innerHTML = `
+      <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-3">${info.name}</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"><span class="text-xs text-gray-500 block mb-0.5">Pathogen</span><span class="text-sm font-medium text-gray-900 dark:text-white">${info.pathogen}</span></div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"><span class="text-xs text-gray-500 block mb-0.5">Transmission</span><span class="text-sm font-medium text-gray-900 dark:text-white">${info.transmission}</span></div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"><span class="text-xs text-gray-500 block mb-0.5">Case Fatality Rate</span><span class="text-sm font-medium text-red-600 dark:text-red-400">${info.fatality}</span></div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"><span class="text-xs text-gray-500 block mb-0.5">Incubation Period</span><span class="text-sm font-medium text-gray-900 dark:text-white">${info.incubation}</span></div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"><span class="text-xs text-gray-500 block mb-0.5">Origin</span><span class="text-sm font-medium text-gray-900 dark:text-white">${info.origin}</span></div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"><span class="text-xs text-gray-500 block mb-0.5">Current Status</span><span class="text-sm font-medium text-amber-600 dark:text-amber-400">${info.status}</span></div>
+      </div>
+    `;
+
+    // News/facts feed
+    newsFeed.innerHTML = info.facts.map(f =>
+      `<div class="flex items-start gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"><span class="text-red-500 shrink-0 mt-0.5">•</span><span class="text-xs text-gray-600 dark:text-gray-400">${f}</span></div>`
+    ).join('');
+  }
+
+  async function loadCovidData() {
+    try {
+      // Global stats
+      const globalRes = await fetch('https://disease.sh/v3/covid-19/all');
+      if (!globalRes.ok) throw new Error('API error');
+      const global = await globalRes.json();
+
+      statCases.textContent = formatNum(global.cases);
+      statDeaths.textContent = formatNum(global.deaths);
+      statRecovered.textContent = formatNum(global.recovered);
+      statActive.textContent = formatNum(global.active);
+
+      // Top countries
+      const countryRes = await fetch('https://disease.sh/v3/covid-19/countries?sort=cases&allowNull=false');
+      if (!countryRes.ok) throw new Error('Countries API error');
+      const countries = await countryRes.json();
+      const top20 = countries.slice(0, 20);
+
+      countryCount.textContent = `Top ${top20.length} of ${countries.length}`;
+      countriesList.innerHTML = `<table class="w-full text-xs">
+        <thead><tr class="border-b border-gray-100 dark:border-gray-800 text-gray-500">
+          <th class="px-4 py-2 text-left font-medium">#</th>
+          <th class="px-4 py-2 text-left font-medium">Country</th>
+          <th class="px-4 py-2 text-right font-medium">Cases</th>
+          <th class="px-4 py-2 text-right font-medium">Deaths</th>
+          <th class="px-4 py-2 text-right font-medium">Active</th>
+        </tr></thead>
+        <tbody>${top20.map((c: any, i: number) => `
+          <tr class="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+            <td class="px-4 py-2 text-gray-400">${i + 1}</td>
+            <td class="px-4 py-2 text-gray-900 dark:text-white font-medium flex items-center gap-2"><img src="${c.countryInfo?.flag}" width="18" height="12" class="rounded-sm" alt="${c.country} flag"/>${c.country}</td>
+            <td class="px-4 py-2 text-right text-blue-600 dark:text-blue-400 font-mono">${formatNum(c.cases)}</td>
+            <td class="px-4 py-2 text-right text-red-500 font-mono">${formatNum(c.deaths)}</td>
+            <td class="px-4 py-2 text-right text-amber-600 dark:text-amber-400 font-mono">${formatNum(c.active)}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table>`;
+
+      // Fetch live news from disease.sh
+      await loadNews();
+    } catch {
+      statCases.textContent = '—';
+      statDeaths.textContent = '—';
+      statRecovered.textContent = '—';
+      statActive.textContent = '—';
+      countriesList.innerHTML = '<p class="text-sm text-red-400 text-center py-8">Failed to load COVID data. Try refreshing.</p>';
+    }
+  }
+
+  async function loadNews() {
+    try {
+      const newsRes = await fetch('https://disease.sh/v3/covid-19/gov/');
+      // Fallback: use vaccine timeline as a data point
+      const vaccineRes = await fetch('https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=7&fullData=false');
+      
+      if (vaccineRes.ok) {
+        const vaccineData = await vaccineRes.json();
+        const dates = Object.keys(vaccineData);
+        const latestVaccines = vaccineData[dates[dates.length - 1]] || 0;
+        
+        // Build news items from live data + static facts
+        const newsItems = [
+          { text: `💉 Global vaccine doses administered: ${formatNum(latestVaccines)}+ (last 7 days data available)`, live: true },
+          { text: `📊 Updated: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`, live: true },
+          ...diseaseInfo.covid.facts.map(f => ({ text: f, live: false }))
+        ];
+        
+        newsFeed.innerHTML = newsItems.map(item =>
+          `<div class="flex items-start gap-2 p-2 ${item.live ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900' : 'bg-gray-50 dark:bg-gray-800'} rounded-lg">
+            <span class="${item.live ? 'text-blue-500' : 'text-red-500'} shrink-0 mt-0.5">${item.live ? '🔴' : '•'}</span>
+            <span class="text-xs text-gray-600 dark:text-gray-400">${item.text}</span>
+          </div>`
+        ).join('');
+      }
+    } catch {
+      // News fetch failed — keep the static facts from renderInfo
+    }
+  }
+
+  function renderStaticData(info: typeof diseaseInfo['covid']) {
+    // For Ebola and Hantavirus — no live API, show key outbreak data
+    if (activeDisease === 'ebola') {
+      statCases.textContent = '34,580+';
+      statDeaths.textContent = '15,135+';
+      statRecovered.textContent = '~16,000';
+      statActive.textContent = 'Sporadic';
+      countryCount.textContent = 'Major outbreaks';
+      countriesList.innerHTML = `<table class="w-full text-xs">
+        <thead><tr class="border-b border-gray-100 dark:border-gray-800 text-gray-500">
+          <th class="px-4 py-2 text-left font-medium">Year</th>
+          <th class="px-4 py-2 text-left font-medium">Location</th>
+          <th class="px-4 py-2 text-right font-medium">Cases</th>
+          <th class="px-4 py-2 text-right font-medium">Deaths</th>
+          <th class="px-4 py-2 text-right font-medium">CFR</th>
+        </tr></thead>
+        <tbody>
+          <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2">2014-2016</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">West Africa (Guinea, Liberia, Sierra Leone)</td><td class="px-4 py-2 text-right text-blue-600 font-mono">28,616</td><td class="px-4 py-2 text-right text-red-500 font-mono">11,310</td><td class="px-4 py-2 text-right">39.5%</td></tr>
+          <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2">2018-2020</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">DR Congo (Kivu)</td><td class="px-4 py-2 text-right text-blue-600 font-mono">3,481</td><td class="px-4 py-2 text-right text-red-500 font-mono">2,299</td><td class="px-4 py-2 text-right">66%</td></tr>
+          <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2">2022</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">Uganda</td><td class="px-4 py-2 text-right text-blue-600 font-mono">164</td><td class="px-4 py-2 text-right text-red-500 font-mono">77</td><td class="px-4 py-2 text-right">47%</td></tr>
+          <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2">2024</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">DR Congo (Equateur)</td><td class="px-4 py-2 text-right text-blue-600 font-mono">214</td><td class="px-4 py-2 text-right text-red-500 font-mono">58</td><td class="px-4 py-2 text-right">27%</td></tr>
+          <tr><td class="px-4 py-2">1976</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">Yambuku, DR Congo (first outbreak)</td><td class="px-4 py-2 text-right text-blue-600 font-mono">318</td><td class="px-4 py-2 text-right text-red-500 font-mono">280</td><td class="px-4 py-2 text-right">88%</td></tr>
+        </tbody>
+      </table>`;
+    } else {
+      // Hantavirus
+      statCases.textContent = '~200K/yr';
+      statDeaths.textContent = '~700/yr';
+      statRecovered.textContent = 'N/A';
+      statActive.textContent = 'Endemic';
+      countryCount.textContent = 'Key regions';
+      countriesList.innerHTML = `<table class="w-full text-xs">
+        <thead><tr class="border-b border-gray-100 dark:border-gray-800 text-gray-500">
+          <th class="px-4 py-2 text-left font-medium">Region</th>
+          <th class="px-4 py-2 text-left font-medium">Virus Strain</th>
+          <th class="px-4 py-2 text-left font-medium">Reservoir</th>
+          <th class="px-4 py-2 text-right font-medium">CFR</th>
+        </tr></thead>
+        <tbody>
+          <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">North America</td><td class="px-4 py-2">Sin Nombre</td><td class="px-4 py-2">Deer mouse</td><td class="px-4 py-2 text-right text-red-500">36%</td></tr>
+          <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">South America</td><td class="px-4 py-2">Andes</td><td class="px-4 py-2">Long-tailed pygmy rice rat</td><td class="px-4 py-2 text-right text-red-500">25-40%</td></tr>
+          <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">East Asia (China, Korea)</td><td class="px-4 py-2">Hantaan</td><td class="px-4 py-2">Striped field mouse</td><td class="px-4 py-2 text-right text-red-500">5-15%</td></tr>
+          <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">Europe (Scandinavia)</td><td class="px-4 py-2">Puumala</td><td class="px-4 py-2">Bank vole</td><td class="px-4 py-2 text-right text-amber-500">0.1-0.4%</td></tr>
+          <tr><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">Europe (Balkans)</td><td class="px-4 py-2">Dobrava-Belgrade</td><td class="px-4 py-2">Yellow-necked mouse</td><td class="px-4 py-2 text-right text-red-500">5-12%</td></tr>
+        </tbody>
+      </table>`;
+    }
+  }
+
+  // Initial load — apply active tab styling for pinned disease
+  function updateTabStyles() {
+    document.querySelectorAll('.disease-tab').forEach(b => {
+      const isActive = (b as HTMLElement).dataset.disease === activeDisease;
+      if (isActive) {
+        (b as HTMLElement).className = 'disease-tab flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-amber-500 text-white transition-colors shrink-0';
+      } else {
+        (b as HTMLElement).className = 'disease-tab flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors shrink-0';
+      }
+    });
+  }
+  updateTabStyles();
+  loadData();
+
+  // Auto-refresh with user-selectable interval
+  const REFRESH_KEY = 'xconvert24-contagion-refresh';
+  const refreshSelect = document.getElementById('refresh-interval') as HTMLSelectElement;
+  const countdownEl = document.getElementById('refresh-countdown')!;
+  let refreshTimer: ReturnType<typeof setInterval> | null = null;
+  let secondsLeft = 0;
+
+  const savedInterval = localStorage.getItem(REFRESH_KEY) || '0';
+  refreshSelect.value = savedInterval;
+
+  refreshSelect.addEventListener('change', () => {
+    localStorage.setItem(REFRESH_KEY, refreshSelect.value);
+    startRefreshTimer();
+  });
+
+  function startRefreshTimer() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    const intervalSec = parseInt(refreshSelect.value);
+    if (intervalSec === 0) { countdownEl.textContent = ''; return; }
+    secondsLeft = intervalSec;
+    updateCountdown();
+    refreshTimer = setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        secondsLeft = intervalSec;
+        loadData();
+        document.getElementById('last-updated')!.textContent = 'Updated: ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      }
+      updateCountdown();
+    }, 1000);
+  }
+
+  function updateCountdown() {
+    if (secondsLeft >= 60) countdownEl.textContent = Math.floor(secondsLeft / 60) + 'm ' + (secondsLeft % 60) + 's';
+    else countdownEl.textContent = secondsLeft + 's';
+  }
+
+  startRefreshTimer();
+  document.getElementById('last-updated')!.textContent = 'Updated: ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+</script>

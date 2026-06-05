@@ -1,0 +1,113 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+import { VERSION } from '../../data/siteStats';
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Build Log | xConvert24 Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-link { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .current-version { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #16a34a20; border: 1px solid #16a34a40; border-radius: 100px; font-size: 12px; color: #4ade80; font-weight: 600; margin-bottom: 24px; }
+    .build-list { display: flex; flex-direction: column; gap: 12px; }
+    .build-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px 20px; transition: border-color 0.2s; }
+    .build-card:hover { border-color: #374151; }
+    .build-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .build-version { font-size: 14px; font-weight: 700; color: #fbbf24; font-family: monospace; }
+    .build-date { font-size: 11px; color: #6b7280; }
+    .build-status { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+    .status-success { background: #16a34a20; color: #4ade80; }
+    .status-failed { background: #dc262620; color: #f87171; }
+    .build-details { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 10px; }
+    .detail-item { background: #0f172a; border-radius: 6px; padding: 8px 10px; }
+    .detail-label { font-size: 9px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .detail-value { font-size: 12px; color: #f9fafb; font-weight: 600; margin-top: 2px; font-family: monospace; }
+    .build-links { display: flex; gap: 8px; margin-top: 8px; }
+    .build-link { font-size: 11px; color: #fbbf24; text-decoration: none; padding: 4px 10px; border-radius: 5px; border: 1px solid #fbbf2440; transition: all 0.15s; }
+    .build-link:hover { background: #fbbf2420; }
+    .empty-state { text-align: center; padding: 40px; color: #6b7280; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🔨 Build Log</div>
+    <a href="/admin" class="back-link">← Dashboard</a>
+  </div>
+
+  <div class="container">
+    <h1>🔨 Build Log</h1>
+    <p class="subtitle">History of all deployments to www.xconvert24.com</p>
+
+    <div class="current-version">
+      <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#4ade80"/></svg>
+      Current: v{VERSION}
+    </div>
+
+    <div id="build-list" class="build-list">
+      <div class="empty-state">Loading build history...</div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    function renderBuilds(builds) {
+      var container = document.getElementById('build-list');
+
+      if (!builds.length) {
+        container.innerHTML = '<div class="empty-state">No builds recorded yet. Builds are logged automatically on each deploy.</div>';
+        return;
+      }
+
+      container.innerHTML = builds.map(function(b, i) {
+        var statusClass = b.status === 'success' ? 'status-success' : 'status-failed';
+        var statusText = b.status === 'success' ? '✓ Success' : '✗ Failed';
+        var date = new Date(b.timestamp);
+        var dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+        return '<div class="build-card">' +
+          '<div class="build-header">' +
+            '<span class="build-version">v' + b.version + '</span>' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+              '<span class="build-status ' + statusClass + '">' + statusText + '</span>' +
+              '<span class="build-date">' + dateStr + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="build-details">' +
+            '<div class="detail-item"><div class="detail-label">Duration</div><div class="detail-value">' + (b.duration || '—') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Bundle Size</div><div class="detail-value">' + (b.bundle_size || '—') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Pages</div><div class="detail-value">' + (b.pages || '—') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Assets</div><div class="detail-value">' + (b.assets || '—') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Worker ID</div><div class="detail-value" style="font-size:9px;word-break:break-all;">' + (b.worker_version_id || '—') + '</div></div>' +
+          '</div>' +
+          (b.notes ? '<div style="font-size:11px;color:#9ca3af;margin-top:6px;padding:6px 8px;background:#0f172a;border-radius:4px;">' + b.notes + '</div>' : '') +
+          '<div class="build-links">' +
+            '<a href="/releases" class="build-link">📋 Release Notes</a>' +
+            '<a href="https://www.xconvert24.com" class="build-link" target="_blank">🌐 Live Site</a>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    // Fetch from API (with fallback for local dev)
+    fetch('/api/builds')
+      .then(function(r) { if (!r.ok) throw new Error('not available'); return r.json(); })
+      .then(function(data) { renderBuilds(data.builds || []); })
+      .catch(function() {
+        document.getElementById('build-list').innerHTML = '<div class="empty-state">Build data is stored in D1 (production only). Visit <a href="https://www.xconvert24.com/admin/builds" style="color:#fbbf24;">the live admin</a> to see results, or deploy first.</div>';
+      });
+  })();
+  </script>
+</body>
+</html>

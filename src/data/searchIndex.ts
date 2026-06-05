@@ -198,6 +198,20 @@ export const searchIndex: SearchEntry[] = [
   { category: 'Currency', categoryIcon: '💱', name: 'Swedish Krona', aliases: ['sek', 'krona', 'swedish krona'], href: '/convert/currency', type: 'unit', popularity: 77 },
   { category: 'Currency', categoryIcon: '💱', name: 'New Zealand Dollar', aliases: ['nzd', 'nz$', 'new zealand dollar', 'kiwi dollar'], href: '/convert/currency', type: 'unit', popularity: 70 },
 
+  // ── Media ─────────────────────────────────────────────────────────────────────
+  { category: 'Measurements', categoryIcon: '📏', name: 'Online Ruler', aliases: ['ruler', 'measure', 'cm ruler', 'inch ruler', 'screen ruler', 'virtual ruler'], href: '/tools/ruler', type: 'tool', popularity: 65 },
+  { category: 'Media', categoryIcon: '🖼️', name: 'Image Converter', aliases: ['image', 'png', 'jpg', 'jpeg', 'webp', 'bmp', 'svg', 'convert image', 'resize image'], href: '/tools/image-converter', type: 'tool', popularity: 72 },
+  { category: 'Media', categoryIcon: '🎵', name: 'Audio Converter', aliases: ['audio converter', 'wav', 'mp3 converter', 'ogg', 'webm audio', 'convert audio'], href: '/tools/audio-converter', type: 'tool', popularity: 68 },
+  { category: 'Media', categoryIcon: '🎥', name: 'Video Converter', aliases: ['video converter', 'mp4', 'webm video', 'convert video', 'trim video', 'resize video'], href: '/tools/video-converter', type: 'tool', popularity: 70 },
+  { category: 'Media', categoryIcon: '🎵', name: 'Audio Formats', aliases: ['audio', 'mp3', 'wav', 'flac', 'aac', 'ogg', 'sound', 'music format'], href: '/tools/audio-formats', type: 'tool', popularity: 60 },
+  { category: 'Media', categoryIcon: '🎥', name: 'Video Formats', aliases: ['video', 'mp4', 'avi', 'mkv', 'webm', 'mov', 'codec', 'h264', 'h265'], href: '/tools/video-formats', type: 'tool', popularity: 62 },
+
+  // ── Music ─────────────────────────────────────────────────────────────────────
+  { category: 'Music', categoryIcon: '🎸', name: 'Guitar Tuner', aliases: ['guitar tuner', 'tuner', 'chromatic tuner', 'pitch', 'frequency', 'tune guitar', 'standard tuning', 'E A D G B E'], href: '/tools/guitar-tuner', type: 'tool', popularity: 68 },
+
+  // ── Beta Plays ──────────────────────────────────────────────────────────────
+  { category: 'Beta Plays', categoryIcon: '🦠', name: 'Contagion Tracker', aliases: ['contagion', 'covid', 'ebola', 'hantavirus', 'pandemic', 'disease tracker', 'outbreak', 'virus'], href: '/tools/contagion', type: 'tool', popularity: 65 },
+
   // ── Tools ────────────────────────────────────────────────────────────────────
   { category: 'Tools', categoryIcon: '🧍', name: 'BMI Calculator', aliases: ['bmi', 'body mass index', 'weight health', 'obesity'], href: '/tools/bmi', type: 'tool', popularity: 78 },
   { category: 'Tools', categoryIcon: '🎨', name: 'Color Picker', aliases: ['color', 'colour', 'rgb', 'hex', 'hsl', 'cmyk', 'color picker'], href: '/tools/color', type: 'tool', popularity: 70 },

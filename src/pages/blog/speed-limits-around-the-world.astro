@@ -1,6 +1,10 @@
 ---
-export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
 <Layout title="Speed Limits Worldwide: mph vs km/h by Country" description="Compare speed limits around the world in mph and km/h. See which countries use which system and the fastest legal highways on Earth." keywords="speed limits worldwide, mph vs km/h, speed limit by country, road speed conversion, highway speed limits, fastest speed limits, autobahn speed">
@@ -67,6 +71,10 @@ import Layout from '../../layouts/Layout.astro';
       <div class="border-t border-gray-200 dark:border-gray-800 mt-10 pt-8 not-prose">
         <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Try It Now</h3>
         <a href="/convert/speed" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-colors">Open Speed Converter →</a>
+      </div>
+    
+      <div class="not-prose mt-8 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔗 Try our converter: <a href="/convert/speed" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Open Converter →</a></p>
       </div>
     </article>
   </div>

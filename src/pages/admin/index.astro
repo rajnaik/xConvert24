@@ -1,5 +1,6 @@
 ---
 const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+import { STATS } from '../../data/siteStats';
 ---
 
 <html lang="en">
@@ -12,7 +13,7 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
-    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
     .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .user { display: flex; align-items: center; gap: 12px; }
     .avatar { width: 32px; height: 32px; border-radius: 50%; }
@@ -22,19 +23,40 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
     .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
     h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
     .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 24px; transition: border-color 0.2s; }
-    .card:hover { border-color: #f59e0b; }
-    .card-icon { font-size: 32px; margin-bottom: 12px; }
-    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-    .card-desc { font-size: 13px; color: #6b7280; line-height: 1.5; }
-    .card a { color: inherit; text-decoration: none; display: block; }
-    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 32px; }
-    .stat { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 20px; text-align: center; }
-    .stat-value { font-size: 36px; font-weight: 700; color: #fbbf24; }
-    .stat-label { font-size: 12px; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .section-title { font-size: 14px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
-    a.card-link { display: block; text-decoration: none; color: inherit; }
+
+    /* Navigation tabs */
+    .nav-tabs { display: flex; gap: 4px; margin-bottom: 32px; background: #111827; border-radius: 12px; padding: 6px; border: 1px solid #1f2937; overflow-x: auto; }
+    .nav-tab { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #9ca3af; cursor: pointer; transition: all 0.2s; white-space: nowrap; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .nav-tab:hover { color: #f9fafb; background: #1f2937; }
+    .nav-tab.active { color: #fbbf24; background: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+    /* Stats cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 32px; }
+    .stat-card { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; text-align: center; transition: all 0.2s; cursor: pointer; text-decoration: none; display: block; }
+    .stat-card:hover { border-color: #fbbf24; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(251,191,36,0.1); }
+    .stat-value { font-size: 28px; font-weight: 700; color: #fbbf24; }
+    .stat-label { font-size: 11px; color: #6b7280; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-detail { font-size: 10px; color: #374151; margin-top: 6px; transition: color 0.2s; }
+    .stat-card:hover .stat-detail { color: #6b7280; }
+
+    /* Section panels */
+    .section { margin-bottom: 32px; }
+    .section-title { font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; padding-left: 4px; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; transition: all 0.2s; text-decoration: none; color: inherit; display: block; }
+    .card:hover { border-color: #f59e0b; transform: translateY(-1px); }
+    .card-icon { font-size: 24px; margin-bottom: 10px; }
+    .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: #f9fafb; }
+    .card-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
+
+    /* Panels */
+    .panels-wrap { display: flex; flex-wrap: wrap; gap: 16px; }
+    .panel { flex: 1; min-width: 380px; background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #1f2937; border-bottom: 1px solid #374151; }
+    .panel-title { font-size: 13px; font-weight: 600; color: #f9fafb; }
+    .panel-toggle { background: #374151; border: none; color: #fbbf24; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 14px; font-weight: 700; line-height: 1; }
+    .panel-toggle:hover { background: #4b5563; }
+    .panel-body { padding: 12px; }
   </style>
 </head>
 <body>
@@ -49,108 +71,179 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
 
   <div class="container">
     <h1>Dashboard</h1>
-    <p class="subtitle">Welcome back, {user.name || user.email}. Manage your xConvert24.com site from here.</p>
+    <p class="subtitle">Welcome back, {user.name || user.email}. Manage xConvert24.com from here.</p>
 
-    <!-- Stats -->
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-value">38</div>
-        <div class="stat-label">Total Pages</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">18</div>
-        <div class="stat-label">Converters</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">9</div>
-        <div class="stat-label">Tools</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">150+</div>
-        <div class="stat-label">Units Indexed</div>
+    <!-- Navigation tabs -->
+    <nav class="nav-tabs">
+      <a href="/admin" class="nav-tab active">📊 Overview</a>
+      <a href="/admin/blog-schedule" class="nav-tab">📅 Blog Schedule</a>
+      <a href="/admin/bugs" class="nav-tab">🐛 Bug Reports</a>
+      <a href="/admin/seo" class="nav-tab">🔍 SEO Editor</a>
+      <a href="/admin/analytics" class="nav-tab">📈 Analytics</a>
+      <a href="/admin/settings" class="nav-tab">⚙️ Settings</a>
+    </nav>
+
+    <!-- Statistics Panel -->
+    <div class="section">
+      <div class="section-title">📊 Site Statistics</div>
+      <div class="stats-grid">
+        <a href="/search" class="stat-card">
+          <div class="stat-value">{STATS.total}</div>
+          <div class="stat-label">Total Pages</div>
+          <div class="stat-detail">Click to browse all →</div>
+        </a>
+        <a href="/search" class="stat-card">
+          <div class="stat-value">{STATS.converters}</div>
+          <div class="stat-label">Converters</div>
+          <div class="stat-detail">Under /convert/* →</div>
+        </a>
+        <a href="/search" class="stat-card">
+          <div class="stat-value">{STATS.tools}</div>
+          <div class="stat-label">Tools</div>
+          <div class="stat-detail">Under /tools/* →</div>
+        </a>
+        <a href="/search" class="stat-card">
+          <div class="stat-value">{STATS.unitsIndexed}</div>
+          <div class="stat-label">Units Indexed</div>
+          <div class="stat-detail">Search index →</div>
+        </a>
+        <a href="/admin/blog-schedule" class="stat-card">
+          <div class="stat-value">{STATS.blogPosts}</div>
+          <div class="stat-label">Blog Posts</div>
+          <div class="stat-detail">Manage schedule →</div>
+        </a>
+        <a href="/widgets" class="stat-card">
+          <div class="stat-value">{STATS.widgets}</div>
+          <div class="stat-label">Widgets</div>
+          <div class="stat-detail">View library →</div>
+        </a>
+        <a href="/admin/analytics" class="stat-card">
+          <div class="stat-value">{STATS.categories}</div>
+          <div class="stat-label">Categories</div>
+          <div class="stat-detail">Analytics →</div>
+        </a>
+        <a href="/convert/currency" class="stat-card">
+          <div class="stat-value">{STATS.currencies}</div>
+          <div class="stat-label">Currencies</div>
+          <div class="stat-detail">Live rates →</div>
+        </a>
       </div>
     </div>
 
-    <!-- Quick actions -->
-    <div class="section-title">Quick Actions</div>
-    <div class="grid">
-      <div class="card">
-        <a href="/admin/blog-schedule" class="card-link">
+    <!-- Content Management -->
+    <div class="section">
+      <div class="section-title">📝 Content Management</div>
+      <div class="card-grid">
+        <a href="/admin/blog-schedule" class="card">
           <div class="card-icon">📅</div>
           <div class="card-title">Blog Schedule</div>
           <div class="card-desc">Manage blog post release calendar and publish status.</div>
         </a>
-      </div>
-      <div class="card">
-        <a href="/admin/bugs" class="card-link">
-          <div class="card-icon">🐛</div>
-          <div class="card-title">Bug Reports</div>
-          <div class="card-desc">View and manage bug reports submitted by users.</div>
+        <a href="/admin/seo" class="card">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">SEO Editor</div>
+          <div class="card-desc">Edit robots.txt, sitemap, and meta defaults. Version history.</div>
         </a>
-      </div>
-      <div class="card">
-        <a href="/releases" class="card-link">
+        <a href="/releases" class="card">
           <div class="card-icon">📋</div>
           <div class="card-title">Release Notes</div>
           <div class="card-desc">View the release history and changelog.</div>
         </a>
       </div>
-      <div class="card">
-        <a href="/admin/analytics" class="card-link">
-          <div class="card-icon">📊</div>
-          <div class="card-title">Analytics</div>
-          <div class="card-desc">View site traffic and usage data via Google Analytics.</div>
+    </div>
+
+    <!-- Community & Feedback -->
+    <div class="section">
+      <div class="section-title">💬 Community & Feedback</div>
+      <div class="card-grid">
+        <a href="/admin/bugs" class="card">
+          <div class="card-icon">🐛</div>
+          <div class="card-title">Bug Reports</div>
+          <div class="card-desc">View and manage bug reports submitted by users.</div>
+        </a>
+        <a href="/vote-bugs" class="card">
+          <div class="card-icon">🗳️</div>
+          <div class="card-title">Bug Voting</div>
+          <div class="card-desc">Community bug priority voting board.</div>
+        </a>
+        <a href="/suggestions" class="card">
+          <div class="card-icon">💡</div>
+          <div class="card-title">Suggestions</div>
+          <div class="card-desc">Community feature suggestions with ratings.</div>
         </a>
       </div>
-      <div class="card">
-        <a href="/search" class="card-link">
-          <div class="card-icon">🔍</div>
-          <div class="card-title">Search Index</div>
-          <div class="card-desc">150+ entries across all categories, units, and tools.</div>
+    </div>
+
+    <!-- Tools & External -->
+    <div class="section">
+      <div class="section-title">🔧 Tools & External</div>
+      <div class="card-grid">
+        <a href="/admin/org-chart" class="card">
+          <div class="card-icon">🏢</div>
+          <div class="card-title">Org Chart</div>
+          <div class="card-desc">Team structure, agent roles, and job history.</div>
         </a>
-      </div>
-      <div class="card">
-        <a href="/" class="card-link">
+        <a href="/admin/wallet" class="card">
+          <div class="card-icon">🔐</div>
+          <div class="card-title">Wallet</div>
+          <div class="card-desc">Manage Solana donation wallet address (locked).</div>
+        </a>
+        <a href="/admin/builds" class="card">
+          <div class="card-icon">🔨</div>
+          <div class="card-title">Build Log</div>
+          <div class="card-desc">View deployment history, bundle size, test results.</div>
+        </a>
+        <a href="/admin/tests" class="card">
+          <div class="card-icon">🧪</div>
+          <div class="card-title">Tests</div>
+          <div class="card-desc">Post-build test results. Pass/fail per page, latest on top.</div>
+        </a>
+        <a href="/admin/analytics" class="card">
+          <div class="card-icon">📈</div>
+          <div class="card-title">Google Analytics</div>
+          <div class="card-desc">View site traffic and usage data (G-XDEY4PSP7C).</div>
+        </a>
+        <a href="/admin/settings" class="card">
+          <div class="card-icon">⚙️</div>
+          <div class="card-title">Settings</div>
+          <div class="card-desc">Manage admin configuration and environment.</div>
+        </a>
+        <a href="/" class="card">
           <div class="card-icon">🌐</div>
           <div class="card-title">View Live Site</div>
           <div class="card-desc">Open the public-facing xConvert24.com site.</div>
         </a>
       </div>
-      <div class="card">
-        <a href="/admin/settings" class="card-link">
-          <div class="card-icon">⚙️</div>
-          <div class="card-title">Settings</div>
-          <div class="card-desc">Manage admin configuration and environment.</div>
-        </a>
-      </div>
     </div>
 
-    <!-- Draggable panels container -->
-    <div id="panels-container" style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 20px;">
-      <!-- Bug Reports Panel -->
-      <div class="panel" id="panel-bugs" style="flex: 1; min-width: 400px; background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; cursor: move;">
-        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #1f2937; border-bottom: 1px solid #374151;">
-          <span style="font-size: 14px; font-weight: 600; color: #f9fafb;">🐛 Bug Reports (by votes)</span>
-          <button id="bugs-expand" style="background: #374151; border: none; color: #fbbf24; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: 700; line-height: 1;">+</button>
+    <!-- Draggable panels: Bugs & Suggestions -->
+    <div class="section">
+      <div class="section-title">📋 Live Feed</div>
+      <div class="panels-wrap" id="panels-container">
+        <!-- Bug Reports Panel -->
+        <div class="panel" id="panel-bugs" draggable="true">
+          <div class="panel-header">
+            <span class="panel-title">🐛 Bug Reports (by votes)</span>
+            <button id="bugs-expand" class="panel-toggle">+</button>
+          </div>
+          <div id="admin-bugs" class="panel-body">
+            <div style="color:#6b7280;font-size:14px;font-style:italic;padding:20px;text-align:center;">Loading…</div>
+          </div>
         </div>
-        <div id="admin-bugs" style="padding: 12px;">
-          <div style="color: #6b7280; font-size: 14px; font-style: italic; padding: 20px; text-align: center;">Loading…</div>
-        </div>
-      </div>
 
-      <!-- Suggestions Panel -->
-      <div class="panel" id="panel-suggestions" style="flex: 1; min-width: 400px; background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; cursor: move;">
-        <div class="panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #1f2937; border-bottom: 1px solid #374151;">
-          <span style="font-size: 14px; font-weight: 600; color: #f9fafb;">💡 Community Suggestions (by rating)</span>
-          <button id="sug-expand" style="background: #374151; border: none; color: #fbbf24; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: 700; line-height: 1;">+</button>
-        </div>
-        <div id="admin-suggestions" style="padding: 12px;">
-          <div style="color: #6b7280; font-size: 14px; font-style: italic; padding: 20px; text-align: center;">Loading…</div>
+        <!-- Suggestions Panel -->
+        <div class="panel" id="panel-suggestions" draggable="true">
+          <div class="panel-header">
+            <span class="panel-title">💡 Suggestions (by rating)</span>
+            <button id="sug-expand" class="panel-toggle">+</button>
+          </div>
+          <div id="admin-suggestions" class="panel-body">
+            <div style="color:#6b7280;font-size:14px;font-style:italic;padding:20px;text-align:center;">Loading…</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-
 
   <script>
     (function() {
@@ -195,7 +288,6 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
       var panelContainer = document.getElementById('panels-container');
       var dragEl = null;
       panels.forEach(function(p) {
-        p.setAttribute('draggable', 'true');
         p.addEventListener('dragstart', function() { dragEl = p; p.style.opacity = '0.5'; });
         p.addEventListener('dragend', function() { p.style.opacity = '1'; dragEl = null; });
         p.addEventListener('dragover', function(e) { e.preventDefault(); });
