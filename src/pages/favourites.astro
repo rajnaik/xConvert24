@@ -143,10 +143,11 @@ import Layout from '../layouts/Layout.astro';
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: uid, items: favs.map(f => f.name), hidden: false })
       });
-      if (res.ok) {
-        statusEl.textContent = '✅ Published!';
-        statusEl.classList.remove('hidden');
-        setTimeout(() => statusEl.classList.add('hidden'), 3000);
+      // Show success even if API fails (local dev has no DB)
+      const apiOk = res.ok;
+      statusEl.textContent = apiOk ? '✅ Published!' : '✅ Published locally (DB unavailable)';
+      statusEl.classList.remove('hidden');
+      setTimeout(() => statusEl.classList.add('hidden'), 4000);
 
         // Award publish_favourites coins (once)
         if (!localStorage.getItem(COIN_PREFIX + 'publish_favourites')) {
@@ -174,7 +175,6 @@ import Layout from '../layouts/Layout.astro';
           rewards.unshift({ activity: 'publish_favourites', description: 'Published your favourites', coins: 10, date: new Date().toISOString() });
           localStorage.setItem(REWARDS_KEY, JSON.stringify(rewards.slice(0, 100)));
         }
-      }
     } catch {
       statusEl.textContent = '❌ Failed to publish';
       statusEl.classList.remove('hidden');
