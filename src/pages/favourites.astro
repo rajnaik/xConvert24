@@ -156,6 +156,18 @@ import Layout from '../layouts/Layout.astro';
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ uid, activity: 'publish_favourites' })
           }).catch(() => {});
+          // Emit event to event bus
+          fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ event_type: 'favourites_published', payload: { user_id: uid, item_count: favs.length } })
+          }).catch(() => {});
+          // Log to analytics
+          fetch('/api/analytics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: uid, event: 'favourites_published', page: '/favourites', metadata: String(favs.length) })
+          }).catch(() => {});
           const REWARDS_KEY = 'xconvert24-rewards-log';
           let rewards: any[] = [];
           try { rewards = JSON.parse(localStorage.getItem(REWARDS_KEY) || '[]'); } catch {}
