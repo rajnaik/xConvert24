@@ -1,0 +1,117 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Security Scans | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .user { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .user-name { font-size: 14px; color: #d1d5db; }
+    .back-btn { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-btn:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+
+    .scan-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; transition: all 0.2s; }
+    .scan-card:first-child { border-color: #fbbf24; box-shadow: 0 0 12px rgba(251,191,36,0.1); }
+    .scan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .scan-id { font-size: 11px; color: #6b7280; font-family: monospace; }
+    .scan-time { font-size: 12px; color: #9ca3af; }
+    .scan-status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; }
+    .status-pass { background: #052e16; color: #4ade80; }
+    .status-fail { background: #450a0a; color: #f87171; }
+    .status-warn { background: #422006; color: #fbbf24; }
+    .scan-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+    .scan-stat { text-align: center; }
+    .scan-stat-value { font-size: 18px; font-weight: 700; }
+    .scan-stat-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sev-critical { color: #ef4444; }
+    .sev-high { color: #f97316; }
+    .sev-medium { color: #fbbf24; }
+    .sev-low { color: #60a5fa; }
+    .sev-files { color: #a78bfa; }
+    .sev-issues { color: #f9fafb; }
+
+    .empty { text-align: center; padding: 60px 20px; color: #6b7280; }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .badge-latest { font-size: 9px; background: #fbbf24; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🛡️ Security Scans</div>
+    <div class="user">
+      <a href="/admin" class="back-btn">← Dashboard</a>
+      {user.picture && <img src={user.picture} alt="User avatar" class="avatar" referrerpolicy="no-referrer" />}
+      <span class="user-name">{user.name || user.email}</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>🛡️ Security Scans</h1>
+    <p class="subtitle">Aikido SAST & secrets scan results. Most recent scan on top. Last 10 scans displayed.</p>
+
+    <div id="scans-list">
+      <div class="empty">
+        <div class="empty-icon">🔄</div>
+        <p>Loading scan results...</p>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (function() {
+      var container = document.getElementById('scans-list');
+
+      fetch('/api/security-scans')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var scans = data.scans || [];
+          if (scans.length === 0) {
+            container.innerHTML = '<div class="empty"><div class="empty-icon">🛡️</div><p>No security scans recorded yet.</p><p style="margin-top:8px;font-size:12px;">Scans will appear here after the Aikido security hook runs.</p></div>';
+            return;
+          }
+
+          container.innerHTML = scans.map(function(scan, i) {
+            var statusClass = 'status-pass';
+            var statusLabel = 'PASS';
+            if (scan.critical > 0 || scan.high > 0) { statusClass = 'status-fail'; statusLabel = 'FAIL'; }
+            else if (scan.medium > 0) { statusClass = 'status-warn'; statusLabel = 'WARN'; }
+            else if (scan.status === 'error') { statusClass = 'status-fail'; statusLabel = 'ERROR'; }
+
+            var timeStr = scan.timestamp ? new Date(scan.timestamp + 'Z').toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+
+            return '<div class="scan-card">' +
+              '<div class="scan-header">' +
+                '<div><span class="scan-id">#' + scan.id + '</span>' + (i === 0 ? '<span class="badge-latest">Latest</span>' : '') + '</div>' +
+                '<div style="display:flex;align-items:center;gap:8px;"><span class="scan-time">' + timeStr + '</span><span class="scan-status ' + statusClass + '">' + statusLabel + '</span></div>' +
+              '</div>' +
+              '<div class="scan-stats">' +
+                '<div class="scan-stat"><div class="scan-stat-value sev-files">' + (scan.files_scanned || 0) + '</div><div class="scan-stat-label">Files</div></div>' +
+                '<div class="scan-stat"><div class="scan-stat-value sev-issues">' + (scan.issues_found || 0) + '</div><div class="scan-stat-label">Issues</div></div>' +
+                '<div class="scan-stat"><div class="scan-stat-value sev-critical">' + (scan.critical || 0) + '</div><div class="scan-stat-label">Critical</div></div>' +
+                '<div class="scan-stat"><div class="scan-stat-value sev-high">' + (scan.high || 0) + '</div><div class="scan-stat-label">High</div></div>' +
+                '<div class="scan-stat"><div class="scan-stat-value sev-medium">' + (scan.medium || 0) + '</div><div class="scan-stat-label">Medium</div></div>' +
+                '<div class="scan-stat"><div class="scan-stat-value sev-low">' + (scan.low || 0) + '</div><div class="scan-stat-label">Low</div></div>' +
+              '</div>' +
+            '</div>';
+          }).join('');
+        })
+        .catch(function() {
+          container.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p style="color:#f87171;">Failed to load scan results.</p></div>';
+        });
+    })();
+  </script>
+</body>
+</html>

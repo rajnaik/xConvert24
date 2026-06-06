@@ -1,0 +1,131 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Commits | xConvert24 Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-link { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .controls { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .controls select { padding: 7px 12px; background: #111827; border: 1px solid #1f2937; border-radius: 8px; color: #f9fafb; font-size: 12px; outline: none; }
+    .controls select:focus { border-color: #fbbf24; }
+    .controls .count { font-size: 12px; color: #6b7280; margin-left: auto; }
+    .commit-list { display: flex; flex-direction: column; gap: 8px; }
+    .commit { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px 18px; transition: border-color 0.2s; }
+    .commit:hover { border-color: #374151; }
+    .commit-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+    .commit-msg { font-size: 13px; font-weight: 600; color: #f9fafb; line-height: 1.4; }
+    .commit-hash { font-size: 11px; font-family: monospace; color: #fbbf24; background: #fbbf2415; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+    .commit-meta { display: flex; align-items: center; gap: 12px; font-size: 11px; color: #6b7280; }
+    .commit-author { color: #9ca3af; }
+    .empty-state { text-align: center; padding: 40px; color: #6b7280; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">📝 Commits</div>
+    <a href="/admin" class="back-link">← Dashboard</a>
+  </div>
+
+  <div class="container">
+    <h1>📝 Git Commits</h1>
+    <p class="subtitle">Source control history for xConvert24.com</p>
+
+    <div class="controls">
+      <select id="period-filter">
+        <option value="1">Previous day</option>
+        <option value="7" selected>Previous week</option>
+        <option value="30">Previous month</option>
+        <option value="90">Previous 3 months</option>
+        <option value="180">Previous 6 months</option>
+        <option value="365">Previous year</option>
+      </select>
+      <select id="sort-order">
+        <option value="desc">Newest first</option>
+        <option value="asc">Oldest first</option>
+      </select>
+      <span class="count" id="commit-count"></span>
+    </div>
+
+    <div id="commit-list" class="commit-list">
+      <div class="empty-state">Loading commits...</div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    var allCommits = [];
+    var periodFilter = document.getElementById('period-filter');
+    var sortOrder = document.getElementById('sort-order');
+    var commitList = document.getElementById('commit-list');
+    var commitCount = document.getElementById('commit-count');
+
+    // Fetch commits from git log (stored as static JSON generated at build time)
+    // Since we can't run git on Workers, we'll use the /api/commits endpoint
+    fetch('/api/commits')
+      .then(function(r) { if (!r.ok) throw new Error('not available'); return r.json(); })
+      .then(function(data) {
+        allCommits = data.commits || [];
+        render();
+      })
+      .catch(function() {
+        commitList.innerHTML = '<div class="empty-state">Commit data not available. Visit the live site after deploying.</div>';
+      });
+
+    periodFilter.addEventListener('change', render);
+    sortOrder.addEventListener('change', render);
+
+    function render() {
+      var days = parseInt(periodFilter.value);
+      var order = sortOrder.value;
+      var cutoff = Date.now() - (days * 86400000);
+
+      var filtered = allCommits.filter(function(c) {
+        return new Date(c.date).getTime() >= cutoff;
+      });
+
+      if (order === 'asc') filtered.reverse();
+
+      commitCount.textContent = filtered.length + ' commit' + (filtered.length !== 1 ? 's' : '');
+
+      if (!filtered.length) {
+        commitList.innerHTML = '<div class="empty-state">No commits in this period.</div>';
+        return;
+      }
+
+      commitList.innerHTML = filtered.map(function(c) {
+        var date = new Date(c.date);
+        var dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        var shortHash = (c.hash || '').slice(0, 7);
+
+        return '<div class="commit">' +
+          '<div class="commit-top">' +
+            '<div class="commit-msg">' + escapeHtml(c.message || '') + '</div>' +
+            '<span class="commit-hash">' + shortHash + '</span>' +
+          '</div>' +
+          '<div class="commit-meta">' +
+            '<span>' + dateStr + '</span>' +
+            '<span class="commit-author">' + escapeHtml(c.author || '') + '</span>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function escapeHtml(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  })();
+  </script>
+</body>
+</html>

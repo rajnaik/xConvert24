@@ -1,0 +1,15 @@
+import type { APIRoute } from 'astro';
+
+/**
+ * GET /api/commits — returns git commit history from pre-generated JSON
+ */
+
+export const prerender = true;
+
+const commitsData = [{"hash":"007d72abd62a8e617e74d47406c56ebec29de903","message":"v1.9.0 — Contagion tracker, Guitar tuner, ConvertCoins, Support/Solana, Blog SSR gate, SEO BreadcrumbList, Admin wallet/org-chart/builds/tests","author":"Rajeev Naik","date":"2026-06-05T21:49:13+01:00"},{"hash":"767a27064d53fe1d40aea8f5112b5fbc8d61278b","message":"Version 1.6.0 — Experimental Tools","author":"Rajeev Naik","date":"2026-06-05T14:16:39+01:00"},{"hash":"fc72324bf134672b6746750f3c13cd06c8a21f49","message":"Version 1.5.0","author":"Rajeev Naik","date":"2026-06-05T00:31:02+01:00"},{"hash":"5e7ef8cdf63080c370068dd8fb38ca4fc57e3e54","message":"Version 1.4.0 🎉","author":"Rajeev Naik","date":"2026-06-04T21:37:35+01:00"},{"hash":"d3d8684ce9d265ce282efadcd06b1edec430e164","message":"Version 1.3.0","author":"Rajeev Naik","date":"2026-06-04T14:02:41+01:00"},{"hash":"d85871d5502828933a4bc771db7c15200e6bb910","message":"Version 1.1.1 - MVP","author":"Rajeev Naik","date":"2026-06-04T10:45:58+01:00"},{"hash":"1c84511b7f83545a1ab8ae615a5f02ffa0609958","message":"Initial commit from Astro","author":"houston[bot]","date":"2026-06-04T08:52:58+01:00"}];
+
+export const GET: APIRoute = async () => {
+  return new Response(JSON.stringify({ commits: commitsData }), {
+    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+  });
+};

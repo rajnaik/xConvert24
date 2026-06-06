@@ -16,7 +16,7 @@ import Layout from '../layouts/Layout.astro';
     <!-- Appeal -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
       <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Why Your Support Matters</h2>
-      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">xConvert24 is a bootstrapped startup with a simple mission: give everyone instant access to accurate conversions and calculations — no sign-up, no ads, no paywalls.</p>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">xConvert24 is a bootstrapped startup with a simple mission: give everyone instant access to accurate conversions and calculations — no sign-up, no paywalls.</p>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -79,7 +79,7 @@ import Layout from '../layouts/Layout.astro';
       </div>
 
       <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4">
-        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Send SOL or SPL tokens to:</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Send SOL to:</p>
         <div class="flex items-center gap-2">
           <code id="sol-address" class="flex-1 text-sm font-mono text-gray-900 dark:text-white bg-white dark:bg-gray-900 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 break-all select-all">Loading...</code>
           <button id="copy-sol" class="shrink-0 px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white text-xs font-semibold rounded-lg transition-colors">Copy</button>
@@ -117,7 +117,7 @@ import Layout from '../layouts/Layout.astro';
           <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-sm">🛠️</div>
           <div class="flex-1">
             <p class="text-sm font-medium text-gray-900 dark:text-white">Development</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">New converters, tools, bug fixes, performance improvements</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">AI tokens for development using Kiro, new converters, tools, bug fixes, performance improvements</p>
           </div>
         </div>
         <div class="flex items-center gap-3">
@@ -151,6 +151,13 @@ import Layout from '../layouts/Layout.astro';
       const btn = document.getElementById('copy-sol')!;
       btn.textContent = 'Copied!';
       setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+
+      // Notify via email that wallet address was copied
+      fetch('/api/notify-copy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addr, timestamp: new Date().toISOString() })
+      }).catch(() => {});
     });
   });
 </script>

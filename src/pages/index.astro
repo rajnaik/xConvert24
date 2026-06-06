@@ -377,8 +377,8 @@ const categories = [
 
     if (isStandalone || dismissed) return; // Never show if installed or dismissed
 
-    // Show after 5 minutes (300000ms)
-    var DELAY = 300000;
+    // Show after 4 minutes (240000ms) — never if already added to home screen
+    var DELAY = 240000;
     var startTime = parseInt(sessionStorage.getItem('xconvert24-session-start') || '0');
     if (!startTime) { startTime = Date.now(); sessionStorage.setItem('xconvert24-session-start', startTime.toString()); }
 
@@ -386,7 +386,9 @@ const categories = [
     var remaining = Math.max(0, DELAY - elapsed);
 
     setTimeout(function() {
-      if (panel) panel.classList.remove('hidden');
+      // Double-check standalone status at show time (user might have installed during session)
+      var nowStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+      if (!nowStandalone && panel) panel.classList.remove('hidden');
     }, remaining);
 
     document.getElementById('dismiss-install')?.addEventListener('click', () => {
