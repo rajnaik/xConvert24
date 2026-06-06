@@ -220,22 +220,38 @@ import { VERSION } from '../data/siteStats';
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-4 gap-3 mt-6">
-      <div class="text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-        <p class="text-xl font-bold text-amber-500">13</p>
+    <div class="grid grid-cols-4 gap-3 mt-6" id="pipeline-stats">
+      <div class="relative text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 cursor-pointer hover:border-amber-400 transition-colors group" data-stat="steps">
+        <p class="text-xl font-bold text-amber-500" id="stat-steps">13</p>
         <p class="text-[10px] text-gray-500 uppercase">Steps</p>
+        <div class="stat-tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 text-left" id="tip-steps">
+          <p class="text-[10px] text-gray-400 mb-1 uppercase font-semibold">All Steps</p>
+          <div class="text-[11px] text-gray-300 space-y-0.5" id="tip-steps-list">Loading…</div>
+        </div>
       </div>
-      <div class="text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-        <p class="text-xl font-bold text-orange-500">9</p>
+      <div class="relative text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 cursor-pointer hover:border-orange-400 transition-colors group" data-stat="gates">
+        <p class="text-xl font-bold text-orange-500" id="stat-gates">9</p>
         <p class="text-[10px] text-gray-500 uppercase">Gates</p>
+        <div class="stat-tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 text-left" id="tip-gates">
+          <p class="text-[10px] text-gray-400 mb-1 uppercase font-semibold">Quality Gates</p>
+          <div class="text-[11px] text-gray-300 space-y-0.5" id="tip-gates-list">Loading…</div>
+        </div>
       </div>
-      <div class="text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-        <p class="text-xl font-bold text-red-500">3</p>
+      <div class="relative text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 cursor-pointer hover:border-red-400 transition-colors group" data-stat="security">
+        <p class="text-xl font-bold text-red-500" id="stat-security">3</p>
         <p class="text-[10px] text-gray-500 uppercase">Security</p>
+        <div class="stat-tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 text-left" id="tip-security">
+          <p class="text-[10px] text-gray-400 mb-1 uppercase font-semibold">Security Scans</p>
+          <div class="text-[11px] text-gray-300 space-y-0.5" id="tip-security-list">Loading…</div>
+        </div>
       </div>
-      <div class="text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-        <p class="text-xl font-bold text-blue-500">12+</p>
+      <div class="relative text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 cursor-pointer hover:border-blue-400 transition-colors group" data-stat="tools">
+        <p class="text-xl font-bold text-blue-500" id="stat-tools">12+</p>
         <p class="text-[10px] text-gray-500 uppercase">Tools</p>
+        <div class="stat-tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 text-left" id="tip-tools">
+          <p class="text-[10px] text-gray-400 mb-1 uppercase font-semibold">Tools Used</p>
+          <div class="text-[11px] text-gray-300 space-y-0.5" id="tip-tools-list">Loading…</div>
+        </div>
       </div>
     </div>
 
@@ -250,3 +266,66 @@ import { VERSION } from '../data/siteStats';
     </div>
   </div>
 </Layout>
+
+<script>
+  // Fetch pipeline config from API and populate tooltips
+  async function loadPipelineStats() {
+    try {
+      const res = await fetch('/api/cicd-pipeline');
+      const data = await res.json();
+      const xml = data.xml || '';
+
+      // Parse XML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const steps = Array.from(doc.querySelectorAll('step'));
+
+      // All steps
+      const enabledSteps = steps.filter(s => s.getAttribute('enabled') === 'true');
+      document.getElementById('stat-steps')!.textContent = enabledSteps.length.toString();
+      document.getElementById('tip-steps-list')!.innerHTML = enabledSteps.map(s =>
+        `<div>• ${s.getAttribute('name')}</div>`
+      ).join('');
+
+      // Gates
+      const gates = enabledSteps.filter(s => s.getAttribute('gate') === 'true');
+      document.getElementById('stat-gates')!.textContent = gates.length.toString();
+      document.getElementById('tip-gates-list')!.innerHTML = gates.map(s =>
+        `<div>⛔ ${s.getAttribute('name')}</div>`
+      ).join('');
+
+      // Security (steps 5, 8 + any with "security" in name/tools)
+      const securitySteps = enabledSteps.filter(s => {
+        const name = (s.getAttribute('name') || '').toLowerCase();
+        const tools = (s.querySelector('tools')?.textContent || '').toLowerCase();
+        return name.includes('security') || name.includes('sast') || name.includes('checkmarx') || name.includes('aikido') || tools.includes('security') || tools.includes('sast');
+      });
+      document.getElementById('stat-security')!.textContent = securitySteps.length.toString();
+      document.getElementById('tip-security-list')!.innerHTML = securitySteps.map(s =>
+        `<div>🛡️ ${s.getAttribute('name')}</div>`
+      ).join('');
+
+      // Tools — collect unique tools from all enabled steps
+      const allTools = new Set<string>();
+      enabledSteps.forEach(s => {
+        const tools = s.querySelector('tools')?.textContent || '';
+        tools.split(',').forEach(t => { if (t.trim()) allTools.add(t.trim()); });
+      });
+      document.getElementById('stat-tools')!.textContent = allTools.size.toString();
+      document.getElementById('tip-tools-list')!.innerHTML = Array.from(allTools).sort().map(t =>
+        `<div>🔧 ${t}</div>`
+      ).join('');
+    } catch {
+      // Fallback — keep static values
+    }
+  }
+
+  // Tooltip hover behavior
+  document.querySelectorAll('[data-stat]').forEach(tile => {
+    const tooltip = tile.querySelector('.stat-tooltip') as HTMLElement;
+    tile.addEventListener('mouseenter', () => tooltip?.classList.remove('hidden'));
+    tile.addEventListener('mouseleave', () => tooltip?.classList.add('hidden'));
+  });
+
+  loadPipelineStats();
+</script>

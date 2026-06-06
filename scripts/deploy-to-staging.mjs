@@ -28,7 +28,7 @@ config.routes = [{ pattern: 'staging.xconvert24.com', custom_domain: true }];
 config.d1_databases = [
   {
     binding: 'BUGS_DB',
-    database_name: 'xconvert24-staging-bugs',
+    database_name: 'xconvert24-staging',
     database_id: 'e28a7b2a-0f77-4c4d-8ea2-d2a30be131a2',
   },
   {
