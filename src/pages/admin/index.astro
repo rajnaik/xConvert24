@@ -73,6 +73,15 @@ import { STATS } from '../../data/siteStats';
     <h1>Dashboard</h1>
     <p class="subtitle">Welcome back, {user.name || user.email}. Manage xConvert24.com from here.</p>
 
+    <!-- Site Status Star -->
+    <div id="site-status-banner" style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px 20px;background:#111827;border:1px solid #1f2937;border-radius:12px;">
+      <div id="status-star" style="font-size:48px;line-height:1;">⭐</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#f9fafb;">Site Status: <span id="status-label" style="color:#fbbf24;">Loading…</span></div>
+        <div id="status-detail" style="font-size:11px;color:#6b7280;margin-top:2px;">Checking…</div>
+      </div>
+    </div>
+
     <!-- Navigation tabs -->
     <nav class="nav-tabs">
       <a href="/admin" class="nav-tab active">📊 Overview</a>
@@ -188,6 +197,11 @@ import { STATS } from '../../data/siteStats';
           <div class="card-title">Suggestions</div>
           <div class="card-desc">Community feature suggestions with ratings.</div>
         </a>
+        <a href="/opinion" class="card">
+          <div class="card-icon">💬</div>
+          <div class="card-title">Your Opinion</div>
+          <div class="card-desc">User opinions on upcoming features. Latest responses shown below.</div>
+        </a>
       </div>
     </div>
 
@@ -253,7 +267,7 @@ import { STATS } from '../../data/siteStats';
       </div>
     </div>
 
-    <!-- Draggable panels: Bugs & Suggestions -->
+    <!-- Draggable panels: Bugs, Suggestions & Opinions -->
     <div class="section">
       <div class="section-title">📋 Live Feed</div>
       <div class="panels-wrap" id="panels-container">
@@ -275,6 +289,16 @@ import { STATS } from '../../data/siteStats';
             <button id="sug-expand" class="panel-toggle">+</button>
           </div>
           <div id="admin-suggestions" class="panel-body">
+            <div style="color:#6b7280;font-size:14px;font-style:italic;padding:20px;text-align:center;">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Opinions Panel -->
+        <div class="panel" id="panel-opinions" draggable="true">
+          <div class="panel-header">
+            <span class="panel-title">💬 Opinions (latest 10)</span>
+          </div>
+          <div id="admin-opinions" class="panel-body">
             <div style="color:#6b7280;font-size:14px;font-style:italic;padding:20px;text-align:center;">Loading…</div>
           </div>
         </div>
@@ -333,6 +357,39 @@ import { STATS } from '../../data/siteStats';
 
       fetch('/api/bugs').then(function(r) { return r.json(); }).then(function(d) { allBugs = d.bugs || []; renderBugs(); }).catch(function() { bugsContainer.innerHTML = '<div style="color:#f87171;font-size:13px;text-align:center;padding:20px;">Failed to load.</div>'; });
       fetch('/api/suggestions').then(function(r) { return r.json(); }).then(function(d) { allSuggestions = d.suggestions || []; renderSuggestions(); }).catch(function() { sugContainer.innerHTML = '<div style="color:#f87171;font-size:13px;text-align:center;padding:20px;">Failed to load.</div>'; });
+
+      // Load Site Status
+      fetch('/api/site-status').then(function(r) { return r.json(); }).then(function(d) {
+        var star = document.getElementById('status-star');
+        var label = document.getElementById('status-label');
+        var detail = document.getElementById('status-detail');
+        var status = d.status || 'golden';
+        var colors = { golden: '#fbbf24', green: '#10b981', red: '#ef4444' };
+        var stars = { golden: '🌟', green: '✅', red: '🔴' };
+        var labels = { golden: 'Golden (All Tests Passed)', green: 'Green (Deployment In Progress)', red: 'Red (Issues Detected)' };
+        star.textContent = stars[status] || '⭐';
+        label.textContent = labels[status] || status;
+        label.style.color = colors[status] || '#fbbf24';
+        detail.textContent = d.updated_at ? 'Last updated: ' + new Date(d.updated_at).toLocaleString() : 'Status: healthy';
+      }).catch(function() {
+        document.getElementById('status-label').textContent = 'Unknown';
+        document.getElementById('status-detail').textContent = 'Could not fetch status';
+      });
+
+      // Load Opinions
+      var opinionsContainer = document.getElementById('admin-opinions');
+      fetch('/api/opinions').then(function(r) { return r.json(); }).then(function(d) {
+        var opinions = d.opinions || [];
+        if (!opinions.length) { opinionsContainer.innerHTML = '<div style="color:#6b7280;font-size:13px;text-align:center;padding:20px;">No opinions yet.</div>'; return; }
+        var responseEmoji = { yes: '👍', no: '👎', maybe: '🤷' };
+        var responseLabel = { yes: 'Yes, enable sign-on', no: 'No, keep anonymous', maybe: 'Maybe (optional only)' };
+        opinionsContainer.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;">' + opinions.map(function(o) {
+          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#0f172a;border-radius:8px;">' +
+            '<div style="font-size:20px;">' + (responseEmoji[o.response] || '💬') + '</div>' +
+            '<div style="flex:1;min-width:0;"><div style="font-size:12px;color:#d1d5db;">' + (responseLabel[o.response] || o.response) + '</div>' +
+            '<div style="font-size:10px;color:#6b7280;">' + (o.created_at || '').split('T')[0] + ' • ' + (o.user_id || '').slice(0, 10) + '…</div></div></div>';
+        }).join('') + '</div>';
+      }).catch(function() { opinionsContainer.innerHTML = '<div style="color:#f87171;font-size:13px;text-align:center;padding:20px;">Failed to load.</div>'; });
     })();
   </script>
 </body>
