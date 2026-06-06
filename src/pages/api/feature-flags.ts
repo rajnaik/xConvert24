@@ -34,6 +34,40 @@ export const GET: APIRoute = async ({ url }) => {
   });
 };
 
+export const DELETE: APIRoute = async ({ request }) => {
+  const db = (env as any).BUGS_DB;
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'DB not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { id } = body;
+  if (!id) {
+    return new Response(JSON.stringify({ error: 'Flag id required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  await db.prepare('DELETE FROM feature_flags WHERE id = ?').bind(id).run();
+
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+  });
+};
+
 export const POST: APIRoute = async ({ request }) => {
   const db = (env as any).BUGS_DB;
   if (!db) {
@@ -53,7 +87,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const { id, enabled_dev, enabled_staging, enabled_live } = body;
+  const { id, name, description, enabled_dev, enabled_staging, enabled_live, _action } = body;
   if (!id) {
     return new Response(JSON.stringify({ error: 'Flag id required' }), {
       status: 400,
@@ -61,9 +95,29 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
+  // Create a new flag
+  if (_action === 'create') {
+    if (!name) {
+      return new Response(JSON.stringify({ error: 'Flag name required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    await db.prepare(
+      `INSERT INTO feature_flags (id, name, description, enabled_dev, enabled_staging, enabled_live) VALUES (?, ?, ?, ?, ?, ?)`
+    ).bind(id, name, description || '', enabled_dev ? 1 : 0, enabled_staging ? 1 : 0, enabled_live ? 1 : 0).run();
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  }
+
+  // Update existing flag
   const updates: string[] = [];
   const binds: any[] = [];
 
+  if (name !== undefined) { updates.push('name = ?'); binds.push(name); }
+  if (description !== undefined) { updates.push('description = ?'); binds.push(description); }
   if (enabled_dev !== undefined) { updates.push('enabled_dev = ?'); binds.push(enabled_dev ? 1 : 0); }
   if (enabled_staging !== undefined) { updates.push('enabled_staging = ?'); binds.push(enabled_staging ? 1 : 0); }
   if (enabled_live !== undefined) { updates.push('enabled_live = ?'); binds.push(enabled_live ? 1 : 0); }

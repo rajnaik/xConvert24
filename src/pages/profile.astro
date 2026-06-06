@@ -10,7 +10,7 @@ const environment = host.includes('localhost') || host.includes('127.0.0.1')
     : 'live';
 
 // Check the "coins" feature flag
-let coinsEnabled = true; // default to true for dev fallback
+let coinsEnabled = false; // default to disabled — only enable if DB confirms
 try {
   const { env } = await import('cloudflare:workers');
   const db = (env as any).BUGS_DB;
@@ -21,8 +21,8 @@ try {
     }
   }
 } catch {
-  // If DB unavailable, fall back to enabled in dev only
-  coinsEnabled = environment === 'dev';
+  // If DB unavailable, keep disabled
+  coinsEnabled = false;
 }
 
 // If feature is disabled, return 404 (blocks crawlers and users)

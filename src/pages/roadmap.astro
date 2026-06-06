@@ -1,0 +1,92 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+
+const roadmapItems = [
+  {
+    quarter: 'Q3 2026',
+    status: 'in-progress',
+    items: [
+      { title: 'Leaderboard', description: 'Global ConvertCoins leaderboard with weekly and all-time rankings', status: 'planned' },
+      { title: 'Badges & Achievements', description: 'Unlock badges for milestones — 100 conversions, first bug report, streak master', status: 'planned' },
+      { title: 'Shareable Profiles', description: 'Public profile pages with stats, level, and badge showcase', status: 'planned' },
+      { title: 'Coin Redemption', description: 'Spend ConvertCoins on themes, flair, and profile customisation', status: 'planned' },
+      { title: 'Custom Themes', description: 'Unlock and apply colour themes beyond dark/light mode', status: 'planned' },
+      { title: 'More Widgets', description: 'Expand embeddable widget library with additional converters', status: 'planned' },
+      { title: 'ConvertCoin Tasklist', description: 'A guided tasklist showing users exactly how to earn ConvertCoins — complete tasks to accumulate rewards', status: 'planned' },
+    ],
+  },
+  {
+    quarter: 'Q4 2026',
+    status: 'upcoming',
+    items: [
+      { title: 'API Access', description: 'Public REST API for conversions — free tier with rate limits', status: 'planned' },
+      { title: 'Browser Extension', description: 'Quick-convert from any webpage with a right-click context menu', status: 'planned' },
+      { title: 'Conversion History', description: 'Logged-in users can view and re-run past conversions', status: 'planned' },
+      { title: 'Unit Cheat Sheets', description: 'Printable PDF reference cards for common unit conversions', status: 'planned' },
+      { title: 'Batch Conversions', description: 'Upload CSV files and convert entire columns of values at once', status: 'planned' },
+    ],
+  },
+  {
+    quarter: '2027',
+    status: 'future',
+    items: [
+      { title: 'Mobile App', description: 'Native iOS and Android apps with offline conversion support', status: 'planned' },
+      { title: 'Voice Input', description: 'Speak your conversion and get instant results', status: 'planned' },
+      { title: 'Localisation', description: 'Full multi-language support — Spanish, French, German, Hindi, and more', status: 'planned' },
+    ],
+  },
+];
+
+const statusColors: Record<string, { bg: string; text: string; label: string }> = {
+  'in-progress': { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', label: 'In Progress' },
+  'upcoming': { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'Upcoming' },
+  'future': { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400', label: 'Future' },
+};
+---
+
+<Layout title="Roadmap" description="See what's coming next to xConvert24.com — planned features, improvements, and future ideas." keywords="roadmap, planned features, upcoming, xConvert24 future, product roadmap">
+  <div class="max-w-3xl">
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Roadmap</h1>
+        <a href="/support" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-sm font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors" title="Support Us">
+          <span>💜</span>
+          <span>Support Us</span>
+        </a>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">What we're building next. Have an idea? <a href="/suggest" class="text-amber-600 dark:text-amber-400 hover:underline">Suggest a feature</a>.</p>
+    </div>
+
+    <div class="space-y-8">
+      {roadmapItems.map((section) => {
+        const color = statusColors[section.status];
+        return (
+          <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/60">
+              <span class="text-lg font-bold text-gray-900 dark:text-white">{section.quarter}</span>
+              <span class={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${color.bg} ${color.text}`}>{color.label}</span>
+            </div>
+            <div class="px-6 py-5">
+              <ul class="space-y-4">
+                {section.items.map((item) => (
+                  <li class="flex items-start gap-3">
+                    <span class="mt-1 shrink-0 w-2 h-2 rounded-full bg-amber-400 dark:bg-amber-500"></span>
+                    <div>
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">{item.title}</p>
+                      <p class="text-sm text-gray-500 dark:text-gray-400">{item.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    <div class="mt-10 p-5 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl text-center">
+      <p class="text-sm text-amber-800 dark:text-amber-300">This roadmap is a living document. Priorities may shift based on community feedback and suggestions.</p>
+    </div>
+  </div>
+</Layout>

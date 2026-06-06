@@ -38,6 +38,23 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
     .error { text-align: center; padding: 60px; color: #f87171; font-style: italic; }
     .empty { text-align: center; padding: 60px; color: #6b7280; }
     .updated { font-size: 11px; color: #6b7280; }
+    .toolbar { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+    .btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-primary { background: #d97706; color: #fff; }
+    .btn-primary:hover { background: #b45309; }
+    .btn-danger { background: #7f1d1d; color: #fca5a5; padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+    .btn-danger:hover { background: #991b1b; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 24px; width: 100%; max-width: 440px; }
+    .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .modal label { display: block; font-size: 12px; font-weight: 600; color: #9ca3af; margin-bottom: 4px; margin-top: 12px; }
+    .modal input, .modal textarea { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #374151; background: #111827; color: #f9fafb; font-size: 13px; }
+    .modal textarea { resize: vertical; min-height: 60px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .btn-secondary { background: #374151; color: #d1d5db; }
+    .btn-secondary:hover { background: #4b5563; }
+    .actions-cell { display: flex; align-items: center; gap: 6px; }
   </style>
 </head>
 <body>
@@ -51,16 +68,86 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
     <p class="subtitle">Toggle features per environment. Changes are saved immediately.</p>
     <div id="env-indicator"></div>
 
+    <div class="toolbar">
+      <button class="btn btn-primary" id="btn-create">+ New Flag</button>
+    </div>
+
     <div id="flags-container">
       <div class="loading">Loading feature flags…</div>
+    </div>
+  </div>
+
+  <!-- Create Flag Modal -->
+  <div class="modal-overlay" id="create-modal">
+    <div class="modal">
+      <h2>Create Feature Flag</h2>
+      <label for="flag-id">ID (slug)</label>
+      <input type="text" id="flag-id" placeholder="e.g. dark-mode" />
+      <label for="flag-name">Name</label>
+      <input type="text" id="flag-name" placeholder="e.g. Dark Mode" />
+      <label for="flag-desc">Description</label>
+      <textarea id="flag-desc" placeholder="What does this flag control?"></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-cancel-create">Cancel</button>
+        <button class="btn btn-primary" id="btn-confirm-create">Create</button>
+      </div>
     </div>
   </div>
 
   <script>
     const container = document.getElementById('flags-container');
     const envIndicator = document.getElementById('env-indicator');
+    const createModal = document.getElementById('create-modal');
+    const btnCreate = document.getElementById('btn-create');
+    const btnCancel = document.getElementById('btn-cancel-create');
+    const btnConfirm = document.getElementById('btn-confirm-create');
     let allFlags = [];
     let currentEnv = 'dev';
+
+    // Modal handlers
+    btnCreate.addEventListener('click', () => createModal.classList.add('active'));
+    btnCancel.addEventListener('click', () => createModal.classList.remove('active'));
+    createModal.addEventListener('click', (e) => { if (e.target === createModal) createModal.classList.remove('active'); });
+
+    btnConfirm.addEventListener('click', async () => {
+      const id = document.getElementById('flag-id').value.trim();
+      const name = document.getElementById('flag-name').value.trim();
+      const description = document.getElementById('flag-desc').value.trim();
+      if (!id || !name) { alert('ID and Name are required'); return; }
+
+      btnConfirm.disabled = true;
+      try {
+        const res = await fetch('/api/feature-flags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, name, description, _action: 'create', enabled_dev: false, enabled_staging: false, enabled_live: false }),
+        });
+        if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed'); }
+        createModal.classList.remove('active');
+        document.getElementById('flag-id').value = '';
+        document.getElementById('flag-name').value = '';
+        document.getElementById('flag-desc').value = '';
+        await loadFlags();
+      } catch (err) {
+        alert('Failed to create flag: ' + err.message);
+      }
+      btnConfirm.disabled = false;
+    });
+
+    async function deleteFlag(id, name) {
+      if (!confirm('Delete flag "' + name + '"? This cannot be undone.')) return;
+      try {
+        const res = await fetch('/api/feature-flags', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!res.ok) throw new Error('Failed');
+        await loadFlags();
+      } catch (err) {
+        alert('Failed to delete flag: ' + err.message);
+      }
+    }
 
     async function loadFlags() {
       try {
@@ -80,12 +167,12 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
       envIndicator.innerHTML = '<span class="env-badge ' + envClass + '">Environment: ' + currentEnv.toUpperCase() + '</span>';
 
       if (!allFlags.length) {
-        container.innerHTML = '<div class="empty">No feature flags configured.</div>';
+        container.innerHTML = '<div class="empty">No feature flags configured. Click "+ New Flag" to create one.</div>';
         return;
       }
 
       container.innerHTML = '<table class="flags-table"><thead><tr>' +
-        '<th>Flag</th><th>Dev</th><th>Staging</th><th>Live</th><th>Updated</th>' +
+        '<th>Flag</th><th>Dev</th><th>Staging</th><th>Live</th><th>Updated</th><th>Actions</th>' +
         '</tr></thead><tbody>' +
         allFlags.map(flag => {
           return '<tr>' +
@@ -94,10 +181,12 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
             '<td><button class="toggle' + (flag.enabled_staging ? ' on' : '') + '" data-id="' + flag.id + '" data-env="staging"></button></td>' +
             '<td><button class="toggle' + (flag.enabled_live ? ' on' : '') + '" data-id="' + flag.id + '" data-env="live"></button></td>' +
             '<td><span class="updated">' + (flag.updated_at ? new Date(flag.updated_at).toLocaleDateString() : '—') + '</span></td>' +
+            '<td><div class="actions-cell"><button class="btn btn-danger" data-delete-id="' + flag.id + '" data-delete-name="' + flag.name + '">Delete</button></div></td>' +
             '</tr>';
         }).join('') +
         '</tbody></table>';
 
+      // Toggle handlers
       container.querySelectorAll('.toggle').forEach(btn => {
         btn.addEventListener('click', async () => {
           const id = btn.dataset.id;
@@ -120,6 +209,11 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
           }
           btn.disabled = false;
         });
+      });
+
+      // Delete handlers
+      container.querySelectorAll('[data-delete-id]').forEach(btn => {
+        btn.addEventListener('click', () => deleteFlag(btn.dataset.deleteId, btn.dataset.deleteName));
       });
     }
 

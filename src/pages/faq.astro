@@ -82,7 +82,16 @@ const faqs = [
   },
   {
     q: 'How often is the site updated?',
-    a: 'We ship improvements regularly. Check the Release Notes page for a full changelog of features and bug fixes.',
+    a: 'We ship improvements regularly. Check the <a href="/releases" class="text-amber-600 dark:text-amber-400 hover:underline">Release Notes</a> page for a full changelog of features and bug fixes.',
+  },
+  {
+    q: 'Do you accept any donations?',
+    a: `Yes we do! You can donate crypto to us. We accept Solana (SOL).
+      <span class="flex items-center gap-2 mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 128 128" fill="none"><path d="M25.6 95.5l16.3-17.1c.6-.6 1.4-1 2.3-1h78.2c1.4 0 2.2 1.7 1.2 2.8l-16.3 17.1c-.6.6-1.4 1-2.3 1H26.8c-1.4 0-2.2-1.7-1.2-2.8z" fill="url(#faq-sol1)"/><path d="M25.6 30.2l16.3-17.1c.6-.6 1.4-1 2.3-1h78.2c1.4 0 2.2 1.7 1.2 2.8L107.3 32c-.6.6-1.4 1-2.3 1H26.8c-1.4 0-2.2-1.7-1.2-2.8z" fill="url(#faq-sol2)"/><path d="M107.3 62.5l-16.3-17.1c-.6-.6-1.4-1-2.3-1H10.5c-1.4 0-2.2 1.7-1.2 2.8l16.3 17.1c.6.6 1.4 1 2.3 1h78.2c1.4 0 2.2-1.7 1.2-2.8z" fill="url(#faq-sol3)"/><defs><linearGradient id="faq-sol1" x1="5" y1="120" x2="120" y2="5"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient><linearGradient id="faq-sol2" x1="5" y1="120" x2="120" y2="5"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient><linearGradient id="faq-sol3" x1="5" y1="120" x2="120" y2="5"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient></defs></svg>
+        <code id="faq-sol-address" class="flex-1 text-xs font-mono text-gray-900 dark:text-white break-all select-all">Loading...</code>
+        <button id="faq-copy-sol" class="shrink-0 px-2 py-1 bg-purple-500 hover:bg-purple-600 text-white text-[10px] font-semibold rounded transition-colors">Copy</button>
+      </span>`,
   },
 ];
 ---
@@ -123,7 +132,7 @@ const faqs = [
             </svg>
           </button>
           <div id={`faq-answer-${i}`} class="faq-answer hidden px-5 pb-4">
-            <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{faq.a}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed" set:html={faq.a}></p>
           </div>
         </div>
       ))}
@@ -156,6 +165,29 @@ const faqs = [
         btn.setAttribute('aria-expanded', 'true');
         chevron.classList.add('rotate-180');
       }
+    });
+  });
+
+  // Load wallet address for donation FAQ
+  fetch('/api/wallet')
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('faq-sol-address');
+      if (el && data.address) el.textContent = data.address;
+      else if (el) el.textContent = '(Wallet not configured yet)';
+    })
+    .catch(() => {
+      const el = document.getElementById('faq-sol-address');
+      if (el) el.textContent = '(Unable to load — visit /support)';
+    });
+
+  document.getElementById('faq-copy-sol')?.addEventListener('click', () => {
+    const addr = document.getElementById('faq-sol-address')!.textContent || '';
+    if (addr.startsWith('(')) return;
+    navigator.clipboard.writeText(addr).then(() => {
+      const btn = document.getElementById('faq-copy-sol')!;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
     });
   });
 </script>
