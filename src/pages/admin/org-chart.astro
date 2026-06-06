@@ -65,7 +65,7 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
 
   <div class="container">
     <h1>🏢 Organisation Chart</h1>
-    <p class="subtitle">The xConvert24.com team — agents and their roles.</p>
+    <p class="subtitle">The xConvert24.com team — agents and their roles. <span style="color:#4ade80;font-size:11px;">● Live — updates every 15s</span></p>
 
     <!-- Org tree -->
     <div class="org-tree">
@@ -135,93 +135,95 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
 
   <script is:inline>
   (function() {
-    var JOBS_KEY = 'xconvert24-agent-jobs';
+    var REFRESH_INTERVAL = 15000; // Refresh every 15 seconds
+    var currentAgent = null;
 
-    // Default job data (seeded from what each agent has done)
-    var defaultJobs = {
-      henry: [
-        { task: 'Reviewed v1.8.0 release and approved deploy', date: '2025-06-05T19:30:00', duration: '2m' },
-        { task: 'Named Sentinel as contagion tracker agent', date: '2025-06-05T19:10:00', duration: '1m' },
-        { task: 'Named Archer as SEO champion agent', date: '2025-06-05T19:05:00', duration: '1m' },
-        { task: 'Approved custom domain xconvert24.com purchase', date: '2025-06-04T14:00:00', duration: '5m' },
-        { task: 'Set project vision: Fast, Free, No Signups', date: '2025-06-04T10:00:00', duration: '10m' },
-      ],
-      kiro: [
-        { task: 'Deployed v1.8.0 — mobile fix, contact form, version variable', date: '2025-06-05T19:35:00', duration: '58s' },
-        { task: 'Built Guitar Tuner with Web Audio pitch detection', date: '2025-06-05T18:00:00', duration: '8m' },
-        { task: 'Rebuilt Crypto Bubbles with D3.js + watchlists', date: '2025-06-05T17:10:00', duration: '12m' },
-        { task: 'Created Online Ruler with calibration & pick-up', date: '2025-06-05T16:45:00', duration: '6m' },
-        { task: 'Built Audio & Video Converters with download history', date: '2025-06-05T16:06:00', duration: '10m' },
-        { task: 'Created Image Converter with resize & quality', date: '2025-06-05T15:02:00', duration: '7m' },
-        { task: 'Admin dashboard reorganisation + SEO Editor', date: '2025-06-05T16:42:00', duration: '9m' },
-        { task: 'Fixed Suggestions API with COALESCE query', date: '2025-06-05T17:02:00', duration: '3m' },
-        { task: 'SEO: sitemap 37→65 URLs, og:image PNG, PWA meta', date: '2025-06-05T15:50:00', duration: '5m' },
-        { task: 'Deployed v1.6.5 — media category, Google Ads tag', date: '2025-06-05T15:57:00', duration: '41s' },
-      ],
-      quill: [
-        { task: 'Published blog #25: "Understanding Cryptocurrency Basics"', date: '2025-06-29T21:00:00', duration: '45m' },
-        { task: 'Published blog #24: "Compound Interest Explained"', date: '2025-06-28T21:00:00', duration: '40m' },
-        { task: 'Published blog #23: "Miles to Kilometers Running"', date: '2025-06-27T21:00:00', duration: '35m' },
-        { task: 'Published blog #22: "Age Calculator — Exact Days Alive"', date: '2025-06-26T21:00:00', duration: '38m' },
-        { task: 'Published blog #21: "Baby Weight Conversion Chart"', date: '2025-06-25T21:00:00', duration: '42m' },
-        { task: 'Wrote 50 SEO blog posts across all categories', date: '2025-06-05T12:00:00', duration: '4h' },
-        { task: 'Created blog content calendar (Jun 5 – Jul 24)', date: '2025-06-05T11:00:00', duration: '30m' },
-        { task: 'Researched keywords for blog topics', date: '2025-06-05T10:30:00', duration: '20m' },
-      ],
-      archer: [
-        { task: 'Agent created and configured', date: '2025-06-05T19:24:00', duration: '2m' },
-        { task: 'Defined audit checklist (title, desc, H1, schema)', date: '2025-06-05T19:24:00', duration: '1m' },
-        { task: 'Ready for first audit assignment', date: '2025-06-05T19:25:00', duration: '—' },
-      ],
-      sentinel: [
-        { task: 'Agent named and role defined', date: '2025-06-05T19:10:00', duration: '1m' },
-        { task: 'Assigned to Beta Plays category (planned)', date: '2025-06-05T19:10:00', duration: '—' },
-      ],
-    };
+    function escapeHtml(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    function getJobs() {
-      try {
-        var stored = JSON.parse(localStorage.getItem(JOBS_KEY) || 'null');
-        if (stored) return stored;
-      } catch {}
-      // Seed defaults
-      localStorage.setItem(JOBS_KEY, JSON.stringify(defaultJobs));
-      return defaultJobs;
+    function timeAgo(dateStr) {
+      if (!dateStr) return '';
+      var diff = Date.now() - new Date(dateStr).getTime();
+      var mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      var hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      var days = Math.floor(hrs / 24);
+      return days + 'd ago';
     }
 
-    function renderJobs(agentId) {
-      var jobs = getJobs();
-      var agentJobs = (jobs[agentId] || []).slice(0, 10);
+    function statusClass(status) {
+      if (status === 'active') return 'status-active';
+      if (status === 'standby') return 'status-standby';
+      return 'status-planned';
+    }
+
+    function renderOrgTree(agents) {
+      // Update status dots dynamically
+      agents.forEach(function(agent) {
+        var card = document.querySelector('[data-agent="' + agent.agent_id + '"]');
+        if (card) {
+          var dot = card.querySelector('.org-status');
+          if (dot) { dot.className = 'org-status ' + statusClass(agent.status); }
+          // Update last seen
+          var lastSeen = card.querySelector('.org-lastseen');
+          if (lastSeen) { lastSeen.textContent = agent.updated_at ? timeAgo(agent.updated_at) : ''; }
+        }
+      });
+    }
+
+    function renderJobs(agentId, tasks) {
       var panel = document.getElementById('jobs-panel');
       var list = document.getElementById('jobs-list');
       var title = document.getElementById('jobs-agent-name');
 
-      var names = { henry: '👑 Henry — CEO', kiro: '🤖 Kiro — CTO', quill: '✍️ Quill — Content', archer: '🎯 Archer — SEO', sentinel: '🛡️ Sentinel — Contagion' };
-      title.textContent = names[agentId] || agentId;
+      var agentTasks = tasks.filter(function(t) { return t.agent_id === agentId; }).slice(0, 15);
+      var agentCard = document.querySelector('[data-agent="' + agentId + '"]');
+      var agentName = agentCard ? agentCard.querySelector('.org-name').textContent : agentId;
+      var agentIcon = agentCard ? agentCard.querySelector('.org-icon').textContent : '🤖';
 
-      if (!agentJobs.length) {
-        list.innerHTML = '<div class="empty-jobs">No jobs recorded yet for this agent.</div>';
+      title.textContent = agentIcon + ' ' + agentName + ' — Recent Tasks';
+
+      if (!agentTasks.length) {
+        list.innerHTML = '<div class="empty-jobs">No tasks recorded yet. Tasks appear here in real-time as work is done.</div>';
       } else {
-        list.innerHTML = agentJobs.map(function(job, i) {
-          var date = new Date(job.date);
-          var dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-          return '<div class="job-row"><span class="job-num">#' + (i + 1) + '</span><div class="job-info"><div class="job-task">' + escapeHtml(job.task) + '</div><div class="job-date">' + dateStr + '</div></div><span class="job-duration">' + (job.duration || '—') + '</span></div>';
+        list.innerHTML = agentTasks.map(function(job, i) {
+          var ago = timeAgo(job.created_at);
+          return '<div class="job-row"><span class="job-num">#' + (i + 1) + '</span><div class="job-info"><div class="job-task">' + escapeHtml(job.task) + '</div><div class="job-date">' + ago + '</div></div>' + (job.duration ? '<span class="job-duration">' + job.duration + '</span>' : '') + '</div>';
         }).join('');
       }
 
       panel.classList.add('open');
-
-      // Highlight active card
       document.querySelectorAll('.org-card').forEach(function(c) { c.classList.remove('active'); });
-      document.querySelector('[data-agent="' + agentId + '"]')?.classList.add('active');
+      agentCard?.classList.add('active');
     }
 
-    function escapeHtml(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function fetchAndRender() {
+      fetch('/api/org-chart')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var agents = data.agents || [];
+          var tasks = data.tasks || [];
+
+          renderOrgTree(agents);
+
+          // If a panel is open, refresh it
+          if (currentAgent) {
+            renderJobs(currentAgent, tasks);
+          }
+
+          // Store for card click
+          window._orgTasks = tasks;
+        })
+        .catch(function() {});
+    }
 
     // Card click handlers
     document.querySelectorAll('.org-card').forEach(function(card) {
       card.addEventListener('click', function() {
-        renderJobs(card.getAttribute('data-agent'));
+        currentAgent = card.getAttribute('data-agent');
+        var tasks = window._orgTasks || [];
+        renderJobs(currentAgent, tasks);
       });
     });
 
@@ -229,7 +231,14 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
     document.getElementById('jobs-close').addEventListener('click', function() {
       document.getElementById('jobs-panel').classList.remove('open');
       document.querySelectorAll('.org-card').forEach(function(c) { c.classList.remove('active'); });
+      currentAgent = null;
     });
+
+    // Initial fetch
+    fetchAndRender();
+
+    // Auto-refresh every 15s
+    setInterval(fetchAndRender, REFRESH_INTERVAL);
   })();
   </script>
 </body>
