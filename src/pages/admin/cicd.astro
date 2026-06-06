@@ -249,11 +249,11 @@ export const prerender = true;
     <div style="margin-top: 32px; padding: 20px; background: #111827; border: 1px solid #1f2937; border-radius: 12px;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; text-align: center;">
         <div>
-          <div style="font-size: 24px; font-weight: 700; color: #fbbf24;">10</div>
+          <div style="font-size: 24px; font-weight: 700; color: #fbbf24;">13</div>
           <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Total Stages</div>
         </div>
         <div>
-          <div style="font-size: 24px; font-weight: 700; color: #f59e0b;">7</div>
+          <div style="font-size: 24px; font-weight: 700; color: #f59e0b;">9</div>
           <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Quality Gates</div>
         </div>
         <div>
@@ -266,6 +266,107 @@ export const prerender = true;
         </div>
       </div>
     </div>
+
+    <!-- Pipeline Configuration Panel -->
+    <div style="margin-top: 32px; padding: 24px; background: #111827; border: 1px solid #1f2937; border-radius: 12px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <h2 style="font-size: 16px; font-weight: 700; color: #f9fafb;">⚙️ Pipeline Configuration</h2>
+        <button id="save-pipeline" style="padding: 8px 16px; background: #f59e0b; color: #000; font-size: 12px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;">Save Settings</button>
+      </div>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 16px;">Toggle steps on/off. Disabled steps will be skipped during pipeline execution. Changes are stored in BuildPipeline.xml in the CICD database.</p>
+      <div id="pipeline-config" style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="color:#6b7280;font-size:13px;text-align:center;padding:20px;">Loading pipeline config…</div>
+      </div>
+      <div id="save-status" style="margin-top: 12px; font-size: 12px; color: #6b7280; text-align: center; display: none;"></div>
+    </div>
   </div>
+
+  <script>
+    (function() {
+      var configEl = document.getElementById('pipeline-config');
+      var saveBtn = document.getElementById('save-pipeline');
+      var statusEl = document.getElementById('save-status');
+      var steps = [];
+
+      function parseXML(xmlStr) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(xmlStr, 'text/xml');
+        var stepEls = doc.querySelectorAll('step');
+        var parsed = [];
+        stepEls.forEach(function(el) {
+          parsed.push({
+            id: el.getAttribute('id'),
+            name: el.getAttribute('name'),
+            description: el.getAttribute('description'),
+            enabled: el.getAttribute('enabled') === 'true',
+            gate: el.getAttribute('gate') === 'true',
+          });
+        });
+        return parsed;
+      }
+
+      function render() {
+        configEl.innerHTML = steps.map(function(s) {
+          var gateLabel = s.gate ? '<span style="font-size:9px;padding:2px 6px;border-radius:100px;background:#78350f;color:#fbbf24;margin-left:8px;">GATE</span>' : '';
+          return '<label style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#0f172a;border-radius:8px;cursor:pointer;border:1px solid ' + (s.enabled ? '#1f2937' : '#7f1d1d') + ';">' +
+            '<input type="checkbox" data-step-id="' + s.id + '" ' + (s.enabled ? 'checked' : '') + ' style="width:18px;height:18px;accent-color:#f59e0b;cursor:pointer;" />' +
+            '<div style="flex:1;">' +
+            '<div style="font-size:13px;font-weight:600;color:' + (s.enabled ? '#f9fafb' : '#6b7280') + ';">' + s.id + '. ' + s.name + gateLabel + '</div>' +
+            '<div style="font-size:11px;color:#6b7280;margin-top:2px;">' + s.description + '</div>' +
+            '</div>' +
+            '<span style="font-size:11px;font-weight:600;color:' + (s.enabled ? '#10b981' : '#ef4444') + ';">' + (s.enabled ? 'ON' : 'OFF') + '</span>' +
+            '</label>';
+        }).join('');
+
+        // Bind checkbox events
+        configEl.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+          cb.addEventListener('change', function() {
+            var id = this.getAttribute('data-step-id');
+            var step = steps.find(function(s) { return s.id === id; });
+            if (step) { step.enabled = this.checked; render(); }
+          });
+        });
+      }
+
+      // Load from API
+      fetch('/api/cicd-pipeline')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          steps = parseXML(d.xml);
+          render();
+        })
+        .catch(function() {
+          configEl.innerHTML = '<div style="color:#f87171;font-size:13px;text-align:center;padding:20px;">Failed to load pipeline config.</div>';
+        });
+
+      // Save
+      saveBtn.addEventListener('click', function() {
+        var payload = steps.map(function(s) { return { id: s.id, enabled: s.enabled }; });
+        fetch('/api/cicd-pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ steps: payload }),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) {
+            statusEl.style.display = 'block';
+            statusEl.style.color = '#10b981';
+            statusEl.textContent = '✅ Pipeline configuration saved to BuildPipeline.xml';
+            setTimeout(function() { statusEl.style.display = 'none'; }, 3000);
+          } else {
+            statusEl.style.display = 'block';
+            statusEl.style.color = '#ef4444';
+            statusEl.textContent = '❌ Failed: ' + (d.error || 'Unknown error');
+          }
+        })
+        .catch(function() {
+          statusEl.style.display = 'block';
+          statusEl.style.color = '#ef4444';
+          statusEl.textContent = '❌ Network error — could not save.';
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

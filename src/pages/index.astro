@@ -311,7 +311,7 @@ const categories = [
     </div>
 
     <!-- Right: Add to Home Screen CTA (30%) — hidden if standalone or dismissed -->
-    <div id="install-panel" class="hidden w-72 shrink-0 sticky top-20 lg:block">
+    <div id="install-panel" class="hidden w-72 shrink-0 sticky top-20 lg:block opacity-0 translate-x-8 transition-all duration-700 ease-out">
       <a href="/install" class="block bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden hover:border-amber-400 dark:hover:border-amber-500 transition-all hover:shadow-md no-underline">
         <!-- Large phone illustration with instructions ON the screen -->
         <div class="bg-gradient-to-b from-gray-900 to-gray-800 p-5 flex justify-center">
@@ -369,15 +369,16 @@ const categories = [
 </Layout>
 
 <script>
-  // Show install panel after 5 minutes of usage, hidden if standalone or dismissed
+  // Show install panel after 4 minutes of browse time with slide-in animation
   (function() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
     const dismissed = localStorage.getItem('xconvert24-install-dismissed');
+    const installed = localStorage.getItem('xc-coin-home_screen'); // Set when user earns home_screen coins
     const panel = document.getElementById('install-panel');
 
-    if (isStandalone || dismissed) return; // Never show if installed or dismissed
+    if (isStandalone || dismissed || installed) return; // Never show if installed, earned coin, or dismissed
 
-    // Show after 4 minutes (240000ms) — never if already added to home screen
+    // Show after 4 minutes (240000ms)
     var DELAY = 240000;
     var startTime = parseInt(sessionStorage.getItem('xconvert24-session-start') || '0');
     if (!startTime) { startTime = Date.now(); sessionStorage.setItem('xconvert24-session-start', startTime.toString()); }
@@ -386,14 +387,26 @@ const categories = [
     var remaining = Math.max(0, DELAY - elapsed);
 
     setTimeout(function() {
-      // Double-check standalone status at show time (user might have installed during session)
+      // Double-check standalone status at show time
       var nowStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
-      if (!nowStandalone && panel) panel.classList.remove('hidden');
+      if (nowStandalone || !panel) return;
+
+      // Reveal with slide-in animation
+      panel.classList.remove('hidden');
+      // Trigger reflow so transition kicks in
+      void panel.offsetWidth;
+      panel.classList.remove('opacity-0', 'translate-x-8');
+      panel.classList.add('opacity-100', 'translate-x-0');
     }, remaining);
 
     document.getElementById('dismiss-install')?.addEventListener('click', () => {
       localStorage.setItem('xconvert24-install-dismissed', '1');
-      panel?.classList.add('hidden');
+      // Animate out
+      if (panel) {
+        panel.classList.add('opacity-0', 'translate-x-8');
+        panel.classList.remove('opacity-100', 'translate-x-0');
+        setTimeout(() => panel.classList.add('hidden'), 700);
+      }
     });
   })();
 </script>
