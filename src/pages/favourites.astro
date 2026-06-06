@@ -38,6 +38,17 @@ import Layout from '../layouts/Layout.astro';
         Browse Converters
       </a>
     </div>
+
+    <!-- What Others Are Adding -->
+    <div class="mt-8 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">👀</span>
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">What Others Are Adding</h2>
+      </div>
+      <div id="others-favs" class="space-y-2">
+        <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-xs italic">Loading...</div>
+      </div>
+    </div>
   </div>
 </Layout>
 
@@ -196,4 +207,44 @@ import Layout from '../layouts/Layout.astro';
       setTimeout(() => statusEl.classList.add('hidden'), 3000);
     } catch {}
   });
+
+  // Load what others are adding
+  async function loadOthersFavs() {
+    const container = document.getElementById('others-favs')!;
+    try {
+      const res = await fetch('/api/favourites?limit=5');
+      const data = await res.json();
+      const published = data.published || [];
+
+      if (!published.length) {
+        container.innerHTML = '<div class="text-center py-4 text-gray-400 dark:text-gray-500 text-xs italic">No one has published yet. Be the first — click Publish above!</div>';
+        return;
+      }
+
+      container.innerHTML = published.map((p: any) => {
+        let items: string[] = [];
+        try { items = JSON.parse(p.items); } catch { items = []; }
+        const topItems = items.slice(0, 4).join(' · ');
+        const moreCount = items.length > 4 ? ` +${items.length - 4} more` : '';
+        let ago = '';
+        if (p.created_at) {
+          const diff = Date.now() - new Date(p.created_at).getTime();
+          const mins = Math.floor(diff / 60000);
+          if (mins < 1) ago = 'just now';
+          else if (mins < 60) ago = mins + 'm ago';
+          else if (mins < 1440) ago = Math.floor(mins / 60) + 'h ago';
+          else ago = Math.floor(mins / 1440) + 'd ago';
+        }
+        return `<div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="min-w-0 flex-1">
+            <div class="text-xs text-gray-700 dark:text-gray-300 truncate">❤️ ${topItems}${moreCount}</div>
+            <div class="text-[10px] text-gray-400 mt-0.5">${p.item_count} favourites · ${ago}</div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = '<div class="text-center py-4 text-gray-400 text-xs">Could not load.</div>';
+    }
+  }
+  loadOthersFavs();
 </script>
