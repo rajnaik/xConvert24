@@ -1,9 +1,12 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
 /**
- * POST /api/notify-copy — Send email notification when wallet address is copied
+ * POST /api/notify-copy — Log when someone copies the wallet address
  */
 export const POST: APIRoute = async ({ request }) => {
+  const db = (env as any).BUGS_DB;
+
   let body: any;
   try {
     body = await request.json();
@@ -16,39 +19,54 @@ export const POST: APIRoute = async ({ request }) => {
 
   const { address, timestamp } = body;
 
-  if (!address) {
-    return new Response(JSON.stringify({ error: 'address is required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (db) {
+    try {
+      await db.prepare(
+        `CREATE TABLE IF NOT EXISTS wallet_copy_events (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          address TEXT,
+          copied_at TEXT DEFAULT (datetime('now'))
+        )`
+      ).run();
 
-  // Send email notification using MailChannels (free on Cloudflare Workers)
-  try {
-    const emailPayload = {
-      personalizations: [
-        { to: [{ email: 'xconvert24@gmail.com', name: 'xConvert24' }] },
-      ],
-      from: { email: 'notifications@xconvert24.com', name: 'xConvert24 Notifications' },
-      subject: '💜 Someone copied your Solana wallet address!',
-      content: [
-        {
-          type: 'text/plain',
-          value: `Someone copied the Solana wallet address on the Support page.\n\nWallet: ${address}\nTime: ${timestamp || new Date().toISOString()}\n\nThis could mean a donation is incoming! 🎉`,
-        },
-      ],
-    };
-
-    await fetch('https://api.mailchannels.net/tx/v1/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(emailPayload),
-    });
-  } catch {
-    // Silently fail — don't block the user experience
+      await db.prepare(
+        'INSERT INTO wallet_copy_events (address, copied_at) VALUES (?, ?)'
+      ).bind(address || '', timestamp || new Date().toISOString()).run();
+    } catch {}
   }
 
   return new Response(JSON.stringify({ success: true }), {
     headers: { 'Content-Type': 'application/json' },
   });
+};
+
+export const GET: APIRoute = async () => {
+  const db = (env as any).BUGS_DB;
+  if (!db) {
+    return new Response(JSON.stringify({ events: [] }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    await db.prepare(
+      `CREATE TABLE IF NOT EXISTS wallet_copy_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        address TEXT,
+        copied_at TEXT DEFAULT (datetime('now'))
+      )`
+    ).run();
+
+    const { results } = await db.prepare(
+      'SELECT * FROM wallet_copy_events ORDER BY copied_at DESC LIMIT 20'
+    ).all();
+
+    return new Response(JSON.stringify({ events: results }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch {
+    return new Response(JSON.stringify({ events: [] }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 };
