@@ -406,12 +406,16 @@ const fullTitle = `${title} | xConvert24.com`;
             </div>
           </div>
         </div>
+        <!-- Spacer between bookmark and profile -->
+        <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
         <!-- ConvertCoins badge -->
         <a href="/profile" class="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors shrink-0" title="My ConvertCoins" id="coins-badge">
           <span class="text-sm">🪙</span>
           <span class="text-xs font-bold text-amber-600 dark:text-amber-400" id="coins-count">0</span>
           <span id="streak-flame" class="hidden text-sm">🔥</span>
         </a>
+        <!-- Spacer after profile -->
+        <div class="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1"></div>
         <!-- Version badge — far right of header -->
         <a href="/releases" class="hidden sm:flex flex-col items-end leading-none shrink-0" title={`Version ${VERSION}`} style="font-size:8px;">
           <span class="text-amber-500 font-mono">v{VERSION}</span>
@@ -689,6 +693,224 @@ const fullTitle = `${title} | xConvert24.com`;
 
         renderIcon();
       })();
+    </script>
+
+    <!-- ConvertCoins tracker — awards coins for user activities -->
+    <script is:inline>
+    (function() {
+      var UID_KEY = 'xconvert24-uid';
+      var COIN_PREFIX = 'xc-coin-';
+
+      function getUid() {
+        var uid = localStorage.getItem(UID_KEY);
+        if (!uid) { uid = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem(UID_KEY, uid); }
+        return uid;
+      }
+
+      function earnCoins(activity) {
+        var uid = getUid();
+        fetch('/api/coins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: uid, activity: activity })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (data.success) updateBadge(data);
+        }).catch(function() {});
+      }
+
+      function updateBadge(data) {
+        var el = document.getElementById('coins-count');
+        var flame = document.getElementById('streak-flame');
+        if (el && data.coins !== undefined) el.textContent = data.coins.toString();
+        if (flame && data.streak && data.streak >= 3) flame.classList.remove('hidden');
+      }
+
+      // Load current balance
+      var uid = getUid();
+      fetch('/api/coins?uid=' + uid).then(function(r) { return r.json(); }).then(function(data) {
+        updateBadge(data);
+      }).catch(function() {});
+
+      // Prevent duplicate awards per session/day
+      var today = new Date().toISOString().split('T')[0];
+      function awardedToday(key) { return localStorage.getItem(COIN_PREFIX + key) === today; }
+      function markAwarded(key) { localStorage.setItem(COIN_PREFIX + key, today); }
+
+      var path = window.location.pathname;
+
+      // 1. Daily visit — award once per day
+      if (!awardedToday('daily_visit')) {
+        markAwarded('daily_visit');
+        earnCoins('daily_visit');
+      }
+
+      // 2. First conversion of the day — detect converter pages
+      if (/^\/convert\//.test(path) && !awardedToday('first_conversion')) {
+        markAwarded('first_conversion');
+        earnCoins('first_conversion');
+      }
+
+      // 3. Multi-converter: track unique converters in session, award at 3
+      if (/^\/convert\//.test(path)) {
+        var sessionConverters = JSON.parse(sessionStorage.getItem('xc-session-converters') || '[]');
+        if (sessionConverters.indexOf(path) === -1) sessionConverters.push(path);
+        sessionStorage.setItem('xc-session-converters', JSON.stringify(sessionConverters));
+        if (sessionConverters.length >= 3 && !awardedToday('multi_converter')) {
+          markAwarded('multi_converter');
+          earnCoins('multi_converter');
+        }
+      }
+
+      // 4. Blog read
+      if (/^\/blog\/[^/]+/.test(path) && !awardedToday('blog_read_' + path)) {
+        markAwarded('blog_read_' + path);
+        earnCoins('blog_read');
+      }
+
+      // 5. Tool usage (crypto, cooking, etc.)
+      if (/^\/tools\/crypto/.test(path) && !awardedToday('crypto_use')) {
+        markAwarded('crypto_use');
+        earnCoins('crypto_use');
+      }
+      if (path === '/convert/cooking' && !awardedToday('cooking_convert')) {
+        markAwarded('cooking_convert');
+        earnCoins('cooking_convert');
+      }
+      if (/^\/tools\/(loan|tip|discount)/.test(path) && !awardedToday('finance_use')) {
+        markAwarded('finance_use');
+        earnCoins('finance_use');
+      }
+      if (/^\/convert\/(shoe-size|clothing-size)/.test(path) && !awardedToday('fashion_convert')) {
+        markAwarded('fashion_convert');
+        earnCoins('fashion_convert');
+      }
+
+      // 6. Bookmark a page — award coins for bookmarking
+      var bookmarkBtn = document.getElementById('bookmark-btn');
+      if (bookmarkBtn) {
+        bookmarkBtn.addEventListener('click', function() {
+          if (!awardedToday('bookmark_' + path)) {
+            markAwarded('bookmark_' + path);
+            earnCoins('bookmark_page');
+            logReward('bookmark_page', 'Bookmarked: ' + document.title.split(' | ')[0], 5);
+          }
+        });
+      }
+
+      // 7. Report a bug — listen for bug form submission
+      if (path === '/report-bug') {
+        var bugForm = document.querySelector('form');
+        if (bugForm) {
+          bugForm.addEventListener('submit', function() {
+            if (!awardedToday('report_bug')) {
+              markAwarded('report_bug');
+              earnCoins('report_bug');
+              logReward('report_bug', 'Reported a bug', 25);
+            }
+          });
+        }
+      }
+
+      // 8. Vote on a bug
+      document.addEventListener('click', function(e) {
+        var voteBtn = e.target.closest('[data-vote-bug]');
+        if (voteBtn) {
+          var bugId = voteBtn.getAttribute('data-vote-bug') || 'unknown';
+          var key = 'vote_bug_' + bugId;
+          if (!localStorage.getItem(COIN_PREFIX + key)) {
+            localStorage.setItem(COIN_PREFIX + key, today);
+            earnCoins('vote_bug');
+            logReward('vote_bug', 'Voted on bug #' + bugId, 3);
+          }
+        }
+      });
+
+      // 9. Suggest a feature
+      if (path === '/suggest') {
+        var sugForm = document.querySelector('form');
+        if (sugForm) {
+          sugForm.addEventListener('submit', function() {
+            if (!awardedToday('suggest_feature')) {
+              markAwarded('suggest_feature');
+              earnCoins('suggest_feature');
+              logReward('suggest_feature', 'Suggested a feature', 10);
+            }
+          });
+        }
+      }
+
+      // 10. Vote/rate a suggestion
+      document.addEventListener('click', function(e) {
+        var rateBtn = e.target.closest('[data-rate-suggestion]');
+        if (rateBtn) {
+          var sugId = rateBtn.getAttribute('data-rate-suggestion') || 'unknown';
+          var key = 'rate_sug_' + sugId;
+          if (!localStorage.getItem(COIN_PREFIX + key)) {
+            localStorage.setItem(COIN_PREFIX + key, today);
+            earnCoins('vote_suggestion');
+            logReward('vote_suggestion', 'Rated a suggestion', 3);
+          }
+        }
+      });
+
+      // 11. Crypto watchlist — creating a list and adding coins
+      document.addEventListener('click', function(e) {
+        var addCoin = e.target.closest('[data-add-crypto]');
+        if (addCoin) {
+          var coin = addCoin.getAttribute('data-add-crypto') || 'unknown';
+          var key = 'crypto_add_' + coin;
+          if (!localStorage.getItem(COIN_PREFIX + key)) {
+            localStorage.setItem(COIN_PREFIX + key, today);
+            earnCoins('crypto_watchlist');
+            logReward('crypto_watchlist', 'Added ' + coin + ' to watchlist', 2);
+          }
+        }
+      });
+
+      // 12. Add to favourites
+      document.addEventListener('click', function(e) {
+        var favBtn = e.target.closest('[data-add-favourite]');
+        if (favBtn) {
+          var favItem = favBtn.getAttribute('data-add-favourite') || path;
+          var key = 'fav_' + favItem;
+          if (!localStorage.getItem(COIN_PREFIX + key)) {
+            localStorage.setItem(COIN_PREFIX + key, today);
+            earnCoins('add_favourite');
+            logReward('add_favourite', 'Added to favourites: ' + favItem, 3);
+          }
+        }
+      });
+
+      // --- Reward logging to localStorage ---
+      function logReward(activity, description, coins) {
+        var REWARDS_KEY = 'xconvert24-rewards-log';
+        var rewards = [];
+        try { rewards = JSON.parse(localStorage.getItem(REWARDS_KEY) || '[]'); } catch(e) { rewards = []; }
+        rewards.unshift({
+          activity: activity,
+          description: description,
+          coins: coins,
+          date: new Date().toISOString()
+        });
+        // Keep max 100 entries
+        if (rewards.length > 100) rewards = rewards.slice(0, 100);
+        localStorage.setItem(REWARDS_KEY, JSON.stringify(rewards));
+      }
+
+      // Log page-based rewards that fire above
+      if (/^\/convert\//.test(path) && localStorage.getItem(COIN_PREFIX + 'first_conversion') === today) {
+        logReward('first_conversion', 'First conversion: ' + path.replace('/convert/', ''), 5);
+      }
+      if (/^\/blog\/[^/]+/.test(path)) {
+        logReward('blog_read', 'Read: ' + document.title.split(' | ')[0], 5);
+      }
+
+      // 6. Streak check — award streak_7 and streak_30
+      fetch('/api/coins?uid=' + uid).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.streak >= 7 && !awardedToday('streak_7')) { markAwarded('streak_7'); earnCoins('streak_7'); }
+        if (data.streak >= 30 && !awardedToday('streak_30')) { markAwarded('streak_30'); earnCoins('streak_30'); }
+      }).catch(function() {});
+    })();
     </script>
   </body>
 </html>

@@ -1,0 +1,271 @@
+---
+export const prerender = true;
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CI/CD Pipeline | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .back-link { color: #9ca3af; text-decoration: none; font-size: 13px; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; }
+    .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
+
+    /* Pipeline */
+    .pipeline { display: flex; flex-direction: column; gap: 0; position: relative; }
+    .stage { display: flex; align-items: stretch; gap: 0; }
+    .stage-connector { width: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+    .stage-connector::before { content: ''; width: 3px; height: 100%; background: #374151; position: absolute; top: 0; left: 50%; transform: translateX(-50%); }
+    .stage-dot { width: 16px; height: 16px; border-radius: 50%; background: #10b981; border: 3px solid #064e3b; position: relative; z-index: 2; }
+    .stage-dot.gate { background: #f59e0b; border-color: #78350f; }
+    .stage-dot.fail { background: #ef4444; border-color: #7f1d1d; }
+    .stage-card { flex: 1; background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin: 8px 0; transition: all 0.2s; }
+    .stage-card:hover { border-color: #374151; }
+    .stage-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .stage-icon { font-size: 28px; }
+    .stage-title { font-size: 16px; font-weight: 700; }
+    .stage-desc { font-size: 13px; color: #9ca3af; line-height: 1.6; margin-bottom: 12px; }
+    .stage-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tool-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; background: #1f2937; color: #d1d5db; border: 1px solid #374151; }
+    .tool-badge img { width: 14px; height: 14px; border-radius: 2px; }
+    .gate-label { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-left: 8px; }
+    .gate-pass { background: #064e3b; color: #6ee7b7; }
+    .gate-fail { background: #7f1d1d; color: #fca5a5; }
+    .arrow-down { text-align: center; color: #374151; font-size: 20px; margin: 4px 0; }
+    .flow-arrow { display: flex; align-items: center; justify-content: center; padding: 4px 0; }
+    .flow-arrow svg { width: 24px; height: 24px; color: #4b5563; }
+
+    /* Legend */
+    .legend { display: flex; gap: 24px; margin-bottom: 32px; padding: 16px; background: #111827; border-radius: 10px; border: 1px solid #1f2937; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #9ca3af; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-dot.green { background: #10b981; }
+    .legend-dot.amber { background: #f59e0b; }
+    .legend-dot.red { background: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">⚙️ xConvert24 Admin</div>
+    <a href="/admin" class="back-link">← Back to Dashboard</a>
+  </div>
+
+  <div class="container">
+    <h1>🔄 CI/CD Pipeline</h1>
+    <p class="subtitle">Continuous Integration & Deployment workflow — from code to production with quality gates at every stage.</p>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot green"></div> Stage passes → continues</div>
+      <div class="legend-item"><div class="legend-dot amber"></div> Quality gate checkpoint</div>
+      <div class="legend-item"><div class="legend-dot red"></div> Failure → pipeline stops</div>
+    </div>
+
+    <!-- Pipeline Stages -->
+    <div class="pipeline">
+
+      <!-- Stage 1: Write Code -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">✍️</div>
+          <div class="stage-title">1. Write Code & Tests</div>
+        </div>
+        <div class="stage-desc">Developer writes feature code and corresponding test cases. Code is committed to a feature branch.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🟦 TypeScript</span>
+          <span class="tool-badge">🚀 Astro</span>
+          <span class="tool-badge">🎨 Tailwind CSS</span>
+          <span class="tool-badge">🧪 Playwright</span>
+          <span class="tool-badge">📝 Kiro IDE</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 2: Compile -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">⚙️</div>
+          <div class="stage-title">2. Compile & Type Check</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Astro build compiles all pages, checks TypeScript types, resolves imports. Any compile error stops the pipeline.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🚀 Astro Build</span>
+          <span class="tool-badge">🟦 TypeScript Compiler</span>
+          <span class="tool-badge">📦 Vite</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 3: Run Tests -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🧪</div>
+          <div class="stage-title">3. Run Tests & Playwright</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Playwright end-to-end tests run against the built site. Tests cover page loads, converter accuracy, navigation flows, and accessibility. All tests must pass.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🎭 Playwright</span>
+          <span class="tool-badge">🌐 Nova Act (AI QA)</span>
+          <span class="tool-badge">♿ Axe Accessibility</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 4: Code Review -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🔍</div>
+          <div class="stage-title">4. Code Review</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Automated code review checks code quality, complexity, duplication, and coding standards. Must pass with no critical issues.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">📊 SonarQube</span>
+          <span class="tool-badge">📐 ESLint</span>
+          <span class="tool-badge">🤖 AI Review (Cubic)</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 5: Checkmarx -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🛡️</div>
+          <div class="stage-title">5. Checkmarx SAST Scan</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Static Application Security Testing (SAST) scans source code for vulnerabilities — SQL injection, XSS, insecure dependencies, hardcoded secrets.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">✅ Checkmarx SAST</span>
+          <span class="tool-badge">🔐 Secret Detection</span>
+          <span class="tool-badge">📋 OWASP Top 10</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 6: ScoutQA -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🔬</div>
+          <div class="stage-title">6. Scout QA Tests</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">AI-powered QA runs exploratory testing against the staged build — finding visual regressions, broken links, and UX issues that scripted tests miss.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🔬 ScoutQA</span>
+          <span class="tool-badge">👁️ Visual Regression</span>
+          <span class="tool-badge">🔗 Link Checker</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 7: SonarQube -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">📊</div>
+          <div class="stage-title">7. SonarQube Quality Gate</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Deep code quality analysis — code smells, technical debt, coverage metrics, duplication percentage. Quality gate enforces minimum standards.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">📊 SonarQube</span>
+          <span class="tool-badge">📈 Coverage Report</span>
+          <span class="tool-badge">🏷️ Quality Gate</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 8: Aikido -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🥋</div>
+          <div class="stage-title">8. Aikido Security Scan</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Final security gate — Aikido runs SAST, IaC scanning, and secrets detection. Catches anything missed by earlier stages. Zero critical findings required to proceed.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🥋 Aikido SAST</span>
+          <span class="tool-badge">🔑 Secrets Scan</span>
+          <span class="tool-badge">🏗️ IaC Scan</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 9: Build -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🔨</div>
+          <div class="stage-title">9. Production Build</div>
+        </div>
+        <div class="stage-desc">Final optimised production build — tree-shaking, minification, asset hashing, image optimisation. Bundle size tracked and compared to previous release.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🚀 Astro Build</span>
+          <span class="tool-badge">📦 Vite</span>
+          <span class="tool-badge">🎨 Tailwind CSS</span>
+          <span class="tool-badge">🖼️ Cloudflare Images</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 10: Deploy -->
+      <div class="stage-card" style="border-color: #065f46; background: #022c22;">
+        <div class="stage-card-header">
+          <div class="stage-icon">🚀</div>
+          <div class="stage-title">10. Deploy to Production</div>
+          <span class="gate-label gate-pass">✓ DEPLOYED</span>
+        </div>
+        <div class="stage-desc">Wrangler deploys the built assets to Cloudflare Workers & Pages. Edge-cached globally across 300+ data centres. Zero-downtime deployment with instant rollback.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">☁️ Cloudflare Workers</span>
+          <span class="tool-badge">📄 Cloudflare Pages</span>
+          <span class="tool-badge">🔧 Wrangler CLI</span>
+          <span class="tool-badge">🌍 Global CDN</span>
+          <span class="tool-badge">🗄️ D1 Database</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Summary stats -->
+    <div style="margin-top: 32px; padding: 20px; background: #111827; border: 1px solid #1f2937; border-radius: 12px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; text-align: center;">
+        <div>
+          <div style="font-size: 24px; font-weight: 700; color: #fbbf24;">10</div>
+          <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Total Stages</div>
+        </div>
+        <div>
+          <div style="font-size: 24px; font-weight: 700; color: #f59e0b;">7</div>
+          <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Quality Gates</div>
+        </div>
+        <div>
+          <div style="font-size: 24px; font-weight: 700; color: #10b981;">3</div>
+          <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Security Scans</div>
+        </div>
+        <div>
+          <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">12+</div>
+          <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Tools Integrated</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

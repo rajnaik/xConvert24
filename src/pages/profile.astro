@@ -80,7 +80,7 @@ import Layout from '../layouts/Layout.astro';
           <div id="p-progress-bar" class="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all" style="width: 0%"></div>
         </div>
       </div>
-      <p class="text-xs text-gray-400 dark:text-gray-500">Every 100 coins earned = 1 level up. Keep converting!</p>
+      <p class="text-xs text-gray-400 dark:text-gray-500">Every 500 coins earned = 1 level up. Keep converting!</p>
     </div>
 
     <!-- Link to full rewards info -->
@@ -88,6 +88,21 @@ import Layout from '../layouts/Layout.astro';
       <p class="text-sm text-amber-800 dark:text-amber-200">
         <strong>🪙 Want the full details?</strong> See the <a href="/rewards" class="underline font-semibold hover:text-amber-600">ConvertCoins Rewards Guide</a> — learn all activities, level system, and how to keep your coins safe.
       </p>
+    </div>
+
+    <!-- Reward Summary -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mt-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">📊</span>
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Reward Summary</h2>
+      </div>
+      <div id="reward-summary" class="space-y-2">
+        <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm italic">Loading rewards...</div>
+      </div>
+      <div id="reward-empty" class="hidden text-center py-8">
+        <div class="text-3xl mb-2">🎯</div>
+        <p class="text-sm text-gray-500 dark:text-gray-400">No rewards yet. Start converting to earn ConvertCoins!</p>
+      </div>
     </div>
   </div>
 </Layout>
@@ -112,12 +127,89 @@ import Layout from '../layouts/Layout.astro';
       document.getElementById('p-current-level')!.textContent = (data.level || 1).toString();
 
       const totalEarned = data.total_earned || 0;
-      const levelCoins = totalEarned % 100;
-      const progressPct = Math.min(100, levelCoins);
+      const levelCoins = totalEarned % 500;
+      const progressPct = Math.min(100, (levelCoins / 500) * 100);
       document.getElementById('p-progress-bar')!.style.width = progressPct + '%';
-      document.getElementById('p-progress-text')!.textContent = `${levelCoins} / 100 coins to next level`;
+      document.getElementById('p-progress-text')!.textContent = `${levelCoins} / 500 coins to next level`;
     } catch {}
   }
 
+  function loadRewardSummary() {
+    const REWARDS_KEY = 'xconvert24-rewards-log';
+    const container = document.getElementById('reward-summary')!;
+    const emptyEl = document.getElementById('reward-empty')!;
+
+    let rewards: Array<{ activity: string; description: string; coins: number; date: string }> = [];
+    try {
+      rewards = JSON.parse(localStorage.getItem(REWARDS_KEY) || '[]');
+    } catch {
+      rewards = [];
+    }
+
+    if (rewards.length === 0) {
+      container.classList.add('hidden');
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    const activityIcons: Record<string, string> = {
+      first_conversion: '📐',
+      daily_visit: '📅',
+      multi_converter: '🔄',
+      blog_read: '📖',
+      bookmark_page: '🔖',
+      report_bug: '🐛',
+      vote_bug: '🗳️',
+      suggest_feature: '💡',
+      vote_suggestion: '⭐',
+      crypto_watchlist: '💰',
+      add_favourite: '❤️',
+      crypto_use: '📈',
+      cooking_convert: '🍳',
+      finance_use: '💵',
+      fashion_convert: '👗',
+      streak_7: '🔥',
+      streak_30: '🏆',
+    };
+
+    const html = rewards.slice(0, 50).map((r) => {
+      const icon = activityIcons[r.activity] || '🪙';
+      const date = new Date(r.date);
+      const timeAgo = formatTimeAgo(date);
+      return `
+        <div class="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="text-base shrink-0">${icon}</span>
+            <div class="min-w-0">
+              <div class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">${escapeHtml(r.description)}</div>
+              <div class="text-[10px] text-gray-400 dark:text-gray-500">${timeAgo}</div>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-amber-600 dark:text-amber-400 shrink-0 ml-2">+${r.coins} 🪙</span>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = html;
+  }
+
+  function formatTimeAgo(date: Date): string {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function escapeHtml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   loadProfile();
+  loadRewardSummary();
 </script>
