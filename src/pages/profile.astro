@@ -101,16 +101,33 @@ import Layout from '../layouts/Layout.astro';
     <!-- Level progression -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
       <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Level Progression</h2>
-      <div class="mb-3">
+      <div class="mb-4">
         <div class="flex justify-between text-xs text-gray-500 mb-1">
           <span>Level <span id="p-current-level">1</span></span>
-          <span id="p-progress-text">0 / 100 coins to next level</span>
+          <span id="p-progress-text">0 / 500 coins to next level</span>
         </div>
         <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div id="p-progress-bar" class="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all" style="width: 0%"></div>
         </div>
       </div>
-      <p class="text-xs text-gray-400 dark:text-gray-500">Every 500 coins earned = 1 level up. Keep converting!</p>
+
+      <!-- Level carousel -->
+      <div class="relative">
+        <button id="level-prev" class="absolute left-0 top-1/2 -translate-y-1/2 -ml-2 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 transition-colors z-10">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button id="level-next" class="absolute right-0 top-1/2 -translate-y-1/2 -mr-2 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:border-amber-400 transition-colors z-10">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <div id="level-card" class="mx-8 p-5 rounded-xl border-2 text-center transition-all duration-300">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="flex justify-center gap-1.5 mt-3" id="level-dots">
+        <!-- Dots populated by JS -->
+      </div>
     </div>
 
     <!-- Link to full rewards info -->
@@ -373,6 +390,68 @@ import Layout from '../layouts/Layout.astro';
       walletEl.textContent = coinsEl.textContent + ' 🪙';
     }
   }
+
+  // Level Carousel — metal-themed levels
+  const levels = [
+    { level: 1, name: 'Bronze', icon: '🥉', color: '#cd7f32', border: '#92400e', bg: 'bg-orange-50 dark:bg-orange-900/10', coins: 0, details: 'Starting level. Welcome to xConvert24!' },
+    { level: 2, name: 'Silver', icon: '🥈', color: '#c0c0c0', border: '#6b7280', bg: 'bg-gray-50 dark:bg-gray-800', coins: 500, details: 'Regular user. You\'ve built a habit.' },
+    { level: 3, name: 'Gold', icon: '🥇', color: '#ffd700', border: '#d97706', bg: 'bg-amber-50 dark:bg-amber-900/10', coins: 1000, details: 'Power converter. Consistent daily usage.' },
+    { level: 4, name: 'Platinum', icon: '💎', color: '#e5e4e2', border: '#9ca3af', bg: 'bg-slate-50 dark:bg-slate-800', coins: 2500, details: 'Expert level. Multi-tool master.' },
+    { level: 5, name: 'Diamond', icon: '💠', color: '#b9f2ff', border: '#06b6d4', bg: 'bg-cyan-50 dark:bg-cyan-900/10', coins: 5000, details: 'Elite contributor. Community champion.' },
+    { level: 6, name: 'Emerald', icon: '🟢', color: '#50c878', border: '#059669', bg: 'bg-emerald-50 dark:bg-emerald-900/10', coins: 10000, details: 'Legendary status. Top 1% of all users.' },
+    { level: 7, name: 'Obsidian', icon: '⬛', color: '#1a1a2e', border: '#4c1d95', bg: 'bg-purple-50 dark:bg-purple-900/10', coins: 25000, details: 'Mythic tier. Master of all conversions.' },
+  ];
+
+  let currentLevelIdx = 0;
+
+  function renderLevelCard() {
+    const l = levels[currentLevelIdx];
+    const card = document.getElementById('level-card')!;
+    const userLevel = parseInt(document.getElementById('p-current-level')?.textContent || '1');
+    const isCurrentLevel = l.level === userLevel;
+    const isAchieved = l.level <= userLevel;
+
+    card.style.borderColor = l.border;
+    card.innerHTML = `
+      <div style="font-size:40px;margin-bottom:8px;">${l.icon}</div>
+      <div style="font-size:18px;font-weight:700;color:${l.color};">${l.name}</div>
+      <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Level ${l.level}</div>
+      <div class="text-xs text-gray-600 dark:text-gray-300 mt-2">${l.details}</div>
+      <div class="mt-3 text-xs font-mono ${isAchieved ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}">
+        ${l.coins === 0 ? 'Starting level' : `Requires ${l.coins.toLocaleString()} coins`}
+      </div>
+      ${isCurrentLevel ? '<div class="mt-2 text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/20 rounded-full px-3 py-1 inline-block">← YOU ARE HERE</div>' : ''}
+      ${isAchieved && !isCurrentLevel ? '<div class="mt-2 text-[10px] font-bold text-green-600">✅ Achieved</div>' : ''}
+    `;
+
+    // Update dots
+    const dotsEl = document.getElementById('level-dots')!;
+    dotsEl.innerHTML = levels.map((_, i) =>
+      `<div class="w-2 h-2 rounded-full ${i === currentLevelIdx ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'}"></div>`
+    ).join('');
+  }
+
+  document.getElementById('level-prev')!.addEventListener('click', () => {
+    currentLevelIdx = Math.max(0, currentLevelIdx - 1);
+    renderLevelCard();
+  });
+  document.getElementById('level-next')!.addEventListener('click', () => {
+    currentLevelIdx = Math.min(levels.length - 1, currentLevelIdx + 1);
+    renderLevelCard();
+  });
+
+  // Start at user's current level
+  function initLevelCarousel() {
+    const userLevel = parseInt(document.getElementById('p-current-level')?.textContent || '1');
+    currentLevelIdx = Math.min(userLevel - 1, levels.length - 1);
+    renderLevelCard();
+  }
+
+  // Call after profile loads (observe the level element)
+  const levelObserver = new MutationObserver(() => { initLevelCarousel(); });
+  const levelEl = document.getElementById('p-current-level');
+  if (levelEl) levelObserver.observe(levelEl, { childList: true, characterData: true, subtree: true });
+  initLevelCarousel();
 
   loadProfile();
   loadRewardSummary();
