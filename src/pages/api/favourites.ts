@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
 /**
  * GET /api/favourites — get recent published favourites (public, non-hidden)
@@ -9,8 +10,7 @@ import type { APIRoute } from 'astro';
  */
 
 export const GET: APIRoute = async ({ url }) => {
-  let db: any = null;
-  try { const { env } = await import('cloudflare:workers'); db = (env as any).BUGS_DB; } catch {}
+  const db = (env as any).BUGS_DB;
   if (!db) {
     return new Response(JSON.stringify({ published: [] }), {
       headers: { 'Content-Type': 'application/json' },
@@ -28,10 +28,10 @@ export const GET: APIRoute = async ({ url }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  let db: any = null;
-  try { const { env } = await import('cloudflare:workers'); db = (env as any).BUGS_DB; } catch {}
+  const db = (env as any).BUGS_DB;
   if (!db) {
-    return new Response(JSON.stringify({ success: true, item_count: 0 }), {
+    return new Response(JSON.stringify({ error: 'DB not configured' }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
@@ -79,10 +79,10 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 export const PATCH: APIRoute = async ({ request }) => {
-  let db: any = null;
-  try { const { env } = await import('cloudflare:workers'); db = (env as any).BUGS_DB; } catch {}
+  const db = (env as any).BUGS_DB;
   if (!db) {
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ error: 'DB not configured' }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
