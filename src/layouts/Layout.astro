@@ -923,5 +923,107 @@ const fullTitle = `${title} | xConvert24.com`;
       }).catch(function() {});
     })();
     </script>
+
+    <!-- Analytics tracker — captures user interactions with UserID + DateTime -->
+    <script is:inline>
+    (function() {
+      var UID_KEY = 'xconvert24-uid';
+      function getUid() {
+        var uid = localStorage.getItem(UID_KEY);
+        if (!uid) { uid = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem(UID_KEY, uid); }
+        return uid;
+      }
+
+      function track(event, page, metadata) {
+        var uid = getUid();
+        fetch('/api/analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: uid, event: event, page: page || window.location.pathname, metadata: metadata || null })
+        }).catch(function() {});
+      }
+
+      var path = window.location.pathname;
+
+      // --- Page view tracking ---
+      // Converter clicks
+      if (/^\/convert\//.test(path)) {
+        track('converter_view', path, path.replace('/convert/', ''));
+      }
+      // Tool/utility clicks
+      if (/^\/tools\//.test(path)) {
+        track('tool_view', path, path.replace('/tools/', ''));
+      }
+      // Blog clicks
+      if (/^\/blog\/[^/]+/.test(path)) {
+        track('blog_view', path);
+      }
+      // Profile view
+      if (path === '/profile') {
+        track('profile_view', path);
+      }
+      // Favourites view
+      if (path === '/favourites') {
+        track('favourites_view', path);
+      }
+      // Opinion view
+      if (path === '/opinion') {
+        track('opinion_view', path);
+      }
+
+      // --- Click tracking via event delegation ---
+      document.addEventListener('click', function(e) {
+        var el = e.target;
+
+        // Bug report submit
+        if (path === '/report-bug' && el.closest('button[type="submit"], input[type="submit"]')) {
+          track('bug_report_submit', path);
+        }
+
+        // Bug vote
+        var voteBtn = el.closest('[data-vote-bug], .vote-btn, [id*="vote"]');
+        if (path === '/vote-bugs' && voteBtn) {
+          var bugId = voteBtn.getAttribute('data-vote-bug') || voteBtn.getAttribute('data-id') || '';
+          track('bug_vote', path, bugId);
+        }
+
+        // Suggest feature submit
+        if (path === '/suggest' && el.closest('button[type="submit"], input[type="submit"]')) {
+          track('feature_suggest_submit', path);
+        }
+
+        // Suggestion vote/rate
+        var rateBtn = el.closest('[data-rate-suggestion], .star-btn, [data-sug-id]');
+        if (path === '/suggestions' && rateBtn) {
+          var sugId = rateBtn.getAttribute('data-rate-suggestion') || rateBtn.getAttribute('data-sug-id') || '';
+          track('suggestion_vote', path, sugId);
+        }
+
+        // Opinion vote
+        if (path === '/opinion' && el.closest('#vote-yes, #vote-no, #vote-maybe')) {
+          var response = '';
+          if (el.closest('#vote-yes')) response = 'yes';
+          else if (el.closest('#vote-no')) response = 'no';
+          else if (el.closest('#vote-maybe')) response = 'maybe';
+          track('opinion_vote', path, response);
+        }
+
+        // Bookmark click
+        if (el.closest('#bookmark-btn')) {
+          track('bookmark_click', path);
+        }
+
+        // Favourite add
+        if (el.closest('[data-add-favourite]')) {
+          track('favourite_add', path, el.closest('[data-add-favourite]').getAttribute('data-add-favourite'));
+        }
+
+        // Crypto watchlist add
+        if (el.closest('[data-add-crypto]')) {
+          track('crypto_add', path, el.closest('[data-add-crypto]').getAttribute('data-add-crypto'));
+        }
+      });
+    })();
+    </script>
   </body>
 </html>
