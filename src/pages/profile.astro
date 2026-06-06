@@ -177,6 +177,17 @@ import Layout from '../layouts/Layout.astro';
       </p>
     </div>
 
+    <!-- See what others are liking -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mt-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">👀</span>
+        <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">See What Others Are Liking</h2>
+      </div>
+      <div id="others-favourites" class="space-y-2">
+        <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-xs italic">Loading...</div>
+      </div>
+    </div>
+
     <!-- Reward Summary -->
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mt-6 shadow-sm">
       <div class="flex items-center gap-3 mb-4">
@@ -437,4 +448,50 @@ import Layout from '../layouts/Layout.astro';
   loadProfile();
   loadRewardSummary();
   loadMilestones();
+  loadOthersFavourites();
+
+  async function loadOthersFavourites() {
+    const container = document.getElementById('others-favourites')!;
+    try {
+      const res = await fetch('/api/favourites?limit=5');
+      const data = await res.json();
+      const published = data.published || [];
+
+      if (!published.length) {
+        container.innerHTML = '<div class="text-center py-4 text-gray-400 dark:text-gray-500 text-xs italic">No one has published their favourites yet. Be the first! <a href="/favourites" class="text-amber-600 hover:underline">Go to Favourites →</a></div>';
+        return;
+      }
+
+      container.innerHTML = published.map((p: any) => {
+        let items: string[] = [];
+        try { items = JSON.parse(p.items); } catch { items = []; }
+        const topItems = items.slice(0, 3).join(', ');
+        const moreCount = items.length > 3 ? ` +${items.length - 3} more` : '';
+        const ago = p.created_at ? timeAgo(new Date(p.created_at)) : '';
+
+        return `<div class="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="min-w-0">
+            <div class="text-xs text-gray-700 dark:text-gray-300 truncate">❤️ ${topItems}${moreCount}</div>
+            <div class="text-[10px] text-gray-400">${p.item_count} items • ${ago}</div>
+          </div>
+          <span class="text-[10px] text-gray-400 shrink-0 ml-2">${(p.user_id || '').slice(0, 8)}…</span>
+        </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = '<div class="text-center py-4 text-gray-400 text-xs">Could not load.</div>';
+    }
+  }
+
+  function timeAgo(date: Date): string {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
 </script>

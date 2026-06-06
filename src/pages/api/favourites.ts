@@ -2,24 +2,27 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
 /**
- * GET /api/favourites — get all favourite counts (sorted by count desc)
- * POST /api/favourites — increment or decrement a favourite count
- *   Body: { href: string, action: 'add' | 'remove' }
+ * GET /api/favourites — get recent published favourites (public, non-hidden)
+ * POST /api/favourites — publish or update user's favourites
+ *   Body: { user_id: string, items: string[], hidden?: boolean }
+ * PATCH /api/favourites — toggle hidden status
+ *   Body: { user_id: string, hidden: boolean }
  */
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ url }) => {
   const db = (env as any).BUGS_DB;
   if (!db) {
-    return new Response(JSON.stringify({ error: 'Database not configured' }), {
-      status: 500, headers: { 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ published: [] }), {
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  const { results } = await db.prepare(
-    'SELECT href, count FROM favourite_counts ORDER BY count DESC'
-  ).all();
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '5'), 20);
+  const rows = await db.prepare(
+    'SELECT user_id, items, item_count, created_at FROM favourites_published WHERE hidden = 0 ORDER BY created_at DESC LIMIT ?'
+  ).bind(limit).all();
 
-  return new Response(JSON.stringify({ counts: results }), {
+  return new Response(JSON.stringify({ published: rows?.results || [] }), {
     headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   });
 };
@@ -27,35 +30,86 @@ export const GET: APIRoute = async () => {
 export const POST: APIRoute = async ({ request }) => {
   const db = (env as any).BUGS_DB;
   if (!db) {
-    return new Response(JSON.stringify({ error: 'Database not configured' }), {
-      status: 500, headers: { 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ error: 'DB not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
   let body: any;
-  try { body = await request.json(); } catch {
+  try {
+    body = await request.json();
+  } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
-      status: 400, headers: { 'Content-Type': 'application/json' },
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  const { href, action } = body;
-  if (!href || typeof href !== 'string') {
-    return new Response(JSON.stringify({ error: 'href is required' }), {
-      status: 400, headers: { 'Content-Type': 'application/json' },
+  const { user_id, items, hidden } = body;
+  if (!user_id || !items || !Array.isArray(items)) {
+    return new Response(JSON.stringify({ error: 'user_id and items array required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  const delta = action === 'remove' ? -1 : 1;
+  // Upsert — replace existing published favourites for this user
+  const existing = await db.prepare(
+    'SELECT id FROM favourites_published WHERE user_id = ?'
+  ).bind(user_id).first();
 
-  // Upsert: insert or update
+  const itemsJson = JSON.stringify(items);
+  const itemCount = items.length;
+  const isHidden = hidden ? 1 : 0;
+
+  if (existing) {
+    await db.prepare(
+      'UPDATE favourites_published SET items = ?, item_count = ?, hidden = ?, created_at = datetime("now") WHERE user_id = ?'
+    ).bind(itemsJson, itemCount, isHidden, user_id).run();
+  } else {
+    await db.prepare(
+      'INSERT INTO favourites_published (user_id, items, item_count, hidden) VALUES (?, ?, ?, ?)'
+    ).bind(user_id, itemsJson, itemCount, isHidden).run();
+  }
+
+  return new Response(JSON.stringify({ success: true, item_count: itemCount }), {
+    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+  });
+};
+
+export const PATCH: APIRoute = async ({ request }) => {
+  const db = (env as any).BUGS_DB;
+  if (!db) {
+    return new Response(JSON.stringify({ error: 'DB not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  let body: any;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { user_id, hidden } = body;
+  if (!user_id) {
+    return new Response(JSON.stringify({ error: 'user_id required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   await db.prepare(
-    'INSERT INTO favourite_counts (href, count) VALUES (?, MAX(0, ?)) ON CONFLICT(href) DO UPDATE SET count = MAX(0, count + ?)'
-  ).bind(href, delta, delta).run();
+    'UPDATE favourites_published SET hidden = ? WHERE user_id = ?'
+  ).bind(hidden ? 1 : 0, user_id).run();
 
-  const row = await db.prepare('SELECT count FROM favourite_counts WHERE href = ?').bind(href).first();
-
-  return new Response(JSON.stringify({ success: true, count: row?.count ?? 0 }), {
+  return new Response(JSON.stringify({ success: true }), {
     headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   });
 };
