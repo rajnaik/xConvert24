@@ -15,12 +15,28 @@ const REWARDS: Record<string, number> = {
   'streak_30': 200,
   'share': 5,
   'bug_report': 25,
-  'suggestion': 30,
+  'bug_validated': 25,
+  'suggestion': 25,
+  'vote_bug': 3,
+  'vote_suggestion': 3,
+  'vote_10_milestone': 10,
+  'opinion_vote': 15,
+  'crypto_watchlist': 20,
+  'crypto_use': 5,
+  'cooking_convert': 5,
+  'finance_use': 5,
+  'fashion_convert': 5,
+  'bookmark_page': 5,
+  'add_favourite': 3,
+  'favourite_5': 10,
+  'publish_favourites': 10,
   'quiz_correct': 10,
-  'favourite_5': 15,
   'home_screen': 100,
   'blog_read': 5,
   'refer': 20,
+  'dark_mode': 5,
+  'use_search': 5,
+  'share_page': 5,
 };
 
 export const GET: APIRoute = async ({ url }) => {
@@ -66,9 +82,13 @@ export const POST: APIRoute = async ({ request }) => {
     if (lastActive === yesterday) streak += 1;
     else if (lastActive !== today) streak = 1;
 
-    // Calculate level (every 100 coins = 1 level)
+    // Calculate level based on new metal tiers
     const newTotal = (existing.total_earned || 0) + reward;
-    const level = Math.max(1, Math.floor(newTotal / 100) + 1);
+    const LEVEL_THRESHOLDS = [0, 1000, 5000, 50000, 100000, 250000, 500000, 2000000, 5000000, 10000000, 50000000, 1000000000];
+    let level = 1;
+    for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
+      if (newTotal >= LEVEL_THRESHOLDS[i]) { level = i + 1; break; }
+    }
 
     await db.prepare('UPDATE user_coins SET coins = coins + ?, streak = ?, level = ?, last_active = ?, total_earned = ? WHERE id = ?')
       .bind(reward, streak, level, today, newTotal, uid).run();
