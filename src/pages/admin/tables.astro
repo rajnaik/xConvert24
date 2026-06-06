@@ -1,0 +1,577 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+
+// Complete schema reference derived from migrations 0001–0014
+const tables = [
+  {
+    name: 'bugs',
+    migration: '0001',
+    description: 'User-submitted bug reports with severity and voting',
+    columns: [
+      { name: 'id', type: 'TEXT', constraints: 'PRIMARY KEY' },
+      { name: 'page', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'href', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'severity', type: 'TEXT', constraints: "DEFAULT 'low'" },
+      { name: 'description', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'email', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'votes', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'validated', type: 'INTEGER', constraints: 'DEFAULT 0 (added 0011)' },
+      { name: 'reporter_uid', type: 'TEXT', constraints: "DEFAULT '' (added 0011)" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_bugs_votes (votes DESC)', 'idx_bugs_created (created_at DESC)'],
+  },
+  {
+    name: 'builds',
+    migration: '0002',
+    description: 'Deployment build log — version, status, bundle size, pages, assets',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'version', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'timestamp', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'status', type: 'TEXT', constraints: "DEFAULT 'success'" },
+      { name: 'duration', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'bundle_size', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'pages', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'assets', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'worker_version_id', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'notes', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_builds_timestamp (timestamp DESC)'],
+  },
+  {
+    name: 'test_runs',
+    migration: '0002',
+    description: 'Post-build test results — pass/fail/skipped counts',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'version', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'timestamp', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'total', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'passed', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'failed', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'skipped', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'duration', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'tests_json', type: 'TEXT', constraints: "DEFAULT '[]'" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_test_runs_timestamp (timestamp DESC)'],
+  },
+  {
+    name: 'code_reviews',
+    migration: '0003',
+    description: 'SonarQube code review results per build',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'version', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'timestamp', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'status', type: 'TEXT', constraints: "DEFAULT 'passed'" },
+      { name: 'issues_found', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'issues_critical', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'issues_major', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'issues_minor', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'duration', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'reviewer', type: 'TEXT', constraints: "DEFAULT 'sonarqube'" },
+      { name: 'branch', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'commit_hash', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'summary', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_code_reviews_timestamp (timestamp DESC)', 'idx_code_reviews_status (status)'],
+  },
+  {
+    name: 'code_scans',
+    migration: '0004',
+    description: 'SonarQube scan results — bugs, vulns, code smells, coverage',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'version', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'timestamp', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'status', type: 'TEXT', constraints: "DEFAULT 'passed'" },
+      { name: 'bugs', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'vulnerabilities', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'code_smells', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'coverage', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'duplications', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'duration', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'branch', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'commit_hash', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'scanner', type: 'TEXT', constraints: "DEFAULT 'sonarqube'" },
+      { name: 'summary', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_code_scans_timestamp (timestamp DESC)', 'idx_code_scans_status (status)'],
+  },
+  {
+    name: 'templates',
+    migration: '0005',
+    description: 'Reusable content templates with versioning',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'name', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'body', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+      { name: 'version', type: 'INTEGER', constraints: 'DEFAULT 1' },
+      { name: 'status', type: 'INTEGER', constraints: 'DEFAULT 1' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'modified_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_templates_modified (modified_at DESC)'],
+  },
+  {
+    name: 'template_versions',
+    migration: '0005',
+    description: 'Version history for templates',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'template_id', type: 'INTEGER', constraints: 'NOT NULL FK→templates(id)' },
+      { name: 'version', type: 'INTEGER', constraints: 'NOT NULL' },
+      { name: 'name', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'body', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_template_versions_tid (template_id, version DESC)'],
+  },
+  {
+    name: 'activities',
+    migration: '0005',
+    description: 'Gamification activities — what earns ConvertCoins',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'name', type: 'TEXT', constraints: 'NOT NULL UNIQUE' },
+      { name: 'display_name', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+      { name: 'reward', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 0' },
+      { name: 'badge_id', type: 'INTEGER', constraints: 'DEFAULT NULL FK→badges(id)' },
+      { name: 'status', type: 'INTEGER', constraints: 'DEFAULT 1' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'modified_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'badges',
+    migration: '0005',
+    description: 'Achievement badges (16 types)',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'name', type: 'TEXT', constraints: 'NOT NULL UNIQUE' },
+      { name: 'description', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+      { name: 'modified_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'status', type: 'INTEGER', constraints: 'DEFAULT 1' },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'rewards_granted',
+    migration: '0005',
+    description: 'Permanent record of all coin rewards given to users',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'activity_id', type: 'INTEGER', constraints: 'NOT NULL FK→activities(id)' },
+      { name: 'coins_granted', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 0' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_rewards_granted_user (user_id)', 'idx_rewards_granted_activity (activity_id)'],
+  },
+  {
+    name: 'referrals',
+    migration: '0005',
+    description: 'Referral invitations sent by users',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'user_name', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+      { name: 'referee_name', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'referee_email', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'message', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'status', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_referrals_user (user_id)', 'idx_referrals_status (status)'],
+  },
+  {
+    name: 'referral_completions',
+    migration: '0005',
+    description: 'Completed referrals — when the referee signs up',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'referee_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'registered_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'rewards_granted', type: 'INTEGER', constraints: 'DEFAULT 0' },
+    ],
+    indexes: ['idx_referral_completions_user (user_id)'],
+  },
+  {
+    name: 'user_profiles',
+    migration: '0005',
+    description: 'Extended profiles for leaderboard — nickname, location',
+    columns: [
+      { name: 'id', type: 'TEXT', constraints: 'PRIMARY KEY' },
+      { name: 'nickname', type: 'TEXT', constraints: "NOT NULL DEFAULT 'Anonymous'" },
+      { name: 'location', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'user_coins',
+    migration: '0006',
+    description: 'ConvertCoins balance, streak, and level per user',
+    columns: [
+      { name: 'id', type: 'TEXT', constraints: 'PRIMARY KEY' },
+      { name: 'coins', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'streak', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'level', type: 'INTEGER', constraints: 'DEFAULT 1' },
+      { name: 'last_active', type: 'TEXT', constraints: '' },
+      { name: 'total_earned', type: 'INTEGER', constraints: 'DEFAULT 0' },
+    ],
+    indexes: ['idx_user_coins_level (level DESC)'],
+  },
+  {
+    name: 'coin_events',
+    migration: '0006',
+    description: 'Activity log of every coin transaction',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'activity', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'coins', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 0' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_coin_events_user (user_id)', 'idx_coin_events_date (created_at DESC)'],
+  },
+  {
+    name: 'security_scans',
+    migration: '0006',
+    description: 'Aikido security scan results',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'timestamp', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'files_scanned', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'issues_found', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'critical', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'high', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'medium', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'low', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'status', type: 'TEXT', constraints: "DEFAULT 'completed'" },
+      { name: 'details', type: 'TEXT', constraints: '' },
+    ],
+    indexes: ['idx_security_scans_time (timestamp DESC)'],
+  },
+  {
+    name: 'site_status',
+    migration: '0007',
+    description: 'Single-row site health status (golden/green/red)',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY CHECK (id = 1)' },
+      { name: 'status', type: 'TEXT', constraints: "NOT NULL DEFAULT 'golden'" },
+      { name: 'updated_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'updated_by', type: 'TEXT', constraints: "DEFAULT 'system'" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'opinions',
+    migration: '0007',
+    description: 'User opinion poll responses',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'question_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'response', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_opinions_question (question_id)', 'idx_opinions_date (created_at DESC)', 'idx_opinions_user (user_id)'],
+  },
+  {
+    name: 'cicd_pipeline',
+    migration: '0008',
+    description: 'Single-row CI/CD pipeline XML config storage',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY CHECK (id = 1)' },
+      { name: 'pipeline_xml', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'updated_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'updated_by', type: 'TEXT', constraints: "DEFAULT 'system'" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'cicd_runs',
+    migration: '0008',
+    description: 'CI/CD pipeline execution history',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'version', type: 'TEXT', constraints: '' },
+      { name: 'status', type: 'TEXT', constraints: "DEFAULT 'running'" },
+      { name: 'steps_run', type: 'TEXT', constraints: '' },
+      { name: 'steps_skipped', type: 'TEXT', constraints: '' },
+      { name: 'started_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'completed_at', type: 'TEXT', constraints: '' },
+      { name: 'result', type: 'TEXT', constraints: '' },
+    ],
+    indexes: ['idx_cicd_runs_date (started_at DESC)'],
+  },
+  {
+    name: 'analytics',
+    migration: '0009',
+    description: 'User interaction events — page views, clicks, conversions',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'event', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'page', type: 'TEXT', constraints: '' },
+      { name: 'metadata', type: 'TEXT', constraints: '' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_analytics_user (user_id)', 'idx_analytics_event (event)', 'idx_analytics_date (created_at DESC)', 'idx_analytics_page (page)'],
+  },
+  {
+    name: 'org_agents',
+    migration: '0010',
+    description: 'Dynamic org chart — AI agents and team members',
+    columns: [
+      { name: 'agent_id', type: 'TEXT', constraints: 'PRIMARY KEY' },
+      { name: 'name', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'role', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'icon', type: 'TEXT', constraints: "DEFAULT '🤖'" },
+      { name: 'description', type: 'TEXT', constraints: '' },
+      { name: 'status', type: 'TEXT', constraints: "DEFAULT 'active'" },
+      { name: 'sort_order', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'updated_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'org_tasks',
+    migration: '0010',
+    description: 'Task history per agent — what each agent worked on',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'agent_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'task', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'duration', type: 'TEXT', constraints: '' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_org_tasks_agent (agent_id)', 'idx_org_tasks_date (created_at DESC)'],
+  },
+  {
+    name: 'event_bus',
+    migration: '0011',
+    description: 'Event bus for triggering chain-dependent actions',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'event_type', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'payload', type: 'TEXT', constraints: '' },
+      { name: 'status', type: 'TEXT', constraints: "DEFAULT 'pending'" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'processed_at', type: 'TEXT', constraints: '' },
+    ],
+    indexes: ['idx_event_bus_type (event_type)', 'idx_event_bus_status (status)', 'idx_event_bus_date (created_at DESC)'],
+  },
+  {
+    name: 'favourites_published',
+    migration: '0012',
+    description: 'Published favourite lists shared by users',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'items', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'item_count', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'hidden', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_fav_pub_user (user_id)', 'idx_fav_pub_date (created_at DESC)', 'idx_fav_pub_hidden (hidden)'],
+  },
+  {
+    name: 'feature_flags',
+    migration: '0013',
+    description: 'Feature flags with per-environment toggle (dev/staging/live)',
+    columns: [
+      { name: 'id', type: 'TEXT', constraints: 'PRIMARY KEY' },
+      { name: 'name', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'description', type: 'TEXT', constraints: '' },
+      { name: 'enabled_dev', type: 'INTEGER', constraints: 'DEFAULT 1' },
+      { name: 'enabled_staging', type: 'INTEGER', constraints: 'DEFAULT 1' },
+      { name: 'enabled_live', type: 'INTEGER', constraints: 'DEFAULT 0' },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'updated_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_feature_flags_live (enabled_live)'],
+  },
+  {
+    name: 'vocabulary',
+    migration: '0014',
+    description: 'Vocabulary/glossary table for terminology abbreviations',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'name', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'abbreviation', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_vocabulary_name (name)'],
+  },
+];
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DB Tables | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .user { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .user-name { font-size: 14px; color: #d1d5db; }
+    .back-btn { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .back-btn:hover { color: #fbbf24; border-color: #d97706; background: #1f2937; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+
+    .summary-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
+    .summary-stat { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px 20px; text-align: center; }
+    .summary-stat .val { font-size: 24px; font-weight: 700; color: #fbbf24; }
+    .summary-stat .lbl { font-size: 11px; color: #6b7280; text-transform: uppercase; margin-top: 2px; }
+
+    .search-wrap { margin-bottom: 24px; }
+    .search-input { width: 100%; max-width: 400px; padding: 10px 14px; border-radius: 8px; border: 1px solid #374151; background: #111827; color: #f9fafb; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .search-input:focus { border-color: #fbbf24; }
+    .search-input::placeholder { color: #6b7280; }
+
+    .table-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; margin-bottom: 16px; overflow: hidden; transition: border-color 0.2s; }
+    .table-card:hover { border-color: #374151; }
+    .table-card.expanded { border-color: #d97706; }
+    .table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; user-select: none; }
+    .table-header:hover { background: #1f2937; }
+    .table-name { font-size: 15px; font-weight: 700; color: #fbbf24; font-family: 'JetBrains Mono', monospace; }
+    .table-meta { display: flex; align-items: center; gap: 12px; }
+    .table-migration { font-size: 10px; color: #6b7280; background: #1f2937; padding: 2px 8px; border-radius: 100px; }
+    .table-cols-count { font-size: 11px; color: #9ca3af; }
+    .table-chevron { font-size: 14px; color: #6b7280; transition: transform 0.2s; }
+    .table-card.expanded .table-chevron { transform: rotate(90deg); }
+    .table-desc { font-size: 12px; color: #9ca3af; padding: 0 18px; margin-top: -4px; margin-bottom: 8px; }
+    .table-body { display: none; padding: 0 18px 16px; }
+    .table-card.expanded .table-body { display: block; }
+
+    .schema-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .schema-table th { text-align: left; padding: 8px 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; border-bottom: 1px solid #1f2937; }
+    .schema-table td { padding: 7px 10px; border-bottom: 1px solid #111827; color: #d1d5db; }
+    .schema-table tr:last-child td { border-bottom: none; }
+    .col-name { font-family: 'JetBrains Mono', monospace; color: #f9fafb; font-weight: 500; }
+    .col-type { color: #60a5fa; font-family: 'JetBrains Mono', monospace; }
+    .col-constraint { color: #6b7280; font-size: 11px; }
+
+    .indexes { margin-top: 10px; padding: 10px 12px; background: #0f172a; border-radius: 8px; }
+    .indexes-title { font-size: 10px; color: #6b7280; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; }
+    .index-item { font-size: 11px; color: #9ca3af; font-family: 'JetBrains Mono', monospace; padding: 2px 0; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">⚙️ xConvert24 Admin</div>
+    <div class="user">
+      <a href="/admin" class="back-btn">← Dashboard</a>
+      {user.picture && <img src={user.picture} alt="User avatar" class="avatar" referrerpolicy="no-referrer" />}
+      <span class="user-name">{user.name || user.email}</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>🗄️ Database Tables</h1>
+    <p class="subtitle">Complete schema reference for all D1 database tables across all environments (dev, staging, live).</p>
+
+    <div class="summary-bar">
+      <div class="summary-stat">
+        <div class="val">{tables.length}</div>
+        <div class="lbl">Tables</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val">{tables.reduce((sum, t) => sum + t.columns.length, 0)}</div>
+        <div class="lbl">Columns</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val">{tables.reduce((sum, t) => sum + t.indexes.length, 0)}</div>
+        <div class="lbl">Indexes</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val">14</div>
+        <div class="lbl">Migrations</div>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <input type="text" class="search-input" id="table-search" placeholder="Search tables or columns…" autocomplete="off" />
+    </div>
+
+    <div id="tables-list">
+      {tables.map((table) => (
+        <div class="table-card" data-name={table.name} data-cols={table.columns.map(c => c.name).join(' ')}>
+          <div class="table-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <div>
+              <span class="table-name">{table.name}</span>
+            </div>
+            <div class="table-meta">
+              <span class="table-cols-count">{table.columns.length} cols</span>
+              <span class="table-migration">{table.migration}</span>
+              <span class="table-chevron">▶</span>
+            </div>
+          </div>
+          <div class="table-desc">{table.description}</div>
+          <div class="table-body">
+            <table class="schema-table">
+              <thead>
+                <tr>
+                  <th>Column</th>
+                  <th>Type</th>
+                  <th>Constraints</th>
+                </tr>
+              </thead>
+              <tbody>
+                {table.columns.map((col) => (
+                  <tr>
+                    <td class="col-name">{col.name}</td>
+                    <td class="col-type">{col.type}</td>
+                    <td class="col-constraint">{col.constraints}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {table.indexes.length > 0 && (
+              <div class="indexes">
+                <div class="indexes-title">Indexes</div>
+                {table.indexes.map((idx) => (
+                  <div class="index-item">{idx}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('table-search').addEventListener('input', function() {
+      var q = this.value.toLowerCase().trim();
+      var cards = document.querySelectorAll('.table-card');
+      cards.forEach(function(card) {
+        var name = card.getAttribute('data-name') || '';
+        var cols = card.getAttribute('data-cols') || '';
+        var match = !q || name.includes(q) || cols.includes(q);
+        card.classList.toggle('hidden', !match);
+      });
+    });
+  </script>
+</body>
+</html>

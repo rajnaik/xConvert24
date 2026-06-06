@@ -1,0 +1,129 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feature Flags | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+    .back { color: #9ca3af; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 4px; }
+    .back:hover { color: #fbbf24; }
+    .logo { font-size: 16px; font-weight: 600; color: #d1d5db; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .env-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 100px; margin-bottom: 24px; }
+    .env-dev { background: #1e3a5f; color: #60a5fa; }
+    .env-staging { background: #422006; color: #fbbf24; }
+    .env-live { background: #052e16; color: #4ade80; }
+    .flags-table { width: 100%; border-collapse: collapse; background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+    .flags-table th { background: #1f2937; padding: 12px 16px; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+    .flags-table td { padding: 14px 16px; border-top: 1px solid #1f2937; font-size: 13px; }
+    .flags-table tr:hover td { background: #0f172a; }
+    .flag-name { font-weight: 600; color: #f9fafb; }
+    .flag-desc { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .toggle { width: 36px; height: 20px; border-radius: 10px; background: #374151; position: relative; cursor: pointer; transition: background 0.2s; border: none; }
+    .toggle.on { background: #059669; }
+    .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+    .toggle.on::after { transform: translateX(16px); }
+    .toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+    .loading { text-align: center; padding: 60px; color: #6b7280; font-style: italic; }
+    .error { text-align: center; padding: 60px; color: #f87171; font-style: italic; }
+    .empty { text-align: center; padding: 60px; color: #6b7280; }
+    .updated { font-size: 11px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="/admin" class="back">← Dashboard</a>
+    <span class="logo">Feature Flags</span>
+  </div>
+
+  <div class="container">
+    <h1>🚩 Feature Flags</h1>
+    <p class="subtitle">Toggle features per environment. Changes are saved immediately.</p>
+    <div id="env-indicator"></div>
+
+    <div id="flags-container">
+      <div class="loading">Loading feature flags…</div>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('flags-container');
+    const envIndicator = document.getElementById('env-indicator');
+    let allFlags = [];
+    let currentEnv = 'dev';
+
+    async function loadFlags() {
+      try {
+        const res = await fetch('/api/feature-flags');
+        if (!res.ok) throw new Error('API returned ' + res.status);
+        const data = await res.json();
+        allFlags = data.flags || [];
+        currentEnv = data.environment || 'dev';
+        renderFlags();
+      } catch (err) {
+        container.innerHTML = '<div class="error">Failed to load feature flags: ' + err.message + '</div>';
+      }
+    }
+
+    function renderFlags() {
+      const envClass = 'env-' + currentEnv;
+      envIndicator.innerHTML = '<span class="env-badge ' + envClass + '">Environment: ' + currentEnv.toUpperCase() + '</span>';
+
+      if (!allFlags.length) {
+        container.innerHTML = '<div class="empty">No feature flags configured.</div>';
+        return;
+      }
+
+      container.innerHTML = '<table class="flags-table"><thead><tr>' +
+        '<th>Flag</th><th>Dev</th><th>Staging</th><th>Live</th><th>Updated</th>' +
+        '</tr></thead><tbody>' +
+        allFlags.map(flag => {
+          return '<tr>' +
+            '<td><div class="flag-name">' + flag.name + '</div><div class="flag-desc">' + (flag.description || flag.id) + '</div></td>' +
+            '<td><button class="toggle' + (flag.enabled_dev ? ' on' : '') + '" data-id="' + flag.id + '" data-env="dev"></button></td>' +
+            '<td><button class="toggle' + (flag.enabled_staging ? ' on' : '') + '" data-id="' + flag.id + '" data-env="staging"></button></td>' +
+            '<td><button class="toggle' + (flag.enabled_live ? ' on' : '') + '" data-id="' + flag.id + '" data-env="live"></button></td>' +
+            '<td><span class="updated">' + (flag.updated_at ? new Date(flag.updated_at).toLocaleDateString() : '—') + '</span></td>' +
+            '</tr>';
+        }).join('') +
+        '</tbody></table>';
+
+      container.querySelectorAll('.toggle').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const env = btn.dataset.env;
+          const isOn = btn.classList.contains('on');
+          const payload = { id };
+          payload['enabled_' + env] = !isOn;
+
+          btn.disabled = true;
+          try {
+            const res = await fetch('/api/feature-flags', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (!res.ok) throw new Error('Failed');
+            btn.classList.toggle('on');
+          } catch (err) {
+            alert('Failed to update flag: ' + err.message);
+          }
+          btn.disabled = false;
+        });
+      });
+    }
+
+    loadFlags();
+  </script>
+</body>
+</html>

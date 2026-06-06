@@ -591,7 +591,13 @@ const fullTitle = `${title} | xConvert24.com`;
               var t = new Date().toISOString().split('T')[0];
               localStorage.setItem('xc-coin-favourite_5', t);
               var u = localStorage.getItem('xconvert24-uid') || '';
-              if (u) fetch('/api/coins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: u, activity: 'favourite_5' }) }).catch(function(){});
+              if (u) {
+                fetch('/api/coins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: u, activity: 'favourite_5' }) }).catch(function(){});
+                // Record in rewards_granted table
+                fetch('/api/rewards-granted', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: u, activity: 'favourite_5', coins: 10 }) }).catch(function(){});
+                // Emit event
+                fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event_type: 'favourite_5_achieved', payload: { user_id: u, count: favs.length } }) }).catch(function(){});
+              }
               // Log reward
               var rk = 'xconvert24-rewards-log'; var rw = []; try { rw = JSON.parse(localStorage.getItem(rk) || '[]'); } catch(e) {}
               rw.unshift({ activity: 'favourite_5', description: 'Added 5 items to favourites', coins: 10, date: new Date().toISOString() });

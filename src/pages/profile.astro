@@ -1,6 +1,34 @@
 ---
-export const prerender = true;
 import Layout from '../layouts/Layout.astro';
+
+// Determine current environment
+const host = Astro.url.hostname;
+const environment = host.includes('localhost') || host.includes('127.0.0.1')
+  ? 'dev'
+  : host.includes('staging')
+    ? 'staging'
+    : 'live';
+
+// Check the "coins" feature flag
+let coinsEnabled = true; // default to true for dev fallback
+try {
+  const { env } = await import('cloudflare:workers');
+  const db = (env as any).BUGS_DB;
+  if (db) {
+    const flag = await db.prepare('SELECT enabled_dev, enabled_staging, enabled_live FROM feature_flags WHERE id = ?').bind('coins').first();
+    if (flag) {
+      coinsEnabled = environment === 'dev' ? !!flag.enabled_dev : environment === 'staging' ? !!flag.enabled_staging : !!flag.enabled_live;
+    }
+  }
+} catch {
+  // If DB unavailable, fall back to enabled in dev only
+  coinsEnabled = environment === 'dev';
+}
+
+// If feature is disabled, return 404 (blocks crawlers and users)
+if (!coinsEnabled) {
+  return new Response(null, { status: 404 });
+}
 ---
 
 <Layout title="My Profile — ConvertCoins" description="Track your ConvertCoins, streak, level, and activity on xConvert24.com." keywords="profile, convertcoins, rewards, streak, gamification">

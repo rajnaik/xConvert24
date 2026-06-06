@@ -1,0 +1,378 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hooks | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+    .back { color: #9ca3af; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 4px; }
+    .back:hover { color: #fbbf24; }
+    .logo { font-size: 16px; font-weight: 600; color: #d1d5db; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .stats { display: flex; gap: 12px; }
+    .stat { background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 10px 14px; text-align: center; }
+    .stat-val { font-size: 20px; font-weight: 700; color: #fbbf24; }
+    .stat-label { font-size: 10px; color: #6b7280; margin-top: 2px; text-transform: uppercase; }
+    .add-btn { background: #d97706; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .add-btn:hover { background: #b45309; }
+    .hooks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .hook-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; transition: all 0.2s; position: relative; }
+    .hook-card:hover { border-color: #d97706; }
+    .hook-card.disabled { opacity: 0.6; }
+    .hook-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .hook-name { font-size: 14px; font-weight: 600; color: #f9fafb; flex: 1; }
+    .hook-toggle { width: 36px; height: 20px; border-radius: 10px; background: #374151; position: relative; cursor: pointer; transition: background 0.2s; border: none; }
+    .hook-toggle.on { background: #059669; }
+    .hook-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+    .hook-toggle.on::after { transform: translateX(16px); }
+    .hook-desc { font-size: 12px; color: #9ca3af; line-height: 1.5; margin-bottom: 12px; }
+    .hook-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .hook-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 100px; }
+    .badge-event { background: #1e3a5f; color: #60a5fa; }
+    .badge-action { background: #422006; color: #fbbf24; }
+    .badge-pattern { background: #1a2e05; color: #84cc16; }
+    .hook-actions { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #1f2937; padding-top: 12px; }
+    .btn-edit { font-size: 11px; color: #fbbf24; background: none; border: 1px solid #d97706; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+    .btn-edit:hover { background: #422006; }
+    .btn-delete { font-size: 11px; color: #f87171; background: none; border: 1px solid #7f1d1d; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+    .btn-delete:hover { background: #450a0a; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 28px; width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+    .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #f9fafb; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: #9ca3af; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .form-input { width: 100%; background: #0f172a; border: 1px solid #374151; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #f9fafb; font-family: inherit; }
+    .form-input:focus { outline: none; border-color: #d97706; }
+    .form-select { width: 100%; background: #0f172a; border: 1px solid #374151; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #f9fafb; font-family: inherit; appearance: none; }
+    .form-select:focus { outline: none; border-color: #d97706; }
+    textarea.form-input { min-height: 80px; resize: vertical; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-group { flex: 1; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .btn-save { background: #d97706; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-save:hover { background: #b45309; }
+    .btn-cancel { background: none; color: #9ca3af; border: 1px solid #374151; padding: 10px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+    .btn-cancel:hover { color: #f9fafb; border-color: #6b7280; }
+
+    .loading { text-align: center; padding: 60px; color: #6b7280; font-style: italic; }
+    .error { text-align: center; padding: 60px; color: #f87171; font-style: italic; }
+    .empty { text-align: center; padding: 60px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="/admin" class="back">← Dashboard</a>
+    <span class="logo">Hooks</span>
+  </div>
+
+  <div class="container">
+    <h1>🪝 Agent Hooks</h1>
+    <p class="subtitle">All CI/CD pipeline hooks stored in the database. Add, edit, enable/disable hooks.</p>
+
+    <div class="toolbar">
+      <div class="stats">
+        <div class="stat"><div class="stat-val" id="total-count">—</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-val" id="enabled-count">—</div><div class="stat-label">Enabled</div></div>
+        <div class="stat"><div class="stat-val" id="disabled-count">—</div><div class="stat-label">Disabled</div></div>
+      </div>
+      <button class="add-btn" id="add-hook-btn">+ Add Hook</button>
+    </div>
+
+    <div id="hooks-list" class="hooks-grid">
+      <div class="loading">Loading hooks from database…</div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h2 id="modal-title">Add Hook</h2>
+      <input type="hidden" id="hook-id" />
+
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-input" id="hook-name" placeholder="My Hook Name" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" id="hook-description" placeholder="What this hook does…"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Version</label>
+          <input type="text" class="form-input" id="hook-version" placeholder="1.0.0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Enabled</label>
+          <select class="form-select" id="hook-enabled">
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Event Type (when)</label>
+        <select class="form-select" id="hook-event-type">
+          <option value="fileEdited">fileEdited</option>
+          <option value="fileCreated">fileCreated</option>
+          <option value="fileDeleted">fileDeleted</option>
+          <option value="userTriggered">userTriggered</option>
+          <option value="promptSubmit">promptSubmit</option>
+          <option value="agentStop">agentStop</option>
+          <option value="preToolUse">preToolUse</option>
+          <option value="postToolUse">postToolUse</option>
+          <option value="preTaskExecution">preTaskExecution</option>
+          <option value="postTaskExecution">postTaskExecution</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="patterns-group">
+        <label class="form-label">File Patterns (comma-separated)</label>
+        <input type="text" class="form-input" id="hook-patterns" placeholder="*.ts, src/pages/api/*.ts" />
+      </div>
+
+      <div class="form-group" id="tooltypes-group">
+        <label class="form-label">Tool Types (comma-separated)</label>
+        <input type="text" class="form-input" id="hook-tooltypes" placeholder="write, shell, .*sonar.*" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Action Type (then)</label>
+        <select class="form-select" id="hook-action-type">
+          <option value="askAgent">askAgent</option>
+          <option value="runCommand">runCommand</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="prompt-group">
+        <label class="form-label">Prompt (for askAgent)</label>
+        <textarea class="form-input" id="hook-prompt" placeholder="Instruction to the agent…"></textarea>
+      </div>
+
+      <div class="form-group" id="command-group">
+        <label class="form-label">Command (for runCommand)</label>
+        <input type="text" class="form-input" id="hook-command" placeholder="npm run lint" />
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modal-cancel">Cancel</button>
+        <button class="btn-save" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const listEl = document.getElementById('hooks-list');
+    const modal = document.getElementById('modal-overlay');
+    const modalTitle = document.getElementById('modal-title');
+    let allHooks = [];
+
+    // Form fields
+    const fields = {
+      id: document.getElementById('hook-id'),
+      name: document.getElementById('hook-name'),
+      description: document.getElementById('hook-description'),
+      version: document.getElementById('hook-version'),
+      enabled: document.getElementById('hook-enabled'),
+      eventType: document.getElementById('hook-event-type'),
+      patterns: document.getElementById('hook-patterns'),
+      toolTypes: document.getElementById('hook-tooltypes'),
+      actionType: document.getElementById('hook-action-type'),
+      prompt: document.getElementById('hook-prompt'),
+      command: document.getElementById('hook-command'),
+    };
+
+    function toggleFieldVisibility() {
+      const et = fields.eventType.value;
+      const at = fields.actionType.value;
+      document.getElementById('patterns-group').style.display = ['fileEdited','fileCreated','fileDeleted'].includes(et) ? '' : 'none';
+      document.getElementById('tooltypes-group').style.display = ['preToolUse','postToolUse'].includes(et) ? '' : 'none';
+      document.getElementById('prompt-group').style.display = at === 'askAgent' ? '' : 'none';
+      document.getElementById('command-group').style.display = at === 'runCommand' ? '' : 'none';
+    }
+
+    fields.eventType.addEventListener('change', toggleFieldVisibility);
+    fields.actionType.addEventListener('change', toggleFieldVisibility);
+
+    function openModal(hook) {
+      if (hook) {
+        modalTitle.textContent = 'Edit Hook';
+        fields.id.value = hook.id;
+        fields.name.value = hook.name || '';
+        fields.description.value = hook.description || '';
+        fields.version.value = hook.version || '1.0.0';
+        fields.enabled.value = hook.enabled ? '1' : '0';
+        fields.eventType.value = hook.event_type || 'fileEdited';
+        fields.patterns.value = hook.event_patterns || '';
+        fields.toolTypes.value = hook.event_tool_types || '';
+        fields.actionType.value = hook.action_type || 'askAgent';
+        fields.prompt.value = hook.action_prompt || '';
+        fields.command.value = hook.action_command || '';
+      } else {
+        modalTitle.textContent = 'Add Hook';
+        fields.id.value = '';
+        fields.name.value = '';
+        fields.description.value = '';
+        fields.version.value = '1.0.0';
+        fields.enabled.value = '1';
+        fields.eventType.value = 'fileEdited';
+        fields.patterns.value = '';
+        fields.toolTypes.value = '';
+        fields.actionType.value = 'askAgent';
+        fields.prompt.value = '';
+        fields.command.value = '';
+      }
+      toggleFieldVisibility();
+      modal.classList.add('open');
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+    }
+
+    document.getElementById('add-hook-btn').addEventListener('click', () => openModal(null));
+    document.getElementById('modal-cancel').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    document.getElementById('modal-save').addEventListener('click', async () => {
+      const payload = {
+        name: fields.name.value.trim(),
+        description: fields.description.value.trim(),
+        version: fields.version.value.trim() || '1.0.0',
+        enabled: fields.enabled.value === '1',
+        event_type: fields.eventType.value,
+        event_patterns: fields.patterns.value.trim(),
+        event_tool_types: fields.toolTypes.value.trim(),
+        action_type: fields.actionType.value,
+        action_prompt: fields.prompt.value.trim(),
+        action_command: fields.command.value.trim(),
+      };
+
+      if (!payload.name) { alert('Name is required'); return; }
+
+      const isEdit = !!fields.id.value;
+      if (isEdit) payload.id = parseInt(fields.id.value);
+
+      try {
+        const res = await fetch('/api/hooks', {
+          method: isEdit ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('Failed to save');
+        closeModal();
+        loadHooks();
+      } catch (err) {
+        alert('Error saving hook: ' + err.message);
+      }
+    });
+
+    async function deleteHook(id) {
+      if (!confirm('Delete this hook?')) return;
+      try {
+        await fetch('/api/hooks', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        loadHooks();
+      } catch {}
+    }
+
+    async function toggleHook(id, currentEnabled) {
+      const hook = allHooks.find(h => h.id === id);
+      if (!hook) return;
+      try {
+        await fetch('/api/hooks', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...hook, id, enabled: !currentEnabled }),
+        });
+        loadHooks();
+      } catch {}
+    }
+
+    function renderHooks() {
+      if (!allHooks.length) {
+        listEl.innerHTML = '<div class="empty">No hooks found. Click "+ Add Hook" to create one.</div>';
+        return;
+      }
+
+      document.getElementById('total-count').textContent = allHooks.length;
+      document.getElementById('enabled-count').textContent = allHooks.filter(h => h.enabled).length;
+      document.getElementById('disabled-count').textContent = allHooks.filter(h => !h.enabled).length;
+
+      listEl.innerHTML = allHooks.map(hook => {
+        const enabledClass = hook.enabled ? '' : ' disabled';
+        const toggleClass = hook.enabled ? ' on' : '';
+        const patterns = hook.event_patterns ? `<span class="hook-badge badge-pattern">📁 ${hook.event_patterns.split(',').length} pattern${hook.event_patterns.split(',').length > 1 ? 's' : ''}</span>` : '';
+        const toolTypes = hook.event_tool_types ? `<span class="hook-badge badge-pattern">🔧 ${hook.event_tool_types}</span>` : '';
+
+        return `
+          <div class="hook-card${enabledClass}">
+            <div class="hook-header">
+              <span class="hook-name">${hook.name}</span>
+              <button class="hook-toggle${toggleClass}" data-id="${hook.id}" data-enabled="${hook.enabled ? 1 : 0}" title="${hook.enabled ? 'Enabled' : 'Disabled'}"></button>
+            </div>
+            <div class="hook-desc">${(hook.description || '').replace(/</g, '&lt;')}</div>
+            <div class="hook-meta">
+              <span class="hook-badge badge-event">⚡ ${hook.event_type}</span>
+              <span class="hook-badge badge-action">🎯 ${hook.action_type}</span>
+              ${patterns}${toolTypes}
+            </div>
+            <div class="hook-actions">
+              <button class="btn-edit" data-id="${hook.id}">✏️ Edit</button>
+              <button class="btn-delete" data-id="${hook.id}">🗑️ Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Bind events
+      listEl.querySelectorAll('.hook-toggle').forEach(btn => {
+        btn.addEventListener('click', () => toggleHook(parseInt(btn.dataset.id), btn.dataset.enabled === '1'));
+      });
+      listEl.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const hook = allHooks.find(h => h.id === parseInt(btn.dataset.id));
+          if (hook) openModal(hook);
+        });
+      });
+      listEl.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteHook(parseInt(btn.dataset.id)));
+      });
+    }
+
+    async function loadHooks() {
+      try {
+        const res = await fetch('/api/hooks');
+        if (!res.ok) throw new Error('API returned ' + res.status);
+        const data = await res.json();
+        allHooks = data.hooks || [];
+        renderHooks();
+      } catch (err) {
+        listEl.innerHTML = '<div class="error">Failed to load hooks: ' + err.message + '</div>';
+      }
+    }
+
+    loadHooks();
+  </script>
+</body>
+</html>

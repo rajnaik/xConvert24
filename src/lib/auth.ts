@@ -114,16 +114,17 @@ export async function verifySessionCookie(
 
 /**
  * Get the Set-Cookie header string for the session.
+ * Path=/ so the cookie is sent for both /admin pages and /api routes.
  */
 export function getSessionCookieHeader(value: string): string {
-  return `${COOKIE_NAME}=${value}; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}`;
+  return `${COOKIE_NAME}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}`;
 }
 
 /**
  * Get the Set-Cookie header to clear the session.
  */
 export function getClearCookieHeader(): string {
-  return `${COOKIE_NAME}=; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 }
 
 /**

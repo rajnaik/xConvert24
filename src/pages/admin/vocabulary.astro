@@ -1,0 +1,221 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vocabulary | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+    .back { color: #9ca3af; text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 4px; }
+    .back:hover { color: #fbbf24; }
+    .logo { font-size: 16px; font-weight: 600; color: #d1d5db; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .stat { background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 10px 14px; text-align: center; }
+    .stat-val { font-size: 20px; font-weight: 700; color: #fbbf24; }
+    .stat-label { font-size: 10px; color: #6b7280; margin-top: 2px; text-transform: uppercase; }
+    .add-btn { background: #d97706; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .add-btn:hover { background: #b45309; }
+    .vocab-table { width: 100%; border-collapse: collapse; background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+    .vocab-table th { background: #1f2937; padding: 12px 16px; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+    .vocab-table td { padding: 14px 16px; border-top: 1px solid #1f2937; font-size: 13px; }
+    .vocab-table tr:hover td { background: #0f172a; }
+    .vocab-name { font-weight: 600; color: #f9fafb; }
+    .vocab-abbr { color: #fbbf24; font-weight: 600; font-family: monospace; }
+    .btn-edit { font-size: 11px; color: #fbbf24; background: none; border: 1px solid #d97706; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+    .btn-edit:hover { background: #422006; }
+    .btn-delete { font-size: 11px; color: #f87171; background: none; border: 1px solid #7f1d1d; padding: 5px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+    .btn-delete:hover { background: #450a0a; }
+    .actions { display: flex; gap: 8px; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 28px; width: 90%; max-width: 460px; }
+    .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #f9fafb; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: #9ca3af; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .form-input { width: 100%; background: #0f172a; border: 1px solid #374151; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #f9fafb; font-family: inherit; }
+    .form-input:focus { outline: none; border-color: #d97706; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .btn-save { background: #d97706; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-save:hover { background: #b45309; }
+    .btn-cancel { background: none; color: #9ca3af; border: 1px solid #374151; padding: 10px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+    .btn-cancel:hover { color: #f9fafb; border-color: #6b7280; }
+
+    .loading { text-align: center; padding: 60px; color: #6b7280; font-style: italic; }
+    .error { text-align: center; padding: 60px; color: #f87171; font-style: italic; }
+    .empty { text-align: center; padding: 60px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="/admin" class="back">← Dashboard</a>
+    <span class="logo">Vocabulary</span>
+  </div>
+
+  <div class="container">
+    <h1>📖 Vocabulary</h1>
+    <p class="subtitle">Glossary of terminology and abbreviations used across the platform.</p>
+
+    <div class="toolbar">
+      <div class="stat"><div class="stat-val" id="total-count">—</div><div class="stat-label">Terms</div></div>
+      <button class="add-btn" id="add-btn">+ Add Term</button>
+    </div>
+
+    <div id="vocab-container">
+      <div class="loading">Loading vocabulary…</div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h2 id="modal-title">Add Term</h2>
+      <input type="hidden" id="vocab-id" />
+
+      <div class="form-group">
+        <label class="form-label">Name / Term</label>
+        <input type="text" class="form-input" id="vocab-name" placeholder="e.g. Feature Flags" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Abbreviation</label>
+        <input type="text" class="form-input" id="vocab-abbr" placeholder="e.g. FF" />
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modal-cancel">Cancel</button>
+        <button class="btn-save" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('vocab-container');
+    const modal = document.getElementById('modal-overlay');
+    const modalTitle = document.getElementById('modal-title');
+    let allVocab = [];
+
+    const fields = {
+      id: document.getElementById('vocab-id'),
+      name: document.getElementById('vocab-name'),
+      abbr: document.getElementById('vocab-abbr'),
+    };
+
+    function openModal(entry) {
+      if (entry) {
+        modalTitle.textContent = 'Edit Term';
+        fields.id.value = entry.id;
+        fields.name.value = entry.name || '';
+        fields.abbr.value = entry.abbreviation || '';
+      } else {
+        modalTitle.textContent = 'Add Term';
+        fields.id.value = '';
+        fields.name.value = '';
+        fields.abbr.value = '';
+      }
+      modal.classList.add('open');
+    }
+
+    function closeModal() { modal.classList.remove('open'); }
+
+    document.getElementById('add-btn').addEventListener('click', () => openModal(null));
+    document.getElementById('modal-cancel').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    document.getElementById('modal-save').addEventListener('click', async () => {
+      const payload = {
+        name: fields.name.value.trim(),
+        abbreviation: fields.abbr.value.trim(),
+      };
+      if (!payload.name) { alert('Name is required'); return; }
+
+      const isEdit = !!fields.id.value;
+      if (isEdit) payload.id = parseInt(fields.id.value);
+
+      try {
+        const res = await fetch('/api/vocabulary', {
+          method: isEdit ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('Failed to save');
+        closeModal();
+        loadVocab();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    });
+
+    async function deleteEntry(id) {
+      if (!confirm('Delete this term?')) return;
+      try {
+        await fetch('/api/vocabulary', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        loadVocab();
+      } catch {}
+    }
+
+    function renderVocab() {
+      document.getElementById('total-count').textContent = allVocab.length;
+
+      if (!allVocab.length) {
+        container.innerHTML = '<div class="empty">No vocabulary entries yet. Click "+ Add Term" to create one.</div>';
+        return;
+      }
+
+      container.innerHTML = '<table class="vocab-table"><thead><tr>' +
+        '<th>Term</th><th>Abbreviation</th><th>Added</th><th>Actions</th>' +
+        '</tr></thead><tbody>' +
+        allVocab.map(v => {
+          return '<tr>' +
+            '<td><span class="vocab-name">' + v.name + '</span></td>' +
+            '<td><span class="vocab-abbr">' + (v.abbreviation || '—') + '</span></td>' +
+            '<td style="font-size:12px;color:#6b7280;">' + (v.created_at ? new Date(v.created_at).toLocaleDateString() : '—') + '</td>' +
+            '<td><div class="actions">' +
+            '<button class="btn-edit" data-id="' + v.id + '">✏️ Edit</button>' +
+            '<button class="btn-delete" data-id="' + v.id + '">🗑️ Delete</button>' +
+            '</div></td></tr>';
+        }).join('') +
+        '</tbody></table>';
+
+      container.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const entry = allVocab.find(v => v.id === parseInt(btn.dataset.id));
+          if (entry) openModal(entry);
+        });
+      });
+      container.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteEntry(parseInt(btn.dataset.id)));
+      });
+    }
+
+    async function loadVocab() {
+      try {
+        const res = await fetch('/api/vocabulary');
+        if (!res.ok) throw new Error('API returned ' + res.status);
+        const data = await res.json();
+        allVocab = data.vocabulary || [];
+        renderVocab();
+      } catch (err) {
+        container.innerHTML = '<div class="error">Failed to load vocabulary: ' + err.message + '</div>';
+      }
+    }
+
+    loadVocab();
+  </script>
+</body>
+</html>

@@ -72,6 +72,17 @@ export const prerender = true;
     <!-- Pipeline Stages -->
     <div class="pipeline">
 
+      <!-- Start marker -->
+      <div class="stage-card" style="border-color: #065f46; background: #022c22; text-align: center;">
+        <div class="stage-card-header" style="justify-content: center;">
+          <div class="stage-icon">🟢</div>
+          <div class="stage-title" style="color: #6ee7b7;">START</div>
+        </div>
+        <div class="stage-desc" style="text-align: center;">Frontend pipeline triggered by code commit to feature branch.</div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
       <!-- Stage 1: Write Code -->
       <div class="stage-card">
         <div class="stage-card-header">
@@ -243,17 +254,194 @@ export const prerender = true;
         </div>
       </div>
 
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Golden End marker -->
+      <div class="stage-card" style="border-color: #78350f; background: #422006; text-align: center;">
+        <div class="stage-card-header" style="justify-content: center;">
+          <div class="stage-icon">🌟</div>
+          <div class="stage-title" style="color: #fbbf24;">GOLDEN</div>
+        </div>
+        <div class="stage-desc" style="text-align: center; color: #fbbf24;">All gates passed. Production deployed. Site status: Golden.</div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- BACKEND PIPELINE -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div style="margin-top: 48px; border-top: 1px solid #1f2937; padding-top: 40px;">
+      <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">🗄️ Backend Pipeline</h2>
+      <p class="subtitle">Database migrations, KV store, D1 schema changes — applied across all three environments.</p>
+    </div>
+
+    <div class="pipeline">
+
+      <!-- Start marker -->
+      <div class="stage-card" style="border-color: #065f46; background: #022c22; text-align: center;">
+        <div class="stage-card-header" style="justify-content: center;">
+          <div class="stage-icon">🟢</div>
+          <div class="stage-title" style="color: #6ee7b7;">START</div>
+        </div>
+        <div class="stage-desc" style="text-align: center;">Backend pipeline triggered by a new migration file or schema change.</div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 1: Write Migration -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">✍️</div>
+          <div class="stage-title">1. Write Migration SQL</div>
+        </div>
+        <div class="stage-desc">Developer creates a new numbered migration file in <code>/migrations/</code>. Uses <code>CREATE TABLE IF NOT EXISTS</code>, <code>ALTER TABLE</code>, or seed <code>INSERT</code> statements. Must be idempotent.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">📄 SQL</span>
+          <span class="tool-badge">🗄️ D1 SQLite</span>
+          <span class="tool-badge">📝 Kiro IDE</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 2: Apply to Dev -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🧪</div>
+          <div class="stage-title">2. Apply to Dev Environment</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Migration applied to the dev D1 database using <code>wrangler d1 migrations apply BUGS_DB --remote --config wrangler.dev.jsonc</code>. If it fails, fix the SQL before proceeding.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🔧 Wrangler CLI</span>
+          <span class="tool-badge">🗄️ xconvert24-dev</span>
+          <span class="tool-badge">🟦 D1 (13d84b09)</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 3: Test in Dev -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🔍</div>
+          <div class="stage-title">3. Verify in Dev</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Run <code>npm run dev</code> and verify the new tables/columns work correctly. Test API endpoints, check data integrity, confirm indexes are created. Manual QA against localhost:4321.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🌐 localhost:4321</span>
+          <span class="tool-badge">🧪 Manual QA</span>
+          <span class="tool-badge">📊 D1 Console</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 4: Apply to Staging -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🚦</div>
+          <div class="stage-title">4. Apply to Staging</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Migration applied to staging: <code>wrangler d1 migrations apply BUGS_DB --remote --config wrangler.staging.jsonc</code>. Staging mirrors production — if it passes here, it'll pass in live.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🔧 Wrangler CLI</span>
+          <span class="tool-badge">🗄️ xconvert24-staging</span>
+          <span class="tool-badge">🟦 D1 (e28a7b2a)</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 5: Staging Smoke Test -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🔬</div>
+          <div class="stage-title">5. Staging Smoke Test</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Deploy staging build (<code>npm run deploy:staging</code>) and verify against staging.xconvert24.com. Check that all API routes using the new schema respond correctly. No 500 errors allowed.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🌐 staging.xconvert24.com</span>
+          <span class="tool-badge">🚀 Deploy Staging</span>
+          <span class="tool-badge">📈 Status Check</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 6: Apply to Live -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">🚀</div>
+          <div class="stage-title">6. Apply to Live</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Final migration to production: <code>wrangler d1 migrations apply xconvert24-bugs --remote</code>. Zero-downtime — <code>IF NOT EXISTS</code> ensures no breakage if re-run. Live database updated.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">🔧 Wrangler CLI</span>
+          <span class="tool-badge">🗄️ xconvert24-bugs</span>
+          <span class="tool-badge">🟦 D1 (433762c6)</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 7: Deploy Live App -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">☁️</div>
+          <div class="stage-title">7. Deploy Live Application</div>
+        </div>
+        <div class="stage-desc">Run <code>npm run deploy</code> to push the application code that uses the new schema to production. Workers pick up the new tables/columns immediately. Rollback available via Wrangler.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">☁️ Cloudflare Workers</span>
+          <span class="tool-badge">🔧 Wrangler CLI</span>
+          <span class="tool-badge">🌐 xconvert24.com</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Stage 8: Post-Deploy Validation -->
+      <div class="stage-card">
+        <div class="stage-card-header">
+          <div class="stage-icon">✅</div>
+          <div class="stage-title">8. Post-Deploy Validation</div>
+          <span class="gate-label gate-pass">GATE: MUST PASS</span>
+        </div>
+        <div class="stage-desc">Verify live site is healthy. Check site status turns golden. Confirm API routes return correct data from new tables. Update admin DB Tables documentation page if needed.</div>
+        <div class="stage-tools">
+          <span class="tool-badge">⭐ Site Status</span>
+          <span class="tool-badge">🗄️ DB Tables Page</span>
+          <span class="tool-badge">📊 Analytics</span>
+        </div>
+      </div>
+
+      <div class="flow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+
+      <!-- Golden End marker -->
+      <div class="stage-card" style="border-color: #78350f; background: #422006; text-align: center;">
+        <div class="stage-card-header" style="justify-content: center;">
+          <div class="stage-icon">🌟</div>
+          <div class="stage-title" style="color: #fbbf24;">GOLDEN</div>
+        </div>
+        <div class="stage-desc" style="text-align: center; color: #fbbf24;">All environments synced. Schema deployed. Site status: Golden.</div>
+      </div>
+
     </div>
 
     <!-- Summary stats -->
     <div style="margin-top: 32px; padding: 20px; background: #111827; border: 1px solid #1f2937; border-radius: 12px;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; text-align: center;">
         <div>
-          <div style="font-size: 24px; font-weight: 700; color: #fbbf24;">13</div>
+          <div style="font-size: 24px; font-weight: 700; color: #fbbf24;">18</div>
           <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Total Stages</div>
         </div>
         <div>
-          <div style="font-size: 24px; font-weight: 700; color: #f59e0b;">9</div>
+          <div style="font-size: 24px; font-weight: 700; color: #f59e0b;">14</div>
           <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Quality Gates</div>
         </div>
         <div>
@@ -261,7 +449,7 @@ export const prerender = true;
           <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Security Scans</div>
         </div>
         <div>
-          <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">12+</div>
+          <div style="font-size: 24px; font-weight: 700; color: #3b82f6;">15+</div>
           <div style="font-size: 11px; color: #6b7280; text-transform: uppercase;">Tools Integrated</div>
         </div>
       </div>
