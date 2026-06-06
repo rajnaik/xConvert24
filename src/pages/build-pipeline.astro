@@ -268,64 +268,93 @@ import { VERSION } from '../data/siteStats';
 </Layout>
 
 <script>
-  // Fetch pipeline config from API and populate tooltips
-  async function loadPipelineStats() {
-    try {
-      const res = await fetch('/api/cicd-pipeline');
-      const data = await res.json();
-      const xml = data.xml || '';
+  const CACHE_KEY = 'xc-pipeline-cache';
+  const CACHE_TTL = 300000; // 5 minutes
 
-      // Parse XML
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(xml, 'text/xml');
-      const steps = Array.from(doc.querySelectorAll('step'));
-
-      // All steps
-      const enabledSteps = steps.filter(s => s.getAttribute('enabled') === 'true');
-      document.getElementById('stat-steps')!.textContent = enabledSteps.length.toString();
-      document.getElementById('tip-steps-list')!.innerHTML = enabledSteps.map(s =>
-        `<div>• ${s.getAttribute('name')}</div>`
-      ).join('');
-
-      // Gates
-      const gates = enabledSteps.filter(s => s.getAttribute('gate') === 'true');
-      document.getElementById('stat-gates')!.textContent = gates.length.toString();
-      document.getElementById('tip-gates-list')!.innerHTML = gates.map(s =>
-        `<div>⛔ ${s.getAttribute('name')}</div>`
-      ).join('');
-
-      // Security (steps 5, 8 + any with "security" in name/tools)
-      const securitySteps = enabledSteps.filter(s => {
-        const name = (s.getAttribute('name') || '').toLowerCase();
-        const tools = (s.querySelector('tools')?.textContent || '').toLowerCase();
-        return name.includes('security') || name.includes('sast') || name.includes('checkmarx') || name.includes('aikido') || tools.includes('security') || tools.includes('sast');
-      });
-      document.getElementById('stat-security')!.textContent = securitySteps.length.toString();
-      document.getElementById('tip-security-list')!.innerHTML = securitySteps.map(s =>
-        `<div>🛡️ ${s.getAttribute('name')}</div>`
-      ).join('');
-
-      // Tools — collect unique tools from all enabled steps
-      const allTools = new Set<string>();
-      enabledSteps.forEach(s => {
-        const tools = s.querySelector('tools')?.textContent || '';
-        tools.split(',').forEach(t => { if (t.trim()) allTools.add(t.trim()); });
-      });
-      document.getElementById('stat-tools')!.textContent = allTools.size.toString();
-      document.getElementById('tip-tools-list')!.innerHTML = Array.from(allTools).sort().map(t =>
-        `<div>🔧 ${t}</div>`
-      ).join('');
-    } catch {
-      // Fallback — keep static values
-    }
+  interface CacheEntry {
+    xml: string;
+    ts: number;
   }
 
-  // Tooltip hover behavior
+  // Read from localStorage cache — instant, no network
+  function getCache(): CacheEntry | null {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const entry: CacheEntry = JSON.parse(raw);
+      if (Date.now() - entry.ts > CACHE_TTL) return null; // expired
+      return entry;
+    } catch { return null; }
+  }
+
+  function setCache(xml: string) {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ xml, ts: Date.now() }));
+  }
+
+  function populateStats(xml: string) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+    const steps = Array.from(doc.querySelectorAll('step'));
+
+    // All enabled steps
+    const enabledSteps = steps.filter(s => s.getAttribute('enabled') === 'true');
+    document.getElementById('stat-steps')!.textContent = enabledSteps.length.toString();
+    document.getElementById('tip-steps-list')!.innerHTML = enabledSteps.map(s =>
+      `<div>• ${s.getAttribute('name')}</div>`
+    ).join('');
+
+    // Gates
+    const gates = enabledSteps.filter(s => s.getAttribute('gate') === 'true');
+    document.getElementById('stat-gates')!.textContent = gates.length.toString();
+    document.getElementById('tip-gates-list')!.innerHTML = gates.map(s =>
+      `<div>⛔ ${s.getAttribute('name')}</div>`
+    ).join('');
+
+    // Security
+    const securitySteps = enabledSteps.filter(s => {
+      const name = (s.getAttribute('name') || '').toLowerCase();
+      const tools = (s.querySelector('tools')?.textContent || '').toLowerCase();
+      return name.includes('security') || name.includes('sast') || name.includes('checkmarx') || name.includes('aikido') || tools.includes('security') || tools.includes('sast');
+    });
+    document.getElementById('stat-security')!.textContent = securitySteps.length.toString();
+    document.getElementById('tip-security-list')!.innerHTML = securitySteps.map(s =>
+      `<div>🛡️ ${s.getAttribute('name')}</div>`
+    ).join('');
+
+    // Tools — unique across all enabled steps
+    const allTools = new Set<string>();
+    enabledSteps.forEach(s => {
+      const tools = s.querySelector('tools')?.textContent || '';
+      tools.split(',').forEach(t => { if (t.trim()) allTools.add(t.trim()); });
+    });
+    document.getElementById('stat-tools')!.textContent = allTools.size.toString();
+    document.getElementById('tip-tools-list')!.innerHTML = Array.from(allTools).sort().map(t =>
+      `<div>🔧 ${t}</div>`
+    ).join('');
+  }
+
+  // Load: try cache first (instant), then background refresh
+  const cached = getCache();
+  if (cached) {
+    populateStats(cached.xml);
+  }
+
+  // Always fetch fresh in background (updates cache for next time)
+  fetch('/api/cicd-pipeline')
+    .then(r => r.json())
+    .then(data => {
+      const xml = data.xml || '';
+      if (xml) {
+        setCache(xml);
+        populateStats(xml);
+      }
+    })
+    .catch(() => {}); // Silently fail — cache still shows data
+
+  // Tooltip hover behavior — instant, no network call
   document.querySelectorAll('[data-stat]').forEach(tile => {
     const tooltip = tile.querySelector('.stat-tooltip') as HTMLElement;
     tile.addEventListener('mouseenter', () => tooltip?.classList.remove('hidden'));
     tile.addEventListener('mouseleave', () => tooltip?.classList.add('hidden'));
   });
-
-  loadPipelineStats();
 </script>
