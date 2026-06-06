@@ -84,6 +84,10 @@ export const POST: APIRoute = async ({ request }) => {
     await db.prepare(
       'UPDATE org_agents SET updated_at = datetime("now"), status = "active" WHERE agent_id = ?'
     ).bind(agent_id).run();
+    // Invalidate pipeline cache by bumping a version marker
+    await db.prepare(
+      'INSERT OR REPLACE INTO site_status (id, status, updated_at, updated_by) SELECT 1, status, datetime("now"), "task-complete" FROM site_status WHERE id = 1'
+    ).run().catch(() => {});
   }
 
   return new Response(JSON.stringify({ success: true }), {
