@@ -86,15 +86,9 @@ else
   echo "⏭️  Step 6: Scout QA — SKIPPED (disabled)"
 fi
 
-# Step 7: SonarQube Quality Gate
-if step_enabled "7"; then
-  echo ""
-  echo "📊 Step 7: SonarQube Quality Gate..."
-  echo "   ℹ️  SonarQube quality gate (manual — check dashboard)"
-else
-  echo ""
-  echo "⏭️  Step 7: SonarQube — SKIPPED (disabled)"
-fi
+# Step 7: SonarQube Quality Gate — DISABLED
+echo ""
+echo "⏭️  Step 7: SonarQube Quality Gate — DISABLED (MCP server not connected)"
 
 # Step 8: Aikido Security Scan
 if step_enabled "8"; then
