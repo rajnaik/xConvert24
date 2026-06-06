@@ -84,7 +84,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
         <div class="flex items-center gap-3">
           <span class="text-lg" role="img" aria-label="Email">📧</span>
-          <span>Email: <a href="mailto:xconvert24@gmail.com?subject=XC:%20" class="text-amber-600 dark:text-amber-400 hover:underline">x********4@g****.com</a></span>
+          <span>Email: <a id="contact-email-link" class="text-amber-600 dark:text-amber-400 hover:underline">x********4@g****.com</a></span>
         </div>
         <a href="/report-bug" class="flex items-center gap-3 p-3 -mx-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
           <span class="text-lg" role="img" aria-label="Bug report">🐛</span>
@@ -103,6 +103,13 @@ import Layout from '../layouts/Layout.astro';
   const form = document.getElementById('contact-form') as HTMLFormElement;
   const success = document.getElementById('contact-success')!;
 
+  // Set email link dynamically to avoid exposing in source
+  const emailLink = document.getElementById('contact-email-link') as HTMLAnchorElement;
+  if (emailLink) {
+    const em = ['xconvert24','gmail.com'].join('@');
+    emailLink.href = `mailto:${em}?subject=XC:%20`;
+  }
+
   form?.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = (document.getElementById('contact-name') as HTMLInputElement).value;
@@ -113,7 +120,8 @@ import Layout from '../layouts/Layout.astro';
     // Open mailto with XC: prefix
     const subjectText = `XC: [${subject}] from ${name}`;
     const body = `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`;
-    window.location.href = `mailto:xconvert24@gmail.com?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(body)}`;
+    const em = ['xconvert24','gmail.com'].join('@');
+    window.location.href = `mailto:${em}?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(body)}`;
 
     form.classList.add('hidden');
     success.classList.remove('hidden');
