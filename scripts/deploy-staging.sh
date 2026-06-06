@@ -131,6 +131,13 @@ if step_enabled "11"; then
     exit 1
   }
   echo "   ✅ Staging tests passed"
+
+  # Push to GitHub backup after staging tests pass
+  echo ""
+  echo "📦 Pushing to GitHub backup (rajnaik/xConvert24)..."
+  git add -A
+  git commit -m "deploy: v$(node -p 'require(\"./package.json\").version') — staging tests passed $(date +%Y-%m-%d_%H:%M)" --allow-empty
+  git push origin HEAD:main 2>/dev/null && echo "   ✅ Pushed to github.com/rajnaik/xConvert24" || echo "   ⚠️ Push to GitHub failed (check auth)"
 else
   echo ""
   echo "⏭️  Step 11: Post-Deployment Tests — SKIPPED (disabled)"
