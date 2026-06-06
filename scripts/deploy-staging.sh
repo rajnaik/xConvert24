@@ -66,15 +66,9 @@ else
   echo "⏭️  Step 4: Code Review — SKIPPED (disabled)"
 fi
 
-# Step 5: Checkmarx SAST Scan
-if step_enabled "5"; then
-  echo ""
-  echo "🛡️  Step 5: Checkmarx SAST Scan..."
-  echo "   ℹ️  Checkmarx scan (manual — check dashboard)"
-else
-  echo ""
-  echo "⏭️  Step 5: Checkmarx SAST — SKIPPED (disabled)"
-fi
+# Step 5: Checkmarx SAST Scan — DISABLED
+echo ""
+echo "⏭️  Step 5: Checkmarx SAST — DISABLED (account not configured)"
 
 # Step 6: Scout QA Tests
 if step_enabled "6"; then
