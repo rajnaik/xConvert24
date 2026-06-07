@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getPublishedSlugs } from '../../lib/blogGate';
+import { getPublishedCount } from '../../lib/blogGate';
 
 // All blog posts with metadata
 const allPosts = [
@@ -57,11 +57,11 @@ const allPosts = [
   { slug: 'why-world-uses-different-units', title: 'Why the World Uses Different Units', excerpt: 'The history behind metric vs imperial.', date: 'July 24, 2025', readTime: '6 min', category: 'General', icon: '🌍' },
 ];
 
-// Get published slugs from D1 (on production) or show all (local dev)
-const publishedSlugs = await getPublishedSlugs();
-const isProduction = publishedSlugs.length > 0;
+// Get published count from D1 (on production) or show all (local dev)
+const publishedCount = await getPublishedCount();
+const isProduction = publishedCount > 0;
 const posts = isProduction 
-  ? allPosts.filter(p => publishedSlugs.includes(p.slug))
+  ? allPosts.slice(0, publishedCount)
   : allPosts; // Show all on local dev
 ---
 

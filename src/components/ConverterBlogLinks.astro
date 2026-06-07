@@ -1,0 +1,114 @@
+---
+/**
+ * ConverterBlogLinks — renders linked blog post icons to the right of converter titles.
+ * Uses static cross-link map derived from the CrossLinks DB table.
+ */
+
+const path = Astro.url.pathname.replace(/\/$/, '');
+
+// Map converter paths to their linked blog posts
+const converterBlogs: Record<string, { title: string; href: string }[]> = {
+  '/convert/weight': [
+    { title: 'kg to lbs Guide', href: '/blog/how-to-convert-kg-to-lbs' },
+    { title: 'Grams to Ounces', href: '/blog/grams-to-ounces-for-cooking' },
+    { title: 'What is a Stone?', href: '/blog/what-is-a-stone-in-weight' },
+    { title: 'Baby Weight Chart', href: '/blog/baby-weight-conversion-chart' },
+    { title: 'Luggage Limits', href: '/blog/luggage-weight-kg-to-lbs' },
+    { title: 'Troy Ounces', href: '/blog/gold-weight-troy-ounces' },
+    { title: 'BMI Guide', href: '/blog/bmi-what-is-a-healthy-weight' },
+    { title: 'Weight Loss Rate', href: '/blog/healthy-weight-loss-rate-per-week' },
+  ],
+  '/convert/length': [
+    { title: '6 Feet in cm', href: '/blog/how-tall-is-6-feet-in-cm' },
+    { title: 'Feet & Inches to cm', href: '/blog/feet-and-inches-to-cm-height' },
+    { title: 'Room Measurements', href: '/blog/room-measurements-meters-to-feet' },
+    { title: 'Miles for Runners', href: '/blog/miles-to-kilometers-running' },
+    { title: 'Nautical Miles', href: '/blog/how-far-is-a-nautical-mile' },
+    { title: 'Driving Distances', href: '/blog/driving-distances-km-vs-miles' },
+    { title: 'mm in Engineering', href: '/blog/understanding-millimeters-in-engineering' },
+  ],
+  '/convert/temperature': [
+    { title: '°C to °F Guide', href: '/blog/how-to-convert-celsius-to-fahrenheit' },
+    { title: 'Oven Temperatures', href: '/blog/oven-temperatures-celsius-fahrenheit' },
+    { title: 'Fever Temperature', href: '/blog/fever-temperature-what-is-normal' },
+    { title: 'What is Kelvin?', href: '/blog/what-is-kelvin-temperature' },
+    { title: 'Freezing & Boiling', href: '/blog/freezing-and-boiling-points-all-scales' },
+    { title: 'Travel Weather', href: '/blog/weather-temperature-conversion-travel' },
+  ],
+  '/convert/area': [
+    { title: 'Room Measurements', href: '/blog/room-measurements-meters-to-feet' },
+  ],
+  '/convert/volume': [
+    { title: 'Cups to mL', href: '/blog/cups-to-ml-baking-conversion' },
+    { title: 'Litres in a Gallon', href: '/blog/how-many-liters-in-a-gallon' },
+    { title: 'US vs UK Pint', href: '/blog/us-vs-uk-pint-difference' },
+    { title: 'Tablespoon to mL', href: '/blog/tablespoon-to-ml-medicine' },
+    { title: 'Water Intake', href: '/blog/water-intake-liters-per-day' },
+  ],
+  '/convert/speed': [
+    { title: 'Speed Limits Worldwide', href: '/blog/speed-limits-around-the-world' },
+    { title: 'What is Mach?', href: '/blog/what-is-mach-speed' },
+    { title: 'Knots to MPH', href: '/blog/wind-speed-knots-to-mph' },
+    { title: 'Driving Distances', href: '/blog/driving-distances-km-vs-miles' },
+    { title: 'Miles for Runners', href: '/blog/miles-to-kilometers-running' },
+    { title: 'Internet Speed', href: '/blog/internet-speed-mbps-explained' },
+  ],
+  '/convert/data': [
+    { title: 'MB vs GB', href: '/blog/mb-vs-gb-explained-simply' },
+    { title: 'How Much is 1TB?', href: '/blog/how-much-is-1tb-of-storage' },
+    { title: 'Binary vs Decimal', href: '/blog/binary-vs-decimal-storage-confusion' },
+    { title: 'Internet Speed', href: '/blog/internet-speed-mbps-explained' },
+  ],
+  '/convert/energy': [
+    { title: 'Calories vs kcal', href: '/blog/calories-vs-kilocalories' },
+  ],
+  '/convert/pressure': [
+    { title: 'Tyre Pressure: PSI & Bar', href: '/blog/understanding-tire-pressure-psi' },
+  ],
+  '/convert/power': [
+    { title: 'HP vs Kilowatts', href: '/blog/horsepower-vs-kilowatts-cars' },
+  ],
+  '/convert/fuel': [
+    { title: 'MPG vs L/100km', href: '/blog/fuel-economy-mpg-vs-l100km' },
+  ],
+  '/convert/time': [
+    { title: 'Days Until Christmas', href: '/blog/how-many-days-until-christmas' },
+    { title: 'Days Alive Calculator', href: '/blog/age-calculator-exact-days-alive' },
+    { title: 'Pomodoro Timer', href: '/blog/pomodoro-technique-timer-guide' },
+    { title: 'Time Zones', href: '/blog/world-time-zones-explained' },
+  ],
+  '/convert/cooking': [
+    { title: 'Cups to mL Baking', href: '/blog/cups-to-ml-baking-conversion' },
+    { title: 'Oven Temperatures', href: '/blog/oven-temperatures-celsius-fahrenheit' },
+    { title: 'Tablespoon to mL', href: '/blog/tablespoon-to-ml-medicine' },
+    { title: 'Grams to Ounces', href: '/blog/grams-to-ounces-for-cooking' },
+  ],
+  '/convert/base': [
+    { title: 'HEX Codes Explained', href: '/blog/hex-color-codes-explained' },
+    { title: 'RGB vs CMYK', href: '/blog/rgb-vs-cmyk-when-to-use' },
+  ],
+  '/convert/currency': [
+    { title: 'Exchange Rates', href: '/blog/how-exchange-rates-work' },
+    { title: 'Best Time to Exchange', href: '/blog/best-time-to-exchange-currency' },
+    { title: 'Crypto Basics', href: '/blog/understanding-cryptocurrency-basics' },
+    { title: 'Compound Interest', href: '/blog/compound-interest-explained' },
+    { title: 'Mortgage vs Rent', href: '/blog/mortgage-vs-rent-calculator-guide' },
+  ],
+};
+
+const blogs = converterBlogs[path] || [];
+---
+
+{blogs.length > 0 && (
+  <div class="flex flex-wrap items-center gap-1.5 mt-2 not-prose">
+    <span class="text-xs text-gray-400 dark:text-gray-500 mr-1">📝 Related:</span>
+    {blogs.slice(0, 4).map(blog => (
+      <a href={blog.href} class="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-[11px] text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-300 dark:hover:border-amber-700 transition-colors" title={blog.title}>
+        📝 {blog.title}
+      </a>
+    ))}
+    {blogs.length > 4 && (
+      <a href="/blog" class="text-[11px] text-amber-600 dark:text-amber-400 hover:underline">+{blogs.length - 4} more</a>
+    )}
+  </div>
+)}

@@ -1,7 +1,7 @@
 ---
 const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
 
-// Complete schema reference derived from migrations 0001–0014
+// Complete schema reference derived from migrations 0001–0016
 const tables = [
   {
     name: 'bugs',
@@ -412,6 +412,71 @@ const tables = [
     ],
     indexes: ['idx_vocabulary_name (name)'],
   },
+  {
+    name: 'BlogsInPipeline',
+    migration: '0015',
+    description: 'Blog content pipeline — drafts awaiting review and publication',
+    columns: [
+      { name: 'BlogID', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'BlogName', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'BlogBody', type: 'TEXT', constraints: '' },
+      { name: 'DateCreated', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'DatePublished', type: 'TEXT', constraints: '' },
+      { name: 'ViewCounter', type: 'INTEGER', constraints: 'DEFAULT 0' },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'Blogs',
+    migration: '0015',
+    description: 'Published blog posts (mirrored from BLOGS_DB for cross-linking)',
+    columns: [
+      { name: 'blogid', type: 'TEXT', constraints: 'PRIMARY KEY' },
+      { name: 'topic', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'description', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'pub_date', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'create_date', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'status', type: 'INTEGER', constraints: 'DEFAULT 0' },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'Convertors',
+    migration: '0015',
+    description: 'All site converters with on/off status for cross-linking and management',
+    columns: [
+      { name: 'ConvID', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'ConvName', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'DateCreated', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'DateModified', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'Status', type: 'INTEGER', constraints: 'DEFAULT 1 (1=on, 0=off)' },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'CrossLinks',
+    migration: '0015',
+    description: 'Maps blogs to converters for cross-linking recommendations',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'blogid', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'ConvID', type: 'INTEGER', constraints: 'NOT NULL' },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'meta',
+    migration: '0016',
+    description: 'Page-level SEO meta descriptions — fetched at render time by Layout.astro',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'url', type: 'TEXT', constraints: 'NOT NULL UNIQUE' },
+      { name: 'meta_description', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+      { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+      { name: 'updated_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_meta_url (url) UNIQUE'],
+  },
 ];
 ---
 
@@ -505,7 +570,7 @@ const tables = [
         <div class="lbl">Indexes</div>
       </div>
       <div class="summary-stat">
-        <div class="val">14</div>
+        <div class="val">16</div>
         <div class="lbl">Migrations</div>
       </div>
     </div>

@@ -4,7 +4,7 @@ export interface SearchEntry {
   name: string;
   aliases: string[];
   href: string;
-  type: 'category' | 'unit' | 'tool';
+  type: 'category' | 'unit' | 'tool' | 'blog';
   popularity: number; // 0-100, higher = more visited
 }
 
@@ -222,4 +222,57 @@ export const searchIndex: SearchEntry[] = [
   { category: 'Tools', categoryIcon: '🏦', name: 'Loan Calculator', aliases: ['loan', 'mortgage', 'interest', 'monthly payment', 'amortization', 'repayment'], href: '/tools/loan', type: 'tool', popularity: 72 },
   { category: 'Tools', categoryIcon: '🎂', name: 'Age Calculator', aliases: ['age', 'birthday', 'date of birth', 'how old'], href: '/tools/age', type: 'tool', popularity: 52 },
   { category: 'Tools', categoryIcon: '📅', name: 'Date Difference', aliases: ['date', 'date difference', 'days between', 'date calculator', 'days until'], href: '/tools/date-diff', type: 'tool', popularity: 48 },
+
+  // ── Blog ─────────────────────────────────────────────────────────────────────
+  { category: 'Blog', categoryIcon: '📝', name: 'How to Convert Celsius to Fahrenheit', aliases: ['celsius', 'fahrenheit', 'temperature conversion', 'mental math'], href: '/blog/how-to-convert-celsius-to-fahrenheit', type: 'blog', popularity: 45 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Kilograms to Pounds Guide', aliases: ['kg', 'lbs', 'pounds', 'weight conversion'], href: '/blog/how-to-convert-kg-to-lbs', type: 'blog', popularity: 48 },
+  { category: 'Blog', categoryIcon: '📝', name: 'How Tall is 6 Feet in CM', aliases: ['height', 'feet', 'cm', 'centimetres'], href: '/blog/how-tall-is-6-feet-in-cm', type: 'blog', popularity: 42 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Cups to ML Baking Conversion', aliases: ['cups', 'ml', 'baking', 'recipe', 'millilitres'], href: '/blog/cups-to-ml-baking-conversion', type: 'blog', popularity: 44 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Speed Limits Around the World', aliases: ['speed limits', 'km/h', 'mph', 'driving'], href: '/blog/speed-limits-around-the-world', type: 'blog', popularity: 38 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Understanding Tyre Pressure: PSI, Bar & kPa', aliases: ['tyre', 'tire', 'psi', 'bar', 'kpa', 'pressure'], href: '/blog/understanding-tire-pressure-psi', type: 'blog', popularity: 36 },
+  { category: 'Blog', categoryIcon: '📝', name: 'MB vs GB Explained Simply', aliases: ['mb', 'gb', 'data', 'storage', 'megabyte', 'gigabyte'], href: '/blog/mb-vs-gb-explained-simply', type: 'blog', popularity: 40 },
+  { category: 'Blog', categoryIcon: '📝', name: 'World Time Zones Explained', aliases: ['time zones', 'utc', 'daylight saving', 'gmt'], href: '/blog/world-time-zones-explained', type: 'blog', popularity: 37 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Horsepower vs Kilowatts', aliases: ['horsepower', 'kilowatt', 'hp', 'kw', 'car power'], href: '/blog/horsepower-vs-kilowatts-cars', type: 'blog', popularity: 35 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Driving Distances: km vs Miles', aliases: ['km', 'miles', 'driving', 'road trip'], href: '/blog/driving-distances-km-vs-miles', type: 'blog', popularity: 34 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Calories vs Kilocalories', aliases: ['calories', 'kcal', 'kilocalories', 'energy', 'burn'], href: '/blog/calories-vs-kilocalories', type: 'blog', popularity: 38 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Gold Weight: Troy Ounces', aliases: ['gold', 'troy', 'ounce', 'precious metals'], href: '/blog/gold-weight-troy-ounces', type: 'blog', popularity: 33 },
+  { category: 'Blog', categoryIcon: '📝', name: 'How Much is 1TB of Storage', aliases: ['terabyte', 'tb', '1tb', 'storage space'], href: '/blog/how-much-is-1tb-of-storage', type: 'blog', popularity: 36 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Mortgage vs Rent Calculator Guide', aliases: ['mortgage', 'rent', 'buying', 'calculator', 'finance'], href: '/blog/mortgage-vs-rent-calculator-guide', type: 'blog', popularity: 40 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Oven Temperatures: °C to °F', aliases: ['oven', 'celsius', 'fahrenheit', 'cooking temperature'], href: '/blog/oven-temperatures-celsius-fahrenheit', type: 'blog', popularity: 43 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Internet Speed: Mbps Explained', aliases: ['internet', 'mbps', 'download', 'speed test', 'bandwidth'], href: '/blog/internet-speed-mbps-explained', type: 'blog', popularity: 39 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Healthy Weight Loss Rate Per Week', aliases: ['weight loss', 'diet', 'kg per week', 'lbs per week'], href: '/blog/healthy-weight-loss-rate-per-week', type: 'blog', popularity: 37 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Fever Temperature: What is Normal', aliases: ['fever', 'body temperature', 'normal temp', '37'], href: '/blog/fever-temperature-what-is-normal', type: 'blog', popularity: 41 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Binary vs Decimal Storage Confusion', aliases: ['binary', 'decimal', '931 gb', '1tb', 'storage'], href: '/blog/binary-vs-decimal-storage-confusion', type: 'blog', popularity: 35 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Best Time to Exchange Currency', aliases: ['exchange rate', 'currency', 'forex', 'travel money'], href: '/blog/best-time-to-exchange-currency', type: 'blog', popularity: 38 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Understanding Cryptocurrency Basics', aliases: ['crypto', 'bitcoin', 'blockchain', 'cryptocurrency'], href: '/blog/understanding-cryptocurrency-basics', type: 'blog', popularity: 40 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Feet and Inches to CM Height', aliases: ['feet', 'inches', 'cm', 'height conversion'], href: '/blog/feet-and-inches-to-cm-height', type: 'blog', popularity: 39 },
+  { category: 'Blog', categoryIcon: '📝', name: 'How Many Days Until Christmas', aliases: ['christmas', 'countdown', 'days until', 'date calculator'], href: '/blog/how-many-days-until-christmas', type: 'blog', popularity: 34 },
+  { category: 'Blog', categoryIcon: '📝', name: 'How Many Litres in a Gallon', aliases: ['litre', 'gallon', 'us gallon', 'uk gallon'], href: '/blog/how-many-liters-in-a-gallon', type: 'blog', popularity: 42 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Body Weight: Metric vs Imperial', aliases: ['body weight', 'metric', 'imperial', 'kg', 'lbs'], href: '/blog/body-weight-metric-vs-imperial', type: 'blog', popularity: 33 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Wind Speed: Knots to MPH', aliases: ['knots', 'mph', 'wind', 'nautical', 'aviation'], href: '/blog/wind-speed-knots-to-mph', type: 'blog', popularity: 32 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Fuel Economy: MPG vs L/100km', aliases: ['mpg', 'l/100km', 'fuel economy', 'gas mileage'], href: '/blog/fuel-economy-mpg-vs-l100km', type: 'blog', popularity: 35 },
+  { category: 'Blog', categoryIcon: '📝', name: 'What is a Stone in Weight', aliases: ['stone', 'st', 'uk weight', 'british'], href: '/blog/what-is-a-stone-in-weight', type: 'blog', popularity: 33 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Room Measurements: Metres to Feet', aliases: ['room', 'metres', 'feet', 'property', 'measuring'], href: '/blog/room-measurements-meters-to-feet', type: 'blog', popularity: 34 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Tablespoon to ML: Medicine Dosing', aliases: ['tablespoon', 'ml', 'medicine', 'dosing', 'liquid'], href: '/blog/tablespoon-to-ml-medicine', type: 'blog', popularity: 36 },
+  { category: 'Blog', categoryIcon: '📝', name: 'RGB vs CMYK: When to Use Each', aliases: ['rgb', 'cmyk', 'colour', 'color', 'print', 'screen'], href: '/blog/rgb-vs-cmyk-when-to-use', type: 'blog', popularity: 34 },
+  { category: 'Blog', categoryIcon: '📝', name: 'How Far is a Nautical Mile', aliases: ['nautical mile', 'nmi', 'sea', 'navigation'], href: '/blog/how-far-is-a-nautical-mile', type: 'blog', popularity: 31 },
+  { category: 'Blog', categoryIcon: '📝', name: 'BMI Limitations: Muscle vs Fat', aliases: ['bmi', 'muscle', 'fat', 'limitations', 'athletes'], href: '/blog/bmi-limitations-muscle-vs-fat', type: 'blog', popularity: 35 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Compound Interest Explained', aliases: ['compound interest', 'savings', 'investment', 'money growth'], href: '/blog/compound-interest-explained', type: 'blog', popularity: 38 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Miles to Kilometres: For Runners', aliases: ['running', '5k', '10k', 'marathon', 'miles', 'kilometres'], href: '/blog/miles-to-kilometers-running', type: 'blog', popularity: 37 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Age Calculator: Exact Days Alive', aliases: ['age', 'days alive', 'birthday', 'exact age'], href: '/blog/age-calculator-exact-days-alive', type: 'blog', popularity: 32 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Baby Weight Conversion Chart', aliases: ['baby', 'newborn', 'weight', 'kg', 'lbs', 'oz'], href: '/blog/baby-weight-conversion-chart', type: 'blog', popularity: 36 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Pomodoro Technique Timer Guide', aliases: ['pomodoro', 'timer', 'productivity', 'focus', '25 minutes'], href: '/blog/pomodoro-technique-timer-guide', type: 'blog', popularity: 33 },
+  { category: 'Blog', categoryIcon: '📝', name: 'US vs UK Pint Difference', aliases: ['pint', 'us pint', 'uk pint', 'imperial', 'beer'], href: '/blog/us-vs-uk-pint-difference', type: 'blog', popularity: 34 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Luggage Weight: kg to lbs for Travel', aliases: ['luggage', 'airline', 'travel', 'kg', 'lbs', 'weight limit'], href: '/blog/luggage-weight-kg-to-lbs', type: 'blog', popularity: 38 },
+  { category: 'Blog', categoryIcon: '📝', name: 'What is Mach Speed', aliases: ['mach', 'speed of sound', 'supersonic', 'aviation'], href: '/blog/what-is-mach-speed', type: 'blog', popularity: 32 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Weather Temperature for Travel', aliases: ['weather', 'travel', 'temperature', 'forecast', 'destination'], href: '/blog/weather-temperature-conversion-travel', type: 'blog', popularity: 33 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Hex Colour Codes Explained', aliases: ['hex', 'colour code', 'color code', '#FF5733', 'web design'], href: '/blog/hex-color-codes-explained', type: 'blog', popularity: 35 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Millimetres in Engineering', aliases: ['millimetre', 'mm', 'engineering', 'precision', 'manufacturing'], href: '/blog/understanding-millimeters-in-engineering', type: 'blog', popularity: 30 },
+  { category: 'Blog', categoryIcon: '📝', name: 'What is Kelvin Temperature', aliases: ['kelvin', 'absolute zero', 'scientific', 'temperature scale'], href: '/blog/what-is-kelvin-temperature', type: 'blog', popularity: 31 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Water Intake: Litres Per Day', aliases: ['water', 'hydration', 'litres', 'daily intake', 'health'], href: '/blog/water-intake-liters-per-day', type: 'blog', popularity: 35 },
+  { category: 'Blog', categoryIcon: '📝', name: 'BMI: What is a Healthy Weight', aliases: ['bmi', 'healthy weight', 'overweight', 'underweight'], href: '/blog/bmi-what-is-a-healthy-weight', type: 'blog', popularity: 37 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Grams to Ounces for Cooking', aliases: ['grams', 'ounces', 'cooking', 'baking', 'recipe'], href: '/blog/grams-to-ounces-for-cooking', type: 'blog', popularity: 38 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Freezing & Boiling Points: All Scales', aliases: ['freezing', 'boiling', 'celsius', 'fahrenheit', 'kelvin'], href: '/blog/freezing-and-boiling-points-all-scales', type: 'blog', popularity: 30 },
+  { category: 'Blog', categoryIcon: '📝', name: 'How Exchange Rates Work', aliases: ['exchange rate', 'forex', 'currency', 'central bank'], href: '/blog/how-exchange-rates-work', type: 'blog', popularity: 36 },
+  { category: 'Blog', categoryIcon: '📝', name: 'Why the World Uses Different Units', aliases: ['metric', 'imperial', 'history', 'measurement systems'], href: '/blog/why-world-uses-different-units', type: 'blog', popularity: 34 },
 ];

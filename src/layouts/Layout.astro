@@ -15,9 +15,25 @@ interface Props {
   ogType?: string;
 }
 
-const { title, description = 'Free online unit converters and calculators. Convert weight, length, temperature, currency, and more.', keywords = '', canonical, ogType = 'website' } = Astro.props;
+const { title, description: descriptionProp = 'Free online unit converters and calculators. Convert weight, length, temperature, currency, and more.', keywords = '', canonical, ogType = 'website' } = Astro.props;
 const siteUrl = 'https://www.xconvert24.com';
 const canonicalUrl = canonical || siteUrl + Astro.url.pathname;
+
+// Fetch meta description from DB, fall back to prop/default
+let description = descriptionProp;
+try {
+  const { env } = await import('cloudflare:workers');
+  const db = (env as any).BUGS_DB;
+  if (db) {
+    const pagePath = Astro.url.pathname;
+    const row = await db.prepare('SELECT meta_description FROM meta WHERE url = ?').bind(pagePath).first();
+    if (row && row.meta_description) {
+      description = row.meta_description;
+    }
+  }
+} catch {
+  // Fallback to prop/default description
+}
 
 // Check "coins" feature flag for showing/hiding the ConvertCoins badge
 const host = Astro.url.hostname;
