@@ -76,6 +76,12 @@ const indexJson = JSON.stringify(searchIndex);
   function scoreEntry(entry, q) {
     if (!q) return 1;
     const lq = q.toLowerCase();
+
+    // Special keyword: "new" only returns items explicitly tagged as new
+    if (lq === 'new') {
+      return entry.aliases.some(a => a.toLowerCase() === 'new') ? 100 : 0;
+    }
+
     const name = entry.name.toLowerCase();
     const cat = entry.category.toLowerCase();
     const aliases = entry.aliases.map(a => a.toLowerCase());

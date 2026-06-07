@@ -19,9 +19,9 @@ When the user says **"Fire your engine"**, execute these steps in order:
 
 ---
 
-## 🚀 "Throttle Half"
+## 🚀 "Half Throttle"
 
-When the user says **"Throttle half"**, execute these steps in order:
+When the user says **"Half Throttle"**, execute these steps in order:
 
 1. **Deploy to staging** — Run `npm run deploy:staging`.
 2. **Run post-deployment tests** — Execute `npx playwright test` against staging. If tests fail, report the failure and STOP.

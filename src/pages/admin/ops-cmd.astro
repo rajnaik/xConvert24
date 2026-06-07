@@ -7,7 +7,7 @@ import { STATS } from '../../data/siteStats';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Dashboard | xConvert24.com</title>
+  <title>Ops Cmd | Admin | xConvert24.com</title>
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" href="/favicon.svg" />
   <style>
@@ -166,8 +166,8 @@ import { STATS } from '../../data/siteStats';
   </div>
 
   <div class="container">
-    <h1>Dashboard</h1>
-    <p class="subtitle">Welcome back, {user.name || user.email}. Manage xConvert24.com from here.</p>
+    <h1>Ops Cmd</h1>
+    <p class="subtitle">Operations command center. Fire commands, manage pipelines, and monitor live feeds.</p>
 
     <!-- Site Status Star -->
     <div id="site-status-banner" style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px 20px;background:#111827;border:1px solid #1f2937;border-radius:12px;">
@@ -178,34 +178,35 @@ import { STATS } from '../../data/siteStats';
       </div>
     </div>
 
-    <!-- Operations Console -->
-    <div class="section" style="margin-bottom:24px;">
-      <div class="ops-console-wrap">
-        <div class="ops-console-header">
-          <span style="font-size:14px;">📟</span>
-          <span class="ops-console-title">Ops Console</span>
-          <span id="ops-console-status" class="ops-console-status">IDLE</span>
-          <button id="ops-console-clear" class="ops-console-clear" aria-label="Clear console">Clear</button>
-        </div>
-        <div id="ops-console" class="ops-console">
-          <div class="ops-console-line ops-console-line--info">Ready. Click any trigger to fire a command.</div>
-        </div>
-        <div class="ops-console-footer">
-          <div class="ops-fire-wrap">
-            <button id="ops-fire-btn" class="ops-fire-btn" disabled aria-label="Fire selected command">
-              <span class="ops-fire-inner"></span>
-              <span class="ops-fire-label">FIRE</span>
-            </button>
-            <span id="ops-fire-command" class="ops-fire-command">No command selected</span>
-          </div>
-        </div>
+    <!-- Audit Log Feed -->
+    <div id="audit-feed-wrap" style="margin-bottom:24px;background:#0a0f1a;border:1px solid #1f2937;border-radius:12px;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#1f2937;border-bottom:1px solid #374151;">
+        <span style="font-size:14px;">📜</span>
+        <span style="font-size:13px;font-weight:600;color:#f9fafb;">Audit Log (latest)</span>
+        <span id="audit-feed-status" style="margin-left:auto;font-size:10px;color:#4ade80;">● Live</span>
+      </div>
+      <div id="audit-feed" style="height:200px;overflow-y:auto;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#94a3b8;">
+        <div style="color:#6b7280;font-style:italic;text-align:center;padding:20px;">Loading audit log…</div>
+      </div>
+    </div>
+
+    <!-- Click Stream Feed -->
+    <div id="clicks-feed-wrap" style="margin-bottom:24px;background:#0a0f1a;border:1px solid #1f2937;border-radius:12px;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#1f2937;border-bottom:1px solid #374151;">
+        <span style="font-size:14px;">🖱️</span>
+        <span style="font-size:13px;font-weight:600;color:#f9fafb;">Click Stream (live)</span>
+        <span id="clicks-feed-count" style="font-size:10px;color:#6b7280;margin-left:8px;">0 events</span>
+        <span id="clicks-feed-status" style="margin-left:auto;font-size:10px;color:#4ade80;">● Live</span>
+      </div>
+      <div id="clicks-feed" style="height:220px;overflow-y:auto;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#94a3b8;">
+        <div style="color:#6b7280;font-style:italic;text-align:center;padding:20px;">Loading click stream…</div>
       </div>
     </div>
 
     <!-- Navigation tabs -->
     <nav class="nav-tabs">
-      <a href="/admin" class="nav-tab active">📊 Overview</a>
-      <a href="/admin/ops-cmd" class="nav-tab">🎛️ Ops Cmd</a>
+      <a href="/admin" class="nav-tab">📊 Overview</a>
+      <a href="/admin/ops-cmd" class="nav-tab active">🎛️ Ops Cmd</a>
       <a href="/admin/blog-schedule" class="nav-tab">📅 Blog Schedule</a>
       <a href="/admin/bugs" class="nav-tab">🐛 Bug Reports</a>
       <a href="/admin/seo" class="nav-tab">🔍 SEO Editor</a>
@@ -413,7 +414,8 @@ import { STATS } from '../../data/siteStats';
       </div>
     </div>
 
-    <!-- Operations -->
+
+    <!-- Ops Cmd -->
     <div class="section">
       <div class="section-title">🎛️ Ops Cmd</div>
       <div class="ops-panes">
@@ -586,6 +588,30 @@ import { STATS } from '../../data/siteStats';
             <span class="ops-composite-name">Spring Clean</span>
             <span class="ops-composite-seq">CHOP10→HACK10→xPol→Pretty→Meta→Fire</span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Operations Console -->
+    <div class="section">
+      <div class="ops-console-wrap">
+        <div class="ops-console-header">
+          <span style="font-size:14px;">📟</span>
+          <span class="ops-console-title">Ops Console</span>
+          <span id="ops-console-status" class="ops-console-status">IDLE</span>
+          <button id="ops-console-clear" class="ops-console-clear" aria-label="Clear console">Clear</button>
+        </div>
+        <div id="ops-console" class="ops-console">
+          <div class="ops-console-line ops-console-line--info">Ready. Click any trigger to fire a command.</div>
+        </div>
+        <div class="ops-console-footer">
+          <div class="ops-fire-wrap">
+            <button id="ops-fire-btn" class="ops-fire-btn" disabled aria-label="Fire selected command">
+              <span class="ops-fire-inner"></span>
+              <span class="ops-fire-label">FIRE</span>
+            </button>
+            <span id="ops-fire-command" class="ops-fire-command">No command selected</span>
+          </div>
         </div>
       </div>
     </div>
@@ -779,8 +805,74 @@ import { STATS } from '../../data/siteStats';
         });
       }
       loadTasks();
-      // Auto-refresh every 10 seconds
       setInterval(loadTasks, 10000);
+
+      // Load Audit Log Feed
+      var auditFeed = document.getElementById('audit-feed');
+      function loadAuditFeed() {
+        fetch('/api/auditlog?limit=30')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var logs = d.logs || [];
+            if (!logs.length) {
+              auditFeed.innerHTML = '<div style="color:#6b7280;font-style:italic;text-align:center;padding:20px;">No audit entries yet.</div>';
+              return;
+            }
+            auditFeed.innerHTML = logs.map(function(log) {
+              var statusIcon = log.status === 1 ? '<span style="color:#4ade80;">✓</span>' : '<span style="color:#f87171;">✗</span>';
+              var date = log.created_at ? new Date(log.created_at + 'Z').toLocaleString() : '—';
+              var details = log.details ? '<div style="font-size:10px;color:' + (log.status === 1 ? '#4ade80' : '#f87171') + ';margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (log.details || '').replace(/</g,'&lt;') + '</div>' : '';
+              return '<div style="padding:6px 0;border-bottom:1px solid #1e293b;">' +
+                '<div style="display:flex;align-items:center;gap:8px;">' +
+                statusIcon +
+                '<span style="color:#fbbf24;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (log.command || '').replace(/</g,'&lt;') + '</span>' +
+                '<span style="color:#6b7280;font-size:10px;white-space:nowrap;">' + date + '</span>' +
+                '</div>' +
+                details +
+                '</div>';
+            }).join('');
+            auditFeed.scrollTop = 0;
+          })
+          .catch(function() {
+            auditFeed.innerHTML = '<div style="color:#f87171;font-style:italic;text-align:center;padding:20px;">Failed to load audit log.</div>';
+          });
+      }
+      loadAuditFeed();
+      setInterval(loadAuditFeed, 15000);
+
+      // Load Click Stream Feed
+      var clicksFeed = document.getElementById('clicks-feed');
+      var clicksCount = document.getElementById('clicks-feed-count');
+      function loadClicksFeed() {
+        fetch('/api/clicks?limit=30')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var clicks = d.clicks || [];
+            clicksCount.textContent = clicks.length + ' events';
+            if (!clicks.length) {
+              clicksFeed.innerHTML = '<div style="color:#6b7280;font-style:italic;text-align:center;padding:20px;">No clicks recorded yet.</div>';
+              return;
+            }
+            clicksFeed.innerHTML = clicks.map(function(c) {
+              var date = c.created_at ? new Date(c.created_at + 'Z').toLocaleString() : '—';
+              var uid = (c.user_id || '').slice(0, 12);
+              var el = (c.ui_element || '').replace(/</g, '&lt;').slice(0, 50);
+              var url = (c.url || '/').replace(/</g, '&lt;');
+              return '<div style="padding:4px 0;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:8px;">' +
+                '<span style="color:#fbbf24;font-size:10px;min-width:70px;">' + uid + '</span>' +
+                '<span style="color:#d1d5db;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + el + '">' + el + '</span>' +
+                '<span style="color:#6b7280;font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + url + '">' + url + '</span>' +
+                '<span style="color:#6b7280;font-size:10px;white-space:nowrap;">' + date + '</span>' +
+                '</div>';
+            }).join('');
+            clicksFeed.scrollTop = 0;
+          })
+          .catch(function() {
+            clicksFeed.innerHTML = '<div style="color:#f87171;font-style:italic;text-align:center;padding:20px;">Failed to load click stream.</div>';
+          });
+      }
+      loadClicksFeed();
+      setInterval(loadClicksFeed, 8000);
     })();
 
     // ── Operations Panel Logic ─────────────────────────────────────────────────
@@ -797,7 +889,6 @@ import { STATS } from '../../data/siteStats';
       var clearBtn = document.getElementById('ops-console-clear');
       var selectedCommand = null;
 
-      // Load saved numbers from localStorage
       function loadSaved() {
         try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e) { return {}; }
       }
@@ -809,11 +900,9 @@ import { STATS } from '../../data/siteStats';
       var hackInput = document.getElementById('hack-num');
       var chopInput = document.getElementById('chop-num');
 
-      // Restore saved values
       if (saved.hack) hackInput.value = saved.hack;
       if (saved.chop) chopInput.value = saved.chop;
 
-      // Number +/- buttons
       document.querySelectorAll('.ops-num-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var op = btn.dataset.op;
@@ -828,7 +917,6 @@ import { STATS } from '../../data/siteStats';
         });
       });
 
-      // Save on manual input change
       [hackInput, chopInput].forEach(function(input) {
         input.addEventListener('change', function() {
           var val = Math.max(1, Math.min(50, parseInt(input.value) || 1));
@@ -840,7 +928,6 @@ import { STATS } from '../../data/siteStats';
         });
       });
 
-      // Console helpers
       function logLine(text, cls) {
         var line = document.createElement('div');
         line.className = 'ops-console-line ' + (cls || 'ops-console-line--step');
@@ -859,7 +946,6 @@ import { STATS } from '../../data/siteStats';
         setStatus('', 'IDLE');
       });
 
-      // Command label map
       var commandLabels = {
         'hack': function() { return 'HACK' + hackInput.value; },
         'chop': function() { return 'CHOP' + chopInput.value; },
@@ -878,7 +964,6 @@ import { STATS } from '../../data/siteStats';
         'spring-clean': function() { return 'Spring Clean'; },
       };
 
-      // Select command on trigger click
       function selectCommand(cmd) {
         var label = commandLabels[cmd] ? commandLabels[cmd]() : cmd;
         selectedCommand = { cmd: cmd, label: label };
@@ -888,7 +973,6 @@ import { STATS } from '../../data/siteStats';
         logLine('Selected: ' + label, 'ops-console-line--cmd');
       }
 
-      // Trigger buttons — select command + log to console
       document.querySelectorAll('.ops-trigger').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var cmd = btn.dataset.command;
@@ -898,7 +982,6 @@ import { STATS } from '../../data/siteStats';
         });
       });
 
-      // Composite pipeline buttons
       document.querySelectorAll('.ops-composite-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var cmd = btn.dataset.command;
@@ -908,7 +991,6 @@ import { STATS } from '../../data/siteStats';
         });
       });
 
-      // FIRE button — copy to clipboard + log audit + poll for result
       fireBtn.addEventListener('click', function() {
         if (!selectedCommand) return;
         var label = selectedCommand.label;
@@ -919,21 +1001,19 @@ import { STATS } from '../../data/siteStats';
         setStatus('running', 'RUNNING');
         logLine('🔥 FIRING: ' + label, 'ops-console-line--cmd');
 
-        // Copy to clipboard
         if (navigator.clipboard) {
           navigator.clipboard.writeText(label).then(function() {
             logLine('📋 Copied to clipboard — paste into Kiro chat', 'ops-console-line--info');
           });
         }
 
-        // Log to audit (mark as fired)
         fetch('/api/auditlog', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ command: label, status: 1, details: '' })
         }).then(function() {
           logLine('⏳ Waiting for result…', 'ops-console-line--info');
-          // Start polling for a result entry (one with details filled in)
+          // Poll for a result entry (one with details filled in)
           var pollCount = 0;
           var maxPolls = 60; // Poll for up to 5 minutes (every 5s)
           var pollTimer = setInterval(function() {
@@ -948,7 +1028,6 @@ import { STATS } from '../../data/siteStats';
               .then(function(r) { return r.json(); })
               .then(function(d) {
                 var logs = d.logs || [];
-                // Look for latest entry with details (the result callback)
                 for (var i = 0; i < logs.length; i++) {
                   if (logs[i].details && logs[i].details.length > 0) {
                     clearInterval(pollTimer);
@@ -969,7 +1048,6 @@ import { STATS } from '../../data/siteStats';
           setStatus('error', 'LOG FAIL');
         });
 
-        // Reset fire button after a moment
         setTimeout(function() {
           selectedCommand = null;
           fireBtn.disabled = true;
@@ -978,7 +1056,6 @@ import { STATS } from '../../data/siteStats';
         }, 2000);
       });
 
-      // History modal
       document.querySelectorAll('.ops-history-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var cmd = btn.dataset.history;

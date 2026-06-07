@@ -323,8 +323,19 @@ const fullTitle = `${title} | xConvert24.com`;
         <div class="flex items-center gap-1 flex-wrap lg:ml-auto relative z-10">
           <!-- Live search (desktop) -->
           <div class="hidden md:block mr-2">
-            <LiveSearch />
+            <div class="flex items-center gap-1.5">
+              <!-- NEW icon — shows all new items -->
+              <a
+                href="/search?q=new"
+                class="inline-flex items-center px-2 py-1 rounded-lg text-[10px] font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-sm animate-pulse"
+                aria-label="View new converters and blog posts"
+                title="What's New"
+              >NEW</a>
+              <LiveSearch />
+            </div>
           </div>
+          <!-- NEW icon (mobile) — shows all new items -->
+          <a href="/search?q=new" class="md:hidden inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-sm animate-pulse" aria-label="What's New">NEW</a>
           <!-- Search icon (mobile) — opens full search page -->
           <a href="/search" class="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Search">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -1209,6 +1220,68 @@ const fullTitle = `${title} | xConvert24.com`;
         // Crypto watchlist add
         if (el.closest('[data-add-crypto]')) {
           track('crypto_add', path, el.closest('[data-add-crypto]').getAttribute('data-add-crypto'));
+        }
+      });
+    })();
+    </script>
+
+    <!-- Global click tracker — captures ALL interactive element clicks to /api/clicks -->
+    <script is:inline>
+    (function() {
+      // Skip admin pages entirely
+      if (window.location.pathname.startsWith('/admin')) return;
+
+      var UID_KEY = 'xconvert24-uid';
+      function getUid() {
+        var uid = localStorage.getItem(UID_KEY);
+        if (!uid) {
+          uid = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+          localStorage.setItem(UID_KEY, uid);
+        }
+        return uid;
+      }
+
+      // Describe the clicked element as meaningfully as possible
+      function describeElement(el) {
+        return el.getAttribute('aria-label')
+          || el.getAttribute('data-track')
+          || el.getAttribute('title')
+          || (el.textContent || '').trim().slice(0, 60)
+          || el.getAttribute('id')
+          || el.getAttribute('name')
+          || el.tagName.toLowerCase();
+      }
+
+      // Selectors for interactive elements
+      var INTERACTIVE = 'a, button, [role="button"], input[type="submit"], input[type="button"], [data-track], summary, [onclick]';
+
+      document.addEventListener('click', function(e) {
+        var el = e.target.closest(INTERACTIVE);
+        if (!el) return;
+
+        // Skip if inside an admin-only component
+        if (el.closest('[data-admin]')) return;
+
+        var uid = getUid();
+        var pageUrl = window.location.pathname + window.location.search;
+        var element = describeElement(el);
+
+        var payload = JSON.stringify({
+          user_id: uid,
+          ui_element: element,
+          url: pageUrl
+        });
+
+        // Use sendBeacon for non-blocking fire-and-forget (doesn't delay navigation)
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/clicks', new Blob([payload], { type: 'application/json' }));
+        } else {
+          fetch('/api/clicks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true
+          }).catch(function() {});
         }
       });
     })();

@@ -275,4 +275,17 @@ export const searchIndex: SearchEntry[] = [
   { category: 'Blog', categoryIcon: '📝', name: 'Freezing & Boiling Points: All Scales', aliases: ['freezing', 'boiling', 'celsius', 'fahrenheit', 'kelvin'], href: '/blog/freezing-and-boiling-points-all-scales', type: 'blog', popularity: 30 },
   { category: 'Blog', categoryIcon: '📝', name: 'How Exchange Rates Work', aliases: ['exchange rate', 'forex', 'currency', 'central bank'], href: '/blog/how-exchange-rates-work', type: 'blog', popularity: 36 },
   { category: 'Blog', categoryIcon: '📝', name: 'Why the World Uses Different Units', aliases: ['metric', 'imperial', 'history', 'measurement systems'], href: '/blog/why-world-uses-different-units', type: 'blog', popularity: 34 },
+
+  // ── NEW: Converters (June 2026) ─────────────────────────────────────────────
+  { category: 'Fitness', categoryIcon: '🏃', name: 'Running Pace Converter', aliases: ['new', 'running', 'pace', 'min/km', 'min/mile', 'marathon'], href: '/convert/running-pace', type: 'category', popularity: 60 },
+  { category: 'Fitness', categoryIcon: '🚴', name: 'Cycling Speed Converter', aliases: ['new', 'cycling', 'bike', 'speed', 'km/h', 'mph'], href: '/convert/cycling-speed', type: 'category', popularity: 58 },
+  { category: 'Finance', categoryIcon: '💎', name: 'Precious Metals Converter', aliases: ['new', 'gold', 'silver', 'platinum', 'troy ounce', 'precious'], href: '/convert/precious-metals', type: 'category', popularity: 62 },
+  { category: 'Cooking', categoryIcon: '🔥', name: 'Oven Temperature Converter', aliases: ['new', 'oven', 'gas mark', 'celsius', 'fahrenheit', 'baking'], href: '/convert/oven-temperature', type: 'category', popularity: 65 },
+  { category: 'Health', categoryIcon: '🏋️', name: 'Body Weight Percentage Calculator', aliases: ['new', 'body fat', 'lean mass', 'weight percentage', 'fitness'], href: '/convert/body-weight-percentage', type: 'category', popularity: 55 },
+
+  // ── NEW: Blog Posts (June 2026) ─────────────────────────────────────────────
+  { category: 'Blog', categoryIcon: '₿', name: 'What Are Satoshis?', aliases: ['new', 'satoshi', 'sats', 'bitcoin unit', 'smallest bitcoin'], href: '/blog/what-are-satoshis', type: 'blog', popularity: 45 },
+  { category: 'Blog', categoryIcon: '₿', name: 'Understanding Bitcoin Supply', aliases: ['new', 'bitcoin supply', '21 million', 'scarcity', 'lost coins'], href: '/blog/understanding-bitcoin-supply', type: 'blog', popularity: 44 },
+  { category: 'Blog', categoryIcon: '₿', name: 'Bitcoin Halving Explained', aliases: ['new', 'halving', 'block reward', 'mining', 'bitcoin economics'], href: '/blog/bitcoin-halving-explained', type: 'blog', popularity: 46 },
+  { category: 'Blog', categoryIcon: '₿', name: 'Bitcoin vs Gold', aliases: ['new', 'bitcoin gold', 'store of value', 'digital gold', 'comparison'], href: '/blog/bitcoin-vs-gold', type: 'blog', popularity: 47 },
 ];
