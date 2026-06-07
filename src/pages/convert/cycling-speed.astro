@@ -1,0 +1,247 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+import ConverterBlogLinks from '../../components/ConverterBlogLinks.astro';
+
+const units = [
+  { value: 'kmh', label: 'Kilometers per hour (km/h)' },
+  { value: 'mph', label: 'Miles per hour (mph)' },
+  { value: 'ms', label: 'Meters per second (m/s)' },
+  { value: 'minkm', label: 'Minutes per km (min/km)' },
+  { value: 'minmi', label: 'Minutes per mile (min/mi)' },
+];
+---
+
+<Layout title="Cycling Speed Calculator — km/h to mph, pace & distance" description="Free Cycling Speed Calculator. Convert cycling speed between km/h, mph, and pace. Calculate ride time for any distance. No sign-up needed." keywords="cycling speed calculator, bike speed converter, km/h to mph cycling, cycling pace calculator, average cycling speed, bike speed distance time, cycling unit converter">
+  <div class="max-w-2xl">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🚴</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Cycling Speed Calculator</h1>
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 ml-2">NEW</span>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert cycling speed and calculate ride times</p>
+      <ConverterBlogLinks />
+    </div>
+
+    <!-- Converter card -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <!-- From -->
+      <div class="mb-4">
+        <label for="from-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From</label>
+        <div class="flex gap-3">
+          <select id="from-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map(u => <option value={u.value}>{u.label}</option>)}
+          </select>
+          <input
+            id="from-value"
+            type="number"
+            placeholder="Enter value"
+            value="25"
+            step="0.1"
+            class="flex-1 h-13 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+      </div>
+
+      <!-- Swap button -->
+      <div class="flex justify-center my-3">
+        <button id="swap-btn" aria-label="Swap units" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          Swap
+        </button>
+      </div>
+
+      <!-- To -->
+      <div class="mb-4">
+        <label for="to-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To</label>
+        <div class="flex gap-3">
+          <select id="to-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map((u, i) => <option value={u.value} selected={i === 1}>{u.label}</option>)}
+          </select>
+          <div id="result" role="status" aria-live="polite" aria-label="Conversion result" class="flex-1 h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-lg font-semibold flex items-center">
+            15.53
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div id="formula" aria-live="polite" class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 font-mono">
+        25 km/h = 15.53 mph
+      </div>
+    </div>
+
+    <!-- Ride time calculator -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Estimated Ride Times</h2>
+      <div id="ride-times" class="grid grid-cols-2 gap-3 text-sm">
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="block text-gray-500 dark:text-gray-400">10 km</span>
+          <span class="font-semibold text-gray-900 dark:text-white" id="time-10">24:00</span>
+        </div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="block text-gray-500 dark:text-gray-400">25 km</span>
+          <span class="font-semibold text-gray-900 dark:text-white" id="time-25">1:00:00</span>
+        </div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="block text-gray-500 dark:text-gray-400">50 km</span>
+          <span class="font-semibold text-gray-900 dark:text-white" id="time-50">2:00:00</span>
+        </div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="block text-gray-500 dark:text-gray-400">100 km (Century)</span>
+          <span class="font-semibold text-gray-900 dark:text-white" id="time-100">4:00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white">Quick Reference</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Speed (km/h)</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Speed (mph)</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Pace (min/km)</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Level</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {[
+              ['15', '9.3', '4:00', 'Casual commute'],
+              ['20', '12.4', '3:00', 'Fitness ride'],
+              ['25', '15.5', '2:24', 'Club ride'],
+              ['30', '18.6', '2:00', 'Fast group'],
+              ['35', '21.7', '1:43', 'Racing'],
+              ['40+', '24.9+', '1:30', 'Pro / sprint'],
+            ].map(([kmh, mph, pace, level]) => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{kmh}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{mph}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{pace}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">{level}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SEO Content -->
+    <div class="mt-8 space-y-6">
+      <div class="prose dark:prose-invert prose-sm max-w-none">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Cycling Speed Conversion Guide</h2>
+        <p class="text-gray-600 dark:text-gray-400">Understanding your cycling speed helps you plan routes, track fitness progress, and compare performance. Most bike computers display speed in km/h or mph depending on region, but pace units (min/km) are useful for planning ride duration.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Average Cycling Speeds</h3>
+        <p class="text-gray-600 dark:text-gray-400">A casual cyclist averages 15–20 km/h (9–12 mph) on flat terrain. Experienced club riders average 25–30 km/h (15–19 mph), while professional cyclists sustain 40+ km/h (25+ mph) during races. Terrain, wind, and bike type significantly affect these numbers.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Speed vs. Pace</h3>
+        <p class="text-gray-600 dark:text-gray-400">Speed tells you how fast you're going (distance per hour), while pace tells you how long each unit of distance takes (time per km/mile). To convert: pace (min/km) = 60 ÷ speed (km/h). At 25 km/h, your pace is 2:24 min/km.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Factors Affecting Speed</h3>
+        <ul class="text-gray-600 dark:text-gray-400 text-sm space-y-1">
+          <li>Wind resistance increases exponentially with speed</li>
+          <li>Elevation gain can reduce average speed by 30–50%</li>
+          <li>Road bikes are 3–5 km/h faster than hybrids on flat roads</li>
+          <li>Tire pressure and rolling resistance affect efficiency</li>
+          <li>Group riding (drafting) saves 20–30% energy at speed</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Conversion logic: everything through km/h as base
+  function toKmh(val: number, from: string): number {
+    switch (from) {
+      case 'kmh': return val;
+      case 'mph': return val * 1.60934;
+      case 'ms': return val * 3.6;
+      case 'minkm': return 60 / val;
+      case 'minmi': return 60 / (val / 1.60934);
+      default: return val;
+    }
+  }
+
+  function fromKmh(kmh: number, to: string): number {
+    switch (to) {
+      case 'kmh': return kmh;
+      case 'mph': return kmh / 1.60934;
+      case 'ms': return kmh / 3.6;
+      case 'minkm': return 60 / kmh;
+      case 'minmi': return (60 / kmh) * 1.60934;
+      default: return kmh;
+    }
+  }
+
+  function formatPace(minutes: number): string {
+    if (!isFinite(minutes) || minutes <= 0) return '—';
+    const mins = Math.floor(minutes);
+    const secs = Math.round((minutes - mins) * 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  function formatTime(minutes: number): string {
+    if (!isFinite(minutes) || minutes <= 0) return '—';
+    const hrs = Math.floor(minutes / 60);
+    const mins = Math.floor(minutes % 60);
+    const secs = Math.round((minutes - Math.floor(minutes)) * 60);
+    if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  function formatResult(val: number, unit: string): string {
+    if (unit === 'minkm' || unit === 'minmi') return formatPace(val);
+    return parseFloat(val.toPrecision(4)).toString();
+  }
+
+  function getUnitLabel(code: string): string {
+    const labels: Record<string, string> = {
+      kmh: 'km/h', mph: 'mph', ms: 'm/s', minkm: 'min/km', minmi: 'min/mi'
+    };
+    return labels[code] || code;
+  }
+
+  const fromUnit = document.getElementById('from-unit') as HTMLSelectElement;
+  const toUnit = document.getElementById('to-unit') as HTMLSelectElement;
+  const fromVal = document.getElementById('from-value') as HTMLInputElement;
+  const resultEl = document.getElementById('result')!;
+  const formulaEl = document.getElementById('formula')!;
+  const swapBtn = document.getElementById('swap-btn')!;
+
+  function update() {
+    const val = parseFloat(fromVal.value);
+    if (isNaN(val) || val <= 0) { resultEl.textContent = '—'; return; }
+
+    const kmh = toKmh(val, fromUnit.value);
+    const result = fromKmh(kmh, toUnit.value);
+    resultEl.textContent = formatResult(result, toUnit.value);
+
+    const fromFormatted = (fromUnit.value === 'minkm' || fromUnit.value === 'minmi')
+      ? formatPace(val) : val.toString();
+    const toFormatted = formatResult(result, toUnit.value);
+    formulaEl.textContent = `${fromFormatted} ${getUnitLabel(fromUnit.value)} = ${toFormatted} ${getUnitLabel(toUnit.value)}`;
+
+    // Update ride times (in minutes) based on km/h
+    const distances = { '10': 10, '25': 25, '50': 50, '100': 100 };
+    Object.entries(distances).forEach(([key, dist]) => {
+      const timeMinutes = (dist / kmh) * 60;
+      (document.getElementById(`time-${key}`)!).textContent = formatTime(timeMinutes);
+    });
+  }
+
+  fromVal.addEventListener('input', update);
+  fromUnit.addEventListener('change', update);
+  toUnit.addEventListener('change', update);
+  swapBtn.addEventListener('click', () => {
+    const tmp = fromUnit.value;
+    fromUnit.value = toUnit.value;
+    toUnit.value = tmp;
+    update();
+  });
+
+  update();
+</script>

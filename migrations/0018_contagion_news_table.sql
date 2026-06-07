@@ -1,0 +1,10 @@
+-- Migration: Create ContagionNews table
+CREATE TABLE IF NOT EXISTS ContagionNews (
+  CN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+  ConID INTEGER NOT NULL,
+  CN_Name TEXT NOT NULL,
+  NewsURL TEXT NOT NULL,
+  FetchTime TEXT NOT NULL DEFAULT (datetime('now')),
+  Status INTEGER NOT NULL DEFAULT 1 CHECK(Status IN (0, 1)),
+  FOREIGN KEY (ConID) REFERENCES Contagion(ConID)
+);

@@ -2,37 +2,47 @@
 inclusion: manual
 ---
 
-# Full Throttle — Complete Deploy Pipeline
+# Deployment Commands
 
-When the user says **"full throttle"**, execute the following steps in order. Stop immediately if any step fails and report the failure.
+Three voice commands control the deploy pipeline. Stop immediately if any step fails and report the failure.
 
-## Steps
+---
 
-1. **Increment version** — Bump the minor version in `package.json` (e.g. 1.15.0 → 1.16.0). Reset patch to 0.
+## 🔥 "Fire Your Engine"
 
-2. **Update release log** — Add a new entry to `src/pages/releases.astro` with the new version number, today's date, and a summary of changes since the last release (check recent git commits).
+When the user says **"Fire your engine"**, execute these steps in order:
 
-3. **Commit & push to git** — Stage all changes, commit with message `v{new_version} — {short summary}`, push to current branch.
+1. **Commit & push to git** — Stage all changes, commit with message `v{version} — {short summary}`, push to current branch.
+2. **Build** — Run `npm run build` to verify the project compiles cleanly.
+3. **Update release notes** — Add a new entry to `src/pages/releases.astro` with the current version, today's date, and a summary of changes since the last release (check recent git commits).
+4. **Run tests** — Execute `npx playwright test`. If tests fail, report the failure and STOP.
 
-4. **Run tests** — Execute `npx playwright test`. If tests fail, set site status to red (`POST /api/site-status` with `{ "status": "red", "updated_by": "full-throttle" }`) and STOP.
+---
 
-5. **Deploy to staging** — Run `npm run deploy:staging`. Emit `deployment_start` event (`POST /api/events` with `{ "type": "deployment_start" }`).
+## 🚀 "Throttle Half"
 
-6. **Post-staging verification** — Run `npx playwright test` against staging (if staging test config exists). If tests fail, set site status to red and STOP.
+When the user says **"Throttle half"**, execute these steps in order:
 
-7. **Set site status to green** — `POST /api/site-status` with `{ "status": "green", "updated_by": "full-throttle" }`.
+1. **Deploy to staging** — Run `npm run deploy:staging`.
+2. **Run post-deployment tests** — Execute `npx playwright test` against staging. If tests fail, report the failure and STOP.
 
-8. **Deploy to production** — Run `npm run deploy`. This builds and deploys to the live Cloudflare Worker.
+---
 
-9. **Post-production verification** — Run tests against production. If tests fail, set site status to red and STOP.
+## ⚡ "Full Throttle"
 
-10. **Set site status to golden** — `POST /api/site-status` with `{ "status": "golden", "updated_by": "full-throttle" }`. Emit `deployment_done` event (`POST /api/events` with `{ "type": "deployment_done" }`).
+When the user says **"Full Throttle"**, execute these steps in order:
 
-11. **Backup to GitHub** — Push the latest build/commit to the GitHub backup remote (the pipeline already does this via `scripts/deploy-staging.sh` pattern — ensure it runs or manually push).
+1. **Set site status to green** — `POST /api/site-status` with `{ "status": "green", "updated_by": "full-throttle" }`.
+2. **Deploy to live** — Run `npm run deploy`. This builds and deploys to the live Cloudflare Worker.
+3. **Run all post-deployment tests** — Execute `npx playwright test` against production.
+4. **If all tests pass → set site status to golden** — `POST /api/site-status` with `{ "status": "golden", "updated_by": "full-throttle" }`.
+5. **If any test fails → set site status to red** — `POST /api/site-status` with `{ "status": "red", "updated_by": "full-throttle" }` and STOP.
+
+---
 
 ## Important Notes
 
-- This is a HIGH-RISK operation affecting production. Always confirm with the user before step 8 (prod deploy) unless they explicitly said "full throttle" which is blanket approval.
+- **Full Throttle** is a HIGH-RISK operation affecting production. The user saying "Full Throttle" is blanket approval to proceed.
+- If any step in any command fails, report which step failed and what the error was.
 - The pipeline gate hooks (CI checks, SonarQube) still apply — honour them.
-- If any step fails, report which step failed and what the error was.
 - The version source of truth is `package.json` → re-exported via `src/data/siteStats.ts`.

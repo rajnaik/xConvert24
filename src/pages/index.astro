@@ -3,7 +3,16 @@ export const prerender = true;
 import Layout from '../layouts/Layout.astro';
 import { STATS } from '../data/siteStats';
 
-const categories = [
+interface Category {
+  icon: string;
+  title: string;
+  desc: string;
+  href: string;
+  color: string;
+  createdAt?: string;
+}
+
+const categories: Category[] = [
   {
     icon: '⚖️',
     title: 'Weight',
@@ -208,6 +217,46 @@ const categories = [
     color: 'from-violet-400 to-indigo-500',
   },
   {
+    icon: '💎',
+    title: 'Precious Metals',
+    desc: 'Troy oz, carats, grains, pennyweights',
+    href: '/convert/precious-metals',
+    color: 'from-yellow-400 to-amber-600',
+    createdAt: '2026-06-07',
+  },
+  {
+    icon: '🏋️',
+    title: 'Body Weight %',
+    desc: 'Calculate weight loss/gain percentage',
+    href: '/convert/body-weight-percentage',
+    color: 'from-green-400 to-teal-600',
+    createdAt: '2026-06-07',
+  },
+  {
+    icon: '🔥',
+    title: 'Oven Temperature',
+    desc: '°C, °F, Gas Mark & Fan Oven conversion',
+    href: '/convert/oven-temperature',
+    color: 'from-red-400 to-orange-500',
+    createdAt: '2026-06-07',
+  },
+  {
+    icon: '🏃',
+    title: 'Running Pace',
+    desc: 'min/km, min/mile, speed to pace & race times',
+    href: '/convert/running-pace',
+    color: 'from-green-400 to-lime-500',
+    createdAt: '2026-06-07',
+  },
+  {
+    icon: '🚴',
+    title: 'Cycling Speed',
+    desc: 'km/h, mph, pace & ride time calculator',
+    href: '/convert/cycling-speed',
+    color: 'from-sky-400 to-cyan-500',
+    createdAt: '2026-06-07',
+  },
+  {
     icon: '🪙',
     title: 'Crypto Coins',
     desc: 'Top 100 live prices & market cap',
@@ -286,11 +335,16 @@ const categories = [
     <!-- Left: Category grid (70%) -->
     <div class="flex-1 min-w-0">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map((cat) => (
+        {categories.map((cat) => {
+          const isNew = cat.createdAt && (Date.now() - new Date(cat.createdAt).getTime()) < 86400000;
+          return (
           <a
             href={cat.href}
-            class="group flex items-start gap-4 p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-md transition-all duration-200"
+            class="group flex items-start gap-4 p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-amber-400 dark:hover:border-amber-500 hover:shadow-md transition-all duration-200 relative"
           >
+            {isNew && (
+              <span class="absolute top-2 right-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-500 text-white shadow-sm animate-pulse">NEW</span>
+            )}
             <div class={`flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-2xl shadow-sm`}>
               {cat.icon}
             </div>
@@ -306,7 +360,8 @@ const categories = [
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
           </a>
-        ))}
+          );
+        })}
       </div>
     </div>
 

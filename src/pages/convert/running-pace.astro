@@ -1,0 +1,247 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+import ConverterBlogLinks from '../../components/ConverterBlogLinks.astro';
+
+const units = [
+  { value: 'minkm', label: 'Minutes per km (min/km)' },
+  { value: 'minmi', label: 'Minutes per mile (min/mi)' },
+  { value: 'kmh', label: 'Kilometers per hour (km/h)' },
+  { value: 'mph', label: 'Miles per hour (mph)' },
+  { value: 'ms', label: 'Meters per second (m/s)' },
+];
+---
+
+<Layout title="Running Pace Calculator — min/km to min/mile, speed to pace" description="Free Running Pace Calculator. Convert min/km to min/mile, speed to pace, and calculate finish times for 5K, 10K, and marathon. No sign-up required." keywords="running pace calculator, min/km to min/mile, pace converter, speed to pace, marathon pace, 5k pace, running speed calculator, pace per km to pace per mile">
+  <div class="max-w-2xl">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🏃</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Running Pace Calculator</h1>
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 ml-2">NEW</span>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert between pace and speed units for runners</p>
+      <ConverterBlogLinks />
+    </div>
+
+    <!-- Converter card -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <!-- From -->
+      <div class="mb-4">
+        <label for="from-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From</label>
+        <div class="flex gap-3">
+          <select id="from-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map(u => <option value={u.value}>{u.label}</option>)}
+          </select>
+          <input
+            id="from-value"
+            type="number"
+            placeholder="Enter value"
+            value="5"
+            step="0.01"
+            class="flex-1 h-13 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+      </div>
+
+      <!-- Swap button -->
+      <div class="flex justify-center my-3">
+        <button id="swap-btn" aria-label="Swap units" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          Swap
+        </button>
+      </div>
+
+      <!-- To -->
+      <div class="mb-4">
+        <label for="to-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To</label>
+        <div class="flex gap-3">
+          <select id="to-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map((u, i) => <option value={u.value} selected={i === 1}>{u.label}</option>)}
+          </select>
+          <div id="result" role="status" aria-live="polite" aria-label="Conversion result" class="flex-1 h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-lg font-semibold flex items-center">
+            8:03
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div id="formula" aria-live="polite" class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 font-mono">
+        5:00 min/km = 8:03 min/mi
+      </div>
+    </div>
+
+    <!-- Race time estimates -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-4">Estimated Race Times</h2>
+      <div id="race-times" class="grid grid-cols-2 gap-3 text-sm">
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="block text-gray-500 dark:text-gray-400">5K</span>
+          <span class="font-semibold text-gray-900 dark:text-white" id="time-5k">25:00</span>
+        </div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="block text-gray-500 dark:text-gray-400">10K</span>
+          <span class="font-semibold text-gray-900 dark:text-white" id="time-10k">50:00</span>
+        </div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="block text-gray-500 dark:text-gray-400">Half Marathon</span>
+          <span class="font-semibold text-gray-900 dark:text-white" id="time-half">1:45:33</span>
+        </div>
+        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span class="block text-gray-500 dark:text-gray-400">Marathon</span>
+          <span class="font-semibold text-gray-900 dark:text-white" id="time-marathon">3:31:06</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white">Quick Reference</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Pace (min/km)</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Pace (min/mi)</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Speed (km/h)</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Level</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {[
+              ['3:00', '4:50', '20.0', 'Elite'],
+              ['4:00', '6:26', '15.0', 'Advanced'],
+              ['5:00', '8:03', '12.0', 'Intermediate'],
+              ['6:00', '9:39', '10.0', 'Recreational'],
+              ['7:00', '11:16', '8.6', 'Beginner'],
+              ['8:00', '12:52', '7.5', 'Casual'],
+            ].map(([pace, pmi, speed, level]) => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{pace}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{pmi}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{speed}</td>
+                <td class="px-4 py-3 text-gray-700 dark:text-gray-300">{level}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SEO Content -->
+    <div class="mt-8 space-y-6">
+      <div class="prose dark:prose-invert prose-sm max-w-none">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Running Pace Conversion Guide</h2>
+        <p class="text-gray-600 dark:text-gray-400">Running pace is how long it takes to cover a given distance, typically expressed in minutes per kilometer or minutes per mile. It's the inverse of speed — a faster pace means a lower number.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">min/km to min/mile</h3>
+        <p class="text-gray-600 dark:text-gray-400">Multiply your min/km pace by 1.60934 to get min/mile. For example, a 5:00 min/km pace equals approximately 8:03 min/mile. This conversion is essential for runners training with international plans.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Speed to Pace</h3>
+        <p class="text-gray-600 dark:text-gray-400">To convert km/h to min/km, divide 60 by your speed. For instance, running at 12 km/h means a pace of 5:00 min/km (60 ÷ 12 = 5). For mph to min/mile, the same formula applies: 60 ÷ mph = minutes per mile.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Common Running Paces</h3>
+        <ul class="text-gray-600 dark:text-gray-400 text-sm space-y-1">
+          <li>World record marathon pace: ~2:52 min/km (4:37 min/mi)</li>
+          <li>Sub-3-hour marathon: 4:16 min/km (6:52 min/mi)</li>
+          <li>Average recreational runner: 5:30–6:30 min/km</li>
+          <li>Brisk walking: 8:00–10:00 min/km</li>
+          <li>Couch to 5K finish: typically 7:00–8:00 min/km</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Conversion logic: everything goes through min/km as the base unit
+  function toMinPerKm(val: number, from: string): number {
+    switch (from) {
+      case 'minkm': return val;
+      case 'minmi': return val / 1.60934;
+      case 'kmh': return 60 / val;
+      case 'mph': return 60 / (val * 1.60934);
+      case 'ms': return 1000 / (val * 60);
+      default: return val;
+    }
+  }
+
+  function fromMinPerKm(minkm: number, to: string): number {
+    switch (to) {
+      case 'minkm': return minkm;
+      case 'minmi': return minkm * 1.60934;
+      case 'kmh': return 60 / minkm;
+      case 'mph': return 60 / (minkm * 1.60934);
+      case 'ms': return 1000 / (minkm * 60);
+      default: return minkm;
+    }
+  }
+
+  function formatPace(minutes: number): string {
+    if (!isFinite(minutes) || minutes <= 0) return '—';
+    const mins = Math.floor(minutes);
+    const secs = Math.round((minutes - mins) * 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  function formatTime(minutes: number): string {
+    if (!isFinite(minutes) || minutes <= 0) return '—';
+    const hrs = Math.floor(minutes / 60);
+    const mins = Math.floor(minutes % 60);
+    const secs = Math.round((minutes - Math.floor(minutes)) * 60);
+    if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  function formatResult(val: number, unit: string): string {
+    if (unit === 'minkm' || unit === 'minmi') return formatPace(val);
+    return parseFloat(val.toPrecision(4)).toString();
+  }
+
+  function getUnitLabel(code: string): string {
+    const labels: Record<string, string> = {
+      minkm: 'min/km', minmi: 'min/mi', kmh: 'km/h', mph: 'mph', ms: 'm/s'
+    };
+    return labels[code] || code;
+  }
+
+  const fromUnit = document.getElementById('from-unit') as HTMLSelectElement;
+  const toUnit = document.getElementById('to-unit') as HTMLSelectElement;
+  const fromVal = document.getElementById('from-value') as HTMLInputElement;
+  const resultEl = document.getElementById('result')!;
+  const formulaEl = document.getElementById('formula')!;
+  const swapBtn = document.getElementById('swap-btn')!;
+
+  function update() {
+    const val = parseFloat(fromVal.value);
+    if (isNaN(val) || val <= 0) { resultEl.textContent = '—'; return; }
+
+    const minkm = toMinPerKm(val, fromUnit.value);
+    const result = fromMinPerKm(minkm, toUnit.value);
+    resultEl.textContent = formatResult(result, toUnit.value);
+
+    const fromFormatted = (fromUnit.value === 'minkm' || fromUnit.value === 'minmi')
+      ? formatPace(val) : val.toString();
+    const toFormatted = formatResult(result, toUnit.value);
+    formulaEl.textContent = `${fromFormatted} ${getUnitLabel(fromUnit.value)} = ${toFormatted} ${getUnitLabel(toUnit.value)}`;
+
+    // Update race times based on min/km pace
+    const distances = { '5k': 5, '10k': 10, 'half': 21.0975, 'marathon': 42.195 };
+    (document.getElementById('time-5k')!).textContent = formatTime(minkm * distances['5k']);
+    (document.getElementById('time-10k')!).textContent = formatTime(minkm * distances['10k']);
+    (document.getElementById('time-half')!).textContent = formatTime(minkm * distances['half']);
+    (document.getElementById('time-marathon')!).textContent = formatTime(minkm * distances['marathon']);
+  }
+
+  fromVal.addEventListener('input', update);
+  fromUnit.addEventListener('change', update);
+  toUnit.addEventListener('change', update);
+  swapBtn.addEventListener('click', () => {
+    const tmp = fromUnit.value;
+    fromUnit.value = toUnit.value;
+    toUnit.value = tmp;
+    update();
+  });
+
+  update();
+</script>

@@ -477,6 +477,34 @@ const tables = [
     ],
     indexes: ['idx_meta_url (url) UNIQUE'],
   },
+  {
+    name: 'Contagion',
+    migration: '0017',
+    description: 'Active disease contagions tracked by the Contagion Tracker (Beta Plays)',
+    columns: [
+      { name: 'ConID', type: 'INTEGER', constraints: 'PRIMARY KEY' },
+      { name: 'ConName', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'ConVariant', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'Status', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 1 CHECK(0|1)' },
+      { name: 'DateCreated', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+      { name: 'DateModified', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'ContagionNews',
+    migration: '0018',
+    description: 'News articles fetched per contagion — linked to Contagion table',
+    columns: [
+      { name: 'CN_ID', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'ConID', type: 'INTEGER', constraints: 'NOT NULL FK→Contagion(ConID)' },
+      { name: 'CN_Name', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'NewsURL', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'FetchTime', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+      { name: 'Status', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 1 CHECK(0|1)' },
+    ],
+    indexes: [],
+  },
 ];
 ---
 

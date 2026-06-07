@@ -224,12 +224,34 @@ import Layout from '../../layouts/Layout.astro';
     var subset = coins.slice(0, showCount);
     var maxCap = subset[0] ? subset[0].market_cap : 1;
 
-    var maxRadius = Math.min(width, height) * 0.36;
-    var minRadius = Math.max(30, maxRadius * 0.12);
+    // ── Adaptive bubble sizing: balance count vs size ────────────────────
+    // Target ~65% fill of viewport area. Scale radii so total circle area
+    // fits nicely regardless of how many bubbles are shown.
+    var viewportArea = width * height;
+    var targetFill = 0.65; // 65% coverage target (like Crypto Bubbles)
+    var availableArea = viewportArea * targetFill;
 
-    var nodes = subset.map(function(coin) {
-      var ratio = coin.market_cap / maxCap;
-      var r = minRadius + Math.sqrt(ratio) * (maxRadius - minRadius);
+    // Compute raw sqrt(marketcap) weights for each coin
+    var rawWeights = subset.map(function(coin) { return Math.sqrt(coin.market_cap / maxCap); });
+    var totalWeight = rawWeights.reduce(function(sum, w) { return sum + w * w; }, 0); // sum of w² since area ∝ r²
+
+    // Scale factor: total area of all circles = availableArea
+    // π * Σ(r²) = availableArea → r_i = w_i * scaleFactor
+    // π * scaleFactor² * Σ(w²) = availableArea
+    var scaleFactor = Math.sqrt(availableArea / (Math.PI * totalWeight));
+
+    // Clamp individual radii to sensible bounds
+    var absMin = Math.max(18, Math.min(width, height) * 0.03); // never smaller than 18px
+    var absMax = Math.min(width, height) * 0.38; // never bigger than 38% of shortest dimension
+
+    // Coins with artificially reduced bubble size (-25%)
+    var reducedSizeIds = ['bitcoin', 'ripple', 'tether'];
+
+    var nodes = subset.map(function(coin, i) {
+      var r = rawWeights[i] * scaleFactor;
+      r = Math.max(absMin, Math.min(absMax, r));
+      // Reduce BTC, XRP, USDT bubbles by 25%
+      if (reducedSizeIds.indexOf(coin.id) !== -1) r *= 0.75;
       var change = coin[key] || 0;
       return { id: coin.id, name: coin.name, symbol: coin.symbol.toUpperCase(), image: coin.image, price: coin.current_price, change: change, marketCap: coin.market_cap, r: r, color: getColor(change), x: width / 2 + (Math.random() - 0.5) * width * 0.5, y: height / 2 + (Math.random() - 0.5) * height * 0.5 };
     });

@@ -1,0 +1,203 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+import ConverterBlogLinks from '../../components/ConverterBlogLinks.astro';
+
+const units = [
+  { value: 'c', label: 'Celsius (°C)' },
+  { value: 'f', label: 'Fahrenheit (°F)' },
+  { value: 'gas', label: 'Gas Mark' },
+  { value: 'fan', label: 'Fan Oven (°C)' },
+];
+
+const table = [
+  ['Very Cool', '110°C', '225°F', '¼', '90°C'],
+  ['Cool', '140°C', '275°F', '1', '120°C'],
+  ['Moderate', '160°C', '325°F', '3', '140°C'],
+  ['Moderately Hot', '190°C', '375°F', '5', '170°C'],
+  ['Hot', '200°C', '400°F', '6', '180°C'],
+  ['Very Hot', '220°C', '425°F', '7', '200°C'],
+  ['Extremely Hot', '240°C', '475°F', '9', '220°C'],
+];
+---
+
+<Layout title="Oven Temperature Converter — °C, °F, Gas Mark, Fan Oven" description="Free Oven Temperature Converter. Convert between Celsius, Fahrenheit, Gas Mark and Fan Oven settings instantly. Perfect for recipes from any country." keywords="oven temperature converter, gas mark to celsius, gas mark to fahrenheit, fan oven temperature, cooking temperature converter, oven conversion chart, baking temperature">
+  <div class="max-w-2xl">
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🔥</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Oven Temperature Converter</h1>
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 ml-2">NEW</span>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert between Celsius, Fahrenheit, Gas Mark & Fan Oven</p>
+      <ConverterBlogLinks />
+    </div>
+
+    <!-- Converter card -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <!-- From -->
+      <div class="mb-4">
+        <label for="from-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From</label>
+        <div class="flex gap-3">
+          <select id="from-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map(u => <option value={u.value}>{u.label}</option>)}
+          </select>
+          <input
+            id="from-value"
+            type="number"
+            placeholder="Enter temperature"
+            value="180"
+            class="flex-1 h-13 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+      </div>
+
+      <!-- Swap button -->
+      <div class="flex justify-center my-3">
+        <button id="swap-btn" aria-label="Swap units" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          Swap
+        </button>
+      </div>
+
+      <!-- To -->
+      <div class="mb-4">
+        <label for="to-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To</label>
+        <div class="flex gap-3">
+          <select id="to-unit" class="flex-1 h-13 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+            {units.map((u, i) => <option value={u.value} selected={i === 1}>{u.label}</option>)}
+          </select>
+          <div id="result" role="status" aria-live="polite" aria-label="Conversion result" class="flex-1 h-13 px-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-lg font-semibold flex items-center">
+            356
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div id="formula" aria-live="polite" class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400 font-mono">
+        180°C = 356°F
+      </div>
+    </div>
+
+    <!-- Oven temperature chart -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h2 class="font-semibold text-gray-900 dark:text-white">Oven Temperature Chart</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Description</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">°C</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">°F</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Gas Mark</th>
+              <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">Fan °C</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {table.map(row => (
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                {row.map(cell => (
+                  <td class="px-4 py-3 text-gray-700 dark:text-gray-300 font-mono">{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SEO Content -->
+    <div class="mt-8 space-y-6">
+      <div class="prose dark:prose-invert prose-sm max-w-none">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Oven Temperature Conversion Guide</h2>
+        <p class="text-gray-600 dark:text-gray-400">Recipes from different countries use different temperature scales. UK recipes often use Gas Marks, US recipes use Fahrenheit, and most of the world uses Celsius. Fan ovens run about 20°C cooler than conventional ovens, so you need to reduce the temperature when using fan-assisted mode.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Gas Mark to Celsius</h3>
+        <p class="text-gray-600 dark:text-gray-400">The formula is approximately: °C = (Gas Mark × 14) + 121. Gas Mark 1 = 140°C, Gas Mark 4 = 180°C, Gas Mark 6 = 200°C. Gas marks are used primarily in British and Irish recipes.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Fan Oven Adjustment</h3>
+        <p class="text-gray-600 dark:text-gray-400">For fan-assisted ovens, reduce the temperature by 20°C (or 25°F) from a conventional oven setting. Fan ovens circulate hot air, cooking food faster and more evenly. If a recipe says 200°C conventional, use 180°C fan.</p>
+        <h3 class="text-base font-medium text-gray-800 dark:text-gray-200">Common Baking Temperatures</h3>
+        <ul class="text-gray-600 dark:text-gray-400 text-sm space-y-1">
+          <li>Meringues & drying: 110°C / 225°F / Gas ¼</li>
+          <li>Slow roasting: 150°C / 300°F / Gas 2</li>
+          <li>Cakes & biscuits: 180°C / 350°F / Gas 4</li>
+          <li>Roast chicken: 200°C / 400°F / Gas 6</li>
+          <li>Pizza & bread: 220–240°C / 425–475°F / Gas 7–9</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Gas mark lookup tables
+  const gasToC: Record<string, number> = {
+    '0.25': 110, '0.5': 120, '1': 140, '2': 150, '3': 160, '4': 180,
+    '5': 190, '6': 200, '7': 220, '8': 230, '9': 240, '10': 260,
+  };
+
+  const cToGas: [number, string][] = [
+    [110, '¼'], [120, '½'], [140, '1'], [150, '2'], [160, '3'], [180, '4'],
+    [190, '5'], [200, '6'], [220, '7'], [230, '8'], [240, '9'], [260, '10'],
+  ];
+
+  function toC(val: number, from: string): number {
+    if (from === 'c') return val;
+    if (from === 'f') return (val - 32) * 5 / 9;
+    if (from === 'fan') return val + 20;
+    if (from === 'gas') return gasToC[val.toString()] ?? (val * 14 + 121);
+    return val;
+  }
+
+  function fromC(c: number, to: string): string {
+    if (to === 'c') return Math.round(c).toString();
+    if (to === 'f') return Math.round(c * 9 / 5 + 32).toString();
+    if (to === 'fan') return Math.round(c - 20).toString();
+    if (to === 'gas') {
+      // Find closest gas mark
+      let closest = cToGas[0];
+      let minDiff = Math.abs(c - closest[0]);
+      for (const entry of cToGas) {
+        const diff = Math.abs(c - entry[0]);
+        if (diff < minDiff) { closest = entry; minDiff = diff; }
+      }
+      return closest[1];
+    }
+    return Math.round(c).toString();
+  }
+
+  function getUnit(code: string): string {
+    const labels: Record<string, string> = { c: '°C', f: '°F', gas: 'Gas Mark', fan: '°C fan' };
+    return labels[code] || code;
+  }
+
+  const fromUnit = document.getElementById('from-unit') as HTMLSelectElement;
+  const toUnit = document.getElementById('to-unit') as HTMLSelectElement;
+  const fromVal = document.getElementById('from-value') as HTMLInputElement;
+  const resultEl = document.getElementById('result')!;
+  const formulaEl = document.getElementById('formula')!;
+  const swapBtn = document.getElementById('swap-btn')!;
+
+  function update() {
+    const val = parseFloat(fromVal.value);
+    if (isNaN(val)) { resultEl.textContent = '—'; return; }
+    const celsius = toC(val, fromUnit.value);
+    const result = fromC(celsius, toUnit.value);
+    resultEl.textContent = result;
+    formulaEl.textContent = `${val} ${getUnit(fromUnit.value)} = ${result} ${getUnit(toUnit.value)}`;
+  }
+
+  fromVal.addEventListener('input', update);
+  fromUnit.addEventListener('change', update);
+  toUnit.addEventListener('change', update);
+  swapBtn.addEventListener('click', () => {
+    const tmp = fromUnit.value;
+    fromUnit.value = toUnit.value;
+    toUnit.value = tmp;
+    update();
+  });
+
+  update();
+</script>

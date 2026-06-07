@@ -83,6 +83,9 @@ import Layout from '../../layouts/Layout.astro';
         </span>
         <h2 class="text-sm font-semibold text-red-700 dark:text-red-300">Breaking News</h2>
         <span class="ml-auto text-xs text-red-400 dark:text-red-500" id="news-timestamp"></span>
+        <button id="refresh-news-btn" type="button" title="Refresh news via Tavily" class="p-1 rounded-md text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors" aria-label="Refresh breaking news">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
       </div>
       <div id="breaking-news-content" class="p-4">
         <div class="flex items-center justify-center py-6">
@@ -178,20 +181,24 @@ import Layout from '../../layouts/Layout.astro';
       ]
     },
     ebola: {
-      name: 'Ebola Virus Disease (EVD)',
-      pathogen: 'Filovirus (RNA virus) — 6 known species',
+      name: 'Ebola Virus Disease (EVD) — Bundibugyo Virus',
+      pathogen: 'Filovirus (RNA virus) — 6 known species incl. Bundibugyo',
       transmission: 'Direct contact with blood/body fluids of infected, contaminated objects, infected animals',
-      fatality: '25-90% (average ~50%, varies by outbreak)',
+      fatality: '25-90% (average ~50%, varies by outbreak and species)',
       incubation: '2-21 days (median 8-10 days)',
       origin: 'Yambuku, DR Congo — 1976 (first identified)',
-      status: 'Sporadic outbreaks in Central/West Africa — latest: Uganda 2022, DRC 2024',
+      status: '⚠️ ACTIVE OUTBREAK: Bundibugyo virus — DRC & Uganda (May 2026, PHEIC declared)',
       facts: [
+        '🔴 WHO declared PHEIC on 17 May 2026 for Bundibugyo virus in DRC and Uganda',
+        '🔴 378 confirmed cases and 63 deaths reported as of 2 June 2026 (CDC)',
+        '🔴 Over 1,100 suspected cases still under investigation across both countries',
+        '🔴 No licensed vaccine or specific treatment available for Bundibugyo species',
+        '🔴 Outbreak centred in Ituri Province, DRC — health zones: Bunia, Rwampara, Mongbwalu',
+        'Nurses discharged after full recovery — first confirmed survivor recoveries (UN News, June 2026)',
         'Named after the Ebola River in DR Congo where first discovered in 1976',
         'The 2014-2016 West Africa outbreak was the largest (28,616 cases, 11,310 deaths)',
-        'First FDA-approved vaccine (rVSV-ZEBOV/Ervebo) came in 2019',
+        'First FDA-approved vaccine (rVSV-ZEBOV/Ervebo) targets Zaire species only — not effective against Bundibugyo',
         'Fruit bats are the suspected natural reservoir',
-        'Survivors can carry virus in semen for up to 18 months',
-        'Case fatality rate of Zaire species can reach 90% without treatment',
       ]
     },
     hantavirus: {
@@ -343,10 +350,10 @@ import Layout from '../../layouts/Layout.astro';
   function renderStaticData(info: typeof diseaseInfo['covid']) {
     // For Ebola and Hantavirus — no live API, show key outbreak data
     if (activeDisease === 'ebola') {
-      statCases.textContent = '34,580+';
-      statDeaths.textContent = '15,135+';
-      statRecovered.textContent = '~16,000';
-      statActive.textContent = 'Sporadic';
+      statCases.textContent = '378+';
+      statDeaths.textContent = '63';
+      statRecovered.textContent = 'Unknown';
+      statActive.textContent = '⚠️ PHEIC';
       countryCount.textContent = 'Major outbreaks';
       countriesList.innerHTML = `<table class="w-full text-xs">
         <thead><tr class="border-b border-gray-100 dark:border-gray-800 text-gray-500">
@@ -357,6 +364,7 @@ import Layout from '../../layouts/Layout.astro';
           <th class="px-4 py-2 text-right font-medium">CFR</th>
         </tr></thead>
         <tbody>
+          <tr class="border-b border-gray-50 dark:border-gray-800 bg-red-50 dark:bg-red-900/10"><td class="px-4 py-2 font-bold text-red-600">2026</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">🔴 DRC &amp; Uganda (Bundibugyo virus — PHEIC)</td><td class="px-4 py-2 text-right text-blue-600 font-mono font-bold">378+</td><td class="px-4 py-2 text-right text-red-500 font-mono font-bold">63</td><td class="px-4 py-2 text-right">~17%</td></tr>
           <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2">2014-2016</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">West Africa (Guinea, Liberia, Sierra Leone)</td><td class="px-4 py-2 text-right text-blue-600 font-mono">28,616</td><td class="px-4 py-2 text-right text-red-500 font-mono">11,310</td><td class="px-4 py-2 text-right">39.5%</td></tr>
           <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2">2018-2020</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">DR Congo (Kivu)</td><td class="px-4 py-2 text-right text-blue-600 font-mono">3,481</td><td class="px-4 py-2 text-right text-red-500 font-mono">2,299</td><td class="px-4 py-2 text-right">66%</td></tr>
           <tr class="border-b border-gray-50 dark:border-gray-800"><td class="px-4 py-2">2022</td><td class="px-4 py-2 text-gray-900 dark:text-white font-medium">Uganda</td><td class="px-4 py-2 text-right text-blue-600 font-mono">164</td><td class="px-4 py-2 text-right text-red-500 font-mono">77</td><td class="px-4 py-2 text-right">47%</td></tr>
@@ -424,8 +432,12 @@ import Layout from '../../layouts/Layout.astro';
             <span class="shrink-0 w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-xs font-bold text-red-600 dark:text-red-400">${i + 1}</span>
             <div class="min-w-0 flex-1">
               <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-red-700 dark:group-hover:text-red-300 transition-colors line-clamp-2">${item.title}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">${item.snippet}</p>
-              ${item.publishedDate ? `<p class="text-xs text-gray-400 mt-1">${new Date(item.publishedDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>` : ''}
+              ${item.source ? `<p class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">📰 ${item.source}</p>` : ''}
+              ${item.snippet ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">${item.snippet}</p>` : ''}
+              <div class="flex items-center gap-3 mt-1">
+                ${item.publishedDate ? `<span class="text-xs text-gray-400">📅 ${new Date(item.publishedDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>` : ''}
+                ${item.dateCreated ? `<span class="text-xs text-gray-400 dark:text-gray-500">🔄 Fetched: ${new Date(item.dateCreated).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${new Date(item.dateCreated).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>` : ''}
+              </div>
             </div>
             <svg class="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-red-400 shrink-0 mt-0.5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
           </div>
@@ -438,6 +450,49 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
   loadBreakingNews();
+
+  // Refresh button — triggers Tavily search via /api/breaking-news?refresh=true
+  document.getElementById('refresh-news-btn')!.addEventListener('click', async () => {
+    const btn = document.getElementById('refresh-news-btn')!;
+    btn.classList.add('animate-spin');
+    btn.setAttribute('disabled', '');
+    const newsContent = document.getElementById('breaking-news-content')!;
+    const newsTimestamp = document.getElementById('news-timestamp')!;
+    try {
+      const res = await fetch(`/api/breaking-news?disease=${activeDisease}&refresh=true`);
+      if (!res.ok) throw new Error('Refresh failed');
+      const data = await res.json();
+      const news = data.news || [];
+
+      if (news.length === 0) {
+        newsContent.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">No breaking news at this time.</p>';
+      } else {
+        newsContent.innerHTML = '<div class="space-y-3">' + news.map((item: any, i: number) =>
+          `<a href="${item.url}" target="_blank" rel="noopener" class="block p-3 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/10 border border-transparent hover:border-red-200 dark:hover:border-red-800/50 transition-all group">
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-xs font-bold text-red-600 dark:text-red-400">${i + 1}</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-red-700 dark:group-hover:text-red-300 transition-colors line-clamp-2">${item.title}</p>
+                ${item.source ? `<p class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">📰 ${item.source}</p>` : ''}
+                ${item.snippet ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">${item.snippet}</p>` : ''}
+                <div class="flex items-center gap-3 mt-1">
+                  ${item.publishedDate ? `<span class="text-xs text-gray-400">📅 ${new Date(item.publishedDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>` : ''}
+                  ${item.dateCreated ? `<span class="text-xs text-gray-400 dark:text-gray-500">🔄 Fetched: ${new Date(item.dateCreated).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${new Date(item.dateCreated).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>` : ''}
+                </div>
+              </div>
+              <svg class="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-red-400 shrink-0 mt-0.5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </div>
+          </a>`
+        ).join('') + '</div>';
+      }
+
+      newsTimestamp.textContent = new Date(data.timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      newsContent.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Refresh failed. Try again.</p>';
+    }
+    btn.classList.remove('animate-spin');
+    btn.removeAttribute('disabled');
+  });
 
   // Auto-refresh with user-selectable interval
   const REFRESH_KEY = 'xconvert24-contagion-refresh';
