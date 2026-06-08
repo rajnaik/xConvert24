@@ -20,6 +20,8 @@ const PUBLIC_API_ROUTES: { path: string; methods: string[] }[] = [
   { path: '/api/events', methods: ['GET', 'POST'] },
   // Analytics tracking (public pages)
   { path: '/api/analytics', methods: ['GET', 'POST'] },
+  // Click tracking (public — high-volume UI click stream)
+  { path: '/api/clicks', methods: ['GET', 'POST'] },
   // Opinions (public pages)
   { path: '/api/opinions', methods: ['GET', 'POST'] },
   // Support / Wallet display (public page — GET only, POST is admin)

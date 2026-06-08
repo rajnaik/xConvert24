@@ -258,6 +258,11 @@ import { STATS } from '../../data/siteStats';
           <div class="stat-label">Currencies</div>
           <div class="stat-detail">Live rates →</div>
         </a>
+        <div class="stat-card" id="clicks-stat-card">
+          <div class="stat-value" id="clicks-total-count">—</div>
+          <div class="stat-label">Clicks</div>
+          <div class="stat-detail">Total registered →</div>
+        </div>
       </div>
     </div>
 
@@ -873,6 +878,20 @@ import { STATS } from '../../data/siteStats';
       }
       loadClicksFeed();
       setInterval(loadClicksFeed, 8000);
+
+      // Load total clicks count for statistics tile
+      function loadClicksTotal() {
+        fetch('/api/clicks?count=true')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var total = d.total || 0;
+            var el = document.getElementById('clicks-total-count');
+            if (el) el.textContent = total.toLocaleString();
+          })
+          .catch(function() {});
+      }
+      loadClicksTotal();
+      setInterval(loadClicksTotal, 30000);
     })();
 
     // ── Operations Panel Logic ─────────────────────────────────────────────────

@@ -132,6 +132,57 @@ async function runTests() {
     }
   }
 
+  // Click tracking test: POST a click event and verify it's stored in DB
+  console.log(`\n🖱️  Click tracking: verifying clicks are registered in DB...`);
+  const clickTestStart = Date.now();
+  const clickTestUid = 'postdeploy_test_' + Date.now().toString(36);
+  const clickTestElement = 'post-deploy-smoke-test-button';
+  const clickTestUrl = '/post-deploy-test';
+  try {
+    // 1. POST a click event
+    const postRes = await fetch(`${BASE_URL}/api/clicks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: clickTestUid,
+        ui_element: clickTestElement,
+        url: clickTestUrl,
+      }),
+    });
+    const postData = await postRes.json();
+
+    if (postRes.status !== 200 || !postData.success) {
+      const dur = Date.now() - clickTestStart;
+      failed++;
+      console.log(`   ✗ Click POST failed (${postRes.status}) — ${dur}ms`);
+      results.push({ name: 'Click Tracking: POST', status: 'fail', duration: `${dur}ms`, error: JSON.stringify(postData) });
+    } else {
+      // 2. Small delay then GET to verify the click was stored
+      await new Promise(r => setTimeout(r, 500));
+      const getRes = await fetch(`${BASE_URL}/api/clicks?user_id=${encodeURIComponent(clickTestUid)}&limit=1`);
+      const getData = await getRes.json();
+      const clickDuration = Date.now() - clickTestStart;
+
+      const clicks = getData.clicks || [];
+      const found = clicks.some(c => c.ui_element === clickTestElement && c.user_id === clickTestUid);
+
+      if (found) {
+        passed++;
+        console.log(`   ✓ Click Tracking: POST + DB verify — ${clickDuration}ms`);
+        results.push({ name: 'Click Tracking: POST + DB verify', status: 'pass', duration: `${clickDuration}ms` });
+      } else {
+        failed++;
+        console.log(`   ✗ Click Tracking: click not found in DB after POST — ${clickDuration}ms`);
+        results.push({ name: 'Click Tracking: POST + DB verify', status: 'fail', duration: `${clickDuration}ms`, error: 'Click not found in GET response' });
+      }
+    }
+  } catch (err) {
+    const dur = Date.now() - clickTestStart;
+    failed++;
+    console.log(`   ✗ Click Tracking: error — ${err.message} (${dur}ms)`);
+    results.push({ name: 'Click Tracking: POST + DB verify', status: 'fail', duration: `${dur}ms`, error: err.message });
+  }
+
   const totalDuration = `${((Date.now() - startTime) / 1000).toFixed(1)}s`;
   const total = results.length;
 

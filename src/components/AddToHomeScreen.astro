@@ -1,18 +1,15 @@
 ---
 /**
  * Global "Add to Home Screen" inline banner.
- * Follows the same display logic as the home page install panel:
- * - Shows after 4 minutes of accumulated session time
+ * Shows immediately on non-home pages.
  * - Dismissible permanently via localStorage
- * - Slides in with animation (not intrusive)
  * - Never shows if already installed or dismissed
  */
 ---
 
 <!-- Add to Home Screen panel (delayed, non-intrusive — sticky sidebar companion) -->
 <div
-  id="a2hs-banner"
-  class="hidden opacity-0 translate-y-4 transition-all duration-700 ease-out w-full"
+  class="a2hs-banner hidden opacity-0 translate-y-4 transition-all duration-700 ease-out w-full"
   role="complementary"
   aria-label="Install xConvert24 on your home screen"
 >
@@ -67,19 +64,18 @@
       <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Tap for full guide</p>
     </div>
   </a>
-  <button id="a2hs-dismiss" type="button" class="block w-full mt-1.5 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-center">Dismiss</button>
+  <button class="a2hs-dismiss block w-full mt-1.5 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-center">Dismiss</button>
 </div>
 
 <script is:inline>
-  // Add to Home Screen — same display logic as home page install panel.
-  // Shows after 4 minutes of accumulated session time.
-  // Dismiss is permanent (localStorage). Never shows if already installed.
+  // Add to Home Screen — always visible on non-home pages.
+  // Dismissible permanently via localStorage. Never shows if already installed.
   (function() {
+    if (window.__a2hsInit) return;
+    window.__a2hsInit = true;
+
     var DISMISS_KEY = 'xconvert24-install-dismissed';
     var INSTALLED_KEY = 'xconvert24-a2hs-installed';
-    var COIN_KEY = 'xc-coin-home_screen';
-    var SESSION_START_KEY = 'xconvert24-session-start';
-    var DELAY = 240000; // 4 minutes
 
     // Never show if running as installed PWA
     var isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator).standalone === true;
@@ -88,52 +84,40 @@
     // Never show if permanently dismissed or already installed
     if (localStorage.getItem(DISMISS_KEY)) return;
     if (localStorage.getItem(INSTALLED_KEY)) return;
-    if (localStorage.getItem(COIN_KEY)) return;
 
-    var banner = document.getElementById('a2hs-banner');
-    if (!banner) return;
+    var banners = document.querySelectorAll('.a2hs-banner');
+    if (!banners.length) return;
 
-    // Track accumulated session time (same approach as home page)
-    var startTime = parseInt(sessionStorage.getItem(SESSION_START_KEY) || '0');
-    if (!startTime) {
-      startTime = Date.now();
-      sessionStorage.setItem(SESSION_START_KEY, startTime.toString());
-    }
-
-    var elapsed = Date.now() - startTime;
-    var remaining = Math.max(0, DELAY - elapsed);
-
-    setTimeout(function() {
-      // Re-check at show time
-      var nowStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator).standalone === true;
-      if (nowStandalone || !banner) return;
-      if (localStorage.getItem(DISMISS_KEY)) return;
-
-      // Reveal with slide-up animation
+    // Show all banner instances (mobile + desktop)
+    banners.forEach(function(banner) {
       banner.classList.remove('hidden');
       void banner.offsetWidth; // trigger reflow
       banner.classList.remove('opacity-0', 'translate-y-4');
       banner.classList.add('opacity-100', 'translate-y-0');
-    }, remaining);
+    });
 
-    // Dismiss permanently
-    document.getElementById('a2hs-dismiss')?.addEventListener('click', function() {
-      localStorage.setItem(DISMISS_KEY, '1');
-      banner.classList.add('opacity-0', 'translate-y-4');
-      banner.classList.remove('opacity-100', 'translate-y-0');
-      setTimeout(function() { banner.classList.add('hidden'); }, 700);
+    // Dismiss permanently (any dismiss button)
+    document.querySelectorAll('.a2hs-dismiss').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        localStorage.setItem(DISMISS_KEY, '1');
+        banners.forEach(function(banner) {
+          banner.classList.add('opacity-0', 'translate-y-4');
+          banner.classList.remove('opacity-100', 'translate-y-0');
+          setTimeout(function() { banner.classList.add('hidden'); }, 700);
+        });
+      });
     });
 
     // Hide permanently once user installs
     window.matchMedia('(display-mode: standalone)').addEventListener('change', function(e) {
       if (e.matches) {
-        banner.classList.add('hidden');
+        banners.forEach(function(banner) { banner.classList.add('hidden'); });
         localStorage.setItem(INSTALLED_KEY, '1');
       }
     });
 
     window.addEventListener('appinstalled', function() {
-      banner.classList.add('hidden');
+      banners.forEach(function(banner) { banner.classList.add('hidden'); });
       localStorage.setItem(INSTALLED_KEY, '1');
     });
   })();

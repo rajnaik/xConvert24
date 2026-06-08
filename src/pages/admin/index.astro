@@ -20,6 +20,9 @@ import { STATS } from '../../data/siteStats';
     .user-name { font-size: 14px; color: #d1d5db; }
     .logout-btn { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
     .logout-btn:hover { color: #f87171; border-color: #7f1d1d; background: #1f2937; }
+    .nuke-btn { width: 30px; height: 30px; border-radius: 50%; background: #7f1d1d; border: 2px solid #ef4444; color: #fca5a5; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+    .nuke-btn:hover { background: #991b1b; border-color: #f87171; box-shadow: 0 0 12px rgba(239,68,68,0.5); transform: scale(1.1); }
+    .nuke-btn:active { transform: scale(0.9); }
     .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
     h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
     .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
@@ -161,6 +164,7 @@ import { STATS } from '../../data/siteStats';
     <div class="user">
       {user.picture && <img src={user.picture} alt="User avatar" class="avatar" referrerpolicy="no-referrer" />}
       <span class="user-name">{user.name || user.email}</span>
+      <button id="nuke-ls-btn" class="nuke-btn" title="Clear localStorage" aria-label="Clear all localStorage">☢️</button>
       <a href="/admin/logout" class="logout-btn">Sign out</a>
     </div>
   </div>
@@ -257,6 +261,11 @@ import { STATS } from '../../data/siteStats';
           <div class="stat-label">Currencies</div>
           <div class="stat-detail">Live rates →</div>
         </a>
+        <div class="stat-card" id="clicks-stat-card">
+          <div class="stat-value" id="clicks-total-count">—</div>
+          <div class="stat-label">Clicks</div>
+          <div class="stat-detail">Total registered →</div>
+        </div>
       </div>
     </div>
 
@@ -1013,6 +1022,35 @@ import { STATS } from '../../data/siteStats';
 
       historyClose.addEventListener('click', function() { historyModal.classList.add('hidden'); });
       historyModal.addEventListener('click', function(e) { if (e.target === historyModal) historyModal.classList.add('hidden'); });
+    })();
+
+    // ── Nuke localStorage Button ─────────────────────────────────────────────
+    (function() {
+      var nukeBtn = document.getElementById('nuke-ls-btn');
+      nukeBtn.addEventListener('click', function() {
+        if (confirm('☢️ Nuke all localStorage? This cannot be undone.')) {
+          localStorage.clear();
+          nukeBtn.style.boxShadow = '0 0 20px rgba(239,68,68,0.8)';
+          setTimeout(function() { nukeBtn.style.boxShadow = ''; }, 600);
+          alert('💥 localStorage cleared.');
+        }
+      });
+    })();
+
+    // ── Clicks Total Counter ─────────────────────────────────────────────────
+    (function() {
+      function loadClicksTotal() {
+        fetch('/api/clicks?count=true')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var total = d.total || 0;
+            var el = document.getElementById('clicks-total-count');
+            if (el) el.textContent = total.toLocaleString();
+          })
+          .catch(function() {});
+      }
+      loadClicksTotal();
+      setInterval(loadClicksTotal, 30000);
     })();
   </script>
 </body>
