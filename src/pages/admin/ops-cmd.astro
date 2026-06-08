@@ -965,6 +965,87 @@ import { STATS } from '../../data/siteStats';
         setStatus('', 'IDLE');
       });
 
+      // ── Live Activity Feed: polls clicks, auditlog, bugs ──
+      var lastSeenClickId = 0;
+      var lastSeenAuditId = 0;
+      var activityInitialized = false;
+
+      function addActivityLine(text, cls) {
+        var line = document.createElement('div');
+        line.className = 'ops-console-line ' + (cls || 'ops-console-line--step');
+        line.textContent = text;
+        consoleEl.appendChild(line);
+        while (consoleEl.children.length > 100) consoleEl.removeChild(consoleEl.firstChild);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+      }
+
+      function formatTime(dateStr) {
+        if (!dateStr) return '';
+        try { return new Date(dateStr + 'Z').toLocaleTimeString(); } catch(e) { return ''; }
+      }
+
+      function loadActivityFeed() {
+        var clicksP = fetch('/api/clicks?limit=10').then(function(r) { return r.json(); }).catch(function() { return { clicks: [] }; });
+        var auditP = fetch('/api/auditlog?limit=10').then(function(r) { return r.json(); }).catch(function() { return { logs: [] }; });
+
+        Promise.all([clicksP, auditP]).then(function(results) {
+          var clicks = results[0].clicks || [];
+          var logs = results[1].logs || [];
+
+          if (!activityInitialized) {
+            consoleEl.innerHTML = '';
+            addActivityLine('── Live Activity Feed ──', 'ops-console-line--info');
+
+            var recentLogs = logs.slice(0, 5).reverse();
+            recentLogs.forEach(function(entry) {
+              var icon = entry.status === 1 ? '✅' : '❌';
+              var cls = entry.status === 1 ? 'ops-console-line--success' : 'ops-console-line--error';
+              addActivityLine('[' + formatTime(entry.created_at) + '] ' + icon + ' CMD: ' + entry.command + (entry.details ? ' — ' + entry.details : ''), cls);
+            });
+
+            var recentClicks = clicks.slice(0, 5).reverse();
+            recentClicks.forEach(function(c) {
+              var el = (c.ui_element || 'unknown').slice(0, 50);
+              var url = c.url || '/';
+              var uid = c.user_id ? ' [' + c.user_id.slice(0, 12) + ']' : '';
+              addActivityLine('[' + formatTime(c.created_at) + '] 🖱️ Click: ' + el + ' on ' + url + uid, 'ops-console-line--step');
+            });
+
+            addActivityLine('── Watching for new activity… ──', 'ops-console-line--info');
+
+            if (clicks.length) lastSeenClickId = clicks[0].id;
+            if (logs.length) lastSeenAuditId = logs[0].id;
+            activityInitialized = true;
+            setStatus('running', 'LIVE');
+            return;
+          }
+
+          var newClicks = clicks.filter(function(c) { return c.id > lastSeenClickId; });
+          if (newClicks.length) {
+            lastSeenClickId = newClicks[0].id;
+            newClicks.reverse().forEach(function(c) {
+              var el = (c.ui_element || 'unknown').slice(0, 50);
+              var url = c.url || '/';
+              var uid = c.user_id ? ' [' + c.user_id.slice(0, 12) + ']' : '';
+              addActivityLine('[' + formatTime(c.created_at) + '] 🖱️ Click: ' + el + ' on ' + url + uid, 'ops-console-line--step');
+            });
+          }
+
+          var newLogs = logs.filter(function(l) { return l.id > lastSeenAuditId; });
+          if (newLogs.length) {
+            lastSeenAuditId = newLogs[0].id;
+            newLogs.reverse().forEach(function(entry) {
+              var icon = entry.status === 1 ? '✅' : '❌';
+              var cls = entry.status === 1 ? 'ops-console-line--success' : 'ops-console-line--error';
+              addActivityLine('[' + formatTime(entry.created_at) + '] ' + icon + ' CMD: ' + entry.command + (entry.details ? ' — ' + entry.details : ''), cls);
+            });
+          }
+        });
+      }
+
+      loadActivityFeed();
+      setInterval(loadActivityFeed, 3000);
+
       var commandLabels = {
         'hack': function() { return 'HACK' + hackInput.value; },
         'chop': function() { return 'CHOP' + chopInput.value; },

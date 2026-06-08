@@ -23,7 +23,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     let body: any;
     try {
-      body = await request.json();
+      // Try parsing as JSON regardless of Content-Type header
+      // (sendBeacon on some mobile browsers may strip the header)
+      const text = await request.text();
+      body = JSON.parse(text);
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
         status: 400,

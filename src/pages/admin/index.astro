@@ -117,7 +117,7 @@ import { STATS } from '../../data/siteStats';
     @keyframes pulse-status { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
     .ops-console-clear { font-size: 10px; color: #6b7280; background: none; border: 1px solid #374151; border-radius: 4px; padding: 2px 8px; cursor: pointer; transition: all 0.15s; }
     .ops-console-clear:hover { color: #f87171; border-color: #7f1d1d; }
-    .ops-console { height: 180px; overflow-y: auto; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; background: #0a0f1a; }
+    .ops-console { height: 260px; overflow-y: auto; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.6; background: #0a0f1a; }
     .ops-console-line { padding: 1px 0; }
     .ops-console-line--info { color: #6b7280; }
     .ops-console-line--cmd { color: #fbbf24; }
@@ -880,6 +880,98 @@ import { STATS } from '../../data/siteStats';
         consoleEl.innerHTML = '<div class="ops-console-line ops-console-line--info">Console cleared.</div>';
         setStatus('', 'IDLE');
       });
+
+      // ── Live Activity Feed: polls clicks, auditlog, bugs ──
+      var lastSeenClickId = 0;
+      var lastSeenAuditId = 0;
+      var activityInitialized = false;
+
+      function addActivityLine(text, cls) {
+        var line = document.createElement('div');
+        line.className = 'ops-console-line ' + (cls || 'ops-console-line--step');
+        line.textContent = text;
+        consoleEl.appendChild(line);
+        // Keep max 100 lines
+        while (consoleEl.children.length > 100) consoleEl.removeChild(consoleEl.firstChild);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+      }
+
+      function formatTime(dateStr) {
+        if (!dateStr) return '';
+        try { return new Date(dateStr + 'Z').toLocaleTimeString(); } catch(e) { return ''; }
+      }
+
+      function loadActivityFeed() {
+        // Fetch latest clicks
+        var clicksP = fetch('/api/clicks?limit=10').then(function(r) { return r.json(); }).catch(function() { return { clicks: [] }; });
+        // Fetch latest audit log
+        var auditP = fetch('/api/auditlog?limit=10').then(function(r) { return r.json(); }).catch(function() { return { logs: [] }; });
+
+        Promise.all([clicksP, auditP]).then(function(results) {
+          var clicks = results[0].clicks || [];
+          var logs = results[1].logs || [];
+
+          if (!activityInitialized) {
+            // First load: show recent history
+            consoleEl.innerHTML = '';
+            addActivityLine('── Live Activity Feed ──', 'ops-console-line--info');
+
+            // Show last 5 audit entries (oldest first)
+            var recentLogs = logs.slice(0, 5).reverse();
+            recentLogs.forEach(function(entry) {
+              var icon = entry.status === 1 ? '✅' : '❌';
+              var cls = entry.status === 1 ? 'ops-console-line--success' : 'ops-console-line--error';
+              addActivityLine('[' + formatTime(entry.created_at) + '] ' + icon + ' CMD: ' + entry.command + (entry.details ? ' — ' + entry.details : ''), cls);
+            });
+
+            // Show last 5 clicks (oldest first)
+            var recentClicks = clicks.slice(0, 5).reverse();
+            recentClicks.forEach(function(c) {
+              var el = (c.ui_element || 'unknown').slice(0, 50);
+              var url = c.url || '/';
+              var uid = c.user_id ? ' [' + c.user_id.slice(0, 12) + ']' : '';
+              addActivityLine('[' + formatTime(c.created_at) + '] 🖱️ Click: ' + el + ' on ' + url + uid, 'ops-console-line--step');
+            });
+
+            addActivityLine('── Watching for new activity… ──', 'ops-console-line--info');
+
+            // Set high-water marks
+            if (clicks.length) lastSeenClickId = clicks[0].id;
+            if (logs.length) lastSeenAuditId = logs[0].id;
+            activityInitialized = true;
+            setStatus('running', 'LIVE');
+            return;
+          }
+
+          // Subsequent polls: show only NEW entries
+          // New clicks (anything with id > lastSeenClickId)
+          var newClicks = clicks.filter(function(c) { return c.id > lastSeenClickId; });
+          if (newClicks.length) {
+            lastSeenClickId = newClicks[0].id;
+            newClicks.reverse().forEach(function(c) {
+              var el = (c.ui_element || 'unknown').slice(0, 50);
+              var url = c.url || '/';
+              var uid = c.user_id ? ' [' + c.user_id.slice(0, 12) + ']' : '';
+              addActivityLine('[' + formatTime(c.created_at) + '] 🖱️ Click: ' + el + ' on ' + url + uid, 'ops-console-line--step');
+            });
+          }
+
+          // New audit log entries
+          var newLogs = logs.filter(function(l) { return l.id > lastSeenAuditId; });
+          if (newLogs.length) {
+            lastSeenAuditId = newLogs[0].id;
+            newLogs.reverse().forEach(function(entry) {
+              var icon = entry.status === 1 ? '✅' : '❌';
+              var cls = entry.status === 1 ? 'ops-console-line--success' : 'ops-console-line--error';
+              addActivityLine('[' + formatTime(entry.created_at) + '] ' + icon + ' CMD: ' + entry.command + (entry.details ? ' — ' + entry.details : ''), cls);
+            });
+          }
+        });
+      }
+
+      // Initial load + poll every 3 seconds
+      loadActivityFeed();
+      setInterval(loadActivityFeed, 3000);
 
       // Command label map
       var commandLabels = {
