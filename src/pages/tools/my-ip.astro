@@ -1,0 +1,76 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+
+const ip = Astro.request.headers.get('cf-connecting-ip')
+  || Astro.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  || Astro.request.headers.get('x-real-ip')
+  || '127.0.0.1';
+---
+<Layout title="Show My IP Address — What Is My IP?" description="Instantly see your public IP address. Free, no sign-up required. Shows your IPv4 or IPv6 address as seen by web servers." keywords="my ip, what is my ip, show ip address, public ip, ip lookup, ip checker">
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl">🌐</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">What Is My IP Address?</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Your public IP address as seen by web servers.</p>
+    </div>
+
+    <!-- IP Display -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-8 mb-6 shadow-sm text-center">
+      <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">Your IP Address</div>
+      <div id="ip-display" class="text-4xl font-mono font-bold text-amber-600 dark:text-amber-400 select-all break-all">{ip}</div>
+      <button id="copy-ip-btn" class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-gray-600 dark:text-gray-300 hover:text-amber-700 dark:hover:text-amber-300 transition-colors border border-gray-200 dark:border-gray-700 text-sm font-medium">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy
+      </button>
+      <div id="copy-feedback" class="mt-2 text-xs text-green-600 dark:text-green-400 opacity-0 transition-opacity">Copied!</div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">What is an IP address?</h2>
+      <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-3">
+        An IP (Internet Protocol) address is a unique number assigned to every device connected to the internet. It acts like a mailing address, allowing data to be routed to and from your device.
+      </p>
+      <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-3">
+        There are two versions: <strong class="text-gray-800 dark:text-gray-200">IPv4</strong> (e.g., 192.168.1.1) with ~4.3 billion possible addresses, and <strong class="text-gray-800 dark:text-gray-200">IPv6</strong> (e.g., 2001:db8::1) with a virtually unlimited supply.
+      </p>
+      <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+        Your public IP can reveal your approximate geographic location and internet service provider. Use a VPN to mask it for privacy.
+      </p>
+    </div>
+
+    <!-- FAQ -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
+      <div class="space-y-4">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Can someone hack me with my IP?</h3>
+          <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">An IP alone is not enough to hack a device, but it can be used for targeted attacks. Always keep your firewall active and software updated.</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Why does my IP change?</h3>
+          <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Most ISPs assign dynamic IPs that change periodically. If you need a fixed IP, ask your ISP for a static address.</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Is my IP the same on Wi-Fi and mobile data?</h3>
+          <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">No. Each network connection gets a different public IP from its respective provider.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const copyBtn = document.getElementById('copy-ip-btn');
+    const feedback = document.getElementById('copy-feedback');
+    const ipText = document.getElementById('ip-display')?.textContent || '';
+    copyBtn?.addEventListener('click', () => {
+      navigator.clipboard.writeText(ipText.trim()).then(() => {
+        feedback!.style.opacity = '1';
+        setTimeout(() => { feedback!.style.opacity = '0'; }, 2000);
+      });
+    });
+  </script>
+</Layout>

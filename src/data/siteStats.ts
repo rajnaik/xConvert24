@@ -13,7 +13,7 @@ export const STATS = {
   converters: 20,
 
   /** Total number of tool/utility pages (under /tools/*) */
-  tools: 24,
+  tools: 25,
 
   /** Total converters + tools combined */
   get total() { return this.converters + this.tools; },

@@ -222,6 +222,7 @@ export const searchIndex: SearchEntry[] = [
   { category: 'Tools', categoryIcon: '🏦', name: 'Loan Calculator', aliases: ['loan', 'mortgage', 'interest', 'monthly payment', 'amortization', 'repayment'], href: '/tools/loan', type: 'tool', popularity: 72 },
   { category: 'Tools', categoryIcon: '🎂', name: 'Age Calculator', aliases: ['age', 'birthday', 'date of birth', 'how old'], href: '/tools/age', type: 'tool', popularity: 52 },
   { category: 'Tools', categoryIcon: '📅', name: 'Date Difference', aliases: ['date', 'date difference', 'days between', 'date calculator', 'days until'], href: '/tools/date-diff', type: 'tool', popularity: 48 },
+  { category: 'Tools', categoryIcon: '🌐', name: 'Show My IP', aliases: ['ip', 'my ip', 'ip address', 'what is my ip', 'public ip', 'ip lookup', 'ip checker', 'show ip'], href: '/tools/my-ip', type: 'tool', popularity: 60 },
 
   // ── Blog ─────────────────────────────────────────────────────────────────────
   { category: 'Blog', categoryIcon: '📝', name: 'How to Convert Celsius to Fahrenheit', aliases: ['celsius', 'fahrenheit', 'temperature conversion', 'mental math'], href: '/blog/how-to-convert-celsius-to-fahrenheit', type: 'blog', popularity: 45 },
