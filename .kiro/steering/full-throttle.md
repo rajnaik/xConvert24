@@ -12,7 +12,7 @@ Three voice commands control the deploy pipeline. Stop immediately if any step f
 
 When the user says **"Fire your engine"**, execute these steps in order:
 
-1. **Commit & push to git** — Stage all changes, commit with message `v{version} — {short summary}`, push to current branch.
+1. **Commit to git** — Stage all changes, commit with message `v{version} — {short summary}`. *(Git push to GitHub is currently DISABLED — skip the push step.)*
 2. **Build** — Run `npm run build` to verify the project compiles cleanly.
 3. **Update release notes** — Add a new entry to `src/pages/releases.astro` with the current version, today's date, and a summary of changes since the last release (check recent git commits).
 4. **Run tests** — Execute `npx playwright test`. If tests fail, report the failure and STOP.

@@ -365,8 +365,59 @@ const categories: Category[] = [
       </div>
     </div>
 
-    <!-- Right: Add to Home Screen CTA (30%) — hidden if standalone or dismissed -->
-    <div id="install-panel" class="hidden w-72 shrink-0 sticky top-20 lg:block opacity-0 translate-x-8 transition-all duration-700 ease-out">
+    <!-- Right: sidebar (30%) -->
+    <div class="w-72 shrink-0 sticky top-20 hidden lg:flex flex-col gap-5">
+
+      <!-- Pinned Tracker widget -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+          <span class="text-2xl" aria-hidden="true">📌</span>
+          <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Pinned Tracker</h2>
+          <span class="relative flex h-2 w-2 ml-auto">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          </span>
+        </div>
+        <div class="p-4 space-y-3">
+          <!-- Disease tabs (mini) — Ebola focused -->
+          <div id="ft-tabs" class="flex gap-1">
+            <button data-ft-disease="covid" class="ft-tab px-2 py-1 rounded text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1">
+              <svg class="w-3 h-3" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 0a1 1 0 0 1 1 1v1.402c0 .511.677.693.933.25l.7-1.214a1 1 0 0 1 1.733 1l-.701 1.214c-.256.443.24.939.683.683l1.214-.701a1 1 0 0 1 1 1.732l-1.214.701c-.443.256-.262.933.25.933H15a1 1 0 1 1 0 2h-1.402c-.512 0-.693.677-.25.933l1.214.701a1 1 0 1 1-1 1.732l-1.214-.7c-.443-.257-.939.24-.683.682l.701 1.214a1 1 0 1 1-1.732 1l-.701-1.214c-.256-.443-.933-.262-.933.25V15a1 1 0 1 1-2 0v-1.402c0-.512-.677-.693-.933-.25l-.701 1.214a1 1 0 0 1-1.732-1l.7-1.214c.257-.443-.24-.939-.682-.683l-1.214.701a1 1 0 1 1-1-1.732l1.214-.701c.443-.256.261-.933-.25-.933H1a1 1 0 1 1 0-2h1.402c.511 0 .693-.677.25-.933l-1.214-.701a1 1 0 1 1 1-1.732l1.214.701c.443.256.939-.24.683-.683l-.701-1.214a1 1 0 0 1 1.732-1l.701 1.214c.256.443.933.261.933-.25V1a1 1 0 0 1 1-1Zm2 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm1 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm5-3a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
+              COVID-19
+            </button>
+            <button data-ft-disease="ebola" class="ft-tab px-2 py-1 rounded text-[10px] font-semibold bg-amber-500 text-white transition-colors flex items-center gap-1">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-1.5 2-2 4-2 6s.5 4 1 6c.5 2 .5 4-1 6"/><path d="M12 2c1.5 2 2 4 2 6s-.5 4-1 6c-.5 2-.5 4 1 6"/><circle cx="12" cy="8" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1.5" fill="currentColor" stroke="none"/></svg>
+              Ebola
+            </button>
+            <button data-ft-disease="hantavirus" class="ft-tab px-2 py-1 rounded text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 9c0-2.5-1.5-4-4-4s-4 1.5-4 4c0 1.5.5 2.5 1.5 3.2"/><ellipse cx="13" cy="14" rx="5" ry="4"/><path d="M18 14.5l3.5 3.5"/><path d="M18 13.5l3-1"/><circle cx="11" cy="13" r=".5" fill="currentColor"/></svg>
+              Hantavirus
+            </button>
+          </div>
+          <!-- Breaking news feed -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-medium text-red-600 dark:text-red-400">Breaking News</span>
+            <button id="ft-refresh-btn" type="button" title="Refresh news via Tavily" class="p-1 rounded-md text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" aria-label="Refresh breaking news">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+          <div id="ft-news" class="space-y-2 max-h-48 overflow-y-auto">
+            <div class="flex items-center justify-center py-4">
+              <span class="text-xs text-gray-400 animate-pulse">Loading breaking news...</span>
+            </div>
+          </div>
+          <!-- CTA link -->
+          <div class="flex justify-end">
+            <a href="/tools/contagion" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-semibold hover:from-red-600 hover:to-orange-600 transition-all shadow-sm">
+              Track
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Install panel (existing) -->
+      <div id="install-panel" class="hidden opacity-0 translate-x-8 transition-all duration-700 ease-out">
       <a href="/install" class="block bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden hover:border-amber-400 dark:hover:border-amber-500 transition-all hover:shadow-md no-underline">
         <!-- Large phone illustration with instructions ON the screen -->
         <div class="bg-gradient-to-b from-gray-900 to-gray-800 p-5 flex justify-center">
@@ -418,20 +469,21 @@ const categories: Category[] = [
           <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Tap for full guide</p>
         </div>
       </a>
-      <button id="dismiss-install" class="block w-full mt-2 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-center">Dismiss</button>
+
     </div>
+    <!-- end right sidebar -->
   </div>
 </Layout>
 
 <script>
   // Show install panel after 4 minutes of browse time with slide-in animation
+  // On homepage: no dismiss — always shows (unless installed/standalone)
   (function() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
-    const dismissed = localStorage.getItem('xconvert24-install-dismissed');
     const installed = localStorage.getItem('xc-coin-home_screen'); // Set when user earns home_screen coins
     const panel = document.getElementById('install-panel');
 
-    if (isStandalone || dismissed || installed) return; // Never show if installed, earned coin, or dismissed
+    if (isStandalone || installed) return; // Never show if installed or earned coin
 
     // Show after 4 minutes (240000ms)
     var DELAY = 240000;
@@ -453,15 +505,74 @@ const categories: Category[] = [
       panel.classList.remove('opacity-0', 'translate-x-8');
       panel.classList.add('opacity-100', 'translate-x-0');
     }, remaining);
+  })();
+</script>
 
-    document.getElementById('dismiss-install')?.addEventListener('click', () => {
-      localStorage.setItem('xconvert24-install-dismissed', '1');
-      // Animate out
-      if (panel) {
-        panel.classList.add('opacity-0', 'translate-x-8');
-        panel.classList.remove('opacity-100', 'translate-x-0');
-        setTimeout(() => panel.classList.add('hidden'), 700);
+<script>
+  // Pinned Tracker widget — breaking news feed
+  (function() {
+    let ftDisease = 'ebola';
+    const ftNews = document.getElementById('ft-news')!;
+
+    async function loadFTNews(refresh = false) {
+      ftNews.innerHTML = '<div class="flex items-center justify-center py-4"><span class="text-xs text-gray-400 animate-pulse">Loading breaking news...</span></div>';
+      try {
+        const url = `/api/breaking-news?disease=${ftDisease}${refresh ? '&refresh=true' : ''}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('News fetch failed');
+        const data = await res.json();
+        const news = data.news || [];
+
+        if (news.length === 0) {
+          ftNews.innerHTML = '<p class="text-[10px] text-gray-400 text-center py-3">No breaking news at this time.</p>';
+          return;
+        }
+
+        ftNews.innerHTML = news.slice(0, 5).map((item: any) =>
+          `<a href="${item.url}" target="_blank" rel="noopener" class="block p-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/10 border border-transparent hover:border-red-200 dark:hover:border-red-800/50 transition-all group">
+            <p class="text-[11px] font-medium text-gray-900 dark:text-white group-hover:text-red-700 dark:group-hover:text-red-300 line-clamp-2 leading-tight">${item.title}</p>
+            ${item.source ? `<p class="text-[9px] text-amber-600 dark:text-amber-400 mt-0.5">📰 ${item.source}</p>` : ''}
+          </a>`
+        ).join('');
+      } catch {
+        ftNews.innerHTML = '<p class="text-[10px] text-gray-400 text-center py-3">Unable to load news.</p>';
       }
+    }
+
+    function updateFTTabs() {
+      document.querySelectorAll('.ft-tab').forEach(btn => {
+        const isActive = (btn as HTMLElement).dataset.ftDisease === ftDisease;
+        if (isActive) {
+          (btn as HTMLElement).className = 'ft-tab px-2 py-1 rounded text-[10px] font-semibold bg-amber-500 text-white transition-colors flex items-center gap-1';
+        } else {
+          (btn as HTMLElement).className = 'ft-tab px-2 py-1 rounded text-[10px] font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1';
+        }
+      });
+    }
+
+    document.querySelectorAll('.ft-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        ftDisease = (btn as HTMLElement).dataset.ftDisease!;
+        updateFTTabs();
+        loadFTNews();
+      });
     });
+
+    // Refresh button — triggers Tavily search via ?refresh=true
+    document.getElementById('ft-refresh-btn')!.addEventListener('click', async () => {
+      const btn = document.getElementById('ft-refresh-btn')!;
+      btn.classList.add('animate-spin');
+      btn.setAttribute('disabled', '');
+      await loadFTNews(true);
+      btn.classList.remove('animate-spin');
+      btn.removeAttribute('disabled');
+    });
+
+    loadFTNews();
+
+    // Auto-refresh every hour via Tavily
+    setInterval(() => {
+      loadFTNews(true);
+    }, 3600000); // 1 hour in ms
   })();
 </script>

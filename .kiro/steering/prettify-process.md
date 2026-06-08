@@ -2,9 +2,9 @@
 inclusion: manual
 ---
 
-# PRETTIFY — Blog Content Beautification Process
+# PRETTIFY — Blog & Converter Content Beautification Process
 
-When the user says **"PRETTIFY"**, iterate through all blog posts one by one and enhance the content section layout for visual appeal and readability.
+When the user says **"PRETTIFY"**, iterate through all blog posts AND all converter pages one by one and enhance the content section layout for visual appeal and readability.
 
 ---
 
@@ -74,6 +74,7 @@ Replace bare `<h2>` with a thin, light-orange heading:
 
 ## Process
 
+### Blog Posts
 1. Open the first blog post (`src/pages/blog/*.astro`) in order
 2. Read the content section (between the date line and the "Try It Now" amber box)
 3. Identify which content chunks should become:
@@ -83,8 +84,47 @@ Replace bare `<h2>` with a thin, light-orange heading:
    - Accented headings (all `<h2>` tags)
 4. Apply the transformations preserving the original text meaning
 5. Ensure dark mode classes are included on every element
-6. Move to the next blog post and repeat
-7. After all blogs are done, run a build to verify
+6. **Log to PrettifyLog** — after successfully prettifying the blog, POST to the API:
+   ```bash
+   curl -X POST http://localhost:4321/api/prettifylog \
+     -H "Content-Type: application/json" \
+     -d '{"page_type": "blog", "page_slug": "SLUG_NAME", "status": 1}'
+   ```
+   Use `status: 0` if the prettify failed for that page.
+7. Move to the next blog post and repeat
+
+### Converter Pages
+8. After all blogs are done (or if user says "PRETTIFY converters"), open each converter page (`src/pages/convert/*.astro`) in order
+9. Target the **SEO Content** section (the `<div class="mt-8 space-y-6">` block below the converter card)
+10. Apply the same transformations:
+   - Replace plain `<h2>` and `<h3>` headings with **accented headings** (amber left-border style)
+   - Replace standard `<ul>/<li>` with **green arrow bullet lists**
+   - Convert standalone paragraphs with key formulas/facts into **tiles**
+   - If there's comparison data that fits rows, convert to a **pretty table**
+11. Also prettify the **Quick Reference table** — apply the amber-header pretty table style (replace gray header with `bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300`)
+12. Ensure dark mode classes are included on every element
+13. **Log to PrettifyLog** — after successfully prettifying the converter, POST to the API:
+   ```bash
+   curl -X POST http://localhost:4321/api/prettifylog \
+     -H "Content-Type: application/json" \
+     -d '{"page_type": "converter", "page_slug": "SLUG_NAME", "status": 1}'
+   ```
+   Use `status: 0` if the prettify failed for that page.
+14. Move to the next converter page and repeat
+
+### Finalize
+15. After all blogs and converters are done, run a build to verify
+
+---
+
+## Converter-Specific Notes
+
+- Do NOT touch the converter card itself (the interactive from/to/swap/result UI)
+- Do NOT touch the `<script>` section with conversion logic
+- Do NOT modify the header (emoji + h1 + subtitle + ConverterBlogLinks)
+- Only beautify the **Quick Reference table** and the **SEO Content** prose section below it
+- Keep the `prose dark:prose-invert` wrapper but use `not-prose` on custom-styled elements inside it
+- The user can say "PRETTIFY blogs" or "PRETTIFY converters" to target only one category
 
 ---
 
@@ -93,7 +133,17 @@ Replace bare `<h2>` with a thin, light-orange heading:
 - Do NOT change the factual content — only the presentation
 - Keep the prose class on the article wrapper for base typography
 - Use `not-prose` on custom-styled sections to escape Tailwind Typography defaults
-- Preserve all internal links (cross-links between blog posts)
-- The "Try It Now" amber box at the bottom should remain unchanged
+- Preserve all internal links (cross-links between blog posts and converters)
+- The "Try It Now" amber box at the bottom of blogs should remain unchanged
 - The NEW badge, breadcrumb, and BlogCrossLinks component stay untouched
-- Work through blogs alphabetically or in index order — confirm with user if they want a specific order
+- The converter interactive card (from/to/swap/result) stays untouched
+- Work through blogs alphabetically first, then converters alphabetically — confirm with user if they want a specific order
+
+---
+
+## Verification (TODO for future runs)
+
+Before logging a page as prettified, **verify the file was actually transformed**:
+- Check that the SEO content section uses accented headings (`text-xl font-light text-amber-600`), green arrow lists (`▶`), and tiles — not plain `<h2>`/`<h3>`/`<ul>` prose markup.
+- Only POST `status: 1` to PrettifyLog if the file content has the prettified markup present.
+- If a page was previously logged but still has plain prose markup, re-prettify it (the log entry was incorrect).

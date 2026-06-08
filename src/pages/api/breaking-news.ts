@@ -46,33 +46,56 @@ export const GET: APIRoute = async ({ url }) => {
 
       const rows = contagions.results || [];
 
+      // Get preferred sources per contagion from ContagionSources table
+      const sourcesResult = await db.prepare(
+        'SELECT ConID, SourceDomain FROM ContagionSources WHERE Status = 1 ORDER BY Priority ASC'
+      ).all();
+      const sourceRows = sourcesResult.results || [];
+
+      // Group source domains by ConID
+      const sourcesByConId: Record<number, string[]> = {};
+      for (const src of sourceRows) {
+        const conId = (src as any).ConID;
+        if (!sourcesByConId[conId]) sourcesByConId[conId] = [];
+        sourcesByConId[conId].push((src as any).SourceDomain);
+      }
+
       // Build Tavily search queries per contagion
-      const searchQueries: Record<number, string> = {};
+      const searchQueries: Record<number, { query: string; domains: string[] }> = {};
       for (const row of rows) {
         const name = (row as any).ConName;
         const variant = (row as any).ConVariant;
         const conId = (row as any).ConID;
-        searchQueries[conId] = `${name} ${variant} latest news outbreak 2026`;
+        searchQueries[conId] = {
+          query: `${name} ${variant} latest news outbreak 2026`,
+          domains: sourcesByConId[conId] || [],
+        };
       }
 
-      // Search Tavily for each contagion (5 results each)
+      // Search Tavily for each contagion (5 results each), targeting preferred sources
       const allNews: Array<{ conId: number; title: string; url: string; publishedDate: string; source: string; snippet: string }> = [];
 
       await Promise.all(
-        Object.entries(searchQueries).map(async ([conIdStr, query]) => {
+        Object.entries(searchQueries).map(async ([conIdStr, { query, domains }]) => {
           const conId = parseInt(conIdStr);
           try {
+            const body: any = {
+              api_key: tavilyKey,
+              query,
+              search_depth: 'basic',
+              include_answer: false,
+              max_results: 5,
+              topic: 'news',
+            };
+            // If we have preferred domains, tell Tavily to search them
+            if (domains.length > 0) {
+              body.include_domains = domains;
+            }
+
             const response = await fetch('https://api.tavily.com/search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                api_key: tavilyKey,
-                query,
-                search_depth: 'basic',
-                include_answer: false,
-                max_results: 5,
-                topic: 'news',
-              }),
+              body: JSON.stringify(body),
             });
 
             if (!response.ok) return;
