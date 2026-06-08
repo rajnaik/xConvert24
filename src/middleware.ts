@@ -94,6 +94,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
       }
     }
 
+    // Pipeline routes (site-status): allow with pipeline/cron secret
+    if (path === '/api/site-status') {
+      try {
+        const { env } = await import('cloudflare:workers');
+        const cronSecret = (env as any).CRON_SECRET;
+        const authHeader = request.headers.get('Authorization');
+        if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+          return next();
+        }
+      } catch {
+        // Fall through to session check
+      }
+    }
+
     // Verify admin session cookie for protected API routes
     try {
       const { env } = await import('cloudflare:workers');

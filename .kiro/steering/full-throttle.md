@@ -32,11 +32,20 @@ When the user says **"Half Throttle"**, execute these steps in order:
 
 When the user says **"Full Throttle"**, execute these steps in order:
 
-1. **Set site status to green** — `POST /api/site-status` with `{ "status": "green", "updated_by": "full-throttle" }`.
+1. **Set site status to green** — via D1 direct:
+   ```bash
+   npx wrangler d1 execute xconvert24-bugs --remote --command "INSERT OR REPLACE INTO site_status (id, status, updated_at, updated_by) VALUES (1, 'green', datetime('now'), 'full-throttle');"
+   ```
 2. **Deploy to live** — Run `npm run deploy`. This builds and deploys to the live Cloudflare Worker.
-3. **Run all post-deployment tests** — Execute `npx playwright test` against production.
-4. **If all tests pass → set site status to golden** — `POST /api/site-status` with `{ "status": "golden", "updated_by": "full-throttle" }`.
-5. **If any test fails → set site status to red** — `POST /api/site-status` with `{ "status": "red", "updated_by": "full-throttle" }` and STOP.
+3. **Run all post-deployment tests** — Execute `TEST_BASE_URL=https://www.xconvert24.com npx playwright test` against production.
+4. **If all tests pass → set site status to golden**:
+   ```bash
+   npx wrangler d1 execute xconvert24-bugs --remote --command "INSERT OR REPLACE INTO site_status (id, status, updated_at, updated_by) VALUES (1, 'golden', datetime('now'), 'full-throttle');"
+   ```
+5. **If any test fails → set site status to red** and STOP:
+   ```bash
+   npx wrangler d1 execute xconvert24-bugs --remote --command "INSERT OR REPLACE INTO site_status (id, status, updated_at, updated_by) VALUES (1, 'red', datetime('now'), 'full-throttle');"
+   ```
 
 ---
 

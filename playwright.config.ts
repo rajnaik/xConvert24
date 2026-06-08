@@ -4,6 +4,7 @@ export default defineConfig({
   testDir: './tests',
   timeout: 30000,
   retries: 0,
+  workers: 50,
   use: {
     baseURL: process.env.TEST_BASE_URL || 'https://www.xconvert24.com',
     headless: true,

@@ -1,0 +1,180 @@
+---
+const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clicks Analysis — Map | Admin | xConvert24.com</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.svg" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, system-ui, sans-serif; min-height: 100vh; background: #030712; color: #f9fafb; }
+    .header { background: #111827; border-bottom: 1px solid #1f2937; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .logo { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #fbbf24, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .user { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; }
+    .user-name { font-size: 14px; color: #d1d5db; }
+    .logout-btn { font-size: 13px; color: #9ca3af; text-decoration: none; padding: 6px 12px; border-radius: 6px; border: 1px solid #374151; transition: all 0.2s; }
+    .logout-btn:hover { color: #f87171; border-color: #7f1d1d; background: #1f2937; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+
+    .nav-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: #111827; border-radius: 12px; padding: 6px; border: 1px solid #1f2937; overflow-x: auto; }
+    .nav-tab { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #9ca3af; cursor: pointer; transition: all 0.2s; white-space: nowrap; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .nav-tab:hover { color: #f9fafb; background: #1f2937; }
+    .nav-tab.active { color: #fbbf24; background: #1f2937; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+    .stats-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .stat-box { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px 24px; text-align: center; }
+    .stat-box .value { font-size: 28px; font-weight: 700; color: #fbbf24; }
+    .stat-box .label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
+    #map { width: 100%; height: 500px; border-radius: 12px; border: 1px solid #1f2937; margin-bottom: 24px; }
+
+    .table-wrap { background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+    .table-header { padding: 14px 18px; background: #1f2937; border-bottom: 1px solid #374151; font-size: 13px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { padding: 10px 14px; text-align: left; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #1f2937; }
+    td { padding: 10px 14px; border-bottom: 1px solid #0f172a; color: #d1d5db; }
+    tr:hover td { background: #1f2937; }
+    .country-flag { font-size: 16px; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="/admin" class="logo">xConvert24 Admin</a>
+    <div class="user">
+      {user.picture && <img class="avatar" src={user.picture} alt="" />}
+      <span class="user-name">{user.name || user.email}</span>
+      <a href="/admin/logout" class="logout-btn">Logout</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav class="nav-tabs">
+      <a href="/admin" class="nav-tab">📊 Overview</a>
+      <a href="/admin/ops-cmd" class="nav-tab">🎛️ Ops Cmd</a>
+      <a href="/admin/blog-schedule" class="nav-tab">📅 Blog Schedule</a>
+      <a href="/admin/bugs" class="nav-tab">🐛 Bug Reports</a>
+      <a href="/admin/seo" class="nav-tab">🔍 SEO Editor</a>
+      <a href="/admin/analytics" class="nav-tab">📈 Analytics</a>
+      <a href="/admin/clicks-analysis" class="nav-tab active">🗺️ Clicks Map</a>
+      <a href="/admin/settings" class="nav-tab">⚙️ Settings</a>
+    </nav>
+
+    <h1>🗺️ Clicks Analysis</h1>
+    <p class="subtitle">Geographic distribution of visitor clicks — plotted by IP geolocation</p>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="value" id="stat-ips">—</div>
+        <div class="label">Unique IPs</div>
+      </div>
+      <div class="stat-box">
+        <div class="value" id="stat-clicks">—</div>
+        <div class="label">Total Clicks</div>
+      </div>
+      <div class="stat-box">
+        <div class="value" id="stat-countries">—</div>
+        <div class="label">Countries</div>
+      </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="table-wrap">
+      <div class="table-header">IP Breakdown</div>
+      <table>
+        <thead>
+          <tr>
+            <th>IP Address</th>
+            <th>City</th>
+            <th>Country</th>
+            <th>Clicks</th>
+            <th>Last Seen</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="5" style="text-align:center;color:#6b7280;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (function() {
+      const map = L.map('map').setView([50, 4], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+      }).addTo(map);
+
+      fetch('/api/clicks-analysis')
+        .then(r => r.json())
+        .then(data => {
+          const points = data.points || [];
+
+          // Stats
+          document.getElementById('stat-ips').textContent = points.length;
+          document.getElementById('stat-clicks').textContent = points.reduce((s, p) => s + p.click_count, 0);
+          const countries = new Set(points.map(p => p.country));
+          document.getElementById('stat-countries').textContent = countries.size;
+
+          // Country flag helper
+          function flag(code) {
+            if (!code) return '🌐';
+            return code.toUpperCase().replace(/./g, c => String.fromCodePoint(127397 + c.charCodeAt(0)));
+          }
+
+          // Plot markers
+          const bounds = [];
+          points.forEach(p => {
+            if (!p.latitude || !p.longitude) return;
+            const radius = Math.max(6, Math.min(20, p.click_count * 3));
+            const marker = L.circleMarker([p.latitude, p.longitude], {
+              radius: radius,
+              fillColor: '#fbbf24',
+              color: '#d97706',
+              weight: 2,
+              opacity: 0.9,
+              fillOpacity: 0.6,
+            }).addTo(map);
+            marker.bindPopup(
+              '<strong>' + p.ip_address + '</strong><br>' +
+              flag(p.country) + ' ' + p.city + ', ' + p.country + '<br>' +
+              'Clicks: <strong>' + p.click_count + '</strong><br>' +
+              '<small>Last: ' + p.last_seen + '</small>'
+            );
+            bounds.push([p.latitude, p.longitude]);
+          });
+
+          if (bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [40, 40] });
+          }
+
+          // Table
+          const tbody = document.getElementById('table-body');
+          tbody.innerHTML = points.map(p =>
+            '<tr>' +
+            '<td><code>' + p.ip_address + '</code></td>' +
+            '<td>' + (p.city || '—') + '</td>' +
+            '<td><span class="country-flag">' + flag(p.country) + '</span>' + (p.country || '—') + '</td>' +
+            '<td style="font-weight:700;color:#fbbf24;">' + p.click_count + '</td>' +
+            '<td style="font-size:11px;color:#6b7280;">' + (p.last_seen || '—') + '</td>' +
+            '</tr>'
+          ).join('');
+        })
+        .catch(err => {
+          document.getElementById('table-body').innerHTML =
+            '<tr><td colspan="5" style="color:#f87171;">Error loading data: ' + err.message + '</td></tr>';
+        });
+    })();
+  </script>
+</body>
+</html>

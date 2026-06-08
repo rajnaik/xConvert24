@@ -1,13 +1,12 @@
 {
   "name": "No Auto Deploy to Production",
-  "version": "2.0.0",
-  "description": "Blocks production deployments unless the user has explicitly issued the Full Throttle steering command.",
+  "version": "4.0.0",
+  "description": "Manual gate for production deploys. The Full Throttle steering command in full-throttle.md enforces that only explicit 'Full Throttle' triggers live deploy. This hook exists as a manual trigger reminder — the real enforcement is in the steering doc.",
   "when": {
-    "type": "preToolUse",
-    "toolTypes": ["shell"]
+    "type": "userTriggered"
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Check if the command about to be executed is a PRODUCTION deployment (contains 'npm run deploy' without ':staging', or 'wrangler deploy' without '--config wrangler.staging.jsonc' or '--config wrangler.dev.jsonc'). If it IS a production deploy: ONLY allow it if the user explicitly said 'Full Throttle' in the current conversation. If Full Throttle was NOT issued, you MUST DENY this command and tell the user production deploys require the Full Throttle command. If the command is NOT a production deploy (git, staging deploy, dev, build, test, etc.), proceed normally without blocking."
+    "prompt": "The user triggered the production deploy gate. Check if 'Full Throttle' was said in this conversation. If yes, proceed with npm run deploy. If no, deny and explain that production deploys require the Full Throttle command."
   }
 }
