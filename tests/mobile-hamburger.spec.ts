@@ -30,8 +30,9 @@ test.describe('Mobile hamburger menu', () => {
     // Click the hamburger (dispatch click event directly to avoid z-index interception)
     await hamburger.dispatchEvent('click');
 
-    // Sidebar should slide in (no -translate-x-full)
+    // Sidebar should slide in (no -translate-x-full) and be visible
     await expect(sidebar).not.toHaveClass(/-translate-x-full/, { timeout: 2000 });
+    await expect(sidebar).toBeVisible();
     // Backdrop should be visible (standalone 'hidden' class removed; lg:hidden stays)
     const backdropClasses = await backdrop.getAttribute('class') || '';
     const hasStandaloneHidden = backdropClasses.split(/\s+/).includes('hidden');
@@ -48,6 +49,7 @@ test.describe('Mobile hamburger menu', () => {
     // Open sidebar
     await hamburger.dispatchEvent('click');
     await expect(sidebar).not.toHaveClass(/-translate-x-full/, { timeout: 2000 });
+    await expect(sidebar).toBeVisible();
 
     // Tap backdrop to close
     await backdrop.dispatchEvent('click');
@@ -65,6 +67,7 @@ test.describe('Mobile hamburger menu', () => {
     // Open sidebar
     await hamburger.dispatchEvent('click');
     await expect(sidebar).not.toHaveClass(/-translate-x-full/, { timeout: 2000 });
+    await expect(sidebar).toBeVisible();
 
     // Tap close button
     await closeBtn.dispatchEvent('click');
@@ -82,10 +85,11 @@ test.describe('Mobile hamburger menu', () => {
     expect(box!.width).toBeGreaterThanOrEqual(40);
     expect(box!.height).toBeGreaterThanOrEqual(40);
 
-    // Verify clicking the hamburger works (sidebar opens)
+    // Verify clicking the hamburger works (sidebar opens and is visible)
     await hamburger.dispatchEvent('click');
     const sidebar = page.locator('#sidebar');
     await expect(sidebar).not.toHaveClass(/-translate-x-full/, { timeout: 2000 });
+    await expect(sidebar).toBeVisible();
   });
 
   test('open hamburger, tap random menu link, page returns 200', async ({ page }) => {
@@ -97,6 +101,7 @@ test.describe('Mobile hamburger menu', () => {
     // Open the sidebar via click dispatch
     await hamburger.dispatchEvent('click');
     await expect(sidebar).not.toHaveClass(/-translate-x-full/, { timeout: 2000 });
+    await expect(sidebar).toBeVisible();
 
     // Collect all visible nav links inside the sidebar
     const navLinks = sidebar.locator('a[href]');
