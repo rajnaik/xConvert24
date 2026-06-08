@@ -6,6 +6,9 @@ import { STATS } from '../../data/siteStats';
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ops Cmd | Admin | xConvert24.com</title>
   <meta name="robots" content="noindex, nofollow" />
@@ -61,7 +64,7 @@ import { STATS } from '../../data/siteStats';
     /* Operations panes */
     .ops-panes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     @media (max-width: 900px) { .ops-panes { grid-template-columns: 1fr; } }
-    .ops-pane { background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: hidden; }
+    .ops-pane { background: #111827; border: 1px solid #1f2937; border-radius: 12px; overflow: visible; }
     .ops-pane-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #1f2937; border-bottom: 1px solid #374151; }
     .ops-pane-icon { font-size: 18px; }
     .ops-pane-title { font-size: 13px; font-weight: 700; color: #f9fafb; letter-spacing: 0.02em; }
@@ -511,6 +514,26 @@ import { STATS } from '../../data/siteStats';
                 <svg class="ops-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
               </button>
             </div>
+            <div class="ops-item">
+              <div class="ops-item-info">
+                <span class="ops-item-icon">🔍</span>
+                <div><div class="ops-item-name">CheckSeoHealth</div><div class="ops-item-desc">SEO tag audit (dev/staging/live)</div></div>
+              </div>
+              <button class="ops-history-btn" data-history="CheckSeoHealth" aria-label="History">📜</button>
+              <button class="ops-trigger" data-command="checkseohealth" aria-label="Execute CheckSeoHealth">
+                <svg class="ops-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+              </button>
+            </div>
+            <div class="ops-item">
+              <div class="ops-item-info">
+                <span class="ops-item-icon">📈</span>
+                <div><div class="ops-item-name">SEOImprove</div><div class="ops-item-desc">Run pending SEO tasks</div></div>
+              </div>
+              <button class="ops-history-btn" data-history="SEOImprove" aria-label="History">📜</button>
+              <button class="ops-trigger" data-command="seoimprove" aria-label="Execute SEOImprove">
+                <svg class="ops-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -550,6 +573,32 @@ import { STATS } from '../../data/siteStats';
               <button class="ops-trigger" data-command="chop" aria-label="Execute CHOP">
                 <svg class="ops-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
               </button>
+            </div>
+            <div class="ops-item">
+              <div class="ops-item-info">
+                <span class="ops-item-icon">🖱️</span>
+                <div><div class="ops-item-name">FreshClicks</div><div class="ops-item-desc">Refresh dev clicks from live</div></div>
+              </div>
+              <button class="ops-history-btn" data-history="FreshClicks" aria-label="History">📜</button>
+              <button class="ops-trigger" data-command="freshclicks" aria-label="Execute FreshClicks">
+                <svg class="ops-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+              </button>
+            </div>
+            <div class="ops-item">
+              <div class="ops-item-info">
+                <span class="ops-item-icon">🔄</span>
+                <div><div class="ops-item-name">SyncAll</div><div class="ops-item-desc">Sync remote DB to local dev</div></div>
+              </div>
+              <button class="ops-history-btn" data-history="SyncAll" aria-label="History">📜</button>
+              <button class="ops-trigger" data-command="syncall" aria-label="Execute SyncAll">
+                <svg class="ops-trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+              </button>
+            </div>
+            <div class="ops-item">
+              <div class="ops-item-info">
+                <span class="ops-item-icon">🪝</span>
+                <div><div class="ops-item-name">Hooks</div><div class="ops-item-desc"><a href="/admin/hooks" style="color:#fbbf24;text-decoration:none;">View agent hooks →</a></div></div>
+              </div>
             </div>
           </div>
         </div>
@@ -814,6 +863,31 @@ import { STATS } from '../../data/siteStats';
 
       // Load Audit Log Feed
       var auditFeed = document.getElementById('audit-feed');
+      // Map commands to agents for display
+      var agentMap = {
+        'HACK': {icon:'⚙️', name:'Kiro'}, 'CHOP': {icon:'📝', name:'Quill'},
+        'Metadesc': {icon:'📝', name:'Quill'}, 'Metadesc fix': {icon:'📝', name:'Quill'},
+        'Prettify': {icon:'📝', name:'Quill'}, 'PRETTIFY': {icon:'📝', name:'Quill'},
+        'Blog Pipeline': {icon:'📝', name:'Quill'}, 'Blog Burst': {icon:'📝', name:'Quill'},
+        'xPolinate': {icon:'🎯', name:'Archer'}, 'SEOImprove': {icon:'🎯', name:'Archer'},
+        'SEOImprove #3 & #8': {icon:'🎯', name:'Archer'}, 'SEOImprove #4,5,9': {icon:'🎯', name:'Archer'},
+        'CheckSeoHealth': {icon:'🎯', name:'Archer'}, 'CheckSeoHealth live': {icon:'🎯', name:'Archer'},
+        'CheckSeoHealth staging': {icon:'🎯', name:'Archer'}, 'CheckSeoHealth dev': {icon:'🎯', name:'Archer'},
+        'Fire Your Engine': {icon:'⚙️', name:'Kiro'}, 'Fire your engine': {icon:'⚙️', name:'Kiro'},
+        'Half Throttle': {icon:'⚙️', name:'Kiro'}, 'Full Throttle': {icon:'⚙️', name:'Kiro'},
+        'Ship It': {icon:'⚙️', name:'Kiro'}, 'FreshClicks': {icon:'⚙️', name:'Kiro'},
+        'Spring Clean': {icon:'⚙️', name:'Kiro'}, 'Full Maintenance': {icon:'⚙️', name:'Kiro'},
+        'Converter Burst': {icon:'⚙️', name:'Kiro'}, 'Polish': {icon:'📝', name:'Quill'},
+        'TEST': {icon:'🧪', name:'Kiro'},
+      };
+      function getAgent(cmd) {
+        if (agentMap[cmd]) return agentMap[cmd];
+        if (cmd && cmd.match(/^HACK/i)) return {icon:'⚙️', name:'Kiro'};
+        if (cmd && cmd.match(/^CHOP/i)) return {icon:'📝', name:'Quill'};
+        if (cmd && cmd.match(/^SEO/i)) return {icon:'🎯', name:'Archer'};
+        if (cmd && cmd.match(/^Check/i)) return {icon:'🎯', name:'Archer'};
+        return {icon:'🤖', name:'System'};
+      }
       function loadAuditFeed() {
         fetch('/api/auditlog?limit=30')
           .then(function(r) { return r.json(); })
@@ -827,9 +901,9 @@ import { STATS } from '../../data/siteStats';
               var statusIcon = log.status === 1 ? '<span style="color:#4ade80;">✓</span>' : '<span style="color:#f87171;">✗</span>';
               var date = log.created_at ? new Date(log.created_at + 'Z').toLocaleString() : '—';
               var detailText = (log.details || '').replace(/</g,'&lt;');
+              var agent = getAgent(log.command);
               var details = '';
               if (detailText) {
-                // For TEST commands, render structured metrics if available
                 if ((log.command || '').toUpperCase() === 'TEST' && detailText.indexOf('total') > -1) {
                   details = '<div style="font-size:10px;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;">' +
                     '<span style="color:#d1d5db;">📋 ' + detailText + '</span>' +
@@ -841,6 +915,8 @@ import { STATS } from '../../data/siteStats';
               return '<div style="padding:6px 0;border-bottom:1px solid #1e293b;">' +
                 '<div style="display:flex;align-items:center;gap:8px;">' +
                 statusIcon +
+                '<span style="font-size:13px;" title="' + agent.name + '">' + agent.icon + '</span>' +
+                '<span style="color:#22d3ee;font-size:10px;min-width:44px;">' + agent.name + '</span>' +
                 '<span style="color:#fbbf24;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (log.command || '').replace(/</g,'&lt;') + '</span>' +
                 '<span style="color:#6b7280;font-size:10px;white-space:nowrap;">' + date + '</span>' +
                 '</div>' +

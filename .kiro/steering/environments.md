@@ -16,11 +16,14 @@ xConvert24 runs across three fully isolated environments. Each has its own datab
 
 ## Rules
 
-1. **`npm run dev` always connects to the dev database** via `--remote` flag. No local-only mode.
-2. All three environments have the same schema (all migrations applied).
-3. Never connect dev to the live database.
-4. Deploy pipeline: Dev → Staging (test) → Live (golden).
-5. Config files: `wrangler.jsonc` (live), `wrangler.staging.jsonc` (staging), `wrangler.dev.jsonc` (dev).
+1. **`npm run dev` uses LOCAL miniflare SQLite** — despite the `--remote` flag, the Astro dev server binds to local `.wrangler/state/v3/d1/` SQLite files. Use `wrangler d1 execute --remote` to write to the actual remote DB.
+2. **To write data visible in the local dev dashboard**: POST to `http://localhost:4321/api/...` endpoints, or use `sqlite3` directly on the local miniflare files.
+3. **To write data visible on staging/live**: Use `wrangler d1 execute` with `--remote`.
+4. All three environments have the same schema (all migrations applied).
+5. Never connect dev to the live database.
+6. Deploy pipeline: Dev → Staging (test) → Live (golden).
+7. Config files: `wrangler.jsonc` (live), `wrangler.staging.jsonc` (staging), `wrangler.dev.jsonc` (dev).
+8. **"Analytics" on the admin dashboard always means `/admin/clicks-analysis` (our own click data), NOT `/admin/analytics` (Google Analytics).** Only the explicitly-labeled "Google Analytics" card in Tools & External should link to `/admin/analytics`.
 
 ## Database Migrations
 

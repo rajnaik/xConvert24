@@ -6,6 +6,9 @@ import { STATS } from '../../data/siteStats';
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Dashboard | xConvert24.com</title>
   <meta name="robots" content="noindex, nofollow" />
@@ -224,7 +227,7 @@ import { STATS } from '../../data/siteStats';
       <a href="/admin/blog-schedule" class="nav-tab">📅 Blog Schedule</a>
       <a href="/admin/bugs" class="nav-tab">🐛 Bug Reports</a>
       <a href="/admin/seo" class="nav-tab">🔍 SEO Editor</a>
-      <a href="/admin/analytics" class="nav-tab">📈 Analytics</a>
+      <a href="/admin/clicks-analysis" class="nav-tab">📈 Analytics</a>
       <a href="/admin/clicks-analysis" class="nav-tab">🗺️ Clicks Map</a>
       <a href="/admin/settings" class="nav-tab">⚙️ Settings</a>
     </nav>
@@ -263,7 +266,7 @@ import { STATS } from '../../data/siteStats';
           <div class="stat-label">Widgets</div>
           <div class="stat-detail">View library →</div>
         </a>
-        <a href="/admin/analytics" class="stat-card">
+        <a href="/admin/clicks-analysis" class="stat-card">
           <div class="stat-value">{STATS.categories}</div>
           <div class="stat-label">Categories</div>
           <div class="stat-detail">Analytics →</div>
@@ -273,10 +276,35 @@ import { STATS } from '../../data/siteStats';
           <div class="stat-label">Currencies</div>
           <div class="stat-detail">Live rates →</div>
         </a>
-        <div class="stat-card" id="clicks-stat-card">
+        <div class="stat-card" id="clicks-stat-card" style="cursor:pointer;">
           <div class="stat-value" id="clicks-total-count">—</div>
           <div class="stat-label">Clicks</div>
           <div class="stat-detail">Total registered →</div>
+        </div>
+      </div>
+
+      <!-- ClicksAnalysis Table -->
+      <div id="clicks-analysis-table" style="margin-top:16px;background:#111827;border:1px solid #1f2937;border-radius:12px;overflow:hidden;display:none;">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#1f2937;border-bottom:1px solid #374151;">
+          <span style="font-size:14px;">🗺️</span>
+          <span style="font-size:13px;font-weight:600;color:#f9fafb;">Click Analytics by IP</span>
+          <a href="/admin/clicks-analysis" style="margin-left:auto;font-size:10px;color:#fbbf24;text-decoration:none;">View Map →</a>
+        </div>
+        <div style="max-height:300px;overflow-y:auto;">
+          <table style="width:100%;font-size:11px;border-collapse:collapse;">
+            <thead style="background:#0f172a;position:sticky;top:0;">
+              <tr>
+                <th style="padding:8px 12px;text-align:left;color:#fbbf24;font-weight:600;">IP Address</th>
+                <th style="padding:8px 12px;text-align:right;color:#fbbf24;font-weight:600;">Clicks</th>
+                <th style="padding:8px 12px;text-align:left;color:#fbbf24;font-weight:600;">City</th>
+                <th style="padding:8px 12px;text-align:left;color:#fbbf24;font-weight:600;">Country</th>
+                <th style="padding:8px 12px;text-align:left;color:#fbbf24;font-weight:600;">Last Seen</th>
+              </tr>
+            </thead>
+            <tbody id="clicks-analysis-body" style="color:#d1d5db;">
+              <tr><td colspan="5" style="padding:20px;text-align:center;color:#6b7280;">Loading…</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -619,19 +647,6 @@ import { STATS } from '../../data/siteStats';
           <button id="ops-history-close" class="ops-history-close" aria-label="Close history">✕</button>
         </div>
         <div id="ops-history-body" class="ops-history-body">
-          <div style="color:#6b7280;text-align:center;padding:20px;">Loading…</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Clicks Modal -->
-    <div id="clicks-modal" class="ops-history-modal hidden">
-      <div class="ops-history-content" style="width:700px;max-width:95vw;">
-        <div class="ops-history-header">
-          <span style="font-size:13px;font-weight:700;color:#fbbf24;">🖱️ Latest 50 Clicks</span>
-          <button id="clicks-modal-close" class="ops-history-close" aria-label="Close clicks">✕</button>
-        </div>
-        <div id="clicks-modal-body" style="max-height:70vh;overflow-y:auto;padding:8px;">
           <div style="color:#6b7280;text-align:center;padding:20px;">Loading…</div>
         </div>
       </div>
@@ -1159,60 +1174,41 @@ import { STATS } from '../../data/siteStats';
       loadClicksTotal();
       setInterval(loadClicksTotal, 30000);
 
-      // ── Clicks Modal: Show top 50 on click ─────────────────────────────────
+      // ── ClicksAnalysis table toggle ─────────────────────────────────────────
       var clicksCard = document.getElementById('clicks-stat-card');
-      var clicksModal = document.getElementById('clicks-modal');
-      var clicksModalClose = document.getElementById('clicks-modal-close');
-      var clicksModalBody = document.getElementById('clicks-modal-body');
-
-      if (clicksCard && clicksModal) {
-        clicksCard.style.cursor = 'pointer';
+      var clicksAnalysisTable = document.getElementById('clicks-analysis-table');
+      var clicksAnalysisBody = document.getElementById('clicks-analysis-body');
+      if (clicksCard && clicksAnalysisTable) {
         clicksCard.addEventListener('click', function() {
-          clicksModal.classList.remove('hidden');
-          clicksModalBody.innerHTML = '<div style="color:#6b7280;text-align:center;padding:20px;">Loading…</div>';
-          fetch('/api/clicks?limit=50')
+          if (clicksAnalysisTable.style.display === 'block') {
+            clicksAnalysisTable.style.display = 'none';
+            return;
+          }
+          clicksAnalysisTable.style.display = 'block';
+          fetch('/api/clicks-analysis')
             .then(function(r) { return r.json(); })
             .then(function(d) {
-              var clicks = d.clicks || [];
-              if (!clicks.length) {
-                clicksModalBody.innerHTML = '<div style="color:#6b7280;font-style:italic;text-align:center;padding:20px;">No clicks recorded yet.</div>';
+              var points = d.points || [];
+              if (!points.length) {
+                clicksAnalysisBody.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:#6b7280;">No data yet.</td></tr>';
                 return;
               }
-              var html = '<table style="width:100%;font-size:11px;border-collapse:collapse;">';
-              html += '<thead><tr style="background:#1f2937;color:#fbbf24;text-align:left;">';
-              html += '<th style="padding:6px 8px;">#</th>';
-              html += '<th style="padding:6px 8px;">User</th>';
-              html += '<th style="padding:6px 8px;">Element</th>';
-              html += '<th style="padding:6px 8px;">URL</th>';
-              html += '<th style="padding:6px 8px;">IP</th>';
-              html += '<th style="padding:6px 8px;">Time</th>';
-              html += '</tr></thead><tbody>';
-              clicks.forEach(function(c, i) {
-                var uid = (c.user_id || '').slice(0, 14);
-                var el = (c.ui_element || '').replace(/</g, '&lt;').slice(0, 40);
-                var url = (c.url || '/').replace(/</g, '&lt;');
-                var ip = (c.ip_address || '—').replace(/</g, '&lt;');
-                var time = c.created_at ? new Date(c.created_at + 'Z').toLocaleString() : '—';
+              clicksAnalysisBody.innerHTML = points.map(function(p, i) {
                 var bg = i % 2 === 0 ? '#0f172a' : '#111827';
-                html += '<tr style="background:' + bg + ';">';
-                html += '<td style="padding:5px 8px;color:#6b7280;">' + (i + 1) + '</td>';
-                html += '<td style="padding:5px 8px;color:#60a5fa;font-family:monospace;">' + uid + '</td>';
-                html += '<td style="padding:5px 8px;color:#d1d5db;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + el + '">' + el + '</td>';
-                html += '<td style="padding:5px 8px;color:#a78bfa;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + url + '">' + url + '</td>';
-                html += '<td style="padding:5px 8px;color:#4ade80;font-family:monospace;font-size:10px;">' + ip + '</td>';
-                html += '<td style="padding:5px 8px;color:#6b7280;white-space:nowrap;">' + time + '</td>';
-                html += '</tr>';
-              });
-              html += '</tbody></table>';
-              clicksModalBody.innerHTML = html;
+                var time = p.last_seen ? new Date(p.last_seen + 'Z').toLocaleString() : '—';
+                return '<tr style="background:' + bg + ';">' +
+                  '<td style="padding:6px 12px;color:#4ade80;font-family:monospace;font-size:10px;">' + (p.ip_address || '—') + '</td>' +
+                  '<td style="padding:6px 12px;text-align:right;color:#fbbf24;font-weight:700;">' + (p.click_count || 0) + '</td>' +
+                  '<td style="padding:6px 12px;">' + (p.city || '—') + '</td>' +
+                  '<td style="padding:6px 12px;">' + (p.country || '—') + '</td>' +
+                  '<td style="padding:6px 12px;color:#6b7280;white-space:nowrap;">' + time + '</td>' +
+                  '</tr>';
+              }).join('');
             })
             .catch(function() {
-              clicksModalBody.innerHTML = '<div style="color:#f87171;text-align:center;padding:20px;">Failed to load clicks.</div>';
+              clicksAnalysisBody.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:#f87171;">Failed to load.</td></tr>';
             });
         });
-
-        clicksModalClose.addEventListener('click', function() { clicksModal.classList.add('hidden'); });
-        clicksModal.addEventListener('click', function(e) { if (e.target === clicksModal) clicksModal.classList.add('hidden'); });
       }
     })();
   </script>
