@@ -39,12 +39,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
       });
     }
 
+    // Get client IP from Cloudflare header (or fallback)
+    const ipAddress = request.headers.get('cf-connecting-ip')
+      || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || '';
+
     // Fire-and-forget: use waitUntil so response returns immediately
     // while the DB write completes in the background
     const ctx = (locals as any).cfContext || (locals as any).runtime?.ctx;
     const writePromise = db
-      .prepare('INSERT INTO clicks (user_id, ui_element, url) VALUES (?, ?, ?)')
-      .bind(String(user_id), String(ui_element), String(url || ''))
+      .prepare('INSERT INTO clicks (user_id, ui_element, url, ip_address) VALUES (?, ?, ?, ?)')
+      .bind(String(user_id), String(ui_element), String(url || ''), String(ipAddress))
       .run();
 
     if (ctx?.waitUntil) {
@@ -91,7 +96,7 @@ export const GET: APIRoute = async ({ url }) => {
     const element = url.searchParams.get('ui_element');
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50') || 50, 200);
 
-    let query = 'SELECT id, user_id, ui_element, url, created_at FROM clicks';
+    let query = 'SELECT id, user_id, ui_element, url, ip_address, created_at FROM clicks';
     const conditions: string[] = [];
     const params: any[] = [];
 

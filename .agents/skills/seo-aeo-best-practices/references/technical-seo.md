@@ -2,6 +2,12 @@
 
 Essential technical SEO elements for modern web applications.
 
+## Site Mission & Value Props
+
+xConvert24's core mission: **Fast, Free, No Sign-Up, Instant, Accurate.**
+
+Every SEO tag should reinforce at least one of these value props. They reduce click-anxiety and signal trustworthiness to both users and search engines.
+
 ## Table of Contents
 
 - Metadata
@@ -19,12 +25,27 @@ Essential technical SEO elements for modern web applications.
 - 50-60 characters
 - Primary keyword near the beginning
 - Brand name at the end (optional)
+- **Include at least one value prop:** "Free", "Instant", "No Sign-Up"
+- Pattern: `"Primary Query Converter — Free & Instant"`
 
 ### Meta Descriptions
 - Unique per page
-- 150-160 characters
+- 150-160 characters (under 155 for mobile safety)
 - Include call-to-action
 - Contain relevant keywords
+- **Must include "No sign-up" or "Free" or both**
+- Pattern: `"Free [Tool Name]. [What it does]. [Accuracy/speed claim]. No sign-up required."`
+- Examples:
+  - `"Free Weight Converter. Convert kg to lbs, grams to ounces instantly. 100% accurate. No sign-up required."`
+  - `"Free BMI Calculator. Enter height & weight for instant results with WHO categories. No sign-up needed."`
+
+### Alt Tags
+- 60-90 characters
+- Descriptive and contextual
+- Front-load with primary keyword
+- Include "free" or "instant" where natural (e.g., "Free online BMI calculator showing instant results")
+- Don't keyword-stuff
+- Leave decorative images (`aria-hidden="true"`) as-is
 
 ### Open Graph
 ```html

@@ -1,13 +1,13 @@
 {
-  "enabled": false,
+  "enabled": true,
   "name": "Post-Deploy Tests",
-  "description": "After a task is completed (like a build or deploy), remind the agent to run tests against the live site and log the build details.",
-  "version": "1",
+  "description": "After a task is completed (like a build or deploy), run Playwright tests including mobile hamburger navigation against the live site and log the results.",
+  "version": "2",
   "when": {
     "type": "postTaskExecution"
   },
   "then": {
     "type": "askAgent",
-    "prompt": "After deploying, run a quick smoke test by checking that the homepage and a few key pages return HTTP 200 from www.xconvert24.com. Report any failures. Also log the build version, timestamp, and status to the build log in localStorage by executing JS to add an entry to the 'xconvert24-build-log' key."
+    "prompt": "After deploying to staging or live, run the full Playwright test suite against the deployed site:\n1. Run `npx playwright test tests/mobile-hamburger.spec.ts` to verify the mobile hamburger menu opens, a random nav link can be tapped, and the destination returns HTTP 200.\n2. Run `npx playwright test tests/site.spec.ts` for the main smoke tests.\n3. Report any failures with details. If all pass, confirm success.\n4. Log the result to the AuditLog."
   }
 }

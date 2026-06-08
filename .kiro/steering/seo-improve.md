@@ -4,6 +4,14 @@ inclusion: manual
 
 # SEOImprove Command
 
+## Site Mission (Always Apply)
+
+xConvert24's core value props: **Fast, Free, No Sign-Up, Instant, Accurate.**
+
+Every SEO tag (title, meta description, H1, alt text) must reinforce at least one of these. "No sign-up" is the key differentiator — include it in every meta description and most H1s.
+
+---
+
 When the user says **"SEOImprove"**, execute all pending tasks from the `SEOImprovements` table in the dev database, applying each improvement to the codebase.
 
 ---

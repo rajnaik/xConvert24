@@ -175,7 +175,7 @@ const activeCategory = nav.find(section =>
 <!-- Sidebar -->
 <aside
   id="sidebar"
-  class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out"
+  class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out pointer-events-none lg:pointer-events-auto"
   aria-label="Main navigation"
 >
   <!-- Header: logo + close -->
@@ -244,8 +244,9 @@ const activeCategory = nav.find(section =>
     <!-- Tree -->
     <ul class="space-y-0.5" role="tree" aria-label="Converter categories">
       {nav.map((section) => {
-        const isExpanded = true; // All categories open by default
         const hasActive = section.items.some(item => currentPath === item.href || currentPath === item.href + '/');
+        // On mobile: only expand active category. On desktop: JS expands all after load.
+        const isExpanded = hasActive;
         return (
           <li role="treeitem" aria-expanded={isExpanded} class="tree-node" data-id={section.id}>
 
@@ -473,6 +474,29 @@ const activeCategory = nav.find(section =>
     });
   });
 
+  // ── Desktop: expand all categories (mobile starts collapsed) ────────────
+  function expandAllCategories() {
+    document.querySelectorAll<HTMLElement>('.tree-children').forEach(children => {
+      if (children.dataset.expanded !== 'true') {
+        children.style.maxHeight = children.scrollHeight + 'px';
+        children.style.opacity = '1';
+        children.dataset.expanded = 'true';
+        const id = children.id.replace('tree-children-', '');
+        const btn = document.querySelector<HTMLButtonElement>(`.tree-toggle[data-target="${id}"]`);
+        const node = document.querySelector<HTMLElement>(`.tree-node[data-id="${id}"]`);
+        const chevron = btn?.querySelector<SVGElement>('.tree-chevron');
+        btn?.setAttribute('aria-expanded', 'true');
+        node?.setAttribute('aria-expanded', 'true');
+        chevron?.classList.add('rotate-90');
+      }
+    });
+  }
+
+  // On desktop (lg: ≥ 1024px), expand all categories immediately
+  const lgMql = window.matchMedia('(min-width: 1024px)');
+  if (lgMql.matches) expandAllCategories();
+  lgMql.addEventListener('change', (e) => { if (e.matches) expandAllCategories(); });
+
   // ── Mobile sidebar ─────────────────────────────────────────────────────────
   const backdrop = document.getElementById('sidebar-backdrop');
   const sidebar  = document.getElementById('sidebar');
@@ -481,11 +505,15 @@ const activeCategory = nav.find(section =>
 
   function openSidebar() {
     sidebar?.classList.remove('-translate-x-full');
+    sidebar?.classList.remove('pointer-events-none');
+    sidebar?.classList.add('pointer-events-auto');
     backdrop?.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
   }
   function closeSidebar() {
     sidebar?.classList.add('-translate-x-full');
+    sidebar?.classList.remove('pointer-events-auto');
+    sidebar?.classList.add('pointer-events-none');
     backdrop?.classList.add('hidden');
     document.body.style.overflow = '';
   }
