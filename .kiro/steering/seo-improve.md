@@ -226,6 +226,53 @@ Apply the same principle across all images:
 
 ---
 
+## Improvement 6: Descriptive Internal Link Anchor Text (AEO Grounding)
+
+In 2026, AI-powered search engines (Gemini, ChatGPT, Perplexity) use internal links as "grounding data" to understand what each page does. Generic anchor text like "Click here" or "Try it now" is invisible to AI. Descriptive anchors increase chances of appearing in AI-generated search summaries.
+
+### Rules
+
+1. **Every internal link to a converter/tool must describe what it does** — mention the specific conversion:
+   - ❌ "Try our converter" / "Click here" / "Check it out"
+   - ✅ "Convert kilograms to pounds instantly with our free weight converter"
+   - ✅ "Use our accurate Celsius to Fahrenheit converter"
+
+2. **Blog "Try It Now" boxes** — Replace generic CTAs with specific ones:
+   - ❌ `<a href="/convert/weight">Try the converter →</a>`
+   - ✅ `<a href="/convert/weight">Convert kg to lbs, grams to ounces — free & instant →</a>`
+
+3. **Blog inline links** — Where a blog references a converter mid-paragraph:
+   - ❌ "You can convert it [here](/convert/temperature)"
+   - ✅ "Use our [free Celsius to Fahrenheit converter](/convert/temperature) for instant results"
+
+4. **Homepage category cards** — Add `title` attributes with descriptive text:
+   - `<a href="/convert/weight" title="Free weight converter — kg, lbs, grams, ounces, stones">`
+
+5. **ConverterBlogLinks component** — Already uses descriptive short titles (good). No changes needed.
+
+### Scope
+
+- All 50+ blog posts (target the "Try It Now" amber CTA box at bottom)
+- Any inline `<a>` tags in blog content pointing to `/convert/*` or `/tools/*`
+- Homepage category card links
+
+### Pattern for "Try It Now" boxes
+
+```html
+<div class="mt-8 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-center">
+  <a href="/convert/SLUG" class="text-amber-700 dark:text-amber-300 font-semibold hover:underline">
+    Convert [UNIT1] to [UNIT2] instantly — free, no sign-up →
+  </a>
+</div>
+```
+
+### When to Run
+
+- During the next **Prettify** run (since Prettify already touches every blog's content)
+- Or as a standalone `SEOImprove` task targeting `internal-links` category
+
+---
+
 ## Important Notes
 
 - Process tasks in priority order: high → medium → low
