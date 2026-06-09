@@ -73,7 +73,23 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
       <button id="sound-toggle" style="font-size:13px;padding:6px 16px;border-radius:6px;border:2px solid #fbbf24;background:#1f2937;color:#fbbf24;cursor:pointer;font-weight:700;">🔇 Enable Sound</button>
       <span id="sound-status" style="font-size:11px;color:#6b7280;">Click to enable notification sounds</span>
+      <span style="font-size:11px;color:#6b7280;margin-left:12px;">Poll:</span>
+      <select id="poll-interval-select" onchange="localStorage.setItem('clicks-analysis-poll-interval',this.value);location.reload();" style="font-size:11px;padding:3px 8px;border-radius:4px;border:1px solid #374151;background:#1f2937;color:#fbbf24;cursor:pointer;">
+        <option value="500">0.5s</option>
+        <option value="1000">1s</option>
+        <option value="2000">2s</option>
+        <option value="3000">3s</option>
+        <option value="5000">5s</option>
+        <option value="10000">10s</option>
+        <option value="30000">30s</option>
+        <option value="60000">1 min</option>
+        <option value="300000">5 min</option>
+        <option value="600000">10 min</option>
+        <option value="1800000">30 min</option>
+        <option value="3600000">1 hour</option>
+      </select>
       <span id="live-click-count" style="margin-left:auto;font-size:11px;color:#4ade80;">● Live</span>
+      <button id="refresh-clicks-btn" onclick="this.textContent='⏳ Refreshing...';this.disabled=true;fetch('/api/cron/refresh-clicks-analysis').then(function(r){return r.json()}).then(function(d){document.getElementById('refresh-clicks-btn').textContent='✅ Refreshed ('+d.totalIPs+' IPs)';document.getElementById('refresh-clicks-btn').disabled=false;setTimeout(function(){document.getElementById('refresh-clicks-btn').textContent='🔄 Refresh Data';},3000);location.reload();}).catch(function(){document.getElementById('refresh-clicks-btn').textContent='❌ Failed';document.getElementById('refresh-clicks-btn').disabled=false;});" style="font-size:11px;padding:4px 12px;border-radius:4px;border:1px solid #374151;background:#1f2937;color:#22d3ee;cursor:pointer;font-weight:600;">🔄 Refresh Data</button>
     </div>
 
     <div class="stats-row">
@@ -227,14 +243,19 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
               liveCount.textContent = '🔔 New click!';
               liveCount.style.color = '#fbbf24';
               setTimeout(function() { liveCount.textContent = '● Live'; liveCount.style.color = '#4ade80'; }, 1500);
-              if (soundEnabled) { audio.currentTime = 0; audio.play(); }
+              if (soundEnabled) { var a = new Audio('/sounds/notif.wav'); a.volume = 1.0; a.play(); }
             }
             if (clicks.length) lastClickId = clicks[0].id;
           })
           .catch(function() {});
       }
       pollClicks();
-      setInterval(pollClicks, 2000);
+      var _pollMs = parseInt(localStorage.getItem('clicks-analysis-poll-interval') || '2000');
+      setInterval(pollClicks, _pollMs);
+
+      // Restore poll interval dropdown
+      var pollSelect = document.getElementById('poll-interval-select');
+      if (pollSelect) pollSelect.value = localStorage.getItem('clicks-analysis-poll-interval') || '2000';
     })();
   </script>
 </body>
