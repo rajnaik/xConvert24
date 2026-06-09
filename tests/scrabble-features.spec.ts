@@ -110,31 +110,32 @@ test.describe('Scrabble Solver: High-Scoring Words Table', () => {
 });
 
 test.describe('Scrabble Solver: Hint Bubble', () => {
-  test('hint bubble appears after 1 second', async ({ page }) => {
+  test('hint bubble appears after 1 second on desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/tools/scrabble');
-    // Should not be visible immediately
     const bubble = page.locator('#hint-bubble');
     await expect(bubble).toBeAttached();
 
     // Wait for it to appear (1s delay + animation)
     await page.waitForTimeout(1500);
-    await expect(bubble).not.toHaveClass(/hidden/);
+    await expect(bubble).toHaveClass(/opacity-100/);
   });
 
   test('hint bubble disappears on input focus', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/tools/scrabble');
     const bubble = page.locator('#hint-bubble');
 
     // Wait for bubble to appear
     await page.waitForTimeout(1500);
-    await expect(bubble).not.toHaveClass(/hidden/);
+    await expect(bubble).toHaveClass(/opacity-100/);
 
     // Focus the input
     await page.click('#tiles');
 
     // Bubble should fade/hide
     await page.waitForTimeout(500);
-    await expect(bubble).toHaveClass(/hidden/);
+    await expect(bubble).toHaveClass(/opacity-0|hidden/);
   });
 });
 
