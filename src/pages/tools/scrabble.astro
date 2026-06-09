@@ -1335,11 +1335,7 @@ import Layout from '../../layouts/Layout.astro';
   // Hook into achievement click to also analyze leave
 
   // ── Word Definitions (click to lookup) ────────────────────────────────────
-  document.getElementById('results')!.addEventListener('click', async (e) => {
-    const target = (e.target as HTMLElement).closest('[data-highlight-word]') as HTMLElement | null;
-    if (!target) return;
-    const word = target.dataset.highlightWord!;
-
+  async function showDefinition(target: HTMLElement, word: string) {
     // Check if definition tooltip already showing
     const existing = target.querySelector('.word-def-tooltip');
     if (existing) { existing.remove(); return; }
@@ -1368,5 +1364,24 @@ import Layout from '../../layouts/Layout.astro';
 
     // Auto-dismiss after 8 seconds
     setTimeout(() => { tooltip.remove(); }, 8000);
+  }
+
+  // Definitions on solver results
+  document.getElementById('results')!.addEventListener('click', async (e) => {
+    const target = (e.target as HTMLElement).closest('[data-highlight-word]') as HTMLElement | null;
+    if (!target) return;
+    showDefinition(target, target.dataset.highlightWord!);
+  });
+
+  // Definitions on reference panels (two-letter, three-letter, q-without-u, rare letters)
+  ['two-letter-words', 'three-letter-words', 'q-without-u', 'rare-letter-results'].forEach(id => {
+    const container = document.getElementById(id);
+    if (container) {
+      container.addEventListener('click', async (e) => {
+        const target = (e.target as HTMLElement).closest('[data-achieve-word]') as HTMLElement | null;
+        if (!target) return;
+        showDefinition(target, target.dataset.achieveWord!);
+      });
+    }
   });
 </script>
