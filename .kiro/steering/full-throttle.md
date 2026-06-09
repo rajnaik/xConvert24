@@ -50,6 +50,13 @@ When the user says **"Full Throttle"**, execute these steps in order:
    ```bash
    git push
    ```
+7. **Sanitise release notes** — Open `src/pages/releases.astro` and scan ALL release entries for:
+   - **Email addresses** — remove or replace with `[redacted]`
+   - **Staff/employee names** — remove real names of developers, agents, or team members (display names like "kiro", "quill", "archer" are fine)
+   - **Internal architecture details** — remove references to specific file paths (e.g. `src/layouts/Layout.astro line 42`), internal database IDs, API keys, or infrastructure specifics that expose the file system structure
+   - **Sensitive config** — remove any KV IDs, D1 database IDs, Cloudflare account IDs, or internal URLs not meant for public consumption
+   
+   If anything is found and removed, commit with message `chore: sanitise release notes`, rebuild, and redeploy to all 3 environments (staging + live).
 
 ---
 
