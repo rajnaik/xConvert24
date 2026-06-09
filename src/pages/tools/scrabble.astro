@@ -513,7 +513,7 @@ import Layout from '../../layouts/Layout.astro';
       return;
     }
 
-    const achievements = getAchievements();
+    const achievements = getAchievedWords();
 
     resultsEl.innerHTML = `
       <div class="text-xs text-gray-400 mb-3">${found.length} words found — click to add to achievements and copy to clipboard</div>
@@ -952,25 +952,54 @@ import Layout from '../../layouts/Layout.astro';
   // ── Achievements System ─────────────────────────────────────────────────
   const ACHIEVEMENTS_KEY = 'scbAchievements';
 
-  function getAchievements(): string[] {
-    try { return JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY) || '[]'); } catch { return []; }
+  interface Achievement {
+    word: string;
+    meaning: string;
   }
 
-  function saveAchievements(words: string[]) {
-    localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(words));
+  function getAchievements(): Achievement[] {
+    try {
+      const data = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY) || '[]');
+      // Migrate old format (string[]) to new format ({word, meaning}[])
+      if (data.length > 0 && typeof data[0] === 'string') {
+        return data.map((w: string) => ({ word: w, meaning: '' }));
+      }
+      return data;
+    } catch { return []; }
+  }
+
+  function getAchievedWords(): string[] {
+    return getAchievements().map(a => a.word);
+  }
+
+  function saveAchievements(achievements: Achievement[]) {
+    localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+  }
+
+  async function fetchMeaning(word: string): Promise<string> {
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      if (!res.ok) return '';
+      const data = await res.json();
+      const meaning = data[0]?.meanings?.[0];
+      const def = meaning?.definitions?.[0]?.definition || '';
+      const pos = meaning?.partOfSpeech || '';
+      return pos ? `(${pos}) ${def}` : def;
+    } catch { return ''; }
   }
 
   function toggleAchievement(word: string, el: HTMLElement) {
     let achievements = getAchievements();
-    if (achievements.includes(word)) {
+    const exists = achievements.find(a => a.word === word);
+    if (exists) {
       // Remove achievement
-      achievements = achievements.filter(w => w !== word);
+      achievements = achievements.filter(a => a.word !== word);
       el.classList.remove('ring-2', 'ring-emerald-500');
       const tiara = el.querySelector('.achievement-tiara');
       if (tiara) tiara.remove();
     } else {
-      // Add achievement
-      achievements.push(word);
+      // Add achievement (fetch meaning async)
+      achievements.push({ word, meaning: '' });
       el.classList.add('ring-2', 'ring-emerald-500');
       if (!el.querySelector('.achievement-tiara')) {
         const tiara = document.createElement('span');
@@ -981,15 +1010,24 @@ import Layout from '../../layouts/Layout.astro';
       }
       // Copy word to clipboard
       navigator.clipboard.writeText(word.toUpperCase()).catch(() => {});
+      // Fetch and save meaning in background
+      fetchMeaning(word).then(meaning => {
+        const updated = getAchievements();
+        const entry = updated.find(a => a.word === word);
+        if (entry) {
+          entry.meaning = meaning;
+          saveAchievements(updated);
+        }
+      });
     }
     saveAchievements(achievements);
   }
 
   function applyAchievements(container: HTMLElement) {
-    const achievements = getAchievements();
+    const achievedWords = getAchievedWords();
     container.querySelectorAll('[data-achieve-word]').forEach(el => {
       const word = (el as HTMLElement).dataset.achieveWord!;
-      if (achievements.includes(word)) {
+      if (achievedWords.includes(word)) {
         el.classList.add('ring-2', 'ring-emerald-500');
         if (!el.querySelector('.achievement-tiara')) {
           const tiara = document.createElement('span');
