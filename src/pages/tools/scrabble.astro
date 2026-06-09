@@ -243,6 +243,17 @@ import Layout from '../../layouts/Layout.astro';
       </div>
     </div>
 
+    <!-- Best Opening Moves -->
+    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-start gap-2">
+        <span aria-hidden="true">🚀</span> Best Opening Moves
+      </h2>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">The highest-scoring first moves from your rack. Opening plays go through the centre star (H8) and score double word.</p>
+      <div id="best-opening-panel">
+        <div class="text-xs text-gray-400 italic">Enter your tiles above ↑ to see your best opening plays</div>
+      </div>
+    </div>
+
     <!-- Edit Modal -->
     <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
       <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl w-full max-w-sm mx-4">
@@ -1368,6 +1379,67 @@ import Layout from '../../layouts/Layout.astro';
   }
 
   // Hook into achievement click to also analyze leave
+
+  // ── Best Opening Moves ────────────────────────────────────────────────────
+  function updateBestOpeners() {
+    const panel = document.getElementById('best-opening-panel');
+    if (!panel || !dictionaryLoaded) return;
+
+    const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim();
+    if (!tiles || tiles.length < 2) {
+      panel.innerHTML = '<div class="text-xs text-gray-400 italic">Enter your tiles above ↑ to see your best opening plays</div>';
+      return;
+    }
+
+    // Find all words playable from rack (opening = use tiles only, no board)
+    const playable = WORDS
+      .filter(w => w.length >= 2 && w.length <= tiles.length && canMake(w, tiles))
+      .map(w => {
+        // Opening move bonus: double word score (all letters go through centre star)
+        const baseScore = wordScore(w);
+        const openingScore = baseScore * 2;
+        return { word: w, baseScore, openingScore };
+      })
+      .sort((a, b) => b.openingScore - a.openingScore)
+      .slice(0, 10);
+
+    if (!playable.length) {
+      panel.innerHTML = '<div class="text-xs text-gray-400 italic">No valid opening words from these tiles</div>';
+      return;
+    }
+
+    // Check if any are 7-letter (bingo = +50 bonus)
+    const hasBingo = playable.some(w => w.word.length === tiles.length && tiles.length === 7);
+
+    panel.innerHTML = `
+      <div class="space-y-1.5">
+        ${playable.map((w, i) => {
+          const isBingo = w.word.length === tiles.length && tiles.length === 7;
+          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+          const bingoBonus = isBingo ? ' <span class="text-green-600 dark:text-green-400 font-semibold">+50 bingo!</span>' : '';
+          const totalScore = isBingo ? w.openingScore + 50 : w.openingScore;
+          return `
+            <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div class="flex items-center gap-2">
+                ${medal ? `<span class="text-sm">${medal}</span>` : `<span class="text-xs text-gray-400 w-5">${i + 1}.</span>`}
+                <span class="font-mono font-bold uppercase text-gray-900 dark:text-white text-sm">${w.word}</span>
+                <span class="text-xs text-gray-400">(${w.word.length} letters)</span>
+              </div>
+              <div class="text-right">
+                <span class="font-bold text-amber-600 dark:text-amber-400 text-sm">${totalScore} pts</span>${bingoBonus}
+                <div class="text-xs text-gray-400">${w.baseScore} × 2 DWS</div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+      ${hasBingo ? '<div class="mt-2 text-xs text-green-600 dark:text-green-400 font-medium">🎯 You have a bingo! Using all 7 tiles earns +50 bonus.</div>' : ''}
+      <div class="mt-3 text-xs text-gray-400">DWS = Double Word Score (centre star bonus on opening move)</div>
+    `;
+  }
+
+  // Update best openers when tiles change
+  document.getElementById('tiles')!.addEventListener('input', updateBestOpeners);
+  document.getElementById('solve-btn')!.addEventListener('click', updateBestOpeners);
 
   // ── Word Definitions (click to lookup) ────────────────────────────────────
   async function showDefinition(target: HTMLElement, word: string) {
