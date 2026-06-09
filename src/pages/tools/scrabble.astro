@@ -232,6 +232,17 @@ import Layout from '../../layouts/Layout.astro';
       </div>
     </div>
 
+    <!-- Rack Leave Analyzer -->
+    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-start gap-2">
+        <span aria-hidden="true">🧠</span> Rack Leave Analyzer
+      </h2>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Click a word in your results to see what tiles remain on your rack — and how good that "leave" is for your next turn.</p>
+      <div id="rack-leave-panel">
+        <div class="text-xs text-gray-400 italic">Find words first, then click one to analyze your leave</div>
+      </div>
+    </div>
+
     <!-- Edit Modal -->
     <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
       <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl w-full max-w-sm mx-4">
@@ -528,13 +539,14 @@ import Layout from '../../layouts/Layout.astro';
       ${found.length > 100 ? '<div class="mt-2 text-xs text-gray-400 text-center">Showing top 100 of ' + found.length + '</div>' : ''}
     `;
 
-    // Bind word click — toggle achievement + highlight tiles + update probability
+    // Bind word click — toggle achievement + highlight tiles + update probability + analyze leave
     resultsEl.querySelectorAll('[data-achieve-word]').forEach(el => {
       el.addEventListener('click', (e) => {
         const word = (el as HTMLElement).dataset.achieveWord!;
         toggleAchievement(word, el as HTMLElement);
         highlightTiles(word);
         onWordPlayed(word.length);
+        analyzeLeave(word);
       });
     });
   }
@@ -1202,6 +1214,125 @@ import Layout from '../../layouts/Layout.astro';
   inBagInput.addEventListener('input', updateProbability);
   playedInput.addEventListener('input', updateProbability);
   updateProbability();
+
+  // ── Rack Leave Analyzer ─────────────────────────────────────────────────
+  function analyzeLeave(playedWord: string) {
+    const panel = document.getElementById('rack-leave-panel');
+    if (!panel) return;
+
+    const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim().toUpperCase();
+    if (!tiles || tiles.length < 2) {
+      panel.innerHTML = '<div class="text-xs text-gray-400 italic">Enter your rack tiles first</div>';
+      return;
+    }
+
+    // Calculate remaining tiles after playing the word
+    const available = tiles.split('');
+    const wordLetters = playedWord.toUpperCase().split('');
+    const leave: string[] = [...available];
+
+    for (const ch of wordLetters) {
+      const idx = leave.indexOf(ch);
+      if (idx !== -1) {
+        leave.splice(idx, 1);
+      } else {
+        // Used a blank
+        const blankIdx = leave.indexOf('?');
+        if (blankIdx !== -1) leave.splice(blankIdx, 1);
+      }
+    }
+
+    if (leave.length === 0) {
+      panel.innerHTML = `
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+          <div class="text-sm font-semibold text-green-700 dark:text-green-300">🎯 Bingo! You used all your tiles</div>
+          <div class="text-xs text-green-600 dark:text-green-400 mt-1">+50 bonus points in a real game</div>
+        </div>
+      `;
+      return;
+    }
+
+    // Analyze leave quality
+    const vowels = leave.filter(l => 'AEIOU'.includes(l)).length;
+    const consonants = leave.filter(l => l !== '?' && !'AEIOU'.includes(l)).length;
+    const blanks = leave.filter(l => l === '?').length;
+    const hasS = leave.includes('S');
+    const highValue = leave.filter(l => (scores[l] || 0) >= 4);
+    const leaveScore = leave.reduce((sum, l) => sum + (scores[l] || 0), 0);
+
+    // Quality scoring (0-100)
+    let quality = 50;
+
+    // Vowel/consonant balance (ideal ~40% vowels for 7 tiles, ~33% for fewer)
+    const ratio = leave.length > 0 ? vowels / leave.length : 0;
+    if (ratio >= 0.3 && ratio <= 0.5) quality += 15;
+    else if (ratio === 0 || ratio >= 0.7) quality -= 20;
+    else quality -= 5;
+
+    // Keeping an S is great
+    if (hasS) quality += 12;
+
+    // Blanks are the best tiles to keep
+    quality += blanks * 15;
+
+    // Common letters (E, R, S, T, N) are good to keep
+    const commonTiles = leave.filter(l => 'ERSTNA'.includes(l)).length;
+    quality += commonTiles * 3;
+
+    // High-value tiles with no vowels is bad (hard to use)
+    if (highValue.length > 0 && vowels === 0) quality -= 15;
+
+    // Duplicate letters are bad
+    const counts: Record<string, number> = {};
+    leave.forEach(l => { counts[l] = (counts[l] || 0) + 1; });
+    const dupes = Object.values(counts).filter(c => c > 1).length;
+    quality -= dupes * 8;
+
+    // Cap at 0-100
+    quality = Math.max(0, Math.min(100, quality));
+
+    // Quality label
+    let qualityLabel: string;
+    let qualityColor: string;
+    if (quality >= 75) { qualityLabel = 'Excellent'; qualityColor = 'text-green-600 dark:text-green-400'; }
+    else if (quality >= 55) { qualityLabel = 'Good'; qualityColor = 'text-blue-600 dark:text-blue-400'; }
+    else if (quality >= 35) { qualityLabel = 'Fair'; qualityColor = 'text-amber-600 dark:text-amber-400'; }
+    else { qualityLabel = 'Poor'; qualityColor = 'text-red-600 dark:text-red-400'; }
+
+    // Advice
+    const advice: string[] = [];
+    if (vowels === 0) advice.push('⚠️ No vowels — you may struggle next turn');
+    if (ratio >= 0.7) advice.push('⚠️ Too many vowels — consider playing more');
+    if (hasS) advice.push('✓ Keeping S is great for plurals and hooks');
+    if (blanks > 0) advice.push('✓ Blank tiles give maximum flexibility');
+    if (dupes > 0) advice.push('⚠️ Duplicate letters reduce your options');
+    if (highValue.length >= 2) advice.push('💡 Multiple high-value tiles — try to play one next turn');
+
+    panel.innerHTML = `
+      <div class="space-y-3">
+        <div class="flex items-center gap-3">
+          <div class="text-sm font-medium text-gray-700 dark:text-gray-300">After playing <span class="font-mono font-bold uppercase text-amber-600 dark:text-amber-400">${playedWord}</span>, your leave is:</div>
+        </div>
+        <div class="flex items-center gap-2">
+          ${leave.map(l => `<span class="inline-flex items-center justify-center w-8 h-8 rounded bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 font-mono font-bold text-amber-800 dark:text-amber-200 text-sm">${l === '?' ? '★' : l}</span>`).join('')}
+          <span class="ml-2 text-xs text-gray-400">(${leaveScore} pts in hand)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div class="h-full rounded-full ${quality >= 75 ? 'bg-green-500' : quality >= 55 ? 'bg-blue-500' : quality >= 35 ? 'bg-amber-500' : 'bg-red-500'}" style="width:${quality}%"></div>
+          </div>
+          <span class="text-sm font-semibold ${qualityColor}">${qualityLabel}</span>
+          <span class="text-xs text-gray-400">${quality}/100</span>
+        </div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+          <div>Vowels: ${vowels} · Consonants: ${consonants}${blanks ? ' · Blanks: ' + blanks : ''}</div>
+          ${advice.length ? '<div class="mt-1 space-y-0.5">' + advice.map(a => `<div>${a}</div>`).join('') + '</div>' : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // Hook into achievement click to also analyze leave
 
   // ── Word Definitions (click to lookup) ────────────────────────────────────
   document.getElementById('results')!.addEventListener('click', async (e) => {
