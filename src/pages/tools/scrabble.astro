@@ -92,9 +92,16 @@ import Layout from '../../layouts/Layout.astro';
         <!-- Input -->
         <div class="mb-4">
           <label for="tiles" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Your Letter Tiles</label>
-          <div class="flex gap-3">
+          <div class="flex gap-3 relative">
             <input id="tiles" type="text" maxlength="15" placeholder="e.g. AERTBLS" class="flex-1 h-14 sm:h-14 h-12 px-4 sm:px-4 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-xl sm:text-2xl font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-500" autocomplete="off" size="15"/>
             <button id="solve-btn" class="px-6 h-14 rounded-lg bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-colors">Find Words</button>
+            <!-- Hint bubble -->
+            <div id="hint-bubble" class="absolute top-1/2 -translate-y-1/2 right-full mr-3 hidden opacity-0 transition-all duration-300 z-20">
+              <div class="relative bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg whitespace-nowrap">
+                Enter your letters here
+                <div class="absolute top-1/2 -translate-y-1/2 -right-2 w-4 h-4 bg-orange-500 rotate-45"></div>
+              </div>
+            </div>
           </div>
           <p class="mt-2 text-xs text-gray-400">Use ? for blank tiles (wildcards)</p>
         </div>
@@ -190,9 +197,46 @@ import Layout from '../../layouts/Layout.astro';
       </div>
     </div>
 
-    <!-- Suggest a feature -->
-    <div class="mt-6 text-center">
-      <a href="/suggest?title=Free+Scrabble+Word+Finder" class="inline-flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium">
+    <!-- Related Blog Posts -->
+    <div class="mt-10 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <span aria-hidden="true">📝</span> Related Articles
+      </h2>
+      <ul class="space-y-3">
+        <li>
+          <a href="/blog/scrabble-history-origins-great-depression" class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+            <span class="shrink-0 text-base" aria-hidden="true">🏛️</span>
+            <span>The History of Scrabble: From the Great Depression to Global Phenomenon</span>
+          </a>
+        </li>
+        <li>
+          <a href="/blog/scrabble-tile-strategy-letters-scoring" class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+            <span class="shrink-0 text-base" aria-hidden="true">🎯</span>
+            <span>Scrabble Tile Strategy: Letter Values, Rack Management & Scoring Tips</span>
+          </a>
+        </li>
+        <li>
+          <a href="/blog/scrabble-dictionaries-languages-weird-words" class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+            <span class="shrink-0 text-base" aria-hidden="true">📖</span>
+            <span>Scrabble Dictionaries: Languages, Weird Words & What Counts</span>
+          </a>
+        </li>
+        <li>
+          <a href="/blog/competitive-scrabble-tournament-world" class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+            <span class="shrink-0 text-base" aria-hidden="true">🏆</span>
+            <span>Inside Competitive Scrabble: Tournaments, Records & the Mental Game</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Report a bug · Suggest a feature -->
+    <div class="mt-6 flex items-center justify-center gap-4 flex-wrap">
+      <a href="/report-bug?tool=Free+Scrabble+Word+Finder" class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:underline font-medium">
+        <span aria-hidden="true">🐛</span> Report a bug
+      </a>
+      <span class="text-gray-300 dark:text-gray-600">|</span>
+      <a href="/suggest?title=Free+Scrabble+Word+Finder" class="inline-flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium">
         <span aria-hidden="true">💡</span> Suggest a new feature for this tool →
       </a>
     </div>
@@ -245,10 +289,56 @@ import Layout from '../../layouts/Layout.astro';
       if (!res.ok) throw new Error('Failed to load dictionary');
       WORDS = await res.json();
       dictionaryLoaded = true;
-      // Update UI to show dictionary is ready
+      // Update UI to show dictionary is ready + high scoring words
       const resultsEl = document.getElementById('results')!;
       if (resultsEl.querySelector('.text-sm.italic')) {
-        resultsEl.innerHTML = '<div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm italic">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>';
+        // Find top scoring words by length
+        function topByLen(len: number, count: number): {word: string, score: number}[] {
+          return WORDS
+            .filter(w => w.length === len)
+            .map(w => ({ word: w, score: w.split('').reduce((s, c) => s + (scores[c.toUpperCase()] || 0), 0) }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, count);
+        }
+        const top2 = topByLen(2, 5);
+        const top3 = topByLen(3, 5);
+        const top4 = topByLen(4, 5);
+        const top5 = topByLen(5, 5);
+
+        function renderRow(words: {word: string, score: number}[]): string {
+          return words.map(w => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 font-mono"><span class="font-bold text-gray-900 dark:text-white uppercase" style="font-size:0.85rem">${w.word}</span><span class="text-amber-600 dark:text-amber-400" style="font-size:0.7rem">${w.score}</span></span>`).join(' ');
+        }
+
+        resultsEl.innerHTML = `
+          <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-6">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+              <thead class="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300 w-32">Length</th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Highest Scoring Words</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                <tr class="bg-white dark:bg-gray-900">
+                  <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 text-base">2-letter</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-2">${renderRow(top2)}</div></td>
+                </tr>
+                <tr class="bg-gray-50 dark:bg-gray-800/50">
+                  <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 text-base">3-letter</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-2">${renderRow(top3)}</div></td>
+                </tr>
+                <tr class="bg-white dark:bg-gray-900">
+                  <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 text-base">4-letter</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-2">${renderRow(top4)}</div></td>
+                </tr>
+                <tr class="bg-gray-50 dark:bg-gray-800/50">
+                  <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 text-base">5-letter</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-2">${renderRow(top5)}</div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>`;
       }
     } catch {
       // Fallback: use a minimal built-in list
@@ -258,6 +348,22 @@ import Layout from '../../layouts/Layout.astro';
   }
 
   loadDictionary();
+
+  // Hint bubble: show after 1s, hide on input focus
+  setTimeout(() => {
+    const bubble = document.getElementById('hint-bubble');
+    if (bubble) {
+      bubble.classList.remove('hidden');
+      requestAnimationFrame(() => { bubble.classList.remove('opacity-0'); bubble.classList.add('opacity-100'); });
+    }
+  }, 1000);
+  document.getElementById('tiles')!.addEventListener('focus', () => {
+    const bubble = document.getElementById('hint-bubble');
+    if (bubble) {
+      bubble.classList.add('opacity-0');
+      setTimeout(() => bubble.classList.add('hidden'), 300);
+    }
+  }, { once: true });
 
   function wordScore(word: string): number {
     return word.split('').reduce((sum, ch) => sum + (scores[ch.toUpperCase()] || 0), 0);

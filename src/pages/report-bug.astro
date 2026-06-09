@@ -164,6 +164,21 @@ const indexJson = JSON.stringify(searchIndex);
   const bugList = document.getElementById('bug-list');
   const bugTotal = document.getElementById('bug-total');
 
+  // Prefill tool from URL query param (e.g. /report-bug?tool=Weight+Converter)
+  function prefillFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const toolParam = params.get('tool');
+    if (!toolParam) return;
+    // Find matching entry in index
+    const match = index.find(e => e.name.toLowerCase() === toolParam.toLowerCase());
+    if (match) {
+      selectPage(match.name, match.categoryIcon, match.href);
+    } else {
+      // Fallback: just show the name as text in the search input
+      searchInput.value = toolParam;
+    }
+  }
+
   // Search logic
   function score(entry, q) {
     const lq = q.toLowerCase();
@@ -226,6 +241,9 @@ const indexJson = JSON.stringify(searchIndex);
   searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) showDropdown(searchInput.value); });
   clearSelBtn.addEventListener('click', clearSelection);
   document.addEventListener('click', (e) => { if (!wrapper.contains(e.target)) dropdown.classList.add('hidden'); });
+
+  // Prefill from ?tool= query param if present
+  prefillFromURL();
 
   // Fetch and render bugs from global API
   async function loadBugs() {

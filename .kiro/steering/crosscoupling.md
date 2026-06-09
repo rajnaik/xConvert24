@@ -4,7 +4,7 @@ When asked to run "CrossCoupling", add a "💡 Suggest a new feature for this to
 
 ## How It Works
 
-Each tool page gets a link at the bottom (after the last content section, before `</div>` closing the main wrapper). The link takes the user to the `/suggest` page with the tool's name pre-filled in the "What would you like us to add?" field.
+Each tool/converter page gets a link at the bottom (after the last content section, before `</Layout>` closing the page). The link takes the user to the `/suggest` page with the tool's name pre-filled in the "What would you like us to add?" field.
 
 The `/suggest` page already reads `?title=` from the URL and prefills the input field (implemented in suggest.astro script).
 
@@ -19,7 +19,7 @@ The `/suggest` page already reads `?title=` from the URL and prefills the input 
 </div>
 ```
 
-## Converter/Tool List & Status
+## Tools List & Status
 
 | # | File | Tool Name (for link) | Status |
 |---|------|---------------------|--------|
@@ -54,10 +54,40 @@ The `/suggest` page already reads `?title=` from the URL and prefills the input 
 | 29 | tools/video-converter.astro | Video Converter | ✅ Done |
 | 30 | tools/video-formats.astro | Video Formats Guide | ✅ Done |
 
+## Converters List & Status
+
+| # | File | Converter Name (for link) | Status |
+|---|------|--------------------------|--------|
+| 1 | convert/angle.astro | Angle Converter | ✅ Done |
+| 2 | convert/area.astro | Area Converter | ✅ Done |
+| 3 | convert/base.astro | Number Base Converter | ✅ Done |
+| 4 | convert/body-weight-percentage.astro | Body Weight Percentage Calculator | ✅ Done |
+| 5 | convert/clothing-size.astro | Clothing Size Converter | ✅ Done |
+| 6 | convert/cooking.astro | Cooking Converter | ✅ Done |
+| 7 | convert/currency.astro | Currency Converter | ✅ Done |
+| 8 | convert/cycling-speed.astro | Cycling Speed Calculator | ✅ Done |
+| 9 | convert/data.astro | Data Storage Converter | ✅ Done |
+| 10 | convert/energy.astro | Energy Converter | ✅ Done |
+| 11 | convert/frequency.astro | Frequency Converter | ✅ Done |
+| 12 | convert/fuel.astro | Fuel Economy Converter | ✅ Done |
+| 13 | convert/length.astro | Length Converter | ✅ Done |
+| 14 | convert/oven-temperature.astro | Oven Temperature Converter | ✅ Done |
+| 15 | convert/power.astro | Power Converter | ✅ Done |
+| 16 | convert/precious-metals.astro | Precious Metals Converter | ✅ Done |
+| 17 | convert/pressure.astro | Pressure Converter | ✅ Done |
+| 18 | convert/roman.astro | Roman Numeral Converter | ✅ Done |
+| 19 | convert/running-pace.astro | Running Pace Calculator | ✅ Done |
+| 20 | convert/shoe-size.astro | Shoe Size Converter | ✅ Done |
+| 21 | convert/speed.astro | Speed Converter | ✅ Done |
+| 22 | convert/temperature.astro | Temperature Converter | ✅ Done |
+| 23 | convert/time.astro | Time Converter | ✅ Done |
+| 24 | convert/volume.astro | Volume Converter | ✅ Done |
+| 25 | convert/weight.astro | Weight Converter | ✅ Done |
+
 ## Rules
 
-1. Insert the link AFTER the last content `<div>` but BEFORE the closing `</div>` of the main page wrapper.
-2. Use the short/friendly tool name (not the full SEO title with em-dashes).
+1. Insert the link BEFORE `</Layout>` at the bottom of each page.
+2. Use the short/friendly tool/converter name (not the full SEO title with em-dashes).
 3. URL-encode the title using `+` for spaces.
 4. Do NOT duplicate the link if it already exists on a page.
 5. The `/suggest` page handles the prefill — no changes needed to suggest.astro per tool.

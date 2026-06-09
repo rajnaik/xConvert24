@@ -51,6 +51,10 @@ const PUBLIC_API_ROUTES: { path: string; methods: string[] }[] = [
   { path: '/api/breaking-news', methods: ['GET'] },
   // Commits (public — read only)
   { path: '/api/commits', methods: ['GET'] },
+  // Cron jobs (called by external scheduler — no auth)
+  { path: '/api/cron/refresh-clicks-analysis', methods: ['GET'] },
+  { path: '/api/cron/publish-blogs', methods: ['GET'] },
+  { path: '/api/cron/refresh-news', methods: ['GET'] },
 ];
 
 /**
