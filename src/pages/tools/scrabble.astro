@@ -203,6 +203,27 @@ import Layout from '../../layouts/Layout.astro';
       <div id="rare-letter-results" class="text-xs text-gray-600 dark:text-gray-400 italic">Loading dictionary…</div>
     </div>
 
+    <!-- Tile Probability Calculator -->
+    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+        <span aria-hidden="true">🎲</span> Tile Bag Probability
+      </h2>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Standard SOWPODS bag (100 tiles). Enter your rack above to see draw probabilities for remaining tiles.</p>
+      <div id="tile-probability" class="space-y-2">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+            <div class="text-2xl font-bold text-gray-900 dark:text-white" id="prob-remaining">100</div>
+            <div class="text-xs text-gray-500">Tiles in bag</div>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+            <div class="text-2xl font-bold text-amber-600 dark:text-amber-400" id="prob-your-rack">0</div>
+            <div class="text-xs text-gray-500">Your rack</div>
+          </div>
+        </div>
+        <div id="prob-draw-chances" class="mt-3 text-xs text-gray-500 dark:text-gray-400 italic">Type your tiles above to see probabilities</div>
+      </div>
+    </div>
+
     <!-- Edit Modal -->
     <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
       <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl w-full max-w-sm mx-4">
@@ -1075,6 +1096,58 @@ import Layout from '../../layouts/Layout.astro';
       });
     });
   }
+
+  // ── Tile Probability Calculator ─────────────────────────────────────────
+  const FULL_BAG: Record<string, number> = {
+    A:9,B:2,C:2,D:4,E:12,F:2,G:3,H:2,I:9,J:1,K:1,L:4,M:2,
+    N:6,O:8,P:2,Q:1,R:6,S:4,T:6,U:4,V:2,W:2,X:1,Y:2,Z:1,'?':2
+  };
+  const TOTAL_TILES = 100;
+
+  function updateProbability() {
+    const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim().toUpperCase();
+    const remainingEl = document.getElementById('prob-remaining');
+    const rackEl = document.getElementById('prob-your-rack');
+    const chancesEl = document.getElementById('prob-draw-chances');
+    if (!remainingEl || !rackEl || !chancesEl) return;
+
+    const rackCount = tiles.length;
+    rackEl.textContent = String(rackCount);
+
+    // Calculate remaining bag
+    const bag = { ...FULL_BAG };
+    for (const ch of tiles) {
+      const key = ch === '?' ? '?' : ch;
+      if (bag[key] && bag[key] > 0) bag[key]--;
+    }
+    const remaining = Object.values(bag).reduce((s, n) => s + n, 0);
+    remainingEl.textContent = String(remaining);
+
+    if (rackCount === 0 || remaining === 0) {
+      chancesEl.innerHTML = '<span class="italic">Type your tiles above to see probabilities</span>';
+      return;
+    }
+
+    // Show probability of drawing key tiles
+    const keyTiles = ['S','E','R','T','N','?','Z','Q','X','J'];
+    const rows = keyTiles
+      .filter(t => bag[t] > 0)
+      .map(t => {
+        const count = bag[t];
+        const pct = ((count / remaining) * 100).toFixed(1);
+        const label = t === '?' ? 'Blank' : t;
+        return `<div class="flex items-center justify-between"><span class="font-mono font-semibold">${label}</span><span>${count} left — <strong class="text-amber-600 dark:text-amber-400">${pct}%</strong> chance</span></div>`;
+      });
+
+    chancesEl.innerHTML = `
+      <div class="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Draw probability (next tile):</div>
+      <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400">${rows.join('')}</div>
+    `;
+  }
+
+  // Update probability when tiles change
+  document.getElementById('tiles')!.addEventListener('input', updateProbability);
+  updateProbability();
 
   // ── Word Definitions (click to lookup) ────────────────────────────────────
   document.getElementById('results')!.addEventListener('click', async (e) => {
