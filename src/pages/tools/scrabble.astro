@@ -506,6 +506,8 @@ import Layout from '../../layouts/Layout.astro';
     const savedSet = new Set(savedWords.map(w => w.word));
     const isFull = savedWords.length >= MAX_SAVED;
 
+    const achievements = getAchievements();
+
     resultsEl.innerHTML = `
       <div class="text-xs text-gray-400 mb-3">${found.length} words found</div>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-80 overflow-y-auto">
@@ -513,8 +515,15 @@ import Layout from '../../layouts/Layout.astro';
           const alreadySaved = savedSet.has(w);
           const saveDisabled = alreadySaved;
           const saveTitle = alreadySaved ? 'Already saved' : isFull ? 'List full — click to see prompt' : 'Save this word';
+          const isAchieved = achievements.includes(w);
+          const achievedClass = isAchieved ? 'ring-2 ring-emerald-500' : '';
+          const tiara = isAchieved ? '<span class="absolute -top-2 -left-1 text-xs">👑</span>' : '';
+          const rareLetters = ['q','z','x','j'];
+          const rareMatch = rareLetters.filter(l => w.includes(l));
+          const rareIcon = rareMatch.length ? `<span class="absolute -top-2 -right-1 text-xs" title="Contains rare letter: ${rareMatch.join(', ').toUpperCase()}">💎</span>` : '';
           return `
-          <div class="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-amber-400 transition-all" data-highlight-word="${w}">
+          <div class="relative flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-amber-400 transition-all ${achievedClass}" data-highlight-word="${w}">
+            ${tiara}${rareIcon}
             <span class="font-mono font-semibold text-gray-900 dark:text-white uppercase tracking-wider" style="font-size:0.65rem">${w}</span>
             <div class="flex items-center gap-1">
               <span class="text-green-600 dark:text-green-400" style="font-size:0.5rem" title="Valid in SOWPODS dictionary">✓</span>
