@@ -152,7 +152,7 @@ import Layout from '../layouts/Layout.astro';
       const res = await fetch('/api/favourites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: uid, items: favs.map(f => f.name), hidden: false })
+        body: JSON.stringify({ user_id: uid, items: favs.map(f => ({ name: f.name, href: f.href })), hidden: false })
       });
       // Show success even if API fails (local dev has no DB)
       const apiOk = res.ok;
@@ -209,6 +209,77 @@ import Layout from '../layouts/Layout.astro';
   });
 
   // Load what others are adding
+  // Title → href lookup for published favourites (old string-format items)
+  const titleToHref: Record<string, string> = {
+    'Weight & Mass Converter — KG, Lbs, Ounces, Stones': '/convert/weight',
+    'Weight Converter': '/convert/weight',
+    'Length Converter': '/convert/length',
+    'Temperature Converter': '/convert/temperature',
+    'Area Converter': '/convert/area',
+    'Volume Converter': '/convert/volume',
+    'Speed Converter': '/convert/speed',
+    'Data Storage Converter': '/convert/data',
+    'Energy Converter': '/convert/energy',
+    'Pressure Converter': '/convert/pressure',
+    'Power Converter': '/convert/power',
+    'Fuel Economy Converter': '/convert/fuel',
+    'Angle Converter': '/convert/angle',
+    'Frequency Converter': '/convert/frequency',
+    'Time Converter': '/convert/time',
+    'Cooking Converter': '/convert/cooking',
+    'Currency Converter': '/convert/currency',
+    'Number Base Converter': '/convert/base',
+    'Roman Numeral Converter': '/convert/roman',
+    'Shoe Size Converter': '/convert/shoe-size',
+    'Clothing Size Converter': '/convert/clothing-size',
+    'Body Weight Percentage Calculator': '/convert/body-weight-percentage',
+    'Cycling Speed Calculator': '/convert/cycling-speed',
+    'Oven Temperature Converter': '/convert/oven-temperature',
+    'Precious Metals Converter': '/convert/precious-metals',
+    'Running Pace Calculator': '/convert/running-pace',
+    'Free Scrabble Word Finder — Highest-Scoring Words': '/tools/scrabble',
+    'Free Scrabble Word Finder': '/tools/scrabble',
+    'Scrabble Word Finder': '/tools/scrabble',
+    'BMI Calculator': '/tools/bmi',
+    'Scientific Calculator': '/tools/calculator',
+    'Color Picker': '/tools/color',
+    'World Clock': '/tools/clock',
+    'Stopwatch': '/tools/stopwatch',
+    'Alarm Clock': '/tools/alarm',
+    'Reminder': '/tools/reminder',
+    'Age Calculator': '/tools/age',
+    'Date Difference Calculator': '/tools/date-diff',
+    'Tip Calculator': '/tools/tip',
+    'Discount Calculator': '/tools/discount',
+    'Loan Calculator': '/tools/loan',
+    'Image Converter': '/tools/image-converter',
+    'Image Editor': '/tools/image-editor',
+    'Audio Converter': '/tools/audio-converter',
+    'Video Converter': '/tools/video-converter',
+    'Guitar Tuner': '/tools/guitar-tuner',
+    'Morse Code Translator': '/tools/morse',
+    'Password Generator': '/tools/password',
+    'Epoch Converter': '/tools/epoch',
+    'Aspect Ratio Calculator': '/tools/aspect-ratio',
+    'Online Ruler': '/tools/ruler',
+    'Map Tools': '/tools/distance-map',
+    'Crypto Bubbles': '/tools/crypto-bubbles',
+    'Top 100 Crypto': '/tools/crypto-coins',
+    'Contagion Tracker': '/tools/contagion',
+    'Show My IP Address': '/tools/my-ip',
+  };
+
+  function resolveHref(item: any): string | null {
+    if (typeof item === 'object' && item.href) return item.href;
+    const name = typeof item === 'string' ? item : item.name;
+    if (titleToHref[name]) return titleToHref[name];
+    // Fuzzy match: check if any key is contained in the name
+    for (const [title, href] of Object.entries(titleToHref)) {
+      if (name.includes(title) || title.includes(name)) return href;
+    }
+    return null;
+  }
+
   async function loadOthersFavs() {
     const container = document.getElementById('others-favs')!;
     try {
@@ -250,18 +321,26 @@ import Layout from '../layouts/Layout.astro';
         </div>`;
 
         // Render each item as a train carriage whose width scales with text length
-        const carriages = items.map((item: string) => {
-          // Approx 7px per char + padding for the carriage width
-          const charWidth = Math.max(item.length * 7 + 32, 60);
-          return `<div class="inline-flex items-center relative" style="width:${charWidth}px;height:38px;">
-            <svg viewBox="0 0 ${charWidth} 38" width="${charWidth}" height="38" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0">
+        const carriages = items.map((item: any) => {
+          const name = typeof item === 'string' ? item : item.name;
+          const href = resolveHref(item);
+          // Approx 6px per char + padding for the carriage width (tighter fit)
+          const charWidth = Math.max(name.length * 6 + 24, 50);
+          const inner = `<span class="relative z-10 w-full text-center text-[10px] font-semibold text-gray-800 truncate px-1" style="line-height:28px;">${name}</span>`;
+          const svgBg = `<svg viewBox="0 0 ${charWidth} 38" width="${charWidth}" height="38" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0">
               <rect x="1" y="2" width="${charWidth - 2}" height="28" rx="4" fill="#d97706" stroke="#92400e" stroke-width="1"/>
               <rect x="4" y="5" width="${charWidth - 8}" height="18" rx="2" fill="#fef3c7" stroke="#d97706" stroke-width="0.5"/>
               <line x1="0" y1="30" x2="${charWidth}" y2="30" stroke="#6b7280" stroke-width="1.5"/>
               <circle cx="${charWidth * 0.25}" cy="33" r="4" fill="#374151" stroke="#1f2937" stroke-width="1"/>
               <circle cx="${charWidth * 0.75}" cy="33" r="4" fill="#374151" stroke="#1f2937" stroke-width="1"/>
-            </svg>
-            <span class="relative z-10 w-full text-center text-[10px] font-semibold text-gray-800 truncate px-2" style="line-height:28px;">${item}</span>
+            </svg>`;
+          if (href) {
+            return `<a href="${href}" class="inline-flex items-center relative hover:scale-105 transition-transform" style="width:${charWidth}px;height:38px;" title="${name}">
+              ${svgBg}${inner}
+            </a>`;
+          }
+          return `<div class="inline-flex items-center relative" style="width:${charWidth}px;height:38px;">
+            ${svgBg}${inner}
           </div>`;
         }).join('');
         return `<div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">

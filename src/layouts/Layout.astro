@@ -746,7 +746,7 @@ const fullTitle = `${title} | xConvert24.com`;
     </script>
 
     <script is:inline>
-      // ─── Download User ID Button ───────────────────────────────────────────
+      // ─── Download Full Backup Button ───────────────────────────────────────
       (function() {
         var dlBtn = document.getElementById('download-uid-btn');
         if (!dlBtn) return;
@@ -756,10 +756,20 @@ const fullTitle = `${title} | xConvert24.com`;
             alert('No User ID found. Use the site a bit first so one gets generated.');
             return;
           }
-          var blob = new Blob(['xConvert24 User ID\n' + uid + '\n'], { type: 'text/plain' });
+          // Collect all localStorage keys
+          var data = { version: 2, exportedAt: new Date().toISOString(), userId: uid };
+          for (var i = 0; i < localStorage.length; i++) {
+            var key = localStorage.key(i);
+            if (key) {
+              var val = localStorage.getItem(key);
+              try { data[key] = JSON.parse(val); } catch(e) { data[key] = val; }
+            }
+          }
+          var json = JSON.stringify(data, null, 2);
+          var blob = new Blob([json], { type: 'application/json' });
           var a = document.createElement('a');
           a.href = URL.createObjectURL(blob);
-          a.download = 'xconvert24-uid.txt';
+          a.download = 'xconvert24-backup-' + uid.slice(0, 8) + '-' + new Date().toISOString().slice(0, 10) + '.json';
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -769,7 +779,7 @@ const fullTitle = `${title} | xConvert24.com`;
     </script>
 
     <script is:inline>
-      // ─── Relink User ID Button ─────────────────────────────────────────────
+      // ─── Relink (Restore Backup) Button ────────────────────────────────────
       (function() {
         var relinkBtn = document.getElementById('relink-uid-btn');
         var modal = document.getElementById('relink-uid-modal');
@@ -779,11 +789,14 @@ const fullTitle = `${title} | xConvert24.com`;
         var cancelBtn = document.getElementById('relink-uid-cancel');
         if (!relinkBtn || !modal) return;
 
+        var parsedBackup = null;
+
         function openModal() { modal.classList.remove('hidden'); }
         function closeModal() {
           modal.classList.add('hidden');
           if (fileInput) fileInput.value = '';
           if (manualInput) manualInput.value = '';
+          parsedBackup = null;
         }
 
         relinkBtn.addEventListener('click', openModal);
@@ -792,44 +805,79 @@ const fullTitle = `${title} | xConvert24.com`;
           if (e.target === modal) closeModal();
         });
 
-        // Parse UID from file content (handles "xConvert24 User ID\n<uid>\n" format)
-        function extractUid(text) {
-          var lines = text.trim().split('\n');
-          for (var i = lines.length - 1; i >= 0; i--) {
-            var line = lines[i].trim();
-            if (line && line.toLowerCase() !== 'xconvert24 user id') return line;
-          }
-          return '';
-        }
-
-        // When a file is selected, auto-read and populate manual input
+        // When a file is selected, detect format (old .txt or new .json)
         if (fileInput) {
           fileInput.addEventListener('change', function() {
             var file = fileInput.files[0];
             if (!file) return;
             var reader = new FileReader();
             reader.onload = function(e) {
-              var uid = extractUid(e.target.result);
-              if (uid && manualInput) manualInput.value = uid;
+              var text = e.target.result;
+              try {
+                var obj = JSON.parse(text);
+                if (obj.version && obj.userId) {
+                  // New JSON backup format
+                  parsedBackup = obj;
+                  if (manualInput) manualInput.value = obj.userId + ' (full backup detected)';
+                } else {
+                  // Unknown JSON — try extracting userId
+                  parsedBackup = null;
+                  if (manualInput) manualInput.value = obj.userId || '';
+                }
+              } catch(e2) {
+                // Old plain text format: "xConvert24 User ID\n<uid>\n"
+                parsedBackup = null;
+                var lines = text.trim().split('\n');
+                for (var i = lines.length - 1; i >= 0; i--) {
+                  var line = lines[i].trim();
+                  if (line && line.toLowerCase() !== 'xconvert24 user id') {
+                    if (manualInput) manualInput.value = line;
+                    break;
+                  }
+                }
+              }
             };
             reader.readAsText(file);
           });
         }
 
         confirmBtn.addEventListener('click', function() {
-          var uid = (manualInput.value || '').trim();
-          if (!uid) {
-            alert('Please upload a file or enter a User ID.');
-            return;
-          }
-          if (uid.length < 8) {
-            alert('That doesn\'t look like a valid User ID (too short).');
-            return;
-          }
-          if (confirm('Replace your current User ID with:\n\n' + uid + '\n\nThis will change your identity on this device.')) {
-            localStorage.setItem('xconvert24-uid', uid);
-            closeModal();
-            alert('✅ User ID relinked successfully.');
+          if (parsedBackup && parsedBackup.version) {
+            // Full restore from JSON backup
+            var keysToSkip = ['version', 'exportedAt', 'userId'];
+            if (confirm('Restore full backup for user: ' + parsedBackup.userId + '?\n\nThis will overwrite your current localStorage with all saved data (favourites, scrabble words, scored challenges, streaks, etc.).')) {
+              // Set UID first
+              localStorage.setItem('xconvert24-uid', parsedBackup.userId);
+              // Restore all other keys
+              for (var key in parsedBackup) {
+                if (keysToSkip.indexOf(key) !== -1) continue;
+                var val = parsedBackup[key];
+                if (typeof val === 'string') {
+                  localStorage.setItem(key, val);
+                } else {
+                  localStorage.setItem(key, JSON.stringify(val));
+                }
+              }
+              closeModal();
+              alert('✅ Full backup restored! Refreshing page...');
+              window.location.reload();
+            }
+          } else {
+            // UID-only relink (old format)
+            var uid = (manualInput.value || '').trim();
+            if (!uid) {
+              alert('Please upload a file or enter a User ID.');
+              return;
+            }
+            if (uid.length < 8) {
+              alert('That doesn\'t look like a valid User ID (too short).');
+              return;
+            }
+            if (confirm('Replace your current User ID with:\n\n' + uid + '\n\nThis will change your identity on this device.')) {
+              localStorage.setItem('xconvert24-uid', uid);
+              closeModal();
+              alert('✅ User ID relinked successfully.');
+            }
           }
         });
       })();

@@ -3,7 +3,7 @@ export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
 ---
 
-<Layout title="Scrabble Word Finder — Solve Any Rack" description="Free Scrabble word finder. Enter your tiles and find the highest-scoring words. Works for Words With Friends too." keywords="scrabble solver, word finder, scrabble helper, anagram solver, words with friends cheat, letter tiles, highest scoring words">
+<Layout title="Scrabble Word Finder — Solve Any Rack" description="Free Scrabble word finder. Enter your tiles and find the highest-scoring words. Works for Words With Friends too." keywords="scrabble, scrabble tiles, scrabble word finder, scrabble cheat, scrabble find, scrabble word solver, word finder, scrabble word, scrabble dictionary, scrabble helper, scrabble solver, anagram solver, words with friends cheat, highest scoring words">
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -88,7 +88,7 @@ import Layout from '../../layouts/Layout.astro';
     <!-- Two-column layout: Input + Saved Words -->
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 mb-6">
       <!-- Left: Input & Results -->
-      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm" style="padding: 29px;">
         <!-- Input -->
         <div class="mb-4">
           <label for="tiles" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Your Letter Tiles</label>
@@ -139,7 +139,12 @@ import Layout from '../../layouts/Layout.astro';
           <h2 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <span aria-hidden="true">📋</span> Saved Words
           </h2>
-          <span id="saved-count" class="text-xs text-gray-400">0 / 10</span>
+          <div class="flex items-center gap-2">
+            <button id="download-saved-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors opacity-30" title="Download saved words" aria-label="Download saved words">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
+            </button>
+            <span id="saved-count" class="text-xs text-gray-400">0 / 10</span>
+          </div>
         </div>
         <div id="saved-words-list">
           <p id="saved-empty" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4 italic">No saved words yet. Click the 💾 icon on any result to save it.</p>
@@ -305,12 +310,37 @@ import Layout from '../../layouts/Layout.astro';
         const top4 = topByLen(4, 5);
         const top5 = topByLen(5, 5);
 
+        // Load scored words from localStorage
+        const SCORED_KEY = 'scbScoredWords';
+        function getScoredWords(): string[] {
+          try { return JSON.parse(localStorage.getItem(SCORED_KEY) || '[]'); } catch { return []; }
+        }
+        function saveScoredWords(words: string[]) {
+          localStorage.setItem(SCORED_KEY, JSON.stringify(words));
+        }
+        const scoredWords = getScoredWords();
+
         function renderRow(words: {word: string, score: number}[]): string {
-          return words.map(w => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 font-mono"><span class="font-bold text-gray-900 dark:text-white uppercase" style="font-size:0.85rem">${w.word}</span><span class="text-amber-600 dark:text-amber-400" style="font-size:0.7rem">${w.score}</span></span>`).join(' ');
+          return words.map(w => {
+            const checked = scoredWords.includes(w.word) ? 'checked' : '';
+            return `<label class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 font-mono cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+              <input type="checkbox" class="scb-score-check w-3.5 h-3.5 rounded border-gray-300 text-amber-500 focus:ring-amber-500" data-word="${w.word}" ${checked}/>
+              <span class="font-bold text-gray-900 dark:text-white uppercase" style="font-size:0.85rem">${w.word}</span>
+              <span class="text-amber-600 dark:text-amber-400" style="font-size:0.7rem">${w.score}</span>
+            </label>`;
+          }).join(' ');
         }
 
         resultsEl.innerHTML = `
-          <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-6">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>
+          <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-4">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>
+          <div class="text-center mb-3">
+            <span class="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-400">
+              <span>🏆</span> Challenge yourself: <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">(tick if scored)</span>
+              <button type="button" class="scb-challenge-download p-1 rounded text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" title="Download your progress" aria-label="Download challenge progress">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
+              </button>
+            </span>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
               <thead class="bg-gray-100 dark:bg-gray-800">
@@ -339,6 +369,26 @@ import Layout from '../../layouts/Layout.astro';
               </tbody>
             </table>
           </div>`;
+
+        // Bind checkbox change events to persist scored words
+        resultsEl.querySelectorAll('.scb-score-check').forEach(cb => {
+          cb.addEventListener('change', () => {
+            const word = (cb as HTMLInputElement).dataset.word!;
+            let scored = getScoredWords();
+            if ((cb as HTMLInputElement).checked) {
+              if (!scored.includes(word)) scored.push(word);
+            } else {
+              scored = scored.filter(w => w !== word);
+            }
+            saveScoredWords(scored);
+          });
+        });
+
+        // Bind challenge download button
+        const challengeDlBtn = resultsEl.querySelector('.scb-challenge-download');
+        if (challengeDlBtn) {
+          challengeDlBtn.addEventListener('click', () => downloadBtn.click());
+        }
       }
     } catch {
       // Fallback: use a minimal built-in list
@@ -426,11 +476,11 @@ import Layout from '../../layouts/Layout.astro';
           const saveDisabled = alreadySaved;
           const saveTitle = alreadySaved ? 'Already saved' : isFull ? 'List full — click to see prompt' : 'Save this word';
           return `
-          <div class="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-amber-400 transition-all" data-highlight-word="${w}">
-            <span class="font-mono font-semibold text-sm text-gray-900 dark:text-white uppercase tracking-wider">${w}</span>
-            <div class="flex items-center gap-1.5">
-              <span class="text-xs font-bold text-amber-600 dark:text-amber-400">${wordScore(w)} pts</span>
-              <button class="save-word-btn text-gray-400 hover:text-green-500 transition-colors ${saveDisabled ? 'opacity-30 pointer-events-none' : ''}" data-word="${w}" title="${saveTitle}">💾</button>
+          <div class="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-amber-400 transition-all" data-highlight-word="${w}">
+            <span class="font-mono font-semibold text-gray-900 dark:text-white uppercase tracking-wider" style="font-size:0.65rem">${w}</span>
+            <div class="flex items-center gap-1">
+              <span class="font-bold text-amber-600 dark:text-amber-400" style="font-size:0.6rem">${wordScore(w)} pts</span>
+              <button class="save-word-btn text-gray-400 hover:text-green-500 transition-colors ${saveDisabled ? 'opacity-30 pointer-events-none' : ''}" data-word="${w}" title="${saveTitle}" style="font-size:0.7rem">💾</button>
             </div>
           </div>`;
         }).join('')}
@@ -505,6 +555,22 @@ import Layout from '../../layouts/Layout.astro';
   }
 
   // ── Render Saved Words ────────────────────────────────────────────────────
+  // ── Download Saved Words ──────────────────────────────────────────────────
+  const downloadBtn = document.getElementById('download-saved-btn')!;
+
+  function updateDownloadBtnVisibility() {
+    const words = getScbWords();
+    if (words.length > 0) {
+      downloadBtn.classList.remove('opacity-30');
+      downloadBtn.classList.add('opacity-100');
+      downloadBtn.removeAttribute('disabled');
+    } else {
+      downloadBtn.classList.add('opacity-30');
+      downloadBtn.classList.remove('opacity-100');
+      downloadBtn.setAttribute('disabled', 'true');
+    }
+  }
+
   function renderSavedWords() {
     const words = getScbWords();
     const listEl = document.getElementById('saved-words-list')!;
@@ -512,6 +578,7 @@ import Layout from '../../layouts/Layout.astro';
     const emptyEl = document.getElementById('saved-empty');
 
     countEl.textContent = `${words.length} / ${MAX_SAVED}`;
+    updateDownloadBtnVisibility();
 
     if (!words.length) {
       listEl.innerHTML = '<p id="saved-empty" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4 italic">No saved words yet. Click the 💾 icon on any result to save it.</p>';
@@ -557,6 +624,29 @@ import Layout from '../../layouts/Layout.astro';
       });
     });
   }
+
+  downloadBtn.addEventListener('click', () => {
+    const uid = localStorage.getItem('xconvert24-uid') || 'anonymous';
+    const words = getScbWords();
+    const scoredWords = JSON.parse(localStorage.getItem('scbScoredWords') || '[]');
+    const exportData = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      userId: uid,
+      savedWords: words,
+      scoredWords: scoredWords,
+    };
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scrabble-words-${uid.slice(0, 8)}-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
 
   // ── Edit Modal ────────────────────────────────────────────────────────────
   let editingIdx = -1;

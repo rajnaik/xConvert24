@@ -12,7 +12,7 @@ When the user says **"Silent Push"**, execute these steps in order. This is for 
 
 1. **Stage & commit** — Stage all changes and commit with message: `silent: {short summary of changes}`
 2. **Build** — Run `npm run build`. If it fails, STOP and report the error.
-3. **Run tests** — Execute `npx playwright test`. If any test fails, STOP and report which tests failed.
+3. **Run tests** — Execute `TEST_BASE_URL=https://staging.xconvert24.com npx playwright test`. Tests MUST run against the environment being deployed to — never against a different environment. If any test fails, STOP and report which tests failed.
 4. **Deploy to staging** — Run `npm run deploy:staging`.
 5. **Log to AuditLog** — POST to local API + remote DB:
 
