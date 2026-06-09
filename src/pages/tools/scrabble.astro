@@ -166,7 +166,8 @@ import Layout from '../../layouts/Layout.astro';
         <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
           <span aria-hidden="true">🔤</span> Two-Letter Words
         </h2>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">All valid 2-letter Scrabble words (SOWPODS)</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">All valid 2-letter Scrabble words (SOWPODS)</p>
+        <p class="text-xs text-emerald-600 dark:text-emerald-400 mb-3 font-medium">🏅 Add to your achievements (click the words)</p>
         <div id="two-letter-words" class="text-xs text-gray-600 dark:text-gray-400 italic">Loading dictionary…</div>
       </div>
 
@@ -175,7 +176,8 @@ import Layout from '../../layouts/Layout.astro';
         <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
           <span aria-hidden="true">🏆</span> Top 3-Letter Words
         </h2>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Highest-scoring 3-letter words</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Highest-scoring 3-letter words</p>
+        <p class="text-xs text-emerald-600 dark:text-emerald-400 mb-3 font-medium">🏅 Add to your achievements (click the words)</p>
         <div id="three-letter-words" class="text-xs text-gray-600 dark:text-gray-400 italic">Loading dictionary…</div>
       </div>
 
@@ -184,16 +186,18 @@ import Layout from '../../layouts/Layout.astro';
         <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
           <span aria-hidden="true">🅀</span> Q Without U
         </h2>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Legal words with Q but no U</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Legal words with Q but no U</p>
+        <p class="text-xs text-emerald-600 dark:text-emerald-400 mb-3 font-medium">🏅 Add to your achievements (click the words)</p>
         <div id="q-without-u" class="text-xs text-gray-600 dark:text-gray-400 italic">Loading dictionary…</div>
       </div>
     </div>
 
     <!-- Words with Rare Letters (Tabbed) -->
     <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
-      <h2 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
         <span aria-hidden="true">💎</span> Words with Rare Letters
       </h2>
+      <p class="text-xs text-emerald-600 dark:text-emerald-400 mb-3 font-medium">🏅 Add to your achievements (click the words)</p>
       <div class="flex gap-2 mb-4" id="rare-tabs">
         <button data-rare="q" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">Q</button>
         <button data-rare="z" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700">Z</button>
@@ -379,24 +383,12 @@ import Layout from '../../layouts/Layout.astro';
         const top4 = topByLen(4, 5);
         const top5 = topByLen(5, 5);
 
-        // Load scored words from localStorage
-        const SCORED_KEY = 'scbScoredWords';
-        function getScoredWords(): string[] {
-          try { return JSON.parse(localStorage.getItem(SCORED_KEY) || '[]'); } catch { return []; }
-        }
-        function saveScoredWords(words: string[]) {
-          localStorage.setItem(SCORED_KEY, JSON.stringify(words));
-        }
-        const scoredWords = getScoredWords();
-
         function renderRow(words: {word: string, score: number}[]): string {
           return words.map(w => {
-            const checked = scoredWords.includes(w.word) ? 'checked' : '';
-            return `<label class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 font-mono cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
-              <input type="checkbox" class="scb-score-check w-3.5 h-3.5 rounded border-gray-300 text-amber-500 focus:ring-amber-500" data-word="${w.word}" ${checked}/>
+            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 font-mono">
               <span class="font-bold text-gray-900 dark:text-white uppercase" style="font-size:0.85rem">${w.word}</span>
               <span class="text-amber-600 dark:text-amber-400" style="font-size:0.7rem">${w.score}</span>
-            </label>`;
+            </span>`;
           }).join(' ');
         }
 
@@ -404,10 +396,7 @@ import Layout from '../../layouts/Layout.astro';
           <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-4">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>
           <div class="text-center mb-3">
             <span class="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-400">
-              <span>🏆</span> Challenge yourself: <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">(tick if scored)</span>
-              <button type="button" class="scb-challenge-download p-1 rounded text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" title="Download your progress" aria-label="Download challenge progress">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
-              </button>
+              <span>🏆</span> High-Scoring Words by Length
             </span>
           </div>
           <div class="overflow-x-auto">
@@ -438,26 +427,6 @@ import Layout from '../../layouts/Layout.astro';
               </tbody>
             </table>
           </div>`;
-
-        // Bind checkbox change events to persist scored words
-        resultsEl.querySelectorAll('.scb-score-check').forEach(cb => {
-          cb.addEventListener('change', () => {
-            const word = (cb as HTMLInputElement).dataset.word!;
-            let scored = getScoredWords();
-            if ((cb as HTMLInputElement).checked) {
-              if (!scored.includes(word)) scored.push(word);
-            } else {
-              scored = scored.filter(w => w !== word);
-            }
-            saveScoredWords(scored);
-          });
-        });
-
-        // Bind challenge download button
-        const challengeDlBtn = resultsEl.querySelector('.scb-challenge-download');
-        if (challengeDlBtn) {
-          challengeDlBtn.addEventListener('click', () => downloadBtn.click());
-        }
       }
     } catch {
       // Fallback: use a minimal built-in list
@@ -718,12 +687,14 @@ import Layout from '../../layouts/Layout.astro';
     const uid = localStorage.getItem('xconvert24-uid') || 'anonymous';
     const words = getScbWords();
     const scoredWords = JSON.parse(localStorage.getItem('scbScoredWords') || '[]');
+    const achievements = getAchievements();
     const exportData = {
       version: 1,
       exportedAt: new Date().toISOString(),
       userId: uid,
       savedWords: words,
       scoredWords: scoredWords,
+      achievements: achievements,
     };
     const json = JSON.stringify(exportData, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
@@ -997,6 +968,66 @@ import Layout from '../../layouts/Layout.astro';
   // Render saved words on load
   renderSavedWords();
 
+  // ── Achievements System ─────────────────────────────────────────────────
+  const ACHIEVEMENTS_KEY = 'scbAchievements';
+
+  function getAchievements(): string[] {
+    try { return JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY) || '[]'); } catch { return []; }
+  }
+
+  function saveAchievements(words: string[]) {
+    localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(words));
+  }
+
+  function toggleAchievement(word: string, el: HTMLElement) {
+    let achievements = getAchievements();
+    if (achievements.includes(word)) {
+      // Remove achievement
+      achievements = achievements.filter(w => w !== word);
+      el.classList.remove('ring-2', 'ring-emerald-500');
+      const tiara = el.querySelector('.achievement-tiara');
+      if (tiara) tiara.remove();
+    } else {
+      // Add achievement
+      achievements.push(word);
+      el.classList.add('ring-2', 'ring-emerald-500');
+      if (!el.querySelector('.achievement-tiara')) {
+        const tiara = document.createElement('span');
+        tiara.className = 'achievement-tiara absolute -top-2 -left-1 text-xs';
+        tiara.textContent = '👑';
+        el.style.position = 'relative';
+        el.appendChild(tiara);
+      }
+    }
+    saveAchievements(achievements);
+  }
+
+  function applyAchievements(container: HTMLElement) {
+    const achievements = getAchievements();
+    container.querySelectorAll('[data-achieve-word]').forEach(el => {
+      const word = (el as HTMLElement).dataset.achieveWord!;
+      if (achievements.includes(word)) {
+        el.classList.add('ring-2', 'ring-emerald-500');
+        if (!el.querySelector('.achievement-tiara')) {
+          const tiara = document.createElement('span');
+          tiara.className = 'achievement-tiara absolute -top-2 -left-1 text-xs';
+          tiara.textContent = '👑';
+          (el as HTMLElement).style.position = 'relative';
+          el.appendChild(tiara);
+        }
+      }
+    });
+  }
+
+  function bindAchievementClicks(container: HTMLElement) {
+    container.querySelectorAll('[data-achieve-word]').forEach(el => {
+      el.addEventListener('click', () => {
+        const word = (el as HTMLElement).dataset.achieveWord!;
+        toggleAchievement(word, el as HTMLElement);
+      });
+    });
+  }
+
   // ── Populate Reference Panels (after dictionary loads) ────────────────────
   function populateReferencePanels() {
     if (!dictionaryLoaded) return;
@@ -1007,10 +1038,12 @@ import Layout from '../../layouts/Layout.astro';
       const twoLetters = WORDS.filter(w => w.length === 2).sort();
       twoLetterEl.innerHTML = `
         <div class="flex flex-wrap gap-1.5">
-          ${twoLetters.map(w => `<span class="inline-block px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded font-mono font-semibold uppercase text-amber-700 dark:text-amber-300">${w}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${wordScore(w)}</sup></span>`).join('')}
+          ${twoLetters.map(w => `<span data-achieve-word="${w}" class="inline-block px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded font-mono font-semibold uppercase text-amber-700 dark:text-amber-300 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-all">${w}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${wordScore(w)}</sup></span>`).join('')}
         </div>
         <p class="mt-2 text-xs text-gray-400">${twoLetters.length} words total</p>
       `;
+      applyAchievements(twoLetterEl);
+      bindAchievementClicks(twoLetterEl);
     }
 
     // Three-Letter Words (top 30 by score)
@@ -1022,10 +1055,12 @@ import Layout from '../../layouts/Layout.astro';
         .slice(0, 30);
       threeLetterEl.innerHTML = `
         <div class="flex flex-wrap gap-1.5">
-          ${threeLetters.map(w => `<span class="inline-block px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded font-mono font-semibold uppercase text-blue-700 dark:text-blue-300">${w.word}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${w.score}</sup></span>`).join('')}
+          ${threeLetters.map(w => `<span data-achieve-word="${w.word}" class="inline-block px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded font-mono font-semibold uppercase text-blue-700 dark:text-blue-300 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all">${w.word}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${w.score}</sup></span>`).join('')}
         </div>
         <p class="mt-2 text-xs text-gray-400">Top 30 by score</p>
       `;
+      applyAchievements(threeLetterEl);
+      bindAchievementClicks(threeLetterEl);
     }
 
     // Q Without U
@@ -1037,10 +1072,12 @@ import Layout from '../../layouts/Layout.astro';
       if (qNoU.length) {
         qNoUEl.innerHTML = `
           <div class="flex flex-wrap gap-1.5">
-            ${qNoU.map(w => `<span class="inline-block px-1.5 py-0.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded font-mono font-semibold uppercase text-purple-700 dark:text-purple-300">${w.word}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${w.score}</sup></span>`).join('')}
+            ${qNoU.map(w => `<span data-achieve-word="${w.word}" class="inline-block px-1.5 py-0.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded font-mono font-semibold uppercase text-purple-700 dark:text-purple-300 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all">${w.word}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${w.score}</sup></span>`).join('')}
           </div>
           <p class="mt-2 text-xs text-gray-400">${qNoU.length} words — memorise these!</p>
         `;
+        applyAchievements(qNoUEl);
+        bindAchievementClicks(qNoUEl);
       } else {
         qNoUEl.innerHTML = '<p class="text-xs text-gray-400">None found in dictionary</p>';
       }
@@ -1078,10 +1115,12 @@ import Layout from '../../layouts/Layout.astro';
 
       resultsEl.innerHTML = `
         <div class="flex flex-wrap gap-1.5">
-          ${words.map(w => `<span class="inline-block px-1.5 py-0.5 ${c.bg} border ${c.border} rounded font-mono font-semibold uppercase ${c.text}">${w.word}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${w.score}</sup></span>`).join('')}
+          ${words.map(w => `<span data-achieve-word="${w.word}" class="inline-block px-1.5 py-0.5 ${c.bg} border ${c.border} rounded font-mono font-semibold uppercase ${c.text} cursor-pointer hover:opacity-80 transition-all">${w.word}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${w.score}</sup></span>`).join('')}
         </div>
         <p class="mt-2 text-xs text-gray-400">Top 40 words containing "${letter.toUpperCase()}" by score</p>
       `;
+      applyAchievements(resultsEl);
+      bindAchievementClicks(resultsEl);
 
       // Update tab styles
       tabs.forEach(tab => {
