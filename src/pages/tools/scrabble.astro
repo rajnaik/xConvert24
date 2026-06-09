@@ -29,7 +29,7 @@ import Layout from '../../layouts/Layout.astro';
         "name": "Can I use blank tiles or wildcards?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Enter a question mark (?) for each blank tile in your rack. The solver will treat it as any letter and find all possible words you can make, though blank tiles contribute 0 points to the word score."
+          "text": "Yes. Enter a question mark (?) for each blank tile in your rack — up to 2 wildcards are supported. The solver will treat each as any letter and find all possible words, though blank tiles contribute 0 points to the word score."
         }
       },
       {
@@ -65,6 +65,9 @@ import Layout from '../../layouts/Layout.astro';
     ]
   })} />
   <style is:inline>
+    [id^="section-"] {
+      scroll-margin-top: 35px;
+    }
     .scrabble-tile {
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
     }
@@ -105,6 +108,16 @@ import Layout from '../../layouts/Layout.astro';
       </div>
       <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">The ultimate <strong>Scrabble word finder</strong> — enter your <strong>Scrabble tiles</strong> and instantly discover the highest-scoring words from the SOWPODS <strong>Scrabble dictionary</strong>. Use this <strong>Scrabble helper</strong> as a <strong>word finder</strong>, rack analyzer, and tile probability tracker. Works for Words With Friends too.</p>
       <span class="inline-block mt-2 px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 text-xs font-medium">🧪 Experimental</span>
+      <!-- Quick nav icons -->
+      <div class="flex flex-wrap gap-2 mt-3">
+        <a href="#section-tile-scores" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-400 transition-colors" title="Tile Scores">🎯 Scores</a>
+        <a href="#section-two-letter" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-400 transition-colors" title="Top 2-Letter Words">2️⃣ 2-Letter</a>
+        <a href="#section-three-letter" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-400 transition-colors" title="Top 3-Letter Words">3️⃣ 3-Letter</a>
+        <a href="#section-rare-letters" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-700 dark:hover:text-purple-400 transition-colors" title="Rare Letters (Q, Z, X, J)">💎 Rare</a>
+        <a href="#section-probability" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-400 transition-colors" title="Tile Bag Probability">🎲 Probability</a>
+        <a href="#section-rack-leave" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-400 transition-colors" title="Rack Leave Analyzer">🧮 Rack Leave</a>
+        <a href="#section-best-opening" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-700 dark:hover:text-amber-400 transition-colors" title="Best Opening Moves">🏆 Openers</a>
+      </div>
     </div>
 
     <!-- Two-column layout: Input + Saved Words -->
@@ -125,11 +138,18 @@ import Layout from '../../layouts/Layout.astro';
               </div>
             </div>
           </div>
-          <p class="mt-2 text-xs text-gray-400">Use ? for blank tiles (wildcards). Results appear as you type.</p>
+          <p class="mt-2 text-xs text-gray-400">Use ? for blank tiles (up to 2 wildcards supported). Results appear as you type.</p>
         </div>
 
         <!-- Filters -->
-        <div class="flex flex-wrap gap-3 mb-4">
+        <div class="flex flex-wrap gap-3 mb-4 items-end">
+          <div>
+            <label for="dictionary" class="text-xs text-gray-500 dark:text-gray-400">Dictionary</label>
+            <select id="dictionary" class="h-8 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-gray-100">
+              <option value="sowpods">SOWPODS (International)</option>
+              <option value="twl">NWL/TWL (US/Canada)</option>
+            </select>
+          </div>
           <div>
             <label for="min-len" class="text-xs text-gray-500 dark:text-gray-400">Min length</label>
             <select id="min-len" class="h-8 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-gray-100">
@@ -138,6 +158,14 @@ import Layout from '../../layouts/Layout.astro';
               <option value="4">4</option>
               <option value="5">5</option>
             </select>
+          </div>
+          <div>
+            <label for="starts-with" class="text-xs text-gray-500 dark:text-gray-400">Starts with</label>
+            <input id="starts-with" type="text" maxlength="3" placeholder="e.g. QU" class="h-8 w-12 px-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-gray-100 uppercase font-mono text-left" autocomplete="off"/>
+          </div>
+          <div>
+            <label for="ends-with" class="text-xs text-gray-500 dark:text-gray-400">Ends with</label>
+            <input id="ends-with" type="text" maxlength="3" placeholder="e.g. ED" class="h-8 w-12 px-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-gray-100 uppercase font-mono text-right" autocomplete="off"/>
           </div>
           <div>
             <label for="sort-by" class="text-xs text-gray-500 dark:text-gray-400">Sort by</label>
@@ -178,7 +206,7 @@ import Layout from '../../layouts/Layout.astro';
     </div>
 
     <!-- Score reference -->
-    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+    <div id="section-tile-scores" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
       <h2 id="tile-scores-heading" class="font-semibold text-gray-900 dark:text-white mb-3">Scrabble Tile Scores</h2>
       <div class="grid grid-cols-4 sm:grid-cols-6 gap-2" id="tile-scores">
       </div>
@@ -187,7 +215,7 @@ import Layout from '../../layouts/Layout.astro';
     <!-- Quick Reference Panels -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
       <!-- Two-Letter Words -->
-      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <div id="section-two-letter" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
         <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-start gap-2">
           <span aria-hidden="true">🔤</span> Two-Letter Scrabble Words
         </h2>
@@ -197,7 +225,7 @@ import Layout from '../../layouts/Layout.astro';
       </div>
 
       <!-- Three-Letter Words (Top Scoring) -->
-      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <div id="section-three-letter" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
         <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-start gap-2">
           <span aria-hidden="true">🏆</span> Top 3-Letter Scrabble Words
         </h2>
@@ -218,7 +246,7 @@ import Layout from '../../layouts/Layout.astro';
     </div>
 
     <!-- Words with Rare Letters (Tabbed) -->
-    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+    <div id="section-rare-letters" class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
       <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-start gap-2">
         <span aria-hidden="true">💎</span> Scrabble Words with Rare Letters
       </h2>
@@ -233,7 +261,7 @@ import Layout from '../../layouts/Layout.astro';
     </div>
 
     <!-- Tile Probability Calculator -->
-    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+    <div id="section-probability" class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
       <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-start gap-2">
         <span aria-hidden="true">🎲</span> Tile Bag Probability
       </h2>
@@ -258,7 +286,7 @@ import Layout from '../../layouts/Layout.astro';
     </div>
 
     <!-- Rack Leave Analyzer -->
-    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+    <div id="section-rack-leave" class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
       <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-start gap-2">
         <span aria-hidden="true">🧠</span> Rack Leave Analyzer
       </h2>
@@ -269,7 +297,7 @@ import Layout from '../../layouts/Layout.astro';
     </div>
 
     <!-- Best Opening Moves -->
-    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+    <div id="section-best-opening" class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
       <h2 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-start gap-2">
         <span aria-hidden="true">🚀</span> Best Opening Moves
       </h2>
@@ -375,14 +403,25 @@ import Layout from '../../layouts/Layout.astro';
 
   // SOWPODS dictionary (2-7 letter words) — loaded from static JSON
   let WORDS: string[] = [];
+  let SOWPODS: string[] = [];
+  let TWL: string[] = [];
   let dictionaryLoaded = false;
+  let currentDict = localStorage.getItem('scbDictionary') || 'sowpods';
 
   async function loadDictionary() {
     try {
-      const res = await fetch('/data/sowpods-2-7.json');
-      if (!res.ok) throw new Error('Failed to load dictionary');
-      WORDS = await res.json();
+      const [sowRes, twlRes] = await Promise.all([
+        fetch('/data/sowpods-2-7.json'),
+        fetch('/data/twl06-2-7.json'),
+      ]);
+      if (!sowRes.ok) throw new Error('Failed to load SOWPODS');
+      SOWPODS = await sowRes.json();
+      TWL = twlRes.ok ? await twlRes.json() : SOWPODS;
+      WORDS = currentDict === 'twl' ? TWL : SOWPODS;
       dictionaryLoaded = true;
+
+      // Set the dropdown to match saved preference
+      (document.getElementById('dictionary') as HTMLSelectElement).value = currentDict;
       // Update UI to show dictionary is ready + high scoring words
       const resultsEl = document.getElementById('results')!;
       const highScoringPanel = document.getElementById('high-scoring-panel')!;
@@ -410,7 +449,7 @@ import Layout from '../../layouts/Layout.astro';
         }
 
         resultsEl.innerHTML = `
-          <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-4">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>`;
+          <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-4">${currentDict === 'twl' ? 'NWL/TWL' : 'SOWPODS'} dictionary loaded (${WORDS.length.toLocaleString()} words). Enter your tiles and click Find Words</div>`;
 
         highScoringPanel.innerHTML = `
           <div class="text-center mb-3 mt-4">
@@ -501,6 +540,8 @@ import Layout from '../../layouts/Layout.astro';
     const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim();
     const minLen = parseInt((document.getElementById('min-len') as HTMLSelectElement).value);
     const sortBy = (document.getElementById('sort-by') as HTMLSelectElement).value;
+    const startsWith = (document.getElementById('starts-with') as HTMLInputElement).value.trim().toLowerCase();
+    const endsWith = (document.getElementById('ends-with') as HTMLInputElement).value.trim().toLowerCase();
     const resultsEl = document.getElementById('results')!;
 
     if (!dictionaryLoaded) {
@@ -513,7 +554,12 @@ import Layout from '../../layouts/Layout.astro';
       return;
     }
 
-    let found = WORDS.filter(w => w.length >= minLen && w.length <= tiles.length && canMake(w, tiles));
+    let found = WORDS.filter(w => {
+      if (w.length < minLen || w.length > tiles.length) return false;
+      if (startsWith && !w.startsWith(startsWith)) return false;
+      if (endsWith && !w.endsWith(endsWith)) return false;
+      return canMake(w, tiles);
+    });
 
     if (sortBy === 'score') found.sort((a, b) => wordScore(b) - wordScore(a));
     else if (sortBy === 'length') found.sort((a, b) => b.length - a.length || wordScore(b) - wordScore(a));
@@ -773,6 +819,18 @@ import Layout from '../../layouts/Layout.astro';
   document.getElementById('tiles')!.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') solve(); });
   document.getElementById('min-len')!.addEventListener('change', solve);
   document.getElementById('sort-by')!.addEventListener('change', solve);
+  document.getElementById('starts-with')!.addEventListener('input', () => { if ((document.getElementById('tiles') as HTMLInputElement).value.trim().length >= 2) solve(); });
+  document.getElementById('ends-with')!.addEventListener('input', () => { if ((document.getElementById('tiles') as HTMLInputElement).value.trim().length >= 2) solve(); });
+  document.getElementById('dictionary')!.addEventListener('change', () => {
+    const dict = (document.getElementById('dictionary') as HTMLSelectElement).value;
+    currentDict = dict;
+    WORDS = dict === 'twl' ? TWL : SOWPODS;
+    localStorage.setItem('scbDictionary', dict);
+    // Re-run search if tiles are entered
+    if ((document.getElementById('tiles') as HTMLInputElement).value.trim().length >= 2) solve();
+    // Update reference panels with new dictionary
+    populateReferencePanels();
+  });
 
   // ── Instant Search (debounced) ────────────────────────────────────────────
   let solveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -954,7 +1012,16 @@ import Layout from '../../layouts/Layout.astro';
       const data = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY) || '[]');
       // Migrate old format (string[]) to new format ({word, meaning}[])
       if (data.length > 0 && typeof data[0] === 'string') {
-        return data.map((w: string) => ({ word: w, meaning: '' }));
+        const migrated = data.map((w: string) => ({ word: w, meaning: '' })).reverse();
+        localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(migrated));
+        return migrated;
+      }
+      // Migrate old order (oldest-first) to new order (newest-first)
+      if (data.length > 0 && !localStorage.getItem('scbAchievements_v2')) {
+        data.reverse();
+        localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(data));
+        localStorage.setItem('scbAchievements_v2', '1');
+        return data;
       }
       return data;
     } catch { return []; }
@@ -991,7 +1058,7 @@ import Layout from '../../layouts/Layout.astro';
       if (tiara) tiara.remove();
     } else {
       // Add achievement (fetch meaning async)
-      achievements.push({ word, meaning: '' });
+      achievements.unshift({ word, meaning: '' });
       el.classList.add('ring-2', 'ring-emerald-500');
       if (!el.querySelector('.achievement-tiara')) {
         const tiara = document.createElement('span');
@@ -1002,6 +1069,8 @@ import Layout from '../../layouts/Layout.astro';
       }
       // Copy word to clipboard
       navigator.clipboard.writeText(word.toUpperCase()).catch(() => {});
+      // Reset carousel to show newest word
+      savedWordsPage = 0;
       // Fetch and save meaning in background
       fetchMeaning(word).then(meaning => {
         const updated = getAchievements();
