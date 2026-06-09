@@ -3,7 +3,7 @@ export const prerender = true;
 import Layout from '../../layouts/Layout.astro';
 ---
 
-<Layout title="Free Scrabble Word Finder — Solve Any Rack" description="Free Scrabble word finder and solver. Enter your Scrabble tiles and find the highest-scoring words instantly. Works as a Scrabble cheat, Scrabble helper, and Words With Friends solver. No sign-up needed." keywords="scrabble, scrabble tiles, scrabble word finder, scrabble cheat, scrabble find, scrabble word solver, word finder, scrabble word, scrabble dictionary, scrabble helper, scrabble solver, anagram solver, words with friends cheat, highest scoring words">
+<Layout title="Free Scrabble Word Finder — Solve Any Rack" description="Free Scrabble word finder and solver. Enter your tiles, find the highest-scoring words instantly from 74,000+ SOWPODS words. No sign-up needed." keywords="scrabble word finder, scrabble cheat, scrabble solver, scrabble tiles, word finder, scrabble word solver, scrabble helper, scrabble dictionary, scrabble find, anagram solver, words with friends cheat, scrabble word, highest scoring scrabble words, scrabble rack solver">
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -153,23 +153,26 @@ import Layout from '../../layouts/Layout.astro';
         <div id="results" class="min-h-[100px]">
           <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm italic">Enter your tiles above and click Find Words</div>
         </div>
+        <!-- High-Scoring Words Panel (persists across searches) -->
+        <div id="high-scoring-panel" class="hidden"></div>
       </div>
 
-      <!-- Right: Saved Words -->
+      <!-- Right: Saved Words (Achievements) -->
       <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm h-fit lg:sticky lg:top-4">
         <div class="flex items-center justify-between mb-4">
           <h2 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <span aria-hidden="true">📋</span> Saved Words
+            <span aria-hidden="true">👑</span> Saved Words
           </h2>
           <div class="flex items-center gap-2">
             <button id="download-saved-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors opacity-30" title="Download saved words" aria-label="Download saved words">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
             </button>
-            <span id="saved-count" class="text-xs text-gray-400">0 / 10</span>
+            <span id="saved-count" class="text-xs text-gray-400">0</span>
           </div>
         </div>
-        <div id="saved-words-list">
-          <p id="saved-empty" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4 italic">No saved words yet. Click the 💾 icon on any result to save it.</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Click any word in results or reference panels to save it here.</p>
+        <div id="saved-words-list" class="max-h-[400px] overflow-y-auto">
+          <p id="saved-empty" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4 italic">No saved words yet. Click any word to collect it.</p>
         </div>
       </div>
     </div>
@@ -290,26 +293,24 @@ import Layout from '../../layouts/Layout.astro';
           <div id="edit-word-score" class="text-xs text-gray-500 mt-1"></div>
         </div>
         <div class="space-y-4">
-          <!-- Star Rating -->
-          <div>
-            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Rating</label>
+          <!-- Star Rating (hidden but kept for DOM references) -->
+          <div class="hidden">
             <div id="star-rating" class="flex gap-2">
-              <button data-star="1" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="1 - Meh">👍</button>
-              <button data-star="2" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="2 - Decent">🔹</button>
-              <button data-star="3" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="3 - Good">⭐</button>
-              <button data-star="4" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="4 - Great">🪄</button>
-              <button data-star="5" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="5 - Bingo!">🎯</button>
+              <button data-star="1" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg">👍</button>
+              <button data-star="2" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg">🔹</button>
+              <button data-star="3" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg">⭐</button>
+              <button data-star="4" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg">🪄</button>
+              <button data-star="5" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg">🎯</button>
             </div>
           </div>
-          <!-- Comment -->
+          <!-- Meaning / Note -->
           <div>
-            <label for="edit-comment" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Comment</label>
-            <textarea id="edit-comment" rows="2" placeholder="e.g. Great triple word score!" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+            <label for="edit-comment" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Meaning / Note</label>
+            <textarea id="edit-comment" rows="3" placeholder="e.g. (noun) a type of plant..." class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
           </div>
-          <!-- Datetime -->
-          <div>
-            <label for="edit-datetime" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Date & Time</label>
-            <input id="edit-datetime" type="datetime-local" class="w-full h-10 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500" style="color-scheme: light dark"/>
+          <!-- Datetime (hidden) -->
+          <div class="hidden">
+            <input id="edit-datetime" type="datetime-local" class="w-full h-10 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm" style="color-scheme: light dark"/>
           </div>
         </div>
         <div class="flex gap-2 mt-5">
@@ -372,35 +373,6 @@ import Layout from '../../layouts/Layout.astro';
     N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10
   };
 
-  // Star rating icons: 1=lowest → 5=highest
-  const STAR_ICONS: Record<number, { icon: string; label: string }> = {
-    1: { icon: '👍', label: 'Meh' },
-    2: { icon: '🔹', label: 'Decent' },
-    3: { icon: '⭐', label: 'Good' },
-    4: { icon: '🪄', label: 'Great' },
-    5: { icon: '🎯', label: 'Bingo!' },
-  };
-
-  // Saved words storage
-  interface ScbWord {
-    word: string;
-    score: number;
-    star: number;
-    comment: string;
-    datetime: string;
-  }
-
-  const SCB_KEY = 'scbWords';
-  const MAX_SAVED = 10;
-
-  function getScbWords(): ScbWord[] {
-    try { return JSON.parse(localStorage.getItem(SCB_KEY) || '[]'); } catch { return []; }
-  }
-
-  function saveScbWords(words: ScbWord[]) {
-    localStorage.setItem(SCB_KEY, JSON.stringify(words.slice(0, MAX_SAVED)));
-  }
-
   // SOWPODS dictionary (2-7 letter words) — loaded from static JSON
   let WORDS: string[] = [];
   let dictionaryLoaded = false;
@@ -413,6 +385,7 @@ import Layout from '../../layouts/Layout.astro';
       dictionaryLoaded = true;
       // Update UI to show dictionary is ready + high scoring words
       const resultsEl = document.getElementById('results')!;
+      const highScoringPanel = document.getElementById('high-scoring-panel')!;
       if (resultsEl.querySelector('.text-sm.italic')) {
         // Find top scoring words by length
         function topByLen(len: number, count: number): {word: string, score: number}[] {
@@ -429,7 +402,7 @@ import Layout from '../../layouts/Layout.astro';
 
         function renderRow(words: {word: string, score: number}[]): string {
           return words.map(w => {
-            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 font-mono">
+            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 font-mono relative cursor-pointer hover:ring-2 hover:ring-amber-400 transition-all" data-achieve-word="${w.word}">
               <span class="font-bold text-gray-900 dark:text-white uppercase" style="font-size:0.85rem">${w.word}</span>
               <span class="text-amber-600 dark:text-amber-400" style="font-size:0.7rem">${w.score}</span>
             </span>`;
@@ -437,8 +410,10 @@ import Layout from '../../layouts/Layout.astro';
         }
 
         resultsEl.innerHTML = `
-          <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-4">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>
-          <div class="text-center mb-3">
+          <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-4">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>`;
+
+        highScoringPanel.innerHTML = `
+          <div class="text-center mb-3 mt-4">
             <span class="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-400">
               <span>🏆</span> High-Scoring Words by Length
             </span>
@@ -471,6 +446,10 @@ import Layout from '../../layouts/Layout.astro';
               </tbody>
             </table>
           </div>`;
+        highScoringPanel.classList.remove('hidden');
+        // Apply achievement decorations and bind clicks
+        applyAchievements(highScoringPanel);
+        bindAchievementClicks(highScoringPanel);
       }
     } catch {
       // Fallback: use a minimal built-in list
@@ -583,53 +562,13 @@ import Layout from '../../layouts/Layout.astro';
     });
   }
 
-  // ── Save Word ─────────────────────────────────────────────────────────────
-  function saveWord(word: string) {
-    const words = getScbWords();
-    if (words.some(w => w.word === word)) return;
-
-    if (words.length >= MAX_SAVED) {
-      // Prompt user to delete a word first
-      const savedList = document.getElementById('saved-words-list')!;
-      // Show inline prompt if not already showing
-      if (!savedList.querySelector('.full-prompt')) {
-        const prompt = document.createElement('div');
-        prompt.className = 'full-prompt p-3 mb-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-center';
-        prompt.innerHTML = `
-          <p class="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">📋 You've saved 10 words (max)</p>
-          <p class="text-xs text-amber-700 dark:text-amber-400">Delete a word below to make room for "<strong class="uppercase">${word}</strong>"</p>
-        `;
-        savedList.prepend(prompt);
-        // Scroll saved words panel into view
-        savedList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => { prompt.remove(); }, 5000);
-      }
-      return;
-    }
-
-    words.push({
-      word,
-      score: wordScore(word),
-      star: 3,
-      comment: '',
-      datetime: new Date().toISOString().slice(0, 16),
-    });
-    saveScbWords(words);
-    renderSavedWords();
-    // Update tile probability — word was played
-    onWordPlayed(word.length);
-    // Highlight the saved word's tiles
-    highlightTiles(word);
-  }
-
   // ── Render Saved Words ────────────────────────────────────────────────────
   // ── Download Saved Words ──────────────────────────────────────────────────
   const downloadBtn = document.getElementById('download-saved-btn')!;
 
   function updateDownloadBtnVisibility() {
-    const words = getScbWords();
-    if (words.length > 0) {
+    const achievements = getAchievements();
+    if (achievements.length > 0) {
       downloadBtn.classList.remove('opacity-30');
       downloadBtn.classList.add('opacity-100');
       downloadBtn.removeAttribute('disabled');
@@ -640,69 +579,98 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
 
+  let savedWordsPage = 0;
+
   function renderSavedWords() {
-    const words = getScbWords();
+    const achievements = getAchievements();
     const listEl = document.getElementById('saved-words-list')!;
     const countEl = document.getElementById('saved-count')!;
-    const emptyEl = document.getElementById('saved-empty');
 
-    countEl.textContent = `${words.length} / ${MAX_SAVED}`;
+    countEl.textContent = `${achievements.length}`;
     updateDownloadBtnVisibility();
 
-    if (!words.length) {
-      listEl.innerHTML = '<p id="saved-empty" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4 italic">No saved words yet. Click the 💾 icon on any result to save it.</p>';
+    if (!achievements.length) {
+      savedWordsPage = 0;
+      listEl.innerHTML = '<p id="saved-empty" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4 italic">No saved words yet. Click any word to collect it.</p>';
       return;
     }
 
-    listEl.innerHTML = '<div class="space-y-2">' + words.map((w, idx) => `
-      <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg group">
-        <span class="text-lg shrink-0" title="${STAR_ICONS[w.star]?.label || ''}">${STAR_ICONS[w.star]?.icon || '⭐'}</span>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2">
-            <span class="font-mono font-bold text-sm text-gray-900 dark:text-white uppercase tracking-wider">${escapeHtml(w.word)}</span>
-            <span class="text-xs font-bold text-amber-600 dark:text-amber-400">${w.score} pts</span>
-          </div>
-          ${w.comment ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">${escapeHtml(w.comment)}</p>` : ''}
-          ${w.datetime ? `<p class="text-[10px] text-gray-400 mt-0.5">${formatDateTime(w.datetime)}</p>` : ''}
-        </div>
-        <div class="flex items-center gap-1 shrink-0">
-          <button class="edit-word-btn p-1.5 text-gray-400 hover:text-amber-500 transition-colors rounded" data-idx="${idx}" title="Edit">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </button>
-          <button class="delete-word-btn p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded" data-idx="${idx}" title="Delete">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
-        </div>
-      </div>
-    `).join('') + '</div>';
+    // Clamp page to valid range
+    if (savedWordsPage >= achievements.length) savedWordsPage = achievements.length - 1;
+    if (savedWordsPage < 0) savedWordsPage = 0;
 
-    // Bind edit buttons
-    listEl.querySelectorAll('.edit-word-btn').forEach(btn => {
+    const a = achievements[savedWordsPage];
+    const idx = savedWordsPage;
+
+    listEl.innerHTML = `
+      <div class="flex items-center justify-between mb-3">
+        <button id="saved-prev-btn" class="p-1.5 rounded-lg transition-colors ${idx === 0 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 cursor-pointer'}" ${idx === 0 ? 'disabled' : ''} title="Previous word" aria-label="Previous saved word">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span class="text-xs text-gray-400 font-mono">${idx + 1} / ${achievements.length}</span>
+        <button id="saved-next-btn" class="p-1.5 rounded-lg transition-colors ${idx === achievements.length - 1 ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : 'text-gray-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 cursor-pointer'}" ${idx === achievements.length - 1 ? 'disabled' : ''} title="Next word" aria-label="Next saved word">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">👑</span>
+            <span class="font-mono font-bold text-lg text-gray-900 dark:text-white uppercase tracking-wider">${escapeHtml(a.word)}</span>
+          </div>
+          <span class="text-sm font-bold text-amber-600 dark:text-amber-400">${wordScore(a.word)} pts</span>
+        </div>
+        ${a.meaning ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">${escapeHtml(a.meaning)}</p>` : '<p class="text-xs text-gray-400 italic mt-1">No meaning saved</p>'}
+        <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <button class="edit-achievement-btn flex-1 py-1.5 text-xs text-center text-gray-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded transition-colors" data-idx="${idx}" title="Edit meaning">
+            ✏️ Edit
+          </button>
+          <button class="delete-achievement-btn flex-1 py-1.5 text-xs text-center text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" data-idx="${idx}" title="Delete">
+            🗑️ Delete
+          </button>
+        </div>
+      </div>`;
+
+    // Bind nav buttons
+    document.getElementById('saved-prev-btn')?.addEventListener('click', () => {
+      if (savedWordsPage > 0) { savedWordsPage--; renderSavedWords(); }
+    });
+    document.getElementById('saved-next-btn')?.addEventListener('click', () => {
+      if (savedWordsPage < achievements.length - 1) { savedWordsPage++; renderSavedWords(); }
+    });
+
+    // Bind edit button
+    listEl.querySelectorAll('.edit-achievement-btn').forEach(btn => {
       btn.addEventListener('click', () => openEditModal(parseInt((btn as HTMLElement).dataset.idx!)));
     });
 
-    // Bind delete buttons
-    listEl.querySelectorAll('.delete-word-btn').forEach(btn => {
+    // Bind delete button
+    listEl.querySelectorAll('.delete-achievement-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const idx = parseInt((btn as HTMLElement).dataset.idx!);
-        const words = getScbWords();
-        words.splice(idx, 1);
-        saveScbWords(words);
+        let achievements = getAchievements();
+        const removed = achievements[idx];
+        achievements.splice(idx, 1);
+        saveAchievements(achievements);
         renderSavedWords();
+        // Remove achievement styling from any visible word elements
+        document.querySelectorAll(`[data-achieve-word="${removed?.word}"]`).forEach(el => {
+          el.classList.remove('ring-2', 'ring-emerald-500');
+          const tiara = el.querySelector('.achievement-tiara');
+          if (tiara) tiara.remove();
+        });
       });
     });
   }
 
   downloadBtn.addEventListener('click', () => {
     const uid = localStorage.getItem('xconvert24-uid') || 'anonymous';
-    const words = getScbWords();
     const scoredWords = JSON.parse(localStorage.getItem('scbScoredWords') || '[]');
     const achievements = getAchievements();
     const exportData = {
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       userId: uid,
-      savedWords: words,
       scoredWords: scoredWords,
       achievements: achievements,
     };
@@ -728,20 +696,20 @@ import Layout from '../../layouts/Layout.astro';
   const editDatetime = document.getElementById('edit-datetime') as HTMLInputElement;
 
   function openEditModal(idx: number) {
-    const words = getScbWords();
-    if (idx < 0 || idx >= words.length) return;
-    const w = words[idx];
+    const achievements = getAchievements();
+    if (idx < 0 || idx >= achievements.length) return;
+    const a = achievements[idx];
     editingIdx = idx;
-    editingStar = w.star;
+    editingStar = 3; // default
 
-    editWordDisplay.textContent = w.word;
-    editWordScore.textContent = `${w.score} pts`;
-    editComment.value = w.comment;
-    editDatetime.value = w.datetime || new Date().toISOString().slice(0, 16);
+    editWordDisplay.textContent = a.word;
+    editWordScore.textContent = `${wordScore(a.word)} pts`;
+    editComment.value = a.meaning || '';
+    editDatetime.value = new Date().toISOString().slice(0, 16);
     updateStarUI();
 
     // Highlight the word's tiles
-    highlightTiles(w.word);
+    highlightTiles(a.word);
 
     editModal.classList.remove('hidden');
     editModal.classList.add('flex');
@@ -776,12 +744,10 @@ import Layout from '../../layouts/Layout.astro';
 
   // Save edit
   document.getElementById('edit-save-btn')!.addEventListener('click', () => {
-    const words = getScbWords();
-    if (editingIdx < 0 || editingIdx >= words.length) return;
-    words[editingIdx].star = editingStar;
-    words[editingIdx].comment = editComment.value.trim();
-    words[editingIdx].datetime = editDatetime.value;
-    saveScbWords(words);
+    const achievements = getAchievements();
+    if (editingIdx < 0 || editingIdx >= achievements.length) return;
+    achievements[editingIdx].meaning = editComment.value.trim();
+    saveAchievements(achievements);
     closeEditModal();
     renderSavedWords();
   });
@@ -975,9 +941,6 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
 
-  // Render saved words on load
-  renderSavedWords();
-
   // ── Achievements System ─────────────────────────────────────────────────
   const ACHIEVEMENTS_KEY = 'scbAchievements';
 
@@ -1046,10 +1009,12 @@ import Layout from '../../layouts/Layout.astro';
         if (entry) {
           entry.meaning = meaning;
           saveAchievements(updated);
+          renderSavedWords();
         }
       });
     }
     saveAchievements(achievements);
+    renderSavedWords();
   }
 
   function applyAchievements(container: HTMLElement) {
@@ -1077,6 +1042,9 @@ import Layout from '../../layouts/Layout.astro';
       });
     });
   }
+
+  // Render saved words on load (after achievements system is defined)
+  renderSavedWords();
 
   // ── Populate Reference Panels (after dictionary loads) ────────────────────
   function populateReferencePanels() {
@@ -1473,7 +1441,10 @@ import Layout from '../../layouts/Layout.astro';
 
     // Show loading
     const tooltip = document.createElement('div');
-    tooltip.className = 'word-def-tooltip absolute left-0 right-0 -bottom-1 translate-y-full z-10 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs text-gray-700 dark:text-gray-300';
+    tooltip.className = 'word-def-tooltip absolute left-0 -bottom-1 translate-y-full z-10 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs text-gray-700 dark:text-gray-300';
+    tooltip.style.minWidth = '200px';
+    tooltip.style.width = 'max-content';
+    tooltip.style.maxWidth = '280px';
     tooltip.textContent = 'Looking up…';
     target.style.position = 'relative';
     target.appendChild(tooltip);
