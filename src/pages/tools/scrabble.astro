@@ -189,6 +189,20 @@ import Layout from '../../layouts/Layout.astro';
       </div>
     </div>
 
+    <!-- Words with Rare Letters (Tabbed) -->
+    <div class="mt-6 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+        <span aria-hidden="true">💎</span> Words with Rare Letters
+      </h2>
+      <div class="flex gap-2 mb-4" id="rare-tabs">
+        <button data-rare="q" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">Q</button>
+        <button data-rare="z" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700">Z</button>
+        <button data-rare="x" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700">X</button>
+        <button data-rare="j" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700">J</button>
+      </div>
+      <div id="rare-letter-results" class="text-xs text-gray-600 dark:text-gray-400 italic">Loading dictionary…</div>
+    </div>
+
     <!-- Edit Modal -->
     <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
       <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl w-full max-w-sm mx-4">
@@ -509,6 +523,7 @@ import Layout from '../../layouts/Layout.astro';
           <div class="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-amber-400 transition-all" data-highlight-word="${w}">
             <span class="font-mono font-semibold text-gray-900 dark:text-white uppercase tracking-wider" style="font-size:0.65rem">${w}</span>
             <div class="flex items-center gap-1">
+              <span class="text-green-600 dark:text-green-400" style="font-size:0.5rem" title="Valid in SOWPODS dictionary">✓</span>
               <span class="font-bold text-amber-600 dark:text-amber-400" style="font-size:0.6rem">${wordScore(w)} pts</span>
               <button class="copy-word-btn text-gray-400 hover:text-blue-500 transition-colors" data-copy="${w}" title="Copy word" style="font-size:0.7rem">📋</button>
               <button class="save-word-btn text-gray-400 hover:text-green-500 transition-colors ${saveDisabled ? 'opacity-30 pointer-events-none' : ''}" data-word="${w}" title="${saveTitle}" style="font-size:0.7rem">💾</button>
@@ -1008,6 +1023,92 @@ import Layout from '../../layouts/Layout.astro';
     if (dictionaryLoaded) {
       clearInterval(panelInterval);
       populateReferencePanels();
+      initRareLetterTabs();
     }
   }, 200);
+
+  // ── Rare Letter Tabs ──────────────────────────────────────────────────────
+  function initRareLetterTabs() {
+    const tabs = document.querySelectorAll('.rare-tab');
+    const resultsEl = document.getElementById('rare-letter-results');
+    if (!tabs.length || !resultsEl) return;
+
+    function showRareLetter(letter: string) {
+      const words = WORDS.filter(w => w.includes(letter))
+        .map(w => ({ word: w, score: wordScore(w) }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 40);
+
+      const colors: Record<string, { bg: string; border: string; text: string }> = {
+        q: { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800', text: 'text-purple-700 dark:text-purple-300' },
+        z: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', text: 'text-red-700 dark:text-red-300' },
+        x: { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-700 dark:text-orange-300' },
+        j: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', border: 'border-emerald-200 dark:border-emerald-800', text: 'text-emerald-700 dark:text-emerald-300' },
+      };
+      const c = colors[letter] || colors.q;
+
+      resultsEl.innerHTML = `
+        <div class="flex flex-wrap gap-1.5">
+          ${words.map(w => `<span class="inline-block px-1.5 py-0.5 ${c.bg} border ${c.border} rounded font-mono font-semibold uppercase ${c.text}">${w.word}<sup class="ml-0.5 text-gray-400" style="font-size:0.5rem">${w.score}</sup></span>`).join('')}
+        </div>
+        <p class="mt-2 text-xs text-gray-400">Top 40 words containing "${letter.toUpperCase()}" by score</p>
+      `;
+
+      // Update tab styles
+      tabs.forEach(tab => {
+        const t = tab as HTMLElement;
+        if (t.dataset.rare === letter) {
+          t.className = 'rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold ' + c.bg + ' ' + c.text + ' border ' + c.border;
+        } else {
+          t.className = 'rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700';
+        }
+      });
+    }
+
+    // Default to Q
+    showRareLetter('q');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const letter = (tab as HTMLElement).dataset.rare!;
+        showRareLetter(letter);
+      });
+    });
+  }
+
+  // ── Word Definitions (click to lookup) ────────────────────────────────────
+  document.getElementById('results')!.addEventListener('click', async (e) => {
+    const target = (e.target as HTMLElement).closest('[data-highlight-word]') as HTMLElement | null;
+    if (!target) return;
+    const word = target.dataset.highlightWord!;
+
+    // Check if definition tooltip already showing
+    const existing = target.querySelector('.word-def-tooltip');
+    if (existing) { existing.remove(); return; }
+
+    // Remove any other tooltips
+    document.querySelectorAll('.word-def-tooltip').forEach(t => t.remove());
+
+    // Show loading
+    const tooltip = document.createElement('div');
+    tooltip.className = 'word-def-tooltip absolute left-0 right-0 -bottom-1 translate-y-full z-10 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg text-xs text-gray-700 dark:text-gray-300';
+    tooltip.textContent = 'Looking up…';
+    target.style.position = 'relative';
+    target.appendChild(tooltip);
+
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      if (!res.ok) throw new Error('not found');
+      const data = await res.json();
+      const meaning = data[0]?.meanings?.[0];
+      const def = meaning?.definitions?.[0]?.definition || 'No definition available';
+      const partOfSpeech = meaning?.partOfSpeech || '';
+      tooltip.innerHTML = `<span class="font-semibold text-amber-600 dark:text-amber-400 uppercase">${word}</span> <span class="italic text-gray-400">(${partOfSpeech})</span><br/>${def}`;
+    } catch {
+      tooltip.innerHTML = `<span class="font-semibold uppercase">${word}</span> — <span class="italic text-gray-400">No definition found</span>`;
+    }
+
+    // Auto-dismiss after 8 seconds
+    setTimeout(() => { tooltip.remove(); }, 8000);
+  });
 </script>
