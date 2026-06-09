@@ -15,8 +15,8 @@ test.describe('Scrabble Solver: Download Saved Words', () => {
 
   test('download button is greyed out when no saved words', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    // Clear any existing saved words
-    await page.evaluate(() => localStorage.removeItem('scbWords'));
+    // Clear any existing achievements
+    await page.evaluate(() => localStorage.removeItem('scbAchievements'));
     await page.reload();
     const downloadBtn = page.locator('#download-saved-btn');
     await expect(downloadBtn).toHaveClass(/opacity-30/);
@@ -24,10 +24,10 @@ test.describe('Scrabble Solver: Download Saved Words', () => {
 
   test('download button activates when words are saved', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    // Inject a saved word into localStorage
+    // Inject an achievement into localStorage
     await page.evaluate(() => {
-      localStorage.setItem('scbWords', JSON.stringify([
-        { word: 'TEST', score: 4, star: 3, comment: '', datetime: '' }
+      localStorage.setItem('scbAchievements', JSON.stringify([
+        { word: 'test', meaning: '' }
       ]));
     });
     await page.reload();
@@ -37,11 +37,11 @@ test.describe('Scrabble Solver: Download Saved Words', () => {
 
   test('clicking download triggers a file download with correct structure', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    // Set up UID and saved words
+    // Set up UID and achievements
     await page.evaluate(() => {
       localStorage.setItem('xconvert24-uid', 'test-user-12345678');
-      localStorage.setItem('scbWords', JSON.stringify([
-        { word: 'QUIZ', score: 22, star: 5, comment: 'great word', datetime: '2026-06-09T10:00:00' }
+      localStorage.setItem('scbAchievements', JSON.stringify([
+        { word: 'quiz', meaning: '(noun) a test of knowledge' }
       ]));
     });
     await page.reload();
@@ -60,10 +60,10 @@ test.describe('Scrabble Solver: Download Saved Words', () => {
     const path = await download.path();
     const fs = await import('fs');
     const content = JSON.parse(fs.readFileSync(path!, 'utf-8'));
-    expect(content.version).toBe(1);
+    expect(content.version).toBe(2);
     expect(content.userId).toBe('test-user-12345678');
-    expect(content.savedWords).toHaveLength(1);
-    expect(content.savedWords[0].word).toBe('QUIZ');
+    expect(content.achievements).toHaveLength(1);
+    expect(content.achievements[0].word).toBe('quiz');
     expect(content.exportedAt).toBeTruthy();
   });
 });
@@ -72,13 +72,13 @@ test.describe('Scrabble Solver: High-Scoring Words Table', () => {
   test('high-scoring words table appears after dictionary loads', async ({ page }) => {
     await page.goto('/tools/scrabble');
     // Wait for dictionary to load and table to render
-    const table = page.locator('#results table');
+    const table = page.locator('#high-scoring-panel table');
     await expect(table).toBeVisible({ timeout: 10000 });
   });
 
   test('table has 4 rows (2-letter through 5-letter)', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    const table = page.locator('#results table');
+    const table = page.locator('#high-scoring-panel table');
     await expect(table).toBeVisible({ timeout: 10000 });
     const rows = table.locator('tbody tr');
     await expect(rows).toHaveCount(4);
@@ -86,23 +86,23 @@ test.describe('Scrabble Solver: High-Scoring Words Table', () => {
 
   test('table shows word lengths in correct order', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    const table = page.locator('#results table');
+    const table = page.locator('#high-scoring-panel table');
     await expect(table).toBeVisible({ timeout: 10000 });
     const labels = await table.locator('tbody td:first-child').allTextContents();
     expect(labels).toEqual(['2-letter', '3-letter', '4-letter', '5-letter']);
   });
 
-  test('high-scoring words disappear after search', async ({ page }) => {
+  test('high-scoring words persist after search', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    const table = page.locator('#results table');
+    const table = page.locator('#high-scoring-panel table');
     await expect(table).toBeVisible({ timeout: 10000 });
 
     // Perform a search
     await page.fill('#tiles', 'AERTBLS');
     await page.click('#solve-btn');
 
-    // Table should be replaced by results
-    await expect(table).not.toBeVisible({ timeout: 5000 });
+    // Table should still be visible (it persists now)
+    await expect(table).toBeVisible({ timeout: 5000 });
     // Results should show found words
     const results = page.locator('#results');
     await expect(results).toContainText('words found');

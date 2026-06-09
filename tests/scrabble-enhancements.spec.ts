@@ -10,7 +10,7 @@ test.describe('Scrabble Solver: Instant Search', () => {
   test('results appear automatically when typing 2+ letters', async ({ page }) => {
     await page.goto('/tools/scrabble');
     // Wait for dictionary
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     // Type tiles — results should appear without clicking Find Words
     await page.fill('#tiles', 'QI');
@@ -21,12 +21,12 @@ test.describe('Scrabble Solver: Instant Search', () => {
 
   test('results do not appear with only 1 letter', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'A');
     await page.waitForTimeout(500);
     const results = page.locator('#results');
-    // Should still show the high-scoring table, not search results
+    // Should not show search results
     await expect(results).not.toContainText('words found');
   });
 });
@@ -34,7 +34,7 @@ test.describe('Scrabble Solver: Instant Search', () => {
 test.describe('Scrabble Solver: Achievements System', () => {
   test('clicking a result word adds achievement decoration', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'QITEST');
     await page.waitForTimeout(500);
@@ -53,7 +53,7 @@ test.describe('Scrabble Solver: Achievements System', () => {
 
   test('achievements persist in localStorage', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'QITEST');
     await page.waitForTimeout(500);
@@ -79,7 +79,7 @@ test.describe('Scrabble Solver: Achievements System', () => {
       localStorage.setItem('scbAchievements', JSON.stringify([{ word: 'qi', meaning: '' }]));
     });
     await page.reload();
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'QI');
     await page.waitForTimeout(500);
@@ -157,7 +157,7 @@ test.describe('Scrabble Solver: Tile Bag Probability', () => {
 
   test('probability updates when tiles are entered', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'AEIOU');
     await page.waitForTimeout(300);
@@ -193,7 +193,7 @@ test.describe('Scrabble Solver: Tile Bag Probability', () => {
       localStorage.setItem('scbTileProb', JSON.stringify({ inBag: 90, played: 3 }));
     });
     await page.reload();
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'QITEST');
     await page.waitForTimeout(500);
@@ -222,7 +222,7 @@ test.describe('Scrabble Solver: Rack Leave Analyzer', () => {
 
   test('shows leave analysis after clicking a word', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'QIABCDE');
     await page.waitForTimeout(500);
@@ -238,7 +238,7 @@ test.describe('Scrabble Solver: Rack Leave Analyzer', () => {
 
   test('shows bingo message when all tiles used', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     // Use exactly 2 tiles that form a word
     await page.fill('#tiles', 'QI');
@@ -264,7 +264,7 @@ test.describe('Scrabble Solver: Best Opening Moves', () => {
 
   test('shows openers after entering tiles', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'AERTBLS');
     await page.waitForTimeout(500);
@@ -275,7 +275,7 @@ test.describe('Scrabble Solver: Best Opening Moves', () => {
 
   test('shows medals for top 3 words', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'AERTBLS');
     await page.waitForTimeout(500);
@@ -286,7 +286,7 @@ test.describe('Scrabble Solver: Best Opening Moves', () => {
 
   test('shows bingo indicator for 7-letter words', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     // RETAILS is a valid 7-letter word from these tiles
     await page.fill('#tiles', 'RETAILS');
@@ -303,7 +303,7 @@ test.describe('Scrabble Solver: Best Opening Moves', () => {
 test.describe('Scrabble Solver: Word Definitions', () => {
   test('clicking a result word shows definition tooltip', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'QITEST');
     await page.waitForTimeout(500);
@@ -319,7 +319,7 @@ test.describe('Scrabble Solver: Word Definitions', () => {
 
   test('definition tooltip auto-dismisses', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'QITEST');
     await page.waitForTimeout(500);
@@ -338,7 +338,7 @@ test.describe('Scrabble Solver: Word Definitions', () => {
 test.describe('Scrabble Solver: SOWPODS Badge & Rare Letter Icon', () => {
   test('result words show SOWPODS validity checkmark', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     await page.fill('#tiles', 'QITEST');
     await page.waitForTimeout(500);
@@ -351,7 +351,7 @@ test.describe('Scrabble Solver: SOWPODS Badge & Rare Letter Icon', () => {
 
   test('words with rare letters show 💎 icon', async ({ page }) => {
     await page.goto('/tools/scrabble');
-    await page.locator('#results table').waitFor({ timeout: 10000 });
+    await page.locator('#high-scoring-panel table').waitFor({ timeout: 10000 });
 
     // Use tiles that produce words with Q
     await page.fill('#tiles', 'QIAZXJ');
