@@ -70,6 +70,12 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
     <h1>🗺️ Clicks Analysis</h1>
     <p class="subtitle">Geographic distribution of visitor clicks — plotted by IP geolocation</p>
 
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <button id="sound-toggle" style="font-size:13px;padding:6px 16px;border-radius:6px;border:2px solid #fbbf24;background:#1f2937;color:#fbbf24;cursor:pointer;font-weight:700;">🔇 Enable Sound</button>
+      <span id="sound-status" style="font-size:11px;color:#6b7280;">Click to enable notification sounds</span>
+      <span id="live-click-count" style="margin-left:auto;font-size:11px;color:#4ade80;">● Live</span>
+    </div>
+
     <div class="stats-row">
       <div class="stat-box">
         <div class="value" id="stat-ips">—</div>
@@ -174,6 +180,61 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
           document.getElementById('table-body').innerHTML =
             '<tr><td colspan="5" style="color:#f87171;">Error loading data: ' + err.message + '</td></tr>';
         });
+    })();
+  </script>
+  <script is:inline>
+    // Sound notification for new clicks
+    (function() {
+      var audio = new Audio('/sounds/notif.wav');
+      audio.volume = 1.0;
+      var soundEnabled = localStorage.getItem('clicks-analysis-sound') === '1';
+      var lastClickId = 0;
+      var btn = document.getElementById('sound-toggle');
+      var status = document.getElementById('sound-status');
+      var liveCount = document.getElementById('live-click-count');
+
+      function updateBtn() {
+        if (soundEnabled) {
+          btn.textContent = '🔊 Sound ON';
+          btn.style.borderColor = '#4ade80';
+          btn.style.color = '#4ade80';
+          status.textContent = 'Notifications enabled — beeps on new clicks';
+          status.style.color = '#4ade80';
+        } else {
+          btn.textContent = '🔇 Enable Sound';
+          btn.style.borderColor = '#fbbf24';
+          btn.style.color = '#fbbf24';
+          status.textContent = 'Click to enable notification sounds';
+          status.style.color = '#6b7280';
+        }
+      }
+      updateBtn();
+
+      btn.addEventListener('click', function() {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem('clicks-analysis-sound', soundEnabled ? '1' : '0');
+        if (soundEnabled) { audio.currentTime = 0; audio.play(); }
+        updateBtn();
+      });
+
+      // Poll for new clicks every 2 seconds
+      function pollClicks() {
+        fetch('/api/clicks?limit=1')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            var clicks = d.clicks || [];
+            if (clicks.length && clicks[0].id > lastClickId && lastClickId > 0) {
+              liveCount.textContent = '🔔 New click!';
+              liveCount.style.color = '#fbbf24';
+              setTimeout(function() { liveCount.textContent = '● Live'; liveCount.style.color = '#4ade80'; }, 1500);
+              if (soundEnabled) { audio.currentTime = 0; audio.play(); }
+            }
+            if (clicks.length) lastClickId = clicks[0].id;
+          })
+          .catch(function() {});
+      }
+      pollClicks();
+      setInterval(pollClicks, 2000);
     })();
   </script>
 </body>
