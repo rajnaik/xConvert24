@@ -200,6 +200,7 @@ import { STATS } from '../../data/siteStats';
         <span style="font-size:13px;font-weight:600;color:#f9fafb;">Click Stream (live)</span>
         <span id="clicks-feed-count" style="font-size:10px;color:#6b7280;margin-left:8px;">0 events</span>
         <span id="clicks-feed-status" style="margin-left:auto;font-size:10px;color:#4ade80;">● Live</span>
+        <button id="enable-sound-btn" onclick="document.getElementById('enable-sound-btn').textContent='🔊 ON'; window._audioUnlocked=true; var a=new Audio('/sounds/notif.wav'); a.volume=1.0; a.play(); window._notifAudio=a;" style="margin-left:8px;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #374151;background:#1f2937;color:#fbbf24;cursor:pointer;">🔇 Enable Sound</button>
       </div>
       <div id="clicks-feed" style="height:220px;overflow-y:auto;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#94a3b8;">
         <div style="color:#6b7280;font-style:italic;text-align:center;padding:20px;">Loading click stream…</div>
@@ -733,7 +734,23 @@ import { STATS } from '../../data/siteStats';
     </div>
   </div>
 
-  <script>
+  <script is:inline>
+    // Global notification sound — plays a short WAV ping
+    var _notifAudio = new Audio('/sounds/notif.wav');
+    _notifAudio.volume = 1.0;
+    var _audioUnlocked = false;
+    window._notifAudio = _notifAudio;
+    window._audioUnlocked = false;
+    function playNotifSound() {
+      if (!window._audioUnlocked) return;
+      window._notifAudio.currentTime = 0;
+      window._notifAudio.play();
+      var el = document.getElementById('clicks-feed-status');
+      if (el) { el.textContent = '🔔 PING'; el.style.color = '#fbbf24'; setTimeout(function(){ el.textContent = '● Live'; el.style.color = '#4ade80'; }, 1000); }
+    }
+    // Also unlock via any click on the page
+    document.addEventListener('click', function() { window._audioUnlocked = true; });
+
     (function() {
       var bugsContainer = document.getElementById('admin-bugs');
       var sugContainer = document.getElementById('admin-suggestions');
@@ -935,6 +952,7 @@ import { STATS } from '../../data/siteStats';
       // Load Click Stream Feed
       var clicksFeed = document.getElementById('clicks-feed');
       var clicksCount = document.getElementById('clicks-feed-count');
+      var lastClicksFeedId = 0;
       function loadClicksFeed() {
         fetch('/api/clicks?limit=30')
           .then(function(r) { return r.json(); })
@@ -945,6 +963,11 @@ import { STATS } from '../../data/siteStats';
               clicksFeed.innerHTML = '<div style="color:#6b7280;font-style:italic;text-align:center;padding:20px;">No clicks recorded yet.</div>';
               return;
             }
+            // Play sound if new clicks arrived
+            if (clicks[0] && clicks[0].id > lastClicksFeedId && lastClicksFeedId > 0) {
+              playNotifSound();
+            }
+            if (clicks[0]) lastClicksFeedId = clicks[0].id;
             clicksFeed.innerHTML = clicks.map(function(c) {
               var date = c.created_at ? new Date(c.created_at + 'Z').toLocaleString() : '—';
               var uid = (c.user_id || '').slice(0, 12);
@@ -966,7 +989,7 @@ import { STATS } from '../../data/siteStats';
           });
       }
       loadClicksFeed();
-      setInterval(loadClicksFeed, 8000);
+      setInterval(loadClicksFeed, 3000);
 
       // Load total clicks count for statistics tile
       function loadClicksTotal() {
@@ -1112,6 +1135,7 @@ import { STATS } from '../../data/siteStats';
           var newClicks = clicks.filter(function(c) { return c.id > lastSeenClickId; });
           if (newClicks.length) {
             lastSeenClickId = newClicks[0].id;
+            playNotifSound();
             newClicks.reverse().forEach(function(c) {
               var el = (c.ui_element || 'unknown').slice(0, 50);
               var url = c.url || '/';
@@ -1123,6 +1147,7 @@ import { STATS } from '../../data/siteStats';
           var newLogs = logs.filter(function(l) { return l.id > lastSeenAuditId; });
           if (newLogs.length) {
             lastSeenAuditId = newLogs[0].id;
+            playNotifSound();
             newLogs.reverse().forEach(function(entry) {
               var icon = entry.status === 1 ? '✅' : '❌';
               var cls = entry.status === 1 ? 'ops-console-line--success' : 'ops-console-line--error';
