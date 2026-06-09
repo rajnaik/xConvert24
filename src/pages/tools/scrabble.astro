@@ -1033,6 +1033,15 @@ import Layout from '../../layouts/Layout.astro';
 
   function saveAchievements(achievements: Achievement[]) {
     localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+    // Sync to server in background
+    const uid = localStorage.getItem('xconvert24-uid');
+    if (uid) {
+      fetch('/api/scrabble-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, achievements, dictionary: currentDict }),
+      }).catch(() => {});
+    }
   }
 
   async function fetchMeaning(word: string): Promise<string> {
@@ -1114,6 +1123,33 @@ import Layout from '../../layouts/Layout.astro';
 
   // Render saved words on load (after achievements system is defined)
   renderSavedWords();
+
+  // Restore from server if localStorage is empty (e.g. after nuke + relink)
+  (function syncFromServer() {
+    const uid = localStorage.getItem('xconvert24-uid');
+    if (!uid) return;
+    const local = getAchievements();
+    // Only restore from server if local is empty (nuke scenario)
+    if (local.length === 0) {
+      fetch(`/api/scrabble-sync?uid=${encodeURIComponent(uid)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.achievements && data.achievements.length > 0) {
+            localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(data.achievements));
+            localStorage.setItem('scbAchievements_v2', '1');
+            if (data.dictionary) {
+              localStorage.setItem('scbDictionary', data.dictionary);
+              currentDict = data.dictionary;
+              WORDS = data.dictionary === 'twl' ? TWL : SOWPODS;
+              (document.getElementById('dictionary') as HTMLSelectElement).value = data.dictionary;
+            }
+            savedWordsPage = 0;
+            renderSavedWords();
+          }
+        })
+        .catch(() => {});
+    }
+  })();
 
   // ── Populate Reference Panels (after dictionary loads) ────────────────────
   function populateReferencePanels() {
