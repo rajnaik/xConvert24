@@ -13,15 +13,15 @@ const converterTests = [
   { path: '/convert/temperature', from: 'c', to: 'f', input: '100', expected: 212, tolerance: 0 },
   { path: '/convert/temperature', from: 'f', to: 'c', input: '32', expected: 0, tolerance: 0 },
   { path: '/convert/temperature', from: 'c', to: 'k', input: '0', expected: 273.15, tolerance: 0.01 },
-  { path: '/convert/area', from: 'sqm', to: 'sqft', input: '1', expected: 10.764, tolerance: 0.01 },
+  { path: '/convert/area', from: 'm2', to: 'ft2', input: '1', expected: 10.764, tolerance: 0.01 },
   { path: '/convert/volume', from: 'l', to: 'gal_us', input: '1', expected: 0.2642, tolerance: 0.01 },
   { path: '/convert/speed', from: 'kmh', to: 'mph', input: '100', expected: 62.137, tolerance: 0.01 },
-  { path: '/convert/data', from: 'gb', to: 'mb', input: '1', expected: 1000, tolerance: 0 },
+  { path: '/convert/data', from: 'GB', to: 'MB', input: '1', expected: 1000, tolerance: 0 },
   { path: '/convert/energy', from: 'kwh', to: 'j', input: '1', expected: 3600000, tolerance: 0 },
   { path: '/convert/pressure', from: 'atm', to: 'psi', input: '1', expected: 14.696, tolerance: 0.01 },
   { path: '/convert/power', from: 'kw', to: 'hp', input: '1', expected: 1.341, tolerance: 0.01 },
   { path: '/convert/fuel', from: 'mpg_us', to: 'l100km', input: '30', expected: 7.84, tolerance: 0.1 },
-  { path: '/convert/time', from: 'hr', to: 'min', input: '2', expected: 120, tolerance: 0 },
+  { path: '/convert/time', from: 'h', to: 'min', input: '2', expected: 120, tolerance: 0 },
   { path: '/convert/angle', from: 'deg', to: 'rad', input: '180', expected: 3.1416, tolerance: 0.001 },
   { path: '/convert/frequency', from: 'mhz', to: 'khz', input: '1', expected: 1000, tolerance: 0 },
 ];
@@ -29,7 +29,7 @@ const converterTests = [
 test.describe('Converters: Functional Accuracy', () => {
   for (const tc of converterTests) {
     test(`${tc.path}: ${tc.input} ${tc.from} → ${tc.to} ≈ ${tc.expected}`, async ({ page }) => {
-      await page.goto(tc.path);
+      await page.goto(tc.path, { waitUntil: 'domcontentloaded' });
       
       const fromUnit = page.locator('#from-unit');
       const toUnit = page.locator('#to-unit');
@@ -39,7 +39,16 @@ test.describe('Converters: Functional Accuracy', () => {
       await fromUnit.selectOption(tc.from);
       await toUnit.selectOption(tc.to);
       await fromValue.fill(tc.input);
-      await page.waitForTimeout(400);
+      
+      // Wait for result to update (some converters compute async)
+      await page.waitForFunction(
+        (sel) => {
+          const el = document.querySelector(sel);
+          return el && el.textContent && el.textContent.trim() !== '' && el.textContent.trim() !== '—';
+        },
+        '#result',
+        { timeout: 5000 }
+      );
 
       const text = await result.textContent();
       const num = parseFloat(text || '0');
