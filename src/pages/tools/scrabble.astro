@@ -212,8 +212,8 @@ import Layout from '../../layouts/Layout.astro';
       <div id="tile-probability" class="space-y-2">
         <div class="grid grid-cols-3 gap-3">
           <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-            <div class="text-2xl font-bold text-gray-900 dark:text-white" id="prob-remaining">100</div>
-            <div class="text-xs text-gray-500">In bag</div>
+            <label for="tiles-in-bag" class="text-xs text-gray-500 block mb-1">In bag</label>
+            <input id="tiles-in-bag" type="number" min="0" max="100" value="100" class="w-full text-center text-2xl font-bold text-gray-900 dark:text-white bg-transparent border-none outline-none focus:ring-0 p-0" />
           </div>
           <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
             <div class="text-2xl font-bold text-amber-600 dark:text-amber-400" id="prob-your-rack">0</div>
@@ -633,6 +633,8 @@ import Layout from '../../layouts/Layout.astro';
     });
     saveScbWords(words);
     renderSavedWords();
+    // Update tile probability — word was played
+    onWordPlayed(word.length);
     // Highlight the saved word's tiles
     highlightTiles(word);
     // Re-render results to update save buttons
@@ -1107,23 +1109,42 @@ import Layout from '../../layouts/Layout.astro';
     N:6,O:8,P:2,Q:1,R:6,S:4,T:6,U:4,V:2,W:2,X:1,Y:2,Z:1,'?':2
   };
   const TOTAL_TILES = 100;
+  const PROB_STORAGE_KEY = 'scbTileProb';
+
+  // Load saved state
+  function loadProbState(): { inBag: number; played: number } {
+    try {
+      const saved = JSON.parse(localStorage.getItem(PROB_STORAGE_KEY) || '{}');
+      return { inBag: saved.inBag ?? 100, played: saved.played ?? 0 };
+    } catch { return { inBag: 100, played: 0 }; }
+  }
+
+  function saveProbState(inBag: number, played: number) {
+    localStorage.setItem(PROB_STORAGE_KEY, JSON.stringify({ inBag, played }));
+  }
+
+  // Init inputs from localStorage
+  const probState = loadProbState();
+  const inBagInput = document.getElementById('tiles-in-bag') as HTMLInputElement;
+  const playedInput = document.getElementById('tiles-played') as HTMLInputElement;
+  inBagInput.value = String(probState.inBag);
+  playedInput.value = String(probState.played);
 
   function updateProbability() {
     const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim().toUpperCase();
-    const tilesPlayed = parseInt((document.getElementById('tiles-played') as HTMLInputElement).value) || 0;
-    const remainingEl = document.getElementById('prob-remaining');
+    const inBag = parseInt(inBagInput.value) || 0;
+    const tilesPlayed = parseInt(playedInput.value) || 0;
     const rackEl = document.getElementById('prob-your-rack');
     const chancesEl = document.getElementById('prob-draw-chances');
-    if (!remainingEl || !rackEl || !chancesEl) return;
+    if (!rackEl || !chancesEl) return;
 
     const rackCount = tiles.length;
     rackEl.textContent = String(rackCount);
 
-    // Remaining = total - your rack - tiles played on board
-    const remaining = Math.max(0, TOTAL_TILES - rackCount - tilesPlayed);
-    remainingEl.textContent = String(remaining);
+    // Save state
+    saveProbState(inBag, tilesPlayed);
 
-    if (rackCount === 0 || remaining === 0) {
+    if (rackCount === 0 || inBag === 0) {
       chancesEl.innerHTML = '<span class="italic">Enter your rack letters in the solver above ↑ to see draw probabilities</span>';
       return;
     }
@@ -1134,6 +1155,9 @@ import Layout from '../../layouts/Layout.astro';
       const key = ch === '?' ? '?' : ch;
       if (bag[key] && bag[key] > 0) bag[key]--;
     }
+
+    // Use the user-configured "in bag" value for probability denominator
+    const remaining = Math.max(0, inBag);
 
     // Show probability of drawing key tiles
     const keyTiles = ['S','E','R','T','N','?','Z','Q','X','J'];
@@ -1147,14 +1171,24 @@ import Layout from '../../layouts/Layout.astro';
       });
 
     chancesEl.innerHTML = `
-      <div class="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Draw probability (next tile):</div>
+      <div class="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Draw probability (next tile from bag of ${remaining}):</div>
       <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400">${rows.join('')}</div>
     `;
   }
 
-  // Update probability when tiles change or played count changes
+  // When user plays a word (saves it), auto-increment "played" by word length and decrement "in bag"
+  function onWordPlayed(wordLength: number) {
+    const currentPlayed = parseInt(playedInput.value) || 0;
+    const currentInBag = parseInt(inBagInput.value) || 0;
+    playedInput.value = String(currentPlayed + wordLength);
+    inBagInput.value = String(Math.max(0, currentInBag - wordLength));
+    updateProbability();
+  }
+
+  // Update probability when tiles change or bag/played values change
   document.getElementById('tiles')!.addEventListener('input', updateProbability);
-  document.getElementById('tiles-played')!.addEventListener('input', updateProbability);
+  inBagInput.addEventListener('input', updateProbability);
+  playedInput.addEventListener('input', updateProbability);
   updateProbability();
 
   // ── Word Definitions (click to lookup) ────────────────────────────────────
