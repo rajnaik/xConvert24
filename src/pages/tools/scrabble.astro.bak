@@ -1,0 +1,900 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Scrabble Word Finder — Solve Any Rack" description="Free Scrabble word finder. Enter your tiles and find the highest-scoring words. Works for Words With Friends too." keywords="scrabble, scrabble tiles, scrabble word finder, scrabble cheat, scrabble find, scrabble word solver, word finder, scrabble word, scrabble dictionary, scrabble helper, scrabble solver, anagram solver, words with friends cheat, highest scoring words">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What dictionary does this Scrabble word finder use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "This tool uses the SOWPODS dictionary — the international Scrabble word list used in official tournaments outside North America. It contains over 74,000 valid words between 2 and 7 letters long."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How are Scrabble tile scores calculated?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Each letter tile has a fixed point value. Common letters like E, A, I, O score 1 point, while rare letters like Q and Z score 10 points. The word score is the sum of all individual tile values. Blank tiles (wildcards) score 0 points."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use blank tiles or wildcards?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Enter a question mark (?) for each blank tile in your rack. The solver will treat it as any letter and find all possible words you can make, though blank tiles contribute 0 points to the word score."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does this work for Words With Friends too?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. While Words With Friends uses a slightly different dictionary and scoring system, the SOWPODS word list covers virtually all valid WWF words. The tile scores shown are for standard Scrabble — WWF scores differ slightly for some letters."
+        }
+      }
+    ]
+  })} />
+  <style is:inline>
+    .scrabble-tile {
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    }
+    .scrabble-tile:hover {
+      transform: scale(2) rotate(-3deg) translateY(-4px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 0 rgba(0,0,0,0.1), 0 8px 20px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2) !important;
+      z-index: 10;
+      position: relative;
+    }
+    .scrabble-tile.tile-highlighted {
+      animation: tile-glow 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes tile-glow {
+      0% { outline-color: #f59e0b; transform: scale(1); }
+      100% { outline-color: #dc2626; transform: scale(1.08); }
+    }
+    /* Mobile: smaller tiles */
+    @media (max-width: 639px) {
+      .scrabble-tile {
+        width: 48px !important;
+        height: 48px !important;
+      }
+      .scrabble-tile .text-6xl {
+        font-size: 1.5rem !important;
+      }
+      .scrabble-tile .text-lg {
+        font-size: 0.6rem !important;
+        bottom: 4px !important;
+        right: 4px !important;
+      }
+    }
+  </style>
+  <div class="max-w-5xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🔤</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Free Scrabble Word Finder — Highest-Scoring Words</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Enter your tiles and find the best words you can make</p>
+      <span class="inline-block mt-2 px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 text-xs font-medium">🧪 Experimental</span>
+    </div>
+
+    <!-- Two-column layout: Input + Saved Words -->
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 mb-6">
+      <!-- Left: Input & Results -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm" style="padding: 29px;">
+        <!-- Input -->
+        <div class="mb-4">
+          <label for="tiles" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Your Letter Tiles</label>
+          <div class="flex gap-3 relative">
+            <input id="tiles" type="text" maxlength="15" placeholder="e.g. AERTBLS" class="flex-1 h-14 sm:h-14 h-12 px-4 sm:px-4 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-xl sm:text-2xl font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-500" autocomplete="off" size="15"/>
+            <button id="solve-btn" class="px-6 h-14 rounded-lg bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-colors">Find Words</button>
+            <!-- Hint bubble -->
+            <div id="hint-bubble" class="absolute top-1/2 -translate-y-1/2 right-full mr-3 hidden opacity-0 transition-all duration-300 z-20">
+              <div class="relative bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-lg whitespace-nowrap">
+                Enter your letters here
+                <div class="absolute top-1/2 -translate-y-1/2 -right-2 w-4 h-4 bg-orange-500 rotate-45"></div>
+              </div>
+            </div>
+          </div>
+          <p class="mt-2 text-xs text-gray-400">Use ? for blank tiles (wildcards)</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-3 mb-4">
+          <div>
+            <label for="min-len" class="text-xs text-gray-500 dark:text-gray-400">Min length</label>
+            <select id="min-len" class="h-8 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-gray-100">
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div>
+            <label for="sort-by" class="text-xs text-gray-500 dark:text-gray-400">Sort by</label>
+            <select id="sort-by" class="h-8 px-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm text-gray-900 dark:text-gray-100">
+              <option value="score">Highest Score</option>
+              <option value="length">Longest First</option>
+              <option value="alpha">A–Z</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="min-h-[100px]">
+          <div class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm italic">Enter your tiles above and click Find Words</div>
+        </div>
+      </div>
+
+      <!-- Right: Saved Words -->
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm h-fit lg:sticky lg:top-4">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <span aria-hidden="true">📋</span> Saved Words
+          </h2>
+          <div class="flex items-center gap-2">
+            <button id="download-saved-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors opacity-30" title="Download saved words" aria-label="Download saved words">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
+            </button>
+            <span id="saved-count" class="text-xs text-gray-400">0 / 10</span>
+          </div>
+        </div>
+        <div id="saved-words-list">
+          <p id="saved-empty" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4 italic">No saved words yet. Click the 💾 icon on any result to save it.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score reference -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 id="tile-scores-heading" class="font-semibold text-gray-900 dark:text-white mb-3">Tile Scores</h2>
+      <div class="grid grid-cols-6 gap-2" id="tile-scores">
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl w-full max-w-sm mx-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Edit Saved Word</h3>
+          <button id="edit-modal-close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="mb-3">
+          <div id="edit-word-display" class="text-2xl font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"></div>
+          <div id="edit-word-score" class="text-xs text-gray-500 mt-1"></div>
+        </div>
+        <div class="space-y-4">
+          <!-- Star Rating -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Rating</label>
+            <div id="star-rating" class="flex gap-2">
+              <button data-star="1" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="1 - Meh">👍</button>
+              <button data-star="2" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="2 - Decent">🔹</button>
+              <button data-star="3" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="3 - Good">⭐</button>
+              <button data-star="4" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="4 - Great">🪄</button>
+              <button data-star="5" class="star-btn w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" title="5 - Bingo!">🎯</button>
+            </div>
+          </div>
+          <!-- Comment -->
+          <div>
+            <label for="edit-comment" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Comment</label>
+            <textarea id="edit-comment" rows="2" placeholder="e.g. Great triple word score!" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+          </div>
+          <!-- Datetime -->
+          <div>
+            <label for="edit-datetime" class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Date & Time</label>
+            <input id="edit-datetime" type="datetime-local" class="w-full h-10 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500" style="color-scheme: light dark"/>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-5">
+          <button id="edit-save-btn" class="flex-1 h-10 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors text-sm">Save</button>
+          <button id="edit-cancel-btn" class="flex-1 h-10 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Blog Posts -->
+    <div class="mt-10 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <h2 class="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <span aria-hidden="true">📝</span> Related Articles
+      </h2>
+      <ul class="space-y-3">
+        <li>
+          <a href="/blog/scrabble-history-origins-great-depression" class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+            <span class="shrink-0 text-base" aria-hidden="true">🏛️</span>
+            <span>The History of Scrabble: From the Great Depression to Global Phenomenon</span>
+          </a>
+        </li>
+        <li>
+          <a href="/blog/scrabble-tile-strategy-letters-scoring" class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+            <span class="shrink-0 text-base" aria-hidden="true">🎯</span>
+            <span>Scrabble Tile Strategy: Letter Values, Rack Management & Scoring Tips</span>
+          </a>
+        </li>
+        <li>
+          <a href="/blog/scrabble-dictionaries-languages-weird-words" class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+            <span class="shrink-0 text-base" aria-hidden="true">📖</span>
+            <span>Scrabble Dictionaries: Languages, Weird Words & What Counts</span>
+          </a>
+        </li>
+        <li>
+          <a href="/blog/competitive-scrabble-tournament-world" class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+            <span class="shrink-0 text-base" aria-hidden="true">🏆</span>
+            <span>Inside Competitive Scrabble: Tournaments, Records & the Mental Game</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Report a bug · Suggest a feature -->
+    <div class="mt-6 flex items-center justify-center gap-4 flex-wrap">
+      <a href="/report-bug?tool=Free+Scrabble+Word+Finder" class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:underline font-medium">
+        <span aria-hidden="true">🐛</span> Report a bug
+      </a>
+      <span class="text-gray-300 dark:text-gray-600">|</span>
+      <a href="/suggest?title=Free+Scrabble+Word+Finder" class="inline-flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium">
+        <span aria-hidden="true">💡</span> Suggest a new feature for this tool →
+      </a>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Scrabble tile scores
+  const scores: Record<string, number> = {
+    A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,
+    N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10
+  };
+
+  // Star rating icons: 1=lowest → 5=highest
+  const STAR_ICONS: Record<number, { icon: string; label: string }> = {
+    1: { icon: '👍', label: 'Meh' },
+    2: { icon: '🔹', label: 'Decent' },
+    3: { icon: '⭐', label: 'Good' },
+    4: { icon: '🪄', label: 'Great' },
+    5: { icon: '🎯', label: 'Bingo!' },
+  };
+
+  // Saved words storage
+  interface ScbWord {
+    word: string;
+    score: number;
+    star: number;
+    comment: string;
+    datetime: string;
+  }
+
+  const SCB_KEY = 'scbWords';
+  const MAX_SAVED = 10;
+
+  function getScbWords(): ScbWord[] {
+    try { return JSON.parse(localStorage.getItem(SCB_KEY) || '[]'); } catch { return []; }
+  }
+
+  function saveScbWords(words: ScbWord[]) {
+    localStorage.setItem(SCB_KEY, JSON.stringify(words.slice(0, MAX_SAVED)));
+  }
+
+  // SOWPODS dictionary (2-7 letter words) — loaded from static JSON
+  let WORDS: string[] = [];
+  let dictionaryLoaded = false;
+
+  async function loadDictionary() {
+    try {
+      const res = await fetch('/data/sowpods-2-7.json');
+      if (!res.ok) throw new Error('Failed to load dictionary');
+      WORDS = await res.json();
+      dictionaryLoaded = true;
+      // Update UI to show dictionary is ready + high scoring words
+      const resultsEl = document.getElementById('results')!;
+      if (resultsEl.querySelector('.text-sm.italic')) {
+        // Find top scoring words by length
+        function topByLen(len: number, count: number): {word: string, score: number}[] {
+          return WORDS
+            .filter(w => w.length === len)
+            .map(w => ({ word: w, score: w.split('').reduce((s, c) => s + (scores[c.toUpperCase()] || 0), 0) }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, count);
+        }
+        const top2 = topByLen(2, 5);
+        const top3 = topByLen(3, 5);
+        const top4 = topByLen(4, 5);
+        const top5 = topByLen(5, 5);
+
+        // Load scored words from localStorage
+        const SCORED_KEY = 'scbScoredWords';
+        function getScoredWords(): string[] {
+          try { return JSON.parse(localStorage.getItem(SCORED_KEY) || '[]'); } catch { return []; }
+        }
+        function saveScoredWords(words: string[]) {
+          localStorage.setItem(SCORED_KEY, JSON.stringify(words));
+        }
+        const scoredWords = getScoredWords();
+
+        function renderRow(words: {word: string, score: number}[]): string {
+          return words.map(w => {
+            const checked = scoredWords.includes(w.word) ? 'checked' : '';
+            return `<label class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 font-mono cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+              <input type="checkbox" class="scb-score-check w-3.5 h-3.5 rounded border-gray-300 text-amber-500 focus:ring-amber-500" data-word="${w.word}" ${checked}/>
+              <span class="font-bold text-gray-900 dark:text-white uppercase" style="font-size:0.85rem">${w.word}</span>
+              <span class="text-amber-600 dark:text-amber-400" style="font-size:0.7rem">${w.score}</span>
+            </label>`;
+          }).join(' ');
+        }
+
+        resultsEl.innerHTML = `
+          <div class="text-center py-4 text-gray-400 dark:text-gray-500 text-sm italic mb-4">Dictionary loaded (74,000+ words). Enter your tiles and click Find Words</div>
+          <div class="text-center mb-3">
+            <span class="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-400">
+              <span>🏆</span> Challenge yourself: <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">(tick if scored)</span>
+              <button type="button" class="scb-challenge-download p-1 rounded text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" title="Download your progress" aria-label="Download challenge progress">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
+              </button>
+            </span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+              <thead class="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300 w-32">Length</th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Highest Scoring Words</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                <tr class="bg-white dark:bg-gray-900">
+                  <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 text-base">2-letter</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-2">${renderRow(top2)}</div></td>
+                </tr>
+                <tr class="bg-gray-50 dark:bg-gray-800/50">
+                  <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 text-base">3-letter</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-2">${renderRow(top3)}</div></td>
+                </tr>
+                <tr class="bg-white dark:bg-gray-900">
+                  <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 text-base">4-letter</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-2">${renderRow(top4)}</div></td>
+                </tr>
+                <tr class="bg-gray-50 dark:bg-gray-800/50">
+                  <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 text-base">5-letter</td>
+                  <td class="px-4 py-3"><div class="flex flex-wrap gap-2">${renderRow(top5)}</div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>`;
+
+        // Bind checkbox change events to persist scored words
+        resultsEl.querySelectorAll('.scb-score-check').forEach(cb => {
+          cb.addEventListener('change', () => {
+            const word = (cb as HTMLInputElement).dataset.word!;
+            let scored = getScoredWords();
+            if ((cb as HTMLInputElement).checked) {
+              if (!scored.includes(word)) scored.push(word);
+            } else {
+              scored = scored.filter(w => w !== word);
+            }
+            saveScoredWords(scored);
+          });
+        });
+
+        // Bind challenge download button
+        const challengeDlBtn = resultsEl.querySelector('.scb-challenge-download');
+        if (challengeDlBtn) {
+          challengeDlBtn.addEventListener('click', () => downloadBtn.click());
+        }
+      }
+    } catch {
+      // Fallback: use a minimal built-in list
+      WORDS = ["quiz","quizzes","qi","qat","ax","ox","za","zo","xi","xu","aa","ab","ad","ae","ag","ah","ai","al","am","an","ar","as","at","aw","ay","ba","be","bi","bo","by"];
+      dictionaryLoaded = true;
+    }
+  }
+
+  loadDictionary();
+
+  // Hint bubble: show after 1s, hide on input focus
+  setTimeout(() => {
+    const bubble = document.getElementById('hint-bubble');
+    if (bubble) {
+      bubble.classList.remove('hidden');
+      requestAnimationFrame(() => { bubble.classList.remove('opacity-0'); bubble.classList.add('opacity-100'); });
+    }
+  }, 1000);
+  document.getElementById('tiles')!.addEventListener('focus', () => {
+    const bubble = document.getElementById('hint-bubble');
+    if (bubble) {
+      bubble.classList.add('opacity-0');
+      setTimeout(() => bubble.classList.add('hidden'), 300);
+    }
+  }, { once: true });
+
+  function wordScore(word: string): number {
+    return word.split('').reduce((sum, ch) => sum + (scores[ch.toUpperCase()] || 0), 0);
+  }
+
+  function canMake(word: string, tiles: string): boolean {
+    const available = tiles.toUpperCase().split('');
+    const blanks = available.filter(t => t === '?').length;
+    const tileCount: Record<string, number> = {};
+    available.filter(t => t !== '?').forEach(t => { tileCount[t] = (tileCount[t] || 0) + 1; });
+
+    let blanksNeeded = 0;
+    for (const ch of word.toUpperCase()) {
+      if (tileCount[ch] && tileCount[ch] > 0) {
+        tileCount[ch]--;
+      } else {
+        blanksNeeded++;
+        if (blanksNeeded > blanks) return false;
+      }
+    }
+    return true;
+  }
+
+  function solve() {
+    const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim();
+    const minLen = parseInt((document.getElementById('min-len') as HTMLSelectElement).value);
+    const sortBy = (document.getElementById('sort-by') as HTMLSelectElement).value;
+    const resultsEl = document.getElementById('results')!;
+
+    if (!dictionaryLoaded) {
+      resultsEl.innerHTML = '<div class="text-center py-8 text-gray-400 text-sm italic">Loading dictionary… please wait</div>';
+      return;
+    }
+
+    if (!tiles || tiles.length < 2) {
+      resultsEl.innerHTML = '<div class="text-center py-8 text-gray-400 text-sm italic">Enter at least 2 tiles</div>';
+      return;
+    }
+
+    let found = WORDS.filter(w => w.length >= minLen && w.length <= tiles.length && canMake(w, tiles));
+
+    if (sortBy === 'score') found.sort((a, b) => wordScore(b) - wordScore(a));
+    else if (sortBy === 'length') found.sort((a, b) => b.length - a.length || wordScore(b) - wordScore(a));
+    else found.sort((a, b) => a.localeCompare(b));
+
+    if (!found.length) {
+      resultsEl.innerHTML = '<div class="text-center py-8 text-gray-400 text-sm italic">No words found with those tiles</div>';
+      return;
+    }
+
+    const savedWords = getScbWords();
+    const savedSet = new Set(savedWords.map(w => w.word));
+    const isFull = savedWords.length >= MAX_SAVED;
+
+    resultsEl.innerHTML = `
+      <div class="text-xs text-gray-400 mb-3">${found.length} words found</div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-80 overflow-y-auto">
+        ${found.slice(0, 100).map(w => {
+          const alreadySaved = savedSet.has(w);
+          const saveDisabled = alreadySaved;
+          const saveTitle = alreadySaved ? 'Already saved' : isFull ? 'List full — click to see prompt' : 'Save this word';
+          return `
+          <div class="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-amber-400 transition-all" data-highlight-word="${w}">
+            <span class="font-mono font-semibold text-gray-900 dark:text-white uppercase tracking-wider" style="font-size:0.65rem">${w}</span>
+            <div class="flex items-center gap-1">
+              <span class="font-bold text-amber-600 dark:text-amber-400" style="font-size:0.6rem">${wordScore(w)} pts</span>
+              <button class="save-word-btn text-gray-400 hover:text-green-500 transition-colors ${saveDisabled ? 'opacity-30 pointer-events-none' : ''}" data-word="${w}" title="${saveTitle}" style="font-size:0.7rem">💾</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      ${found.length > 100 ? '<div class="mt-2 text-xs text-gray-400 text-center">Showing top 100 of ' + found.length + '</div>' : ''}
+    `;
+
+    // Bind save buttons
+    resultsEl.querySelectorAll('.save-word-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const word = (btn as HTMLElement).dataset.word!;
+        saveWord(word);
+      });
+    });
+
+    // Bind word click to highlight tiles
+    resultsEl.querySelectorAll('[data-highlight-word]').forEach(el => {
+      el.addEventListener('click', () => {
+        const word = (el as HTMLElement).dataset.highlightWord!;
+        // Toggle highlight — if same word clicked again, clear it
+        const alreadyHighlighted = el.classList.contains('ring-2');
+        resultsEl.querySelectorAll('[data-highlight-word]').forEach(other => other.classList.remove('ring-2', 'ring-amber-500'));
+        if (alreadyHighlighted) {
+          highlightTiles('');
+        } else {
+          el.classList.add('ring-2', 'ring-amber-500');
+          highlightTiles(word);
+        }
+      });
+    });
+  }
+
+  // ── Save Word ─────────────────────────────────────────────────────────────
+  function saveWord(word: string) {
+    const words = getScbWords();
+    if (words.some(w => w.word === word)) return;
+
+    if (words.length >= MAX_SAVED) {
+      // Prompt user to delete a word first
+      const savedList = document.getElementById('saved-words-list')!;
+      // Show inline prompt if not already showing
+      if (!savedList.querySelector('.full-prompt')) {
+        const prompt = document.createElement('div');
+        prompt.className = 'full-prompt p-3 mb-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-center';
+        prompt.innerHTML = `
+          <p class="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">📋 You've saved 10 words (max)</p>
+          <p class="text-xs text-amber-700 dark:text-amber-400">Delete a word below to make room for "<strong class="uppercase">${word}</strong>"</p>
+        `;
+        savedList.prepend(prompt);
+        // Scroll saved words panel into view
+        savedList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => { prompt.remove(); }, 5000);
+      }
+      return;
+    }
+
+    words.push({
+      word,
+      score: wordScore(word),
+      star: 3,
+      comment: '',
+      datetime: new Date().toISOString().slice(0, 16),
+    });
+    saveScbWords(words);
+    renderSavedWords();
+    // Highlight the saved word's tiles
+    highlightTiles(word);
+    // Re-render results to update save buttons
+    solve();
+  }
+
+  // ── Render Saved Words ────────────────────────────────────────────────────
+  // ── Download Saved Words ──────────────────────────────────────────────────
+  const downloadBtn = document.getElementById('download-saved-btn')!;
+
+  function updateDownloadBtnVisibility() {
+    const words = getScbWords();
+    if (words.length > 0) {
+      downloadBtn.classList.remove('opacity-30');
+      downloadBtn.classList.add('opacity-100');
+      downloadBtn.removeAttribute('disabled');
+    } else {
+      downloadBtn.classList.add('opacity-30');
+      downloadBtn.classList.remove('opacity-100');
+      downloadBtn.setAttribute('disabled', 'true');
+    }
+  }
+
+  function renderSavedWords() {
+    const words = getScbWords();
+    const listEl = document.getElementById('saved-words-list')!;
+    const countEl = document.getElementById('saved-count')!;
+    const emptyEl = document.getElementById('saved-empty');
+
+    countEl.textContent = `${words.length} / ${MAX_SAVED}`;
+    updateDownloadBtnVisibility();
+
+    if (!words.length) {
+      listEl.innerHTML = '<p id="saved-empty" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4 italic">No saved words yet. Click the 💾 icon on any result to save it.</p>';
+      return;
+    }
+
+    listEl.innerHTML = '<div class="space-y-2">' + words.map((w, idx) => `
+      <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg group">
+        <span class="text-lg shrink-0" title="${STAR_ICONS[w.star]?.label || ''}">${STAR_ICONS[w.star]?.icon || '⭐'}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-bold text-sm text-gray-900 dark:text-white uppercase tracking-wider">${escapeHtml(w.word)}</span>
+            <span class="text-xs font-bold text-amber-600 dark:text-amber-400">${w.score} pts</span>
+          </div>
+          ${w.comment ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">${escapeHtml(w.comment)}</p>` : ''}
+          ${w.datetime ? `<p class="text-[10px] text-gray-400 mt-0.5">${formatDateTime(w.datetime)}</p>` : ''}
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button class="edit-word-btn p-1.5 text-gray-400 hover:text-amber-500 transition-colors rounded" data-idx="${idx}" title="Edit">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button class="delete-word-btn p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded" data-idx="${idx}" title="Delete">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('') + '</div>';
+
+    // Bind edit buttons
+    listEl.querySelectorAll('.edit-word-btn').forEach(btn => {
+      btn.addEventListener('click', () => openEditModal(parseInt((btn as HTMLElement).dataset.idx!)));
+    });
+
+    // Bind delete buttons
+    listEl.querySelectorAll('.delete-word-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt((btn as HTMLElement).dataset.idx!);
+        const words = getScbWords();
+        words.splice(idx, 1);
+        saveScbWords(words);
+        renderSavedWords();
+        solve(); // refresh results to re-enable save buttons
+      });
+    });
+  }
+
+  downloadBtn.addEventListener('click', () => {
+    const uid = localStorage.getItem('xconvert24-uid') || 'anonymous';
+    const words = getScbWords();
+    const scoredWords = JSON.parse(localStorage.getItem('scbScoredWords') || '[]');
+    const exportData = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      userId: uid,
+      savedWords: words,
+      scoredWords: scoredWords,
+    };
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scrabble-words-${uid.slice(0, 8)}-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ── Edit Modal ────────────────────────────────────────────────────────────
+  let editingIdx = -1;
+  let editingStar = 3;
+  const editModal = document.getElementById('edit-modal')!;
+  const editWordDisplay = document.getElementById('edit-word-display')!;
+  const editWordScore = document.getElementById('edit-word-score')!;
+  const editComment = document.getElementById('edit-comment') as HTMLTextAreaElement;
+  const editDatetime = document.getElementById('edit-datetime') as HTMLInputElement;
+
+  function openEditModal(idx: number) {
+    const words = getScbWords();
+    if (idx < 0 || idx >= words.length) return;
+    const w = words[idx];
+    editingIdx = idx;
+    editingStar = w.star;
+
+    editWordDisplay.textContent = w.word;
+    editWordScore.textContent = `${w.score} pts`;
+    editComment.value = w.comment;
+    editDatetime.value = w.datetime || new Date().toISOString().slice(0, 16);
+    updateStarUI();
+
+    // Highlight the word's tiles
+    highlightTiles(w.word);
+
+    editModal.classList.remove('hidden');
+    editModal.classList.add('flex');
+  }
+
+  function closeEditModal() {
+    editModal.classList.add('hidden');
+    editModal.classList.remove('flex');
+    editingIdx = -1;
+    // Clear tile highlights
+    highlightTiles('');
+  }
+
+  function updateStarUI() {
+    document.querySelectorAll('.star-btn').forEach(btn => {
+      const val = parseInt((btn as HTMLElement).dataset.star!);
+      if (val === editingStar) {
+        (btn as HTMLElement).classList.add('ring-2', 'ring-amber-500', 'bg-amber-50', 'dark:bg-amber-900/30');
+      } else {
+        (btn as HTMLElement).classList.remove('ring-2', 'ring-amber-500', 'bg-amber-50', 'dark:bg-amber-900/30');
+      }
+    });
+  }
+
+  // Star button clicks
+  document.querySelectorAll('.star-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      editingStar = parseInt((btn as HTMLElement).dataset.star!);
+      updateStarUI();
+    });
+  });
+
+  // Save edit
+  document.getElementById('edit-save-btn')!.addEventListener('click', () => {
+    const words = getScbWords();
+    if (editingIdx < 0 || editingIdx >= words.length) return;
+    words[editingIdx].star = editingStar;
+    words[editingIdx].comment = editComment.value.trim();
+    words[editingIdx].datetime = editDatetime.value;
+    saveScbWords(words);
+    closeEditModal();
+    renderSavedWords();
+  });
+
+  // Cancel / close
+  document.getElementById('edit-cancel-btn')!.addEventListener('click', closeEditModal);
+  document.getElementById('edit-modal-close')!.addEventListener('click', closeEditModal);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function escapeHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function formatDateTime(dt: string): string {
+    try {
+      const d = new Date(dt);
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return dt; }
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  document.getElementById('solve-btn')!.addEventListener('click', solve);
+  document.getElementById('tiles')!.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') solve(); });
+  document.getElementById('min-len')!.addEventListener('change', solve);
+  document.getElementById('sort-by')!.addEventListener('change', solve);
+
+  // Render tile scores reference — styled like classic wooden Scrabble tiles
+  const scoresEl = document.getElementById('tile-scores')!;
+
+  // Generate random wood grain/scratch marks for each tile
+  function randomGrainSVG(): string {
+    const marks: string[] = [];
+    const gradId = 'g' + Math.random().toString(36).slice(2, 8);
+
+    marks.push(`<defs>
+      <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="rgba(40,20,5,0.02)" />
+        <stop offset="25%" stop-color="rgba(40,20,5,0.3)" />
+        <stop offset="50%" stop-color="rgba(40,20,5,0.35)" />
+        <stop offset="75%" stop-color="rgba(40,20,5,0.3)" />
+        <stop offset="100%" stop-color="rgba(40,20,5,0.02)" />
+      </linearGradient>
+    </defs>`);
+
+    // 5-8 wavy diagonal grain curves with big perpendicular oscillation
+    const numGrains = 5 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < numGrains; i++) {
+      const spread = (i / numGrains) * 80;
+      // Start and end along diagonal
+      const sx = -10 + spread * 0.6 + Math.random() * 8;
+      const sy = -10 + spread * 0.4 + Math.random() * 8;
+      const ex = sx + 60 + Math.random() * 30;
+      const ey = sy + 60 + Math.random() * 30;
+
+      // Big wavy oscillation perpendicular to diagonal (±15-25px)
+      const wave1 = (Math.random() > 0.5 ? 1 : -1) * (15 + Math.random() * 12);
+      const wave2 = (Math.random() > 0.5 ? 1 : -1) * (15 + Math.random() * 12);
+      const wave3 = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 10);
+
+      // Control points offset perpendicular to the diagonal
+      const midX = (sx + ex) / 2;
+      const midY = (sy + ey) / 2;
+      const cp1x = sx + (ex - sx) * 0.25 + wave1;
+      const cp1y = sy + (ey - sy) * 0.25 - wave1;
+      const cp2x = midX + wave2;
+      const cp2y = midY - wave2;
+      const cp3x = sx + (ex - sx) * 0.75 + wave3;
+      const cp3y = sy + (ey - sy) * 0.75 - wave3;
+
+      const width = 1 + Math.random() * 2;
+      const opacity = 0.15 + Math.random() * 0.2;
+
+      marks.push(`<path d="M${sx},${sy} C${cp1x},${cp1y} ${cp2x},${cp2y} ${midX},${midY} S${cp3x},${cp3y} ${ex},${ey}" fill="none" stroke="url(#${gradId})" stroke-width="${width}" stroke-linecap="round" opacity="${opacity}"/>`);
+    }
+
+    // 2-3 thinner wavy wisps
+    const numWisps = 2 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < numWisps; i++) {
+      const offset = 5 + Math.random() * 70;
+      const sx = Math.random() * 15;
+      const sy = offset * 0.5;
+      const ex = 75 + Math.random() * 15;
+      const ey = sy + 55 + Math.random() * 20;
+      const w1 = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 15);
+      const w2 = (Math.random() > 0.5 ? 1 : -1) * (12 + Math.random() * 15);
+      const cp1x = sx + (ex - sx) * 0.33 + w1;
+      const cp1y = sy + (ey - sy) * 0.33 - w1;
+      const cp2x = sx + (ex - sx) * 0.66 + w2;
+      const cp2y = sy + (ey - sy) * 0.66 - w2;
+      marks.push(`<path d="M${sx},${sy} C${cp1x},${cp1y} ${cp2x},${cp2y} ${ex},${ey}" fill="none" stroke="rgba(35,18,5,${0.12 + Math.random() * 0.15})" stroke-width="${0.6 + Math.random() * 1}" stroke-linecap="round"/>`);
+    }
+
+    // Knots — only ~30% of tiles get a prominent knot
+    if (Math.random() > 0.7) {
+      const cx = 15 + Math.random() * 60;
+      const cy = 15 + Math.random() * 60;
+      const size = 6 + Math.random() * 10;
+      const rot = 30 + Math.random() * 30;
+      const knotOpacity = 0.2 + Math.random() * 0.15;
+      // Outer ring
+      marks.push(`<ellipse cx="${cx}" cy="${cy}" rx="${size}" ry="${size * 0.6}" fill="rgba(50,25,8,${knotOpacity * 0.3})" stroke="rgba(40,20,5,${knotOpacity})" stroke-width="1.5" transform="rotate(${rot} ${cx} ${cy})"/>`);
+      // Inner ring
+      marks.push(`<ellipse cx="${cx}" cy="${cy}" rx="${size * 0.5}" ry="${size * 0.3}" fill="rgba(60,30,10,${knotOpacity * 0.4})" stroke="rgba(35,18,5,${knotOpacity * 0.8})" stroke-width="1" transform="rotate(${rot} ${cx} ${cy})"/>`);
+      // Center dot
+      marks.push(`<circle cx="${cx}" cy="${cy}" r="${1 + Math.random() * 1.5}" fill="rgba(40,20,5,${knotOpacity * 0.6})"/>`);
+      // Grain lines wrapping around knot
+      for (let k = 0; k < 3; k++) {
+        const kAngle = rot + (-20 + k * 20);
+        const kRad = (kAngle * Math.PI) / 180;
+        const kDist = size + 3 + Math.random() * 5;
+        const ksx = cx + Math.cos(kRad - 0.8) * kDist;
+        const ksy = cy + Math.sin(kRad - 0.8) * kDist;
+        const kex = cx + Math.cos(kRad + 0.8) * kDist;
+        const key = cy + Math.sin(kRad + 0.8) * kDist;
+        const kcx = cx + Math.cos(kRad) * (kDist + 5 + Math.random() * 4);
+        const kcy = cy + Math.sin(kRad) * (kDist + 5 + Math.random() * 4);
+        marks.push(`<path d="M${ksx},${ksy} Q${kcx},${kcy} ${kex},${key}" fill="none" stroke="rgba(40,20,5,${0.1 + Math.random() * 0.1})" stroke-width="${0.6 + Math.random() * 0.8}" stroke-linecap="round"/>`);
+      }
+    } else if (Math.random() > 0.5) {
+      // Smaller subtle knot on some other tiles
+      const cx = 20 + Math.random() * 50;
+      const cy = 20 + Math.random() * 50;
+      const rx = 4 + Math.random() * 6;
+      const ry = 2.5 + Math.random() * 4;
+      marks.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="rgba(45,22,5,${0.12 + Math.random() * 0.1})" stroke-width="1.2" transform="rotate(${40 + Math.random() * 15} ${cx} ${cy})"/>`);
+    }
+
+    return `<svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">${marks.join('')}</svg>`;
+  }
+
+  scoresEl.innerHTML = Object.entries(scores).map(([letter, pts]) =>
+    `<div class="scrabble-tile w-[90px] h-[90px] mx-[2px] rounded-lg flex flex-col items-center justify-center cursor-default select-none relative overflow-hidden" data-letter="${letter}"
+          style="background: linear-gradient(145deg, #e8d5c0, #dcc8b0); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.08), inset 2px 0 3px rgba(0,0,0,0.03), inset -2px 0 3px rgba(0,0,0,0.03), 0 4px 8px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.12); border: 2px solid #c4a882;">
+      ${randomGrainSVG()}
+      <span class="text-6xl font-black text-gray-900 leading-none relative z-[1]" style="font-family: 'Arial Black', 'Helvetica Neue', sans-serif; text-shadow: none;">${letter}</span>
+      <span class="text-lg font-bold text-gray-900 absolute bottom-2 right-3 leading-none z-[1]" style="font-family: 'Arial Black', 'Helvetica Neue', sans-serif;">${pts}</span>
+    </div>`
+  ).join('');
+
+  // ── Highlight tiles for a word ────────────────────────────────────────────
+  function highlightTiles(word: string) {
+    const heading = document.getElementById('tile-scores-heading')!;
+
+    // Reset all tiles
+    document.querySelectorAll('.scrabble-tile').forEach(tile => {
+      (tile as HTMLElement).style.outline = '';
+      (tile as HTMLElement).style.outlineOffset = '';
+      tile.classList.remove('tile-highlighted');
+    });
+
+    if (!word) {
+      heading.textContent = 'Tile Scores';
+      return;
+    }
+
+    // Update heading with the word's score
+    const score = wordScore(word);
+    heading.innerHTML = `Tile Scores = <span class="text-amber-600 dark:text-amber-400">${score} pts</span> <span class="text-sm font-normal text-gray-400">(${word.toUpperCase()})</span>`;
+
+    // Count letters in the word
+    const letterCounts: Record<string, number> = {};
+    for (const ch of word.toUpperCase()) {
+      letterCounts[ch] = (letterCounts[ch] || 0) + 1;
+    }
+
+    // Highlight matching tiles
+    const highlighted = new Set<string>();
+    document.querySelectorAll('.scrabble-tile').forEach(tile => {
+      const letter = (tile as HTMLElement).dataset.letter!;
+      if (letterCounts[letter] && letterCounts[letter] > 0) {
+        (tile as HTMLElement).style.outline = '4px solid #f59e0b';
+        (tile as HTMLElement).style.outlineOffset = '2px';
+        tile.classList.add('tile-highlighted');
+        highlighted.add(letter);
+      }
+    });
+
+    // Scroll tile scores into view if not visible
+    if (highlighted.size > 0) {
+      scoresEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  // Render saved words on load
+  renderSavedWords();
+</script>
