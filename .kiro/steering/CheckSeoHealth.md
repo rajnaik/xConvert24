@@ -119,4 +119,24 @@ If no environment is specified, default to **dev**.
 
 - Use `fetch()` calls to get page HTML and parse with regex — no browser needed.
 - This is a READ-ONLY audit — do not modify any files.
+- After the audit completes, **save the report to the database** by POSTing to the seo-health API:
+
+```bash
+curl -X POST http://localhost:4321/api/seo-health \
+  -H "Content-Type: application/json" \
+  -d '{"environment": "ENV_NAME", "report": "Summary of results separated by pipes", "status": "pass or fail"}'
+```
+
+The `report` field should be a pipe-separated summary of key findings, e.g.:
+`"All titles ≤ 70 chars|All descriptions 50–160 chars|All pages have exactly 1 H1|Missing canonical on 2 pages"`
+
+The `status` field should be `"pass"` if no failures, or `"fail"` if any ❌ failures exist.
+
+For live/staging, POST to the respective URL:
+```bash
+curl -X POST https://www.xconvert24.com/api/seo-health \
+  -H "Content-Type: application/json" \
+  -d '{"environment": "live", "report": "...", "status": "pass"}'
+```
+
 - After reporting, log to AuditLog with status 1 (success) and details summarizing pass/fail counts.

@@ -4,6 +4,44 @@ import Layout from '../../layouts/Layout.astro';
 ---
 
 <Layout title="Scrabble Word Finder — Solve Any Rack" description="Free Scrabble word finder. Enter your tiles and find the highest-scoring words. Works for Words With Friends too." keywords="scrabble solver, word finder, scrabble helper, anagram solver, words with friends cheat, letter tiles, highest scoring words">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What dictionary does this Scrabble word finder use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "This tool uses the SOWPODS dictionary — the international Scrabble word list used in official tournaments outside North America. It contains over 74,000 valid words between 2 and 7 letters long."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How are Scrabble tile scores calculated?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Each letter tile has a fixed point value. Common letters like E, A, I, O score 1 point, while rare letters like Q and Z score 10 points. The word score is the sum of all individual tile values. Blank tiles (wildcards) score 0 points."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use blank tiles or wildcards?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Enter a question mark (?) for each blank tile in your rack. The solver will treat it as any letter and find all possible words you can make, though blank tiles contribute 0 points to the word score."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does this work for Words With Friends too?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. While Words With Friends uses a slightly different dictionary and scoring system, the SOWPODS word list covers virtually all valid WWF words. The tile scores shown are for standard Scrabble — WWF scores differ slightly for some letters."
+        }
+      }
+    ]
+  })} />
   <style is:inline>
     .scrabble-tile {
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
@@ -20,6 +58,21 @@ import Layout from '../../layouts/Layout.astro';
     @keyframes tile-glow {
       0% { outline-color: #f59e0b; transform: scale(1); }
       100% { outline-color: #dc2626; transform: scale(1.08); }
+    }
+    /* Mobile: smaller tiles */
+    @media (max-width: 639px) {
+      .scrabble-tile {
+        width: 48px !important;
+        height: 48px !important;
+      }
+      .scrabble-tile .text-6xl {
+        font-size: 1.5rem !important;
+      }
+      .scrabble-tile .text-lg {
+        font-size: 0.6rem !important;
+        bottom: 4px !important;
+        right: 4px !important;
+      }
     }
   </style>
   <div class="max-w-5xl">
@@ -40,7 +93,7 @@ import Layout from '../../layouts/Layout.astro';
         <div class="mb-4">
           <label for="tiles" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Your Letter Tiles</label>
           <div class="flex gap-3">
-            <input id="tiles" type="text" maxlength="15" placeholder="e.g. AERTBLS" class="flex-1 h-14 px-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-2xl font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-500" autocomplete="off"/>
+            <input id="tiles" type="text" maxlength="15" placeholder="e.g. AERTBLS" class="flex-1 h-14 sm:h-14 h-12 px-4 sm:px-4 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-xl sm:text-2xl font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-500" autocomplete="off" size="15"/>
             <button id="solve-btn" class="px-6 h-14 rounded-lg bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-colors">Find Words</button>
           </div>
           <p class="mt-2 text-xs text-gray-400">Use ? for blank tiles (wildcards)</p>

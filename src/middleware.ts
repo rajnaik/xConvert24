@@ -22,6 +22,23 @@ const PUBLIC_API_ROUTES: { path: string; methods: string[] }[] = [
   { path: '/api/analytics', methods: ['GET', 'POST'] },
   // Click tracking (public — high-volume UI click stream)
   { path: '/api/clicks', methods: ['GET', 'POST'] },
+  // Clicks analysis (aggregated IP geo data — read-only, used by admin dashboard)
+  { path: '/api/clicks-analysis', methods: ['GET'] },
+  // Build and test run data (read-only admin dashboard)
+  { path: '/api/builds', methods: ['GET'] },
+  { path: '/api/test-runs', methods: ['GET'] },
+  // SEO health report (read-only admin dashboard)
+  { path: '/api/seo-health', methods: ['GET'] },
+  // Admin dashboard read-only endpoints
+  { path: '/api/auditlog', methods: ['GET'] },
+  { path: '/api/org-chart', methods: ['GET'] },
+  { path: '/api/code-reviews', methods: ['GET'] },
+  { path: '/api/code-scans', methods: ['GET'] },
+  { path: '/api/security-scans', methods: ['GET'] },
+  { path: '/api/vocabulary', methods: ['GET'] },
+  { path: '/api/hooks', methods: ['GET'] },
+  { path: '/api/feature-flags', methods: ['GET'] },
+  { path: '/api/blog-posts', methods: ['GET'] },
   // Opinions (public pages)
   { path: '/api/opinions', methods: ['GET', 'POST'] },
   // Support / Wallet display (public page — GET only, POST is admin)

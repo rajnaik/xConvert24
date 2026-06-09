@@ -183,6 +183,26 @@ import { STATS } from '../../data/siteStats';
         <div style="font-size:14px;font-weight:700;color:#f9fafb;">Site Status: <span id="status-label" style="color:#fbbf24;">Loading…</span></div>
         <div id="status-detail" style="font-size:11px;color:#6b7280;margin-top:2px;">Checking…</div>
       </div>
+      <!-- SEO Health Bubble -->
+      <div id="seo-health-bubble" style="margin-left:auto;display:flex;align-items:center;gap:12px;padding:12px 18px;background:#0f172a;border:1px solid #1f2937;border-radius:10px;min-width:260px;">
+        <span style="font-size:28px;">🔍</span>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#f9fafb;">SEO Health</div>
+          <div id="seo-health-status" style="font-size:10px;color:#6b7280;margin-top:2px;">Loading…</div>
+        </div>
+        <span id="seo-health-dot" style="margin-left:auto;width:10px;height:10px;border-radius:50%;background:#374151;"></span>
+      </div>
+    </div>
+
+    <!-- SEO Health Detail Panel (hidden by default) -->
+    <div id="seo-health-panel" style="display:none;margin-bottom:24px;background:#111827;border:1px solid #1f2937;border-radius:12px;padding:16px 20px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <span style="font-size:18px;">🔍</span>
+        <span style="font-size:14px;font-weight:700;color:#f9fafb;">SEO Health Report</span>
+        <span id="seo-health-env" style="margin-left:8px;font-size:10px;padding:2px 8px;border-radius:100px;background:#164e63;color:#22d3ee;font-weight:700;text-transform:uppercase;"></span>
+        <span id="seo-health-date" style="margin-left:auto;font-size:10px;color:#6b7280;"></span>
+      </div>
+      <div id="seo-health-items" style="display:flex;flex-direction:column;gap:6px;"></div>
     </div>
 
     <!-- Operations Console + Live Feed side by side -->
@@ -1157,6 +1177,45 @@ import { STATS } from '../../data/siteStats';
           alert('💥 localStorage cleared.');
         }
       });
+    })();
+
+    // ── SEO Health Bubble ─────────────────────────────────────────────────────
+    (function() {
+      var bubble = document.getElementById('seo-health-bubble');
+      var dot = document.getElementById('seo-health-dot');
+      var statusEl = document.getElementById('seo-health-status');
+      var panel = document.getElementById('seo-health-panel');
+      var envEl = document.getElementById('seo-health-env');
+      var dateEl = document.getElementById('seo-health-date');
+      var itemsEl = document.getElementById('seo-health-items');
+
+      fetch('/api/seo-health')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var h = d.health;
+          if (!h) { statusEl.textContent = 'No data'; return; }
+          var isPassing = h.status === 'pass';
+          dot.style.background = isPassing ? '#4ade80' : '#f87171';
+          statusEl.textContent = isPassing ? '✅ All checks passing' : '❌ Issues found';
+          statusEl.style.color = isPassing ? '#4ade80' : '#f87171';
+          envEl.textContent = h.environment || '';
+          dateEl.textContent = h.created_at ? new Date(h.created_at + 'Z').toLocaleString() : '';
+          var items = (h.report || '').split('|');
+          itemsEl.innerHTML = items.map(function(item) {
+            return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#0f172a;border-radius:8px;">' +
+              '<span style="color:#4ade80;font-size:14px;">✅</span>' +
+              '<span style="font-size:12px;color:#d1d5db;">' + item.trim() + '</span>' +
+              '</div>';
+          }).join('');
+        })
+        .catch(function() { statusEl.textContent = 'Failed to load'; });
+
+      if (bubble && panel) {
+        bubble.style.cursor = 'pointer';
+        bubble.addEventListener('click', function() {
+          panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        });
+      }
     })();
 
     // ── Clicks Total Counter ─────────────────────────────────────────────────

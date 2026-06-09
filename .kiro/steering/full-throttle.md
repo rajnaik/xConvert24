@@ -46,6 +46,10 @@ When the user says **"Full Throttle"**, execute these steps in order:
    ```bash
    npx wrangler d1 execute xconvert24-bugs --remote --command "INSERT OR REPLACE INTO site_status (id, status, updated_at, updated_by) VALUES (1, 'red', datetime('now'), 'full-throttle');"
    ```
+6. **Push to GitHub** — Push the current branch to origin:
+   ```bash
+   git push
+   ```
 
 ---
 
