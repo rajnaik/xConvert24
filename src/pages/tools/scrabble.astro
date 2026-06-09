@@ -521,7 +521,6 @@ import Layout from '../../layouts/Layout.astro';
             <div class="flex items-center gap-1">
               <span class="text-green-600 dark:text-green-400" style="font-size:0.5rem" title="Valid in SOWPODS dictionary">✓</span>
               <span class="font-bold text-amber-600 dark:text-amber-400" style="font-size:0.6rem">${wordScore(w)} pts</span>
-              <button class="copy-word-btn text-gray-400 hover:text-blue-500 transition-colors" data-copy="${w}" title="Copy word" style="font-size:0.7rem">📋</button>
             </div>
           </div>`;
         }).join('')}
@@ -529,24 +528,9 @@ import Layout from '../../layouts/Layout.astro';
       ${found.length > 100 ? '<div class="mt-2 text-xs text-gray-400 text-center">Showing top 100 of ' + found.length + '</div>' : ''}
     `;
 
-    // Bind copy buttons
-    resultsEl.querySelectorAll('.copy-word-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const word = (btn as HTMLElement).dataset.copy!;
-        navigator.clipboard.writeText(word.toUpperCase()).then(() => {
-          const orig = btn.textContent;
-          btn.textContent = '✓';
-          btn.classList.add('text-green-500');
-          setTimeout(() => { btn.textContent = orig; btn.classList.remove('text-green-500'); }, 1000);
-        });
-      });
-    });
-
     // Bind word click — toggle achievement + highlight tiles + update probability
     resultsEl.querySelectorAll('[data-achieve-word]').forEach(el => {
       el.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('.copy-word-btn')) return; // don't trigger on copy btn
         const word = (el as HTMLElement).dataset.achieveWord!;
         toggleAchievement(word, el as HTMLElement);
         highlightTiles(word);
