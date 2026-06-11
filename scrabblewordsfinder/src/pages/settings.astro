@@ -1,0 +1,246 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Settings — ScrabbleWordsFinder (Free, No Sign-Up)" description="Manage your saved words, backup data, or restore from another device. Our free Scrabble solver stores data locally — no sign-up or account needed." keywords="scrabble settings, backup, restore, no signup, free word finder settings, localStorage">
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/" class="hover:text-blue-400 transition-colors">Solver</a>
+      <a href="/blog" class="hover:text-blue-400 transition-colors">Blog</a>
+      <a href="/settings" class="text-blue-400">Settings</a>
+    </div>
+  </nav>
+
+  <div class="max-w-2xl mx-auto px-6 py-12">
+    <h1 class="text-2xl font-bold text-white mb-2">⚙️ Settings</h1>
+    <p class="text-gray-400 text-sm mb-8">Manage your saved words, backup your data, or restore from another device.</p>
+
+    <!-- Why localStorage -->
+    <div class="rounded-xl border border-purple-800/50 bg-purple-950/10 p-6 mb-8">
+      <h2 class="font-semibold text-white mb-3 flex items-center gap-2">🔒 No Sign-Up Required — Here's How</h2>
+      <p class="text-sm text-gray-300 leading-relaxed mb-3">
+        ScrabbleWordsFinder stores your saved words, preferences, and filter settings directly in your browser using <strong>localStorage</strong>. This means:
+      </p>
+      <ul class="space-y-2 text-sm text-gray-300 mb-4">
+        <li class="flex items-start gap-2"><span class="text-blue-400 mt-0.5 shrink-0">✓</span><span><strong>No account needed</strong> — you never have to create a login, enter an email, or set a password. Your data lives in your browser from the moment you start using the tool.</span></li>
+        <li class="flex items-start gap-2"><span class="text-blue-400 mt-0.5 shrink-0">✓</span><span><strong>Instant &amp; offline</strong> — saves and loads are instantaneous because they happen locally on your device. No network round-trips, no loading spinners.</span></li>
+        <li class="flex items-start gap-2"><span class="text-blue-400 mt-0.5 shrink-0">✓</span><span><strong>Privacy-first</strong> — your data stays on your machine. We don't track your word history or build profiles. The only thing sent to our server is a background backup (tied to an anonymous ID) so you can recover if you clear your browser.</span></li>
+        <li class="flex items-start gap-2"><span class="text-blue-400 mt-0.5 shrink-0">✓</span><span><strong>Works everywhere</strong> — no login walls, no cookie consent popups for authentication. Open the site and start solving.</span></li>
+      </ul>
+      <p class="text-xs text-gray-400 leading-relaxed">
+        <strong>The tradeoff:</strong> If you clear your browser data or switch devices, your local data is gone. That's why we offer <em>Download User ID</em> and <em>Full Backup</em> below — so you can always restore. Your anonymous server backup also kicks in automatically when localStorage is empty but your User ID is present.
+      </p>
+      <p class="text-xs text-gray-400 leading-relaxed mt-3">🔒 Full details in our <a href="/privacy" class="text-blue-400 hover:text-blue-300 underline underline-offset-2">Privacy Policy</a>.</p>
+    </div>
+
+    <!-- User ID Section -->
+    <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-6 mb-6">
+      <h2 class="font-semibold text-white mb-2">🆔 Your User ID</h2>
+      <p class="text-xs text-gray-400 mb-4">Your User ID links your saved words to the server. Download it to restore your data on another device or after clearing your browser.</p>
+      <div class="flex items-center gap-3 mb-4">
+        <code id="uid-display" class="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-blue-300 font-mono truncate">Loading...</code>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <button id="download-uid-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-900/80 border border-indigo-500 text-indigo-200 text-sm font-medium cursor-pointer transition-all hover:bg-indigo-800 hover:border-indigo-400 hover:shadow-[0_0_8px_rgba(99,102,241,0.5)] active:scale-95">
+          <span aria-hidden="true">📥</span> Download User ID
+        </button>
+        <button id="relink-uid-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-900/80 border border-emerald-500 text-emerald-200 text-sm font-medium cursor-pointer transition-all hover:bg-emerald-800 hover:border-emerald-400 hover:shadow-[0_0_8px_rgba(16,185,129,0.5)] active:scale-95">
+          <span aria-hidden="true">🔗</span> Relink User ID
+        </button>
+      </div>
+    </div>
+
+    <!-- Backup Section -->
+    <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-6 mb-6">
+      <h2 class="font-semibold text-white mb-2">💾 Backup & Restore</h2>
+      <p class="text-xs text-gray-400 mb-4">Download a full backup of all your saved words and preferences as JSON.</p>
+      <div class="flex flex-wrap gap-3">
+        <button id="backup-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-900/80 border border-blue-500 text-blue-200 text-sm font-medium cursor-pointer transition-all hover:bg-blue-800 hover:border-blue-400 hover:shadow-[0_0_8px_rgba(245,158,11,0.5)] active:scale-95">
+          <span aria-hidden="true">📦</span> Download Full Backup
+        </button>
+        <button id="restore-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-900/80 border border-sky-500 text-sky-200 text-sm font-medium cursor-pointer transition-all hover:bg-sky-800 hover:border-sky-400 hover:shadow-[0_0_8px_rgba(14,165,233,0.5)] active:scale-95">
+          <span aria-hidden="true">📂</span> Restore from Backup
+        </button>
+      </div>
+      <input id="restore-file-input" type="file" accept=".json" class="hidden" />
+    </div>
+
+    <!-- Nuke Section -->
+    <div class="rounded-xl border border-red-900/50 bg-red-950/20 p-6">
+      <h2 class="font-semibold text-red-300 mb-2">☢️ Danger Zone</h2>
+      <p class="text-xs text-gray-400 mb-4">Clear all locally stored data (saved words, preferences, User ID). This cannot be undone. Your server-side backup remains intact and can be restored by relinking your User ID.</p>
+      <button id="nuke-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-900/80 border border-red-500 text-red-200 text-sm font-medium cursor-pointer transition-all hover:bg-red-800 hover:border-red-400 hover:shadow-[0_0_12px_rgba(239,68,68,0.5)] active:scale-95">
+        <span aria-hidden="true">☢️</span> Nuke localStorage
+      </button>
+    </div>
+
+    <!-- Relink Modal -->
+    <div id="relink-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4">
+        <h3 class="text-lg font-bold text-white mb-4">🔗 Relink User ID</h3>
+        <p class="text-sm text-gray-400 mb-4">Upload your previously downloaded UID file or paste it manually.</p>
+        <label class="block mb-3">
+          <span class="text-xs font-medium text-gray-300">Upload UID file</span>
+          <input id="relink-file" type="file" accept=".txt" class="mt-1 block w-full text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-900/30 file:text-emerald-400 hover:file:bg-emerald-900/50 file:cursor-pointer" />
+        </label>
+        <div class="flex items-center gap-2 mb-3">
+          <div class="flex-1 h-px bg-gray-700"></div>
+          <span class="text-xs text-gray-500">or</span>
+          <div class="flex-1 h-px bg-gray-700"></div>
+        </div>
+        <label class="block mb-4">
+          <span class="text-xs font-medium text-gray-300">Paste UID manually</span>
+          <input id="relink-input" type="text" placeholder="e.g. a1b2c3d4-e5f6-..." class="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
+        </label>
+        <div class="flex gap-2">
+          <button id="relink-confirm" type="button" class="flex-1 py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors cursor-pointer">Relink</button>
+          <button id="relink-cancel" type="button" class="flex-1 py-2 px-4 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm font-medium transition-colors cursor-pointer">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center">
+      <a href="/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to Word Finder</a>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline>
+  // ─── UID Display ──────────────────────────────────────────────────────
+  (function() {
+    var uidDisplay = document.getElementById('uid-display');
+    var uid = localStorage.getItem('swf-uid');
+    if (!uid) {
+      uid = crypto.randomUUID();
+      localStorage.setItem('swf-uid', uid);
+    }
+    uidDisplay.textContent = uid;
+  })();
+
+  // ─── Download User ID ─────────────────────────────────────────────────
+  document.getElementById('download-uid-btn').addEventListener('click', function() {
+    var uid = localStorage.getItem('swf-uid');
+    if (!uid) { alert('No User ID found.'); return; }
+    var blob = new Blob(['ScrabbleWordsFinder User ID\n' + uid + '\n'], { type: 'text/plain' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'swf-uid.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  });
+
+  // ─── Nuke localStorage ────────────────────────────────────────────────
+  document.getElementById('nuke-btn').addEventListener('click', function() {
+    if (confirm('☢️ Nuke all localStorage? This clears saved words, preferences, and your local User ID.\n\nYour server-side backup is safe — relink your UID to restore.\n\nThis cannot be undone.')) {
+      localStorage.clear();
+      document.getElementById('uid-display').textContent = '— cleared —';
+      alert('💥 localStorage cleared. Reload the page or relink your UID to restore from server.');
+    }
+  });
+
+  // ─── Full Backup Download ─────────────────────────────────────────────
+  document.getElementById('backup-btn').addEventListener('click', function() {
+    var backup = {};
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      backup[key] = localStorage.getItem(key);
+    }
+    var json = JSON.stringify({ version: 1, app: 'ScrabbleWordsFinder', exportedAt: new Date().toISOString(), data: backup }, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'swf-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  });
+
+  // ─── Restore from Backup ──────────────────────────────────────────────
+  var restoreBtn = document.getElementById('restore-btn');
+  var restoreFileInput = document.getElementById('restore-file-input');
+
+  restoreBtn.addEventListener('click', function() { restoreFileInput.click(); });
+
+  restoreFileInput.addEventListener('change', function() {
+    var file = restoreFileInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var parsed = JSON.parse(e.target.result);
+        var data = parsed.data;
+        if (!data || typeof data !== 'object') throw new Error('Invalid backup format');
+        if (!confirm('Restore from backup?\n\nThis will overwrite ALL current localStorage data.\n\nFile: ' + file.name)) return;
+        // Clear and restore
+        localStorage.clear();
+        Object.keys(data).forEach(function(key) {
+          localStorage.setItem(key, data[key]);
+        });
+        alert('✅ Restored successfully. Reloading...');
+        window.location.reload();
+      } catch (err) {
+        alert('❌ Invalid backup file: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    restoreFileInput.value = '';
+  });
+
+  // ─── Relink User ID ───────────────────────────────────────────────────
+  var relinkBtn = document.getElementById('relink-uid-btn');
+  var modal = document.getElementById('relink-modal');
+  var fileInput = document.getElementById('relink-file');
+  var manualInput = document.getElementById('relink-input');
+  var confirmBtn = document.getElementById('relink-confirm');
+  var cancelBtn = document.getElementById('relink-cancel');
+
+  function openModal() { modal.classList.remove('hidden'); }
+  function closeModal() { modal.classList.add('hidden'); fileInput.value = ''; manualInput.value = ''; }
+
+  relinkBtn.addEventListener('click', openModal);
+  cancelBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+  function extractUid(text) {
+    var lines = text.trim().split('\n');
+    for (var i = lines.length - 1; i >= 0; i--) {
+      var line = lines[i].trim();
+      if (line && line.toLowerCase() !== 'scrabblewordsfinder user id') return line;
+    }
+    return '';
+  }
+
+  fileInput.addEventListener('change', function() {
+    var file = fileInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var uid = extractUid(e.target.result);
+      if (uid) manualInput.value = uid;
+    };
+    reader.readAsText(file);
+  });
+
+  confirmBtn.addEventListener('click', function() {
+    var uid = (manualInput.value || '').trim();
+    if (!uid) { alert('Please upload a file or enter a User ID.'); return; }
+    if (uid.length < 8) { alert('That doesn\'t look like a valid User ID (too short).'); return; }
+    if (confirm('Replace your current User ID with:\n\n' + uid + '\n\nThis will restore your saved words from the server.')) {
+      localStorage.setItem('swf-uid', uid);
+      // Clear local achievements so server restore kicks in on next page load
+      localStorage.removeItem('scbAchievements');
+      closeModal();
+      document.getElementById('uid-display').textContent = uid;
+      alert('✅ User ID relinked. Reload the Word Finder to restore your saved words from the server.');
+    }
+  });
+</script>

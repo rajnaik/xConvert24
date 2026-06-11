@@ -1,0 +1,133 @@
+import { test, expect } from '@playwright/test';
+
+/**
+ * Navigation, Footer & Cross-Site Link Tests
+ * Tests all navigation links, footer links, related article links,
+ * and inter-page connectivity.
+ */
+
+test.describe('Main Navigation', () => {
+  test('header has solver link', async ({ page }) => {
+    await page.goto('/');
+    const solverLink = page.locator('nav a[href="/"]');
+    await expect(solverLink).toBeAttached();
+  });
+
+  test('header has guide link', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('nav a[href="/guide"]')).toBeAttached();
+  });
+
+  test('header has about link', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('nav a[href="/about"]')).toBeAttached();
+  });
+
+  test('header has settings link', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('nav a[href="/settings"]')).toBeAttached();
+  });
+
+  test('logo/brand links to home', async ({ page }) => {
+    await page.goto('/about');
+    const logo = page.locator('a').filter({ hasText: 'ScrabbleWordsFinder' }).first();
+    const href = await logo.getAttribute('href');
+    expect(href).toBe('/');
+  });
+
+  test('navigation is consistent across pages', async ({ page }) => {
+    const pages = ['/', '/settings', '/suggest', '/contact', '/guide', '/about'];
+    for (const path of pages) {
+      await page.goto(path);
+      await expect(page.locator('a[href="/"]').first()).toBeAttached();
+    }
+  });
+});
+
+test.describe('Footer Links', () => {
+  test('homepage has footer icon links', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('a[href="/blog"]')).toBeAttached();
+    await expect(page.locator('a[href="/guide"]')).toBeAttached();
+    await expect(page.locator('a[href="/about"]')).toBeAttached();
+    await expect(page.locator('a[href="/privacy"]')).toBeAttached();
+    await expect(page.locator('a[href="/contact"]')).toBeAttached();
+  });
+
+  test('suggest page has full footer', async ({ page }) => {
+    await page.goto('/suggest');
+    const footer = page.locator('footer');
+    await expect(footer.locator('a[href="/guide"]')).toBeAttached();
+    await expect(footer.locator('a[href="/about"]')).toBeAttached();
+    await expect(footer.locator('a[href="/privacy"]')).toBeAttached();
+    await expect(footer.locator('a[href="/contact"]')).toBeAttached();
+    await expect(footer.locator('a[href="/disclaimer"]')).toBeAttached();
+    await expect(footer.locator('a[href="/terms"]')).toBeAttached();
+    await expect(footer.locator('a[href="/suggest"]')).toBeAttached();
+  });
+
+  test('footer shows copyright', async ({ page }) => {
+    await page.goto('/suggest');
+    await expect(page.locator('footer')).toContainText('ScrabbleWordsFinder.com');
+  });
+});
+
+test.describe('Related Articles (Homepage)', () => {
+  test('has Related Articles section', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('text=Related Articles')).toBeAttached();
+  });
+
+  test('has 4 blog post links', async ({ page }) => {
+    await page.goto('/');
+    const blogLinks = [
+      '/blog/scrabble-history-origins-great-depression',
+      '/blog/scrabble-tile-strategy-letters-scoring',
+      '/blog/scrabble-dictionaries-languages-weird-words',
+      '/blog/competitive-scrabble-tournament-world',
+    ];
+    for (const href of blogLinks) {
+      await expect(page.locator(`a[href="${href}"]`)).toBeAttached();
+    }
+  });
+});
+
+test.describe('Version Stamp', () => {
+  test('version stamp is present on desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/');
+    const versionLink = page.locator('a[href="/releases"]');
+    await expect(versionLink).toBeAttached();
+    const text = await versionLink.textContent();
+    expect(text).toMatch(/v\d/);
+  });
+});
+
+test.describe('Cross-Page Navigation Flow', () => {
+  test('can navigate from home to settings and back', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('a[href="/settings"]').first().click();
+    await expect(page).toHaveURL(/\/settings/);
+    await page.locator('a[href="/"]').first().click();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test('can navigate from home to guide', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('a[href="/guide"]').first().click();
+    await expect(page).toHaveURL(/\/guide/);
+  });
+
+  test('can navigate from contact to suggest', async ({ page }) => {
+    await page.goto('/contact');
+    const suggestLink = page.locator('a[href="/suggest"]').first();
+    await suggestLink.click();
+    await expect(page).toHaveURL(/\/suggest/);
+  });
+
+  test('suggest page links back to solver', async ({ page }) => {
+    await page.goto('/suggest');
+    const returnLink = page.locator('a[href="/"]').last();
+    await expect(returnLink).toBeAttached();
+  });
+});

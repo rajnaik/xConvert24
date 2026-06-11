@@ -1,0 +1,205 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Release Train — Admin — ScrabbleWordsFinder" description="Build your release pipeline from steering commands" keywords="admin, release, deploy, pipeline" showHeader={false}>
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/release-train" class="text-blue-400 font-medium">Release Train</a>
+      <a href="/admin/banner-management" class="hover:text-blue-400 transition-colors">Banner</a>
+      <a href="/admin/clicks" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-white mb-2">🚂 Release Train</h1>
+    <p class="text-gray-400 mb-8">Build your release pipeline by selecting steering commands from the available pool, ordering them, then copying to clipboard for execution.</p>
+
+    <div class="grid grid-cols-[1fr_auto_1fr] gap-4 items-start">
+      <!-- Left: Available Commands -->
+      <div>
+        <h2 class="text-sm font-semibold text-white mb-2">Available Commands</h2>
+        <div class="border border-gray-700 rounded-lg bg-gray-900/50 p-3 min-h-[400px]">
+          <div class="flex flex-col gap-1" id="available-list">
+            <!-- Populated by script -->
+          </div>
+        </div>
+        <div class="flex gap-2 mt-2">
+          <button id="move-up-btn" class="px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors">↑ Up</button>
+          <button id="move-down-btn" class="px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors">↓ Down</button>
+          <button id="select-all-btn" class="px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors">☑ All</button>
+          <button id="deselect-all-btn" class="px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors">☐ None</button>
+        </div>
+      </div>
+
+      <!-- Center: Transfer button -->
+      <div class="flex flex-col items-center justify-center pt-20 gap-2">
+        <button id="transfer-btn" class="px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors">→ Add</button>
+        <button id="remove-btn" class="px-4 py-2.5 text-sm font-medium text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors">← Remove</button>
+      </div>
+
+      <!-- Right: Release Pipeline -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-sm font-semibold text-white">Release Pipeline</h2>
+          <button id="copy-btn" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-800 hover:text-blue-400 transition-colors">
+            📋 Copy to Clipboard
+          </button>
+        </div>
+        <div class="border border-green-800/50 rounded-lg bg-gray-900/50 p-3 min-h-[400px]">
+          <div class="flex flex-col gap-1" id="pipeline-list">
+            <p class="text-xs text-gray-500 italic p-2">No commands added yet. Select from the left and click → Add.</p>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-2">
+          <button id="pipe-up-btn" class="px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors">↑ Up</button>
+          <button id="pipe-down-btn" class="px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-800 transition-colors">↓ Down</button>
+          <button id="clear-pipe-btn" class="px-3 py-1.5 text-xs font-medium text-red-400 border border-red-800 rounded-lg hover:bg-red-950 transition-colors">🗑 Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 rounded-xl border border-green-800 bg-green-950/90 p-4 text-center shadow-lg z-50">
+      <p class="text-green-300 text-sm font-medium" id="toast-text">📋 Copied!</p>
+    </div>
+  </div>
+
+  <script>
+    // Release-related steering commands
+    const COMMANDS = [
+      { id: 'sanitise', name: 'Sanitise SWF', desc: 'Scan pages for sensitive info & policy violations' },
+      { id: 'freshclicks', name: 'FreshClicks SWF', desc: 'Purge & hydrate local clicks from live' },
+      { id: 'deploy-staging', name: 'Deploy Staging', desc: 'npm run deploy:staging' },
+      { id: 'deploy-live', name: 'Deploy Live', desc: 'npm run deploy' },
+      { id: 'run-tests', name: 'Run Tests', desc: 'npx playwright test' },
+      { id: 'migrate-dev', name: 'Migrate Dev DB', desc: 'Apply migrations to dev D1' },
+      { id: 'migrate-staging', name: 'Migrate Staging DB', desc: 'Apply migrations to staging D1' },
+      { id: 'migrate-live', name: 'Migrate Live DB', desc: 'Apply migrations to live D1' },
+      { id: 'build', name: 'Build', desc: 'npm run build' },
+      { id: 'auditlog', name: 'AuditLog Entry', desc: 'Log release to AuditLog table' },
+      { id: 'blog-burst', name: 'Blog Burst', desc: 'Publish batch of blog posts' },
+      { id: 'full-throttle', name: 'Full Throttle', desc: 'Full maintenance + deploy cycle' },
+      { id: 'ship-it', name: 'Ship It', desc: 'Final deploy to live with all checks' },
+      { id: 'spring-clean', name: 'Spring Clean', desc: 'Remove dead code, unused assets' },
+    ];
+
+    const availableList = document.getElementById('available-list')!;
+    const pipelineList = document.getElementById('pipeline-list')!;
+
+    function renderAvailable() {
+      availableList.innerHTML = COMMANDS.map(cmd => `
+        <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-800 cursor-pointer group" data-id="${cmd.id}">
+          <input type="checkbox" class="avail-check rounded border-gray-600 bg-gray-800 text-blue-500 focus:ring-blue-500" value="${cmd.id}" />
+          <span class="text-sm text-gray-300 group-hover:text-white">${cmd.name}</span>
+          <span class="text-xs text-gray-500 ml-auto">${cmd.desc}</span>
+        </label>
+      `).join('');
+    }
+
+    let pipeline: { id: string; name: string; desc: string }[] = [];
+
+    function renderPipeline() {
+      if (pipeline.length === 0) {
+        pipelineList.innerHTML = '<p class="text-xs text-gray-500 italic p-2">No commands added yet. Select from the left and click → Add.</p>';
+        return;
+      }
+      pipelineList.innerHTML = pipeline.map((cmd, i) => `
+        <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-800 cursor-pointer group" data-idx="${i}">
+          <input type="checkbox" class="pipe-check rounded border-gray-600 bg-gray-800 text-green-500 focus:ring-green-500" value="${i}" />
+          <span class="text-xs text-green-400 font-mono w-5">${i + 1}.</span>
+          <span class="text-sm text-gray-300 group-hover:text-white">${cmd.name}</span>
+        </label>
+      `).join('');
+    }
+
+    // Transfer selected to pipeline
+    document.getElementById('transfer-btn')!.addEventListener('click', () => {
+      const checked = availableList.querySelectorAll('.avail-check:checked') as NodeListOf<HTMLInputElement>;
+      checked.forEach(cb => {
+        const cmd = COMMANDS.find(c => c.id === cb.value);
+        if (cmd && !pipeline.find(p => p.id === cmd.id)) {
+          pipeline.push({ ...cmd });
+        }
+        cb.checked = false;
+      });
+      renderPipeline();
+    });
+
+    // Remove selected from pipeline
+    document.getElementById('remove-btn')!.addEventListener('click', () => {
+      const checked = pipelineList.querySelectorAll('.pipe-check:checked') as NodeListOf<HTMLInputElement>;
+      const indices = Array.from(checked).map(cb => parseInt(cb.value)).sort((a, b) => b - a);
+      indices.forEach(i => pipeline.splice(i, 1));
+      renderPipeline();
+    });
+
+    // Move selected item up/down in pipeline
+    function movePipeline(dir: -1 | 1) {
+      const checked = pipelineList.querySelectorAll('.pipe-check:checked') as NodeListOf<HTMLInputElement>;
+      if (checked.length !== 1) return;
+      const idx = parseInt(checked[0].value);
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= pipeline.length) return;
+      [pipeline[idx], pipeline[newIdx]] = [pipeline[newIdx], pipeline[idx]];
+      renderPipeline();
+      // Re-check the moved item
+      const newCheck = pipelineList.querySelector(`.pipe-check[value="${newIdx}"]`) as HTMLInputElement;
+      if (newCheck) newCheck.checked = true;
+    }
+
+    // Move selected item up/down in available (reorders COMMANDS array)
+    function moveAvailable(dir: -1 | 1) {
+      const checked = availableList.querySelectorAll('.avail-check:checked') as NodeListOf<HTMLInputElement>;
+      if (checked.length !== 1) return;
+      const id = checked[0].value;
+      const idx = COMMANDS.findIndex(c => c.id === id);
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= COMMANDS.length) return;
+      [COMMANDS[idx], COMMANDS[newIdx]] = [COMMANDS[newIdx], COMMANDS[idx]];
+      renderAvailable();
+      // Re-check the moved item
+      const newCheck = availableList.querySelector(`.avail-check[value="${id}"]`) as HTMLInputElement;
+      if (newCheck) newCheck.checked = true;
+    }
+
+    document.getElementById('move-up-btn')!.addEventListener('click', () => moveAvailable(-1));
+    document.getElementById('move-down-btn')!.addEventListener('click', () => moveAvailable(1));
+    document.getElementById('pipe-up-btn')!.addEventListener('click', () => movePipeline(-1));
+    document.getElementById('pipe-down-btn')!.addEventListener('click', () => movePipeline(1));
+
+    // Select all / deselect all
+    document.getElementById('select-all-btn')!.addEventListener('click', () => {
+      availableList.querySelectorAll('.avail-check').forEach((cb: any) => cb.checked = true);
+    });
+    document.getElementById('deselect-all-btn')!.addEventListener('click', () => {
+      availableList.querySelectorAll('.avail-check').forEach((cb: any) => cb.checked = false);
+    });
+
+    // Clear pipeline
+    document.getElementById('clear-pipe-btn')!.addEventListener('click', () => {
+      pipeline = [];
+      renderPipeline();
+    });
+
+    // Copy to clipboard
+    document.getElementById('copy-btn')!.addEventListener('click', async () => {
+      if (pipeline.length === 0) return;
+      const text = pipeline.map((cmd, i) => `${i + 1}. ${cmd.name}`).join('\n');
+      await navigator.clipboard.writeText(text);
+      const toast = document.getElementById('toast')!;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2500);
+    });
+
+    // Init
+    renderAvailable();
+    renderPipeline();
+  </script>
+</Layout>

@@ -1,0 +1,331 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Banner Management — Admin — ScrabbleWordsFinder" description="Manage banner rotation pool for ScrabbleWordsFinder.com" keywords="admin, banner, branding, rotation">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/report" class="hover:text-blue-400 transition-colors">Reports</a>
+      <a href="/admin/ops" class="hover:text-blue-400 transition-colors">Ops</a>
+      <a href="/admin/banner-management" class="text-blue-400 font-medium">Banner</a>
+      <a href="/admin/banner-clicks" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-white mb-2">🖼️ Banner Management</h1>
+    <p class="text-gray-400 mb-8">Toggle banners active or inactive. All active banners participate in rotation — one is randomly selected on each page load.</p>
+
+    <!-- Rotation pool summary -->
+    <div id="rotation-summary" class="mb-6 rounded-xl border border-purple-800 bg-purple-950/30 p-4 flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-full bg-purple-600 flex items-center justify-center">
+          <span class="text-white font-bold text-lg" id="active-count">—</span>
+        </div>
+        <div>
+          <p class="text-purple-300 text-sm font-medium">Banners in rotation</p>
+          <p class="text-gray-400 text-xs" id="rotation-info">Loading...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="banner-grid">
+
+      <!-- Banner 1 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="1">
+        <img src="/banner-options/banner-1.svg" alt="Banner option 1" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 1</h3>
+            <p class="text-xs text-gray-400">Classic — board left, title center, scattered tiles right</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="1">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 2 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="2">
+        <img src="/banner-options/banner-2.svg" alt="Banner option 2" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 2</h3>
+            <p class="text-xs text-gray-400">Perspective — angled board with glow, high-value tile row</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="2">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 3 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="3">
+        <img src="/banner-options/banner-3.svg" alt="Banner option 3" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 3</h3>
+            <p class="text-xs text-gray-400">Spelled out — SCRABBLE in tiles, glass top-right, dark minimal</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="3">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 4 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="4">
+        <img src="/banner-options/banner-4.svg" alt="Banner option 4" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 4</h3>
+            <p class="text-xs text-gray-400">Split text — "Scrabble" + "Word Finder" stacked, diagonal board</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="4">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 5 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="5">
+        <img src="/banner-options/banner-5.svg" alt="Banner option 5" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 5</h3>
+            <p class="text-xs text-gray-400">Rack focus — tiles inside glass, rack at bottom with holder</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="5">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 6 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="6">
+        <img src="/banner-options/banner-6.svg" alt="Banner option 6" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 6</h3>
+            <p class="text-xs text-gray-400">Crossword — PLAY/WORDS intersection, spotlight glow, badge</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="6">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 7 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="7">
+        <img src="/banner-options/banner-7.svg" alt="Banner option 7" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 7</h3>
+            <p class="text-xs text-gray-400">Dual glass — overlapping magnifiers, score display, gold tiles</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="7">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 8 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="8">
+        <img src="/banner-options/banner-8.svg" alt="Banner option 8" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 8</h3>
+            <p class="text-xs text-gray-400">Symmetric — centered glass top, flanking tiles, wave bottom</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="8">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 9 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="9">
+        <img src="/banner-options/banner-9.svg" alt="Banner option 9" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 9</h3>
+            <p class="text-xs text-gray-400">Isometric — skewed board, "SCRABBLE" header, pill badges</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="9">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Banner 10 -->
+      <div class="banner-option rounded-xl border-2 border-gray-700 bg-gray-900/50 p-4 transition-all" data-option="10">
+        <img src="/banner-options/banner-10.svg" alt="Banner option 10" class="w-full h-auto rounded-lg mb-3" />
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Banner 10</h3>
+            <p class="text-xs text-gray-400">Grand — tiles arc, large central glass with board inside, orbs</p>
+          </div>
+          <label class="banner-toggle relative inline-flex items-center cursor-pointer" data-option="10">
+            <input type="checkbox" class="sr-only peer" />
+            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            <span class="ml-2 text-xs font-medium text-gray-400 toggle-label">Inactive</span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 rounded-xl border border-green-800 bg-green-950/90 p-4 text-center shadow-lg z-50">
+      <p class="text-green-300 text-sm font-medium" id="toast-text">✅ Updated!</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error-banner" class="hidden mt-6 rounded-xl border border-red-800 bg-red-950/30 p-4 text-center">
+      <p class="text-red-300 text-sm font-medium" id="error-text">❌ Something went wrong.</p>
+    </div>
+  </div>
+
+  <script>
+    interface BannerData {
+      option_number: number;
+      name: string;
+      description: string;
+      status: 'active' | 'inactive';
+    }
+
+    function updateCardStyle(option: string, isActive: boolean) {
+      const card = document.querySelector(`.banner-option[data-option="${option}"]`);
+      if (!card) return;
+
+      if (isActive) {
+        card.classList.remove('border-gray-700', 'opacity-60');
+        card.classList.add('border-green-600', 'ring-1', 'ring-green-500/20');
+      } else {
+        card.classList.remove('border-green-600', 'ring-1', 'ring-green-500/20');
+        card.classList.add('border-gray-700');
+      }
+
+      const label = card.querySelector('.toggle-label');
+      if (label) {
+        label.textContent = isActive ? 'Active' : 'Inactive';
+        label.classList.toggle('text-green-400', isActive);
+        label.classList.toggle('text-gray-400', !isActive);
+      }
+    }
+
+    function updateSummary(activeCount: number) {
+      document.getElementById('active-count')!.textContent = String(activeCount);
+      const info = document.getElementById('rotation-info')!;
+      if (activeCount === 0) {
+        info.textContent = '⚠️ No banners active — homepage will show banner 1 as fallback';
+        info.classList.add('text-amber-400');
+        info.classList.remove('text-gray-400');
+      } else {
+        info.textContent = `${activeCount} of 10 banners will randomly appear on each page load`;
+        info.classList.remove('text-amber-400');
+        info.classList.add('text-gray-400');
+      }
+    }
+
+    function showToast(message: string) {
+      const toast = document.getElementById('toast')!;
+      const text = document.getElementById('toast-text')!;
+      text.textContent = message;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2500);
+    }
+
+    async function loadBanners() {
+      try {
+        const res = await fetch('/api/banners');
+        if (!res.ok) throw new Error('Failed to load banners');
+        const data = await res.json();
+        const banners: BannerData[] = data.banners || [];
+
+        let activeCount = 0;
+        banners.forEach(b => {
+          const isActive = b.status === 'active';
+          if (isActive) activeCount++;
+
+          const toggle = document.querySelector(`.banner-toggle[data-option="${b.option_number}"] input`) as HTMLInputElement;
+          if (toggle) toggle.checked = isActive;
+
+          updateCardStyle(String(b.option_number), isActive);
+        });
+
+        updateSummary(activeCount);
+      } catch {
+        document.getElementById('rotation-info')!.textContent = '⚠️ Failed to load banner statuses';
+      }
+    }
+
+    async function toggleBanner(option: string, newStatus: 'active' | 'inactive') {
+      try {
+        const res = await fetch('/api/banners', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ option_number: Number(option), status: newStatus }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Update failed');
+        }
+
+        const data = await res.json();
+        updateCardStyle(option, newStatus === 'active');
+        updateSummary(data.active_count);
+        showToast(`Banner ${option} → ${newStatus}`);
+      } catch (e: any) {
+        // Revert the toggle
+        const toggle = document.querySelector(`.banner-toggle[data-option="${option}"] input`) as HTMLInputElement;
+        if (toggle) toggle.checked = newStatus !== 'active';
+        updateCardStyle(option, newStatus !== 'active');
+
+        const errorBanner = document.getElementById('error-banner')!;
+        const errorText = document.getElementById('error-text')!;
+        errorBanner.classList.remove('hidden');
+        errorText.textContent = `❌ ${e.message}`;
+        setTimeout(() => errorBanner.classList.add('hidden'), 4000);
+      }
+    }
+
+    // Attach toggle listeners
+    document.querySelectorAll('.banner-toggle input').forEach(input => {
+      input.addEventListener('change', (e) => {
+        const checkbox = e.target as HTMLInputElement;
+        const option = checkbox.closest('.banner-toggle')!.getAttribute('data-option')!;
+        const newStatus = checkbox.checked ? 'active' : 'inactive';
+        toggleBanner(option, newStatus);
+      });
+    });
+
+    // Init
+    loadBanners();
+  </script>
+</Layout>

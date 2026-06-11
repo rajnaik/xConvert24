@@ -1,7 +1,7 @@
 ---
 const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
 
-// Complete schema reference derived from migrations 0001–0027
+// Complete schema reference derived from migrations 0001–0034
 const tables = [
   {
     name: 'bugs',
@@ -561,6 +561,7 @@ const tables = [
       { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL' },
       { name: 'ui_element', type: 'TEXT', constraints: 'NOT NULL' },
       { name: 'url', type: 'TEXT', constraints: "DEFAULT '' (added 0025)" },
+      { name: 'ip_address', type: 'TEXT', constraints: "DEFAULT '' (added 0030)" },
       { name: 'created_at', type: 'TEXT', constraints: "DEFAULT datetime('now')" },
     ],
     indexes: ['idx_clicks_user (user_id)', 'idx_clicks_element (ui_element)', 'idx_clicks_date (created_at DESC)'],
@@ -575,6 +576,95 @@ const tables = [
       { name: 'page_slug', type: 'TEXT', constraints: 'NOT NULL' },
       { name: 'status', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 1' },
       { name: 'date_modified', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'ContagionSources',
+    migration: '0028',
+    description: 'Preferred news/data sources per disease for Tavily-targeted searches',
+    columns: [
+      { name: 'SourceID', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'ConID', type: 'INTEGER', constraints: 'NOT NULL FK→Contagion(ConID)' },
+      { name: 'SourceName', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'SourceDomain', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'SourceURL', type: 'TEXT', constraints: "NOT NULL DEFAULT ''" },
+      { name: 'SourceType', type: 'TEXT', constraints: "NOT NULL DEFAULT 'news' CHECK(official|expert|news|tracker)" },
+      { name: 'Priority', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 5' },
+      { name: 'Status', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 1 CHECK(0|1)' },
+      { name: 'DateCreated', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'SEOImprovements',
+    migration: '0029',
+    description: 'SEO improvement tasks tracked by priority, category, and status',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'task', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'category', type: 'TEXT', constraints: "NOT NULL DEFAULT 'general'" },
+      { name: 'priority', type: 'TEXT', constraints: "NOT NULL DEFAULT 'medium'" },
+      { name: 'status', type: 'TEXT', constraints: "NOT NULL DEFAULT 'pending'" },
+      { name: 'pages_affected', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'details', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'created_at', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+      { name: 'completed_at', type: 'TEXT', constraints: 'DEFAULT NULL' },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'seo_health',
+    migration: '0031',
+    description: 'SEO health check reports per environment',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'environment', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'report', type: 'TEXT', constraints: '' },
+      { name: 'status', type: 'TEXT', constraints: '' },
+      { name: 'created_at', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'AdWords',
+    migration: '0032',
+    description: 'Keyword campaigns for SEO enhancements — grouped by categoryid',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'value', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'categoryid', type: 'TEXT', constraints: 'NOT NULL' },
+      { name: 'created_at', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+    ],
+    indexes: [],
+  },
+  {
+    name: 'scrabble_sync',
+    migration: '0033',
+    description: 'Cross-device scrabble achievement syncing per user',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'user_id', type: 'TEXT', constraints: 'NOT NULL UNIQUE' },
+      { name: 'achievements', type: 'TEXT', constraints: "NOT NULL DEFAULT '[]'" },
+      { name: 'dictionary', type: 'TEXT', constraints: "NOT NULL DEFAULT 'sowpods'" },
+      { name: 'updated_at', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
+    ],
+    indexes: ['idx_scrabble_sync_user_id (user_id)'],
+  },
+  {
+    name: 'kiro_credits',
+    migration: '0034',
+    description: 'Kiro credit usage tracking — plan, usage, remaining, and reset date',
+    columns: [
+      { name: 'id', type: 'INTEGER', constraints: 'PRIMARY KEY AUTOINCREMENT' },
+      { name: 'plan', type: 'TEXT', constraints: "NOT NULL DEFAULT 'free'" },
+      { name: 'credits_used', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 0' },
+      { name: 'credits_total', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 0' },
+      { name: 'credits_remaining', type: 'INTEGER', constraints: 'NOT NULL DEFAULT 0' },
+      { name: 'percentage_used', type: 'REAL', constraints: 'NOT NULL DEFAULT 0' },
+      { name: 'reset_date', type: 'TEXT', constraints: 'DEFAULT NULL' },
+      { name: 'raw_text', type: 'TEXT', constraints: "DEFAULT ''" },
+      { name: 'scraped_at', type: 'TEXT', constraints: "NOT NULL DEFAULT datetime('now')" },
     ],
     indexes: [],
   },

@@ -1,0 +1,729 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+---
+
+<Layout title="Reports — Admin — ScrabbleWordsFinder" description="Task management and reports for ScrabbleWordsFinder.com" keywords="admin, reports, tasks, crud, scrabble word finder">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/report" class="text-blue-400 font-medium">Reports</a>
+      <a href="/admin/ops" class="hover:text-blue-400 transition-colors">Ops</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <!-- Kiro Usage Stats -->
+    <div id="kiro-stats" class="mb-6 rounded-xl border border-gray-800 bg-gray-900/50 p-4">
+      <h2 class="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+        <span class="text-blue-400">⚡</span> Kiro Usage Stats
+      </h2>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+        <div>
+          <div id="stat-total" class="text-xl font-bold text-white">—</div>
+          <div class="text-xs text-gray-500">Total Tasks</div>
+        </div>
+        <div>
+          <div id="stat-running" class="text-xl font-bold text-purple-300">—</div>
+          <div class="text-xs text-gray-500">Running</div>
+        </div>
+        <div>
+          <div id="stat-completed" class="text-xl font-bold text-green-300">—</div>
+          <div class="text-xs text-gray-500">Completed</div>
+        </div>
+        <div>
+          <div id="stat-pending" class="text-xl font-bold text-yellow-300">—</div>
+          <div class="text-xs text-gray-500">Pending</div>
+        </div>
+        <div>
+          <div id="stat-total-time" class="text-xl font-bold text-amber-300">—</div>
+          <div class="text-xs text-gray-500">Total Run Time</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white">📋 Tasks</h1>
+        <p class="text-gray-400 text-sm">Create, view, edit, and delete tasks.</p>
+      </div>
+      <button id="create-task-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium text-sm hover:bg-blue-500 transition-colors">
+        + New Task
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-3 mb-6">
+      <select id="filter-status" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+        <option value="">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="running">Running</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <select id="filter-category" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+        <option value="">All Categories</option>
+        <option value="general">General</option>
+        <option value="feature">Feature</option>
+        <option value="bug">Bug</option>
+        <option value="improvement">Improvement</option>
+        <option value="research">Research</option>
+        <option value="content">Content</option>
+        <option value="seo">SEO</option>
+        <option value="infra">Infrastructure</option>
+      </select>
+      <button id="filter-apply-btn" class="h-9 px-4 rounded-lg bg-gray-700 text-gray-200 text-sm font-medium hover:bg-gray-600 transition-colors">
+        Apply
+      </button>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="rounded-xl border border-gray-800 bg-gray-900/50 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-800 text-left">
+            <tr>
+              <th class="px-4 py-3 font-semibold text-gray-300 w-12">#</th>
+              <th class="px-4 py-3 font-semibold text-gray-300">Task Name</th>
+              <th class="px-4 py-3 font-semibold text-gray-300 w-28">Category</th>
+              <th class="px-4 py-3 font-semibold text-gray-300 w-24">Estimate</th>
+              <th class="px-4 py-3 font-semibold text-gray-300 w-24">Approval</th>
+              <th class="px-4 py-3 font-semibold text-gray-300 w-28">Status</th>
+              <th class="px-4 py-3 font-semibold text-gray-300 w-24">Running Time</th>
+              <th class="px-4 py-3 font-semibold text-gray-300 w-32">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tasks-tbody" class="divide-y divide-gray-800">
+            <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 italic">Loading tasks...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tasks-count" class="mt-3 text-xs text-gray-500"></div>
+
+    <!-- Create/Edit Modal -->
+    <div id="task-modal" class="hidden fixed inset-0 z-50 flex items-start justify-center pt-8 pb-8 overflow-y-auto bg-black/60 backdrop-blur-sm">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-6 w-full max-w-5xl mx-4 max-h-[85vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h2 id="modal-title" class="text-lg font-bold text-white">New Task</h2>
+          <button id="modal-close" class="text-gray-400 hover:text-white">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <form id="task-form" class="space-y-4">
+          <input type="hidden" id="task-id" />
+
+          <div>
+            <label for="task-name" class="block text-sm font-medium text-gray-300 mb-1">Task Name <span class="text-red-400">*</span></label>
+            <input type="text" id="task-name" required class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="e.g. Implement dark mode toggle" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="task-category" class="block text-sm font-medium text-gray-300 mb-1">Category</label>
+              <select id="task-category" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="general">General</option>
+                <option value="feature">Feature</option>
+                <option value="bug">Bug</option>
+                <option value="improvement">Improvement</option>
+                <option value="research">Research</option>
+                <option value="content">Content</option>
+                <option value="seo">SEO</option>
+                <option value="infra">Infrastructure</option>
+              </select>
+            </div>
+            <div>
+              <label for="task-status" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
+              <select id="task-status" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="pending">Pending</option>
+                <option value="running">Running</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="task-description" class="block text-sm font-medium text-gray-300 mb-1">Description <span class="text-red-400">*</span> <span class="text-gray-500 text-xs">(min 10 chars, supports up to 5000+)</span></label>
+            <textarea id="task-description" rows="8" required class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y" placeholder="Detailed description of the task..."></textarea>
+            <div class="text-xs text-gray-500 mt-1"><span id="desc-char-count">0</span> characters</div>
+          </div>
+
+          <div>
+            <label for="task-plan" class="block text-sm font-medium text-gray-300 mb-1">Plan <span class="text-gray-500 text-xs">(supports up to 1000+ chars)</span></label>
+            <textarea id="task-plan" rows="5" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y" placeholder="Implementation plan, steps, notes..."></textarea>
+            <div class="text-xs text-gray-500 mt-1"><span id="plan-char-count">0</span> characters</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="task-estimate" class="block text-sm font-medium text-gray-300 mb-1">Estimate</label>
+              <input type="text" id="task-estimate" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="e.g. 30min, 2h" />
+            </div>
+            <div>
+              <label for="task-approval" class="block text-sm font-medium text-gray-300 mb-1">Approval</label>
+              <select id="task-approval" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <option value="pending">⏳ Pending</option>
+                <option value="approved">✅ Approved</option>
+                <option value="rejected">❌ Rejected</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="task-results" class="block text-sm font-medium text-gray-300 mb-1">Results</label>
+            <textarea id="task-results" rows="3" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y" placeholder="Execution results..."></textarea>
+          </div>
+
+          <div>
+            <label for="task-improvements" class="block text-sm font-medium text-gray-300 mb-1">Suggested Improvements <span class="text-gray-500 text-xs">[kiro]</span></label>
+            <textarea id="task-improvements" rows="3" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y" placeholder="Agent-suggested improvements..."></textarea>
+          </div>
+
+          <div>
+            <label for="task-running-updates" class="block text-sm font-medium text-gray-300 mb-1">Running Updates <span class="text-gray-500 text-xs">(live progress log)</span></label>
+            <textarea id="task-running-updates" rows="4" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y font-mono text-xs" placeholder="Progress updates appear here while the task is running..."></textarea>
+            <div class="text-xs text-gray-500 mt-1"><span id="running-updates-char-count">0</span> characters</div>
+          </div>
+
+          <div class="flex gap-3 pt-2">
+            <button type="submit" id="task-submit-btn" class="flex-1 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-500 transition-colors">
+              Create Task
+            </button>
+            <button type="button" id="task-cancel-btn" class="px-4 py-2.5 rounded-lg bg-gray-700 text-gray-200 font-medium hover:bg-gray-600 transition-colors">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- View Task Modal -->
+    <div id="view-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <h2 class="text-lg font-bold text-white">Task Details</h2>
+            <button id="view-refresh-btn" title="Refresh task status" class="p-1 rounded-md bg-green-600 hover:bg-green-500 text-white transition-colors">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+          <button id="view-close" class="text-gray-400 hover:text-white">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div id="view-content" class="space-y-4 text-sm text-gray-300"></div>
+      </div>
+    </div>
+
+    <!-- Run Approval Modal -->
+    <div id="run-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-white">▶️ Run Task</h2>
+          <button id="run-modal-close" class="text-gray-400 hover:text-white">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div id="run-modal-content" class="space-y-4">
+          <p class="text-gray-300 text-sm">Are you sure you want to run this task?</p>
+          <div class="bg-gray-800 rounded-lg p-4 space-y-2">
+            <div class="text-white font-medium" id="run-task-name"></div>
+            <div class="flex items-center gap-2 text-sm">
+              <span class="text-gray-500">Estimated time:</span>
+              <span id="run-task-estimate" class="font-mono text-amber-300"></span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <span class="text-gray-500">Current approval:</span>
+              <span id="run-task-approval" class="font-semibold"></span>
+            </div>
+          </div>
+          <div class="bg-amber-900/20 border border-amber-800 rounded-lg p-3 text-xs text-amber-200">
+            ⚠️ Running this task will set its status to <strong>running</strong> and start tracking execution time.
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button id="run-confirm-btn" class="flex-1 px-4 py-2.5 rounded-lg bg-green-600 text-white font-medium hover:bg-green-500 transition-colors">
+              ✅ Approve & Run
+            </button>
+            <button id="run-cancel-btn" class="px-4 py-2.5 rounded-lg bg-gray-700 text-gray-200 font-medium hover:bg-gray-600 transition-colors">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline>
+  // ─── State ───────────────────────────────────────────────────────
+  let tasks = [];
+  let runTaskId = null;
+
+  // ─── DOM Refs ────────────────────────────────────────────────────
+  const tbody = document.getElementById('tasks-tbody');
+  const countEl = document.getElementById('tasks-count');
+  const modal = document.getElementById('task-modal');
+  const viewModal = document.getElementById('view-modal');
+  const runModal = document.getElementById('run-modal');
+  const form = document.getElementById('task-form');
+  const modalTitle = document.getElementById('modal-title');
+  const submitBtn = document.getElementById('task-submit-btn');
+
+  // ─── Load Tasks ──────────────────────────────────────────────────
+  async function loadTasks() {
+    const status = document.getElementById('filter-status').value;
+    const category = document.getElementById('filter-category').value;
+    let url = '/api/tasks?limit=200';
+    if (status) url += '&status=' + encodeURIComponent(status);
+    if (category) url += '&category=' + encodeURIComponent(category);
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      tasks = data.tasks || [];
+      renderTasks();
+      updateKiroStats();
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-red-400">Failed to load tasks</td></tr>';
+    }
+  }
+
+  // ─── Kiro Usage Stats ────────────────────────────────────────────
+  function updateKiroStats() {
+    const total = tasks.length;
+    const running = tasks.filter(t => t.status === 'running').length;
+    const completed = tasks.filter(t => t.status === 'completed').length;
+    const pending = tasks.filter(t => t.status === 'pending').length;
+    const totalSeconds = tasks.reduce((acc, t) => acc + (t.running_time || 0), 0);
+
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-running').textContent = running;
+    document.getElementById('stat-completed').textContent = completed;
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-total-time').textContent = formatRunningTime(totalSeconds, '', null) || '0s';
+  }
+
+  function renderTasks() {
+    if (!tasks.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500 italic">No tasks found</td></tr>';
+      countEl.textContent = '0 tasks';
+      return;
+    }
+
+    const statusColors = {
+      pending: 'bg-yellow-900/30 text-yellow-300 border-yellow-800',
+      running: 'bg-purple-900/30 text-purple-300 border-purple-800',
+      in_progress: 'bg-blue-900/30 text-blue-300 border-blue-800',
+      completed: 'bg-green-900/30 text-green-300 border-green-800',
+      cancelled: 'bg-red-900/30 text-red-300 border-red-800',
+    };
+
+    tbody.innerHTML = tasks.map(t => {
+      const sc = statusColors[t.status] || statusColors.pending;
+      const approvalIcons = { pending: '⏳', approved: '✅', rejected: '❌' };
+      const approvalIcon = approvalIcons[t.approval] || '⏳';
+      const runTime = formatRunningTime(t.running_time, t.status, t.running_started_at);
+      const canRun = t.status === 'pending' || t.status === 'in_progress';
+      const isRunning = t.status === 'running';
+      return `<tr class="hover:bg-gray-800/50">
+        <td class="px-4 py-3 text-gray-500 font-mono text-xs">${t.id}</td>
+        <td class="px-4 py-3 font-medium text-white">
+          <span class="task-name-display cursor-pointer hover:text-blue-300" data-id="${t.id}" title="Click to edit name">${escHtml(t.task_name)}</span>
+        </td>
+        <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs font-medium bg-gray-800 text-gray-300">${t.task_category}</span></td>
+        <td class="px-4 py-3 text-gray-300 text-xs">${escHtml(t.estimate || '—')}</td>
+        <td class="px-4 py-3 text-xs">${approvalIcon} ${t.approval || 'pending'}</td>
+        <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs font-medium border ${sc}">${t.status.replace('_', ' ')}</span></td>
+        <td class="px-4 py-3 text-xs text-gray-300 font-mono">${runTime}</td>
+        <td class="px-4 py-3">
+          <div class="flex gap-1">
+            ${canRun ? `<button onclick="runTask(${t.id})" class="px-2 py-1 rounded bg-green-900/50 text-green-300 text-xs hover:bg-green-800" title="Run">▶️</button>` : ''}
+            ${isRunning ? `<button onclick="stopTask(${t.id})" class="px-2 py-1 rounded bg-red-900/50 text-red-300 text-xs hover:bg-red-800" title="Stop">⏹️</button>` : ''}
+            <button onclick="viewTask(${t.id})" class="px-2 py-1 rounded bg-gray-700 text-gray-300 text-xs hover:bg-gray-600" title="View">👁️</button>
+            <button onclick="editTask(${t.id})" class="px-2 py-1 rounded bg-blue-900/50 text-blue-300 text-xs hover:bg-blue-800" title="Edit">✏️</button>
+            <button onclick="deleteTask(${t.id})" class="px-2 py-1 rounded bg-red-900/50 text-red-300 text-xs hover:bg-red-800" title="Delete">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+    countEl.textContent = tasks.length + ' task' + (tasks.length !== 1 ? 's' : '');
+
+    // Attach inline name editing
+    document.querySelectorAll('.task-name-display').forEach(el => {
+      el.addEventListener('dblclick', function() {
+        const id = this.dataset.id;
+        const currentName = this.textContent;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentName;
+        input.className = 'w-full rounded border border-blue-500 bg-gray-800 px-2 py-1 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500';
+        this.replaceWith(input);
+        input.focus();
+        input.select();
+
+        const save = async () => {
+          const newName = input.value.trim();
+          if (newName && newName !== currentName) {
+            try {
+              await fetch('/api/tasks', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: Number(id), task_name: newName })
+              });
+            } catch {}
+          }
+          loadTasks();
+        };
+
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+          if (e.key === 'Escape') { loadTasks(); }
+        });
+      });
+    });
+  }
+
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  function formatRunningTime(seconds, status, startedAt) {
+    let total = seconds || 0;
+    if (status === 'running' && startedAt) {
+      const started = new Date(startedAt + (startedAt.endsWith('Z') ? '' : 'Z')).getTime();
+      const elapsed = Math.max(0, Math.round((Date.now() - started) / 1000));
+      total += elapsed;
+    }
+    if (total === 0 && status !== 'running') return '—';
+    if (total < 60) return total + 's';
+    if (total < 3600) return Math.floor(total / 60) + 'm ' + (total % 60) + 's';
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    return h + 'h ' + m + 'm';
+  }
+
+  // ─── Run Task (with approval) ────────────────────────────────────
+  window.runTask = function(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    runTaskId = id;
+    document.getElementById('run-task-name').textContent = task.task_name;
+    document.getElementById('run-task-estimate').textContent = task.estimate || 'No estimate';
+    const approvalMap = { pending: '⏳ Pending', approved: '✅ Approved', rejected: '❌ Rejected' };
+    document.getElementById('run-task-approval').textContent = approvalMap[task.approval] || '⏳ Pending';
+    runModal.classList.remove('hidden');
+  };
+
+  document.getElementById('run-confirm-btn').addEventListener('click', async function() {
+    if (!runTaskId) return;
+    this.disabled = true;
+    this.textContent = 'Starting...';
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: runTaskId, status: 'running', approval: 'approved' })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        runModal.classList.add('hidden');
+        loadTasks();
+      } else {
+        alert('Error: ' + (data.error || 'Unknown'));
+      }
+    } catch {
+      alert('Network error');
+    } finally {
+      this.disabled = false;
+      this.textContent = '✅ Approve & Run';
+      runTaskId = null;
+    }
+  });
+
+  document.getElementById('run-cancel-btn').addEventListener('click', function() {
+    runModal.classList.add('hidden');
+    runTaskId = null;
+  });
+  document.getElementById('run-modal-close').addEventListener('click', function() {
+    runModal.classList.add('hidden');
+    runTaskId = null;
+  });
+  runModal.addEventListener('click', function(e) {
+    if (e.target === runModal) { runModal.classList.add('hidden'); runTaskId = null; }
+  });
+
+  // ─── Modal Controls ──────────────────────────────────────────────
+  function openModal(editing) {
+    modalTitle.textContent = editing ? 'Edit Task' : 'New Task';
+    submitBtn.textContent = editing ? 'Save Changes' : 'Create Task';
+    modal.classList.remove('hidden');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    form.reset();
+    document.getElementById('task-id').value = '';
+    document.getElementById('desc-char-count').textContent = '0';
+    document.getElementById('plan-char-count').textContent = '0';
+    document.getElementById('task-estimate').value = '';
+    document.getElementById('task-approval').value = 'pending';
+    document.getElementById('task-results').value = '';
+    document.getElementById('task-improvements').value = '';
+  }
+
+  document.getElementById('create-task-btn').addEventListener('click', function() { openModal(false); });
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('task-cancel-btn').addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+
+  // ─── Character Counts ────────────────────────────────────────────
+  document.getElementById('task-description').addEventListener('input', function() {
+    document.getElementById('desc-char-count').textContent = this.value.length;
+  });
+  document.getElementById('task-plan').addEventListener('input', function() {
+    document.getElementById('plan-char-count').textContent = this.value.length;
+  });
+
+  // ─── Form Submit (Create / Update) ──────────────────────────────
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('task-id').value;
+    const payload = {
+      task_name: document.getElementById('task-name').value.trim(),
+      task_category: document.getElementById('task-category').value,
+      task_description: document.getElementById('task-description').value.trim(),
+      status: document.getElementById('task-status').value,
+      plan: document.getElementById('task-plan').value.trim(),
+      estimate: document.getElementById('task-estimate').value.trim(),
+      approval: document.getElementById('task-approval').value,
+      results: document.getElementById('task-results').value.trim(),
+      suggested_improvements: document.getElementById('task-improvements').value.trim(),
+      running_updates: document.getElementById('task-running-updates').value.trim(),
+    };
+
+    if (!payload.task_name) { alert('Task name is required'); return; }
+    if (payload.task_description.length < 10) { alert('Description must be at least 10 characters'); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    try {
+      let res;
+      if (id) {
+        payload.id = Number(id);
+        res = await fetch('/api/tasks', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } else {
+        res = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      }
+      const data = await res.json();
+      if (data.ok || data.id) {
+        closeModal();
+        loadTasks();
+      } else {
+        alert('Error: ' + (data.error || 'Unknown'));
+      }
+    } catch (err) {
+      alert('Network error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = id ? 'Save Changes' : 'Create Task';
+    }
+  });
+
+  // ─── Edit Task ───────────────────────────────────────────────────
+  window.editTask = async function(id) {
+    try {
+      const res = await fetch('/api/tasks?id=' + id);
+      const task = await res.json();
+      document.getElementById('task-id').value = task.id;
+      document.getElementById('task-name').value = task.task_name;
+      document.getElementById('task-category').value = task.task_category;
+      document.getElementById('task-description').value = task.task_description;
+      document.getElementById('task-status').value = task.status;
+      document.getElementById('task-plan').value = task.plan || '';
+      document.getElementById('task-estimate').value = task.estimate || '';
+      document.getElementById('task-approval').value = task.approval || 'pending';
+      document.getElementById('task-results').value = task.results || '';
+      document.getElementById('task-improvements').value = task.suggested_improvements || '';
+      document.getElementById('task-running-updates').value = task.running_updates || '';
+      document.getElementById('desc-char-count').textContent = (task.task_description || '').length;
+      document.getElementById('plan-char-count').textContent = (task.plan || '').length;
+      document.getElementById('running-updates-char-count').textContent = (task.running_updates || '').length;
+      openModal(true);
+    } catch (e) {
+      alert('Failed to load task');
+    }
+  };
+
+  // ─── View Task ───────────────────────────────────────────────────
+  let viewPollInterval = null;
+  let currentViewTaskId = null;
+
+  window.viewTask = async function(id) {
+    currentViewTaskId = id;
+    try {
+      const res = await fetch('/api/tasks?id=' + id);
+      const t = await res.json();
+      const content = document.getElementById('view-content');
+      const isRunning = t.status === 'running';
+      content.innerHTML = `
+        <div class="grid grid-cols-2 gap-4">
+          <div><span class="text-gray-500">ID:</span> <span class="font-mono text-blue-400">${t.id}</span></div>
+          <div><span class="text-gray-500">Status:</span> <span class="font-semibold">${t.status}</span>${isRunning ? ' <span class="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse ml-1"></span>' : ''}</div>
+          <div><span class="text-gray-500">Category:</span> <span>${t.task_category}</span></div>
+          <div><span class="text-gray-500">Approval:</span> <span class="font-semibold">${t.approval || 'pending'}</span></div>
+          <div><span class="text-gray-500">Estimate:</span> <span>${t.estimate || '—'}</span></div>
+          <div><span class="text-gray-500">Running Time:</span> <span class="font-mono">${formatRunningTime(t.running_time, t.status, t.running_started_at)}</span></div>
+          <div><span class="text-gray-500">Created:</span> <span>${new Date(t.date_created).toLocaleString()}</span></div>
+        </div>
+        ${isRunning ? `<div class="flex gap-2">
+          <button id="view-stop-btn" data-task-id="${t.id}" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-500 transition-colors">⏹️ Stop Task</button>
+        </div>` : ''}
+        <div>
+          <h3 class="font-semibold text-white mb-1">${escHtml(t.task_name)}</h3>
+        </div>
+        <div>
+          <h4 class="text-gray-500 text-xs uppercase mb-1">Description</h4>
+          <div class="bg-gray-800 rounded-lg p-3 text-gray-200 whitespace-pre-wrap max-h-60 overflow-y-auto">${escHtml(t.task_description)}</div>
+        </div>
+        ${t.plan ? `<div>
+          <h4 class="text-gray-500 text-xs uppercase mb-1">Plan</h4>
+          <div class="bg-gray-800 rounded-lg p-3 text-gray-200 whitespace-pre-wrap max-h-40 overflow-y-auto">${escHtml(t.plan)}</div>
+        </div>` : ''}
+        <div>
+          <h4 class="text-gray-500 text-xs uppercase mb-1 flex items-center gap-2">Running Updates${isRunning ? ' <span class="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> <span class="text-green-400 text-xs normal-case">live</span>' : ''}</h4>
+          <div id="view-running-updates" class="bg-gray-800 rounded-lg p-3 text-cyan-200 whitespace-pre-wrap max-h-60 overflow-y-auto font-mono text-xs ${!t.running_updates ? 'text-gray-600 italic' : ''}">${t.running_updates ? escHtml(t.running_updates) : (isRunning ? 'Waiting for updates...' : 'No updates recorded')}</div>
+        </div>
+        ${t.results ? `<div>
+          <h4 class="text-gray-500 text-xs uppercase mb-1">Results</h4>
+          <div class="bg-gray-800 rounded-lg p-3 text-green-200 whitespace-pre-wrap max-h-40 overflow-y-auto">${escHtml(t.results)}</div>
+        </div>` : ''}
+        ${t.suggested_improvements ? `<div>
+          <h4 class="text-gray-500 text-xs uppercase mb-1">Suggested Improvements <span class="text-blue-400">[kiro]</span></h4>
+          <div class="bg-gray-800 rounded-lg p-3 text-amber-200 whitespace-pre-wrap max-h-40 overflow-y-auto">${escHtml(t.suggested_improvements)}</div>
+        </div>` : ''}
+      `;
+
+      // Attach stop button handler
+      const stopBtn = document.getElementById('view-stop-btn');
+      if (stopBtn) {
+        stopBtn.addEventListener('click', async function() {
+          const taskId = Number(this.dataset.taskId);
+          await stopTask(taskId);
+          viewModal.classList.add('hidden');
+          clearViewPoll();
+          loadTasks();
+        });
+      }
+
+      viewModal.classList.remove('hidden');
+
+      // Start polling for running updates if task is running
+      clearViewPoll();
+      if (isRunning) {
+        viewPollInterval = setInterval(async () => {
+          try {
+            const pollRes = await fetch('/api/tasks?id=' + id);
+            const pollData = await pollRes.json();
+            const updatesEl = document.getElementById('view-running-updates');
+            if (updatesEl && pollData.running_updates) {
+              updatesEl.textContent = pollData.running_updates;
+              updatesEl.classList.remove('text-gray-600', 'italic');
+              updatesEl.scrollTop = updatesEl.scrollHeight;
+            }
+            // Stop polling if no longer running
+            if (pollData.status !== 'running') {
+              clearViewPoll();
+            }
+          } catch {}
+        }, 3000);
+      }
+    } catch (e) {
+      alert('Failed to load task');
+    }
+  };
+
+  function clearViewPoll() {
+    if (viewPollInterval) { clearInterval(viewPollInterval); viewPollInterval = null; }
+  }
+
+  // Refresh button — re-fetch and re-render the current task
+  document.getElementById('view-refresh-btn').addEventListener('click', function() {
+    if (currentViewTaskId) {
+      viewTask(currentViewTaskId);
+    }
+  });
+
+  document.getElementById('view-close').addEventListener('click', function() { viewModal.classList.add('hidden'); clearViewPoll(); });
+  viewModal.addEventListener('click', function(e) { if (e.target === viewModal) { viewModal.classList.add('hidden'); clearViewPoll(); } });
+
+  // ─── Stop Task ────────────────────────────────────────────────────
+  window.stopTask = stopTask;
+  async function stopTask(id) {
+    if (!confirm('Stop this running task? It will be marked as cancelled.')) return;
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: Number(id), status: 'cancelled' })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        loadTasks();
+      } else {
+        alert('Error: ' + (data.error || 'Unknown'));
+      }
+    } catch {
+      alert('Network error');
+    }
+  }
+
+  // ─── Delete Task ─────────────────────────────────────────────────
+  window.deleteTask = async function(id) {
+    if (!confirm('Delete this task? This cannot be undone.')) return;
+    try {
+      const res = await fetch('/api/tasks?id=' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.ok) loadTasks();
+      else alert('Error: ' + (data.error || 'Unknown'));
+    } catch (e) {
+      alert('Network error');
+    }
+  };
+
+  // ─── Filters ─────────────────────────────────────────────────────
+  document.getElementById('filter-apply-btn').addEventListener('click', loadTasks);
+
+  // ─── Running Time Ticker ─────────────────────────────────────────
+  // Updates the displayed running time every second for tasks with status "running"
+  setInterval(() => {
+    const rows = document.querySelectorAll('#tasks-tbody tr');
+    rows.forEach(row => {
+      const statusCell = row.querySelector('td:nth-child(6)');
+      if (!statusCell || !statusCell.textContent.includes('running')) return;
+      const idCell = row.querySelector('td:nth-child(1)');
+      if (!idCell) return;
+      const id = Number(idCell.textContent.trim());
+      const task = tasks.find(t => t.id === id);
+      if (!task || task.status !== 'running') return;
+      const timeCell = row.querySelector('td:nth-child(7)');
+      if (timeCell) {
+        timeCell.textContent = formatRunningTime(task.running_time, task.status, task.running_started_at);
+      }
+    });
+  }, 1000);
+
+  // ─── Init ────────────────────────────────────────────────────────
+  loadTasks();
+</script>

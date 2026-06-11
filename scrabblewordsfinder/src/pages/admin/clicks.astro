@@ -1,0 +1,185 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Clicks — Admin — ScrabbleWordsFinder" description="View all UI click events" keywords="admin, clicks, analytics">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/report" class="hover:text-blue-400 transition-colors">Reports</a>
+      <a href="/admin/ops" class="hover:text-blue-400 transition-colors">Ops</a>
+      <a href="/admin/banner-management" class="hover:text-blue-400 transition-colors">Banner</a>
+      <a href="/admin/clicks" class="text-blue-400 font-medium">Clicks</a>
+      <a href="/admin/banner-clicks" class="hover:text-blue-400 transition-colors">Banner Clicks</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-white mb-2">📊 Clicks</h1>
+    <p class="text-gray-400 mb-6">All UI click events across the site (read-only view).</p>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Clicks</p>
+        <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Unique Elements</p>
+        <p class="text-2xl font-bold text-white" id="stat-elements">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Latest Click</p>
+        <p class="text-2xl font-bold text-white" id="stat-latest">—</p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-3 mb-4">
+      <input id="filter-element" type="text" placeholder="Filter by UI element..." class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48" />
+      <select id="filter-limit" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="50">Last 50</option>
+        <option value="100">Last 100</option>
+        <option value="200">Last 200</option>
+      </select>
+      <button id="refresh-btn" class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">🔄 Refresh</button>
+      <button id="sound-toggle" class="h-9 px-4 rounded-lg border border-gray-600 text-sm font-medium text-gray-300 hover:bg-gray-800 transition-colors">🔇 Sound Off</button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
+          <tr>
+            <th class="px-4 py-3">ID</th>
+            <th class="px-4 py-3">User ID</th>
+            <th class="px-4 py-3">UI Element</th>
+            <th class="px-4 py-3">URL</th>
+            <th class="px-4 py-3">IP Address</th>
+            <th class="px-4 py-3">Time</th>
+          </tr>
+        </thead>
+        <tbody id="clicks-tbody" class="divide-y divide-gray-800 text-gray-300">
+          <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(str: string): string {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function formatDate(iso: string): string {
+      const d = new Date(iso + (iso.includes('Z') ? '' : 'Z'));
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+             d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function loadClicks() {
+      const limit = (document.getElementById('filter-limit') as HTMLSelectElement).value;
+      const element = (document.getElementById('filter-element') as HTMLInputElement).value.trim();
+      let url = `/api/clicks?limit=${limit}`;
+      if (element) url += `&ui_element=${encodeURIComponent(element)}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        const clicks = data.clicks || [];
+        const total = data.total || 0;
+
+        // Stats
+        document.getElementById('stat-total')!.textContent = String(total);
+        const uniqueElements = new Set(clicks.map((c: any) => c.ui_element));
+        document.getElementById('stat-elements')!.textContent = String(uniqueElements.size);
+        document.getElementById('stat-latest')!.textContent = clicks.length ? formatDate(clicks[0].created_at) : '—';
+
+        // Table
+        const tbody = document.getElementById('clicks-tbody')!;
+        if (!clicks.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No clicks recorded yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = clicks.map((c: any) => `
+          <tr class="hover:bg-gray-800/40 transition-colors">
+            <td class="px-4 py-3 text-gray-400 font-mono text-xs">${c.id}</td>
+            <td class="px-4 py-3 text-gray-300 font-mono text-xs">${escapeHtml(c.user_id || '—')}</td>
+            <td class="px-4 py-3"><code class="text-emerald-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs">${escapeHtml(c.ui_element)}</code></td>
+            <td class="px-4 py-3 text-gray-300 text-xs max-w-[200px] truncate">${escapeHtml(c.url || '—')}</td>
+            <td class="px-4 py-3 text-gray-400 font-mono text-xs">${escapeHtml(c.ip_address || '—')}</td>
+            <td class="px-4 py-3 text-gray-400 text-xs">${formatDate(c.created_at)}</td>
+          </tr>
+        `).join('');
+      } catch {
+        document.getElementById('clicks-tbody')!.innerHTML =
+          '<tr><td colspan="6" class="px-4 py-8 text-center text-red-400">⚠️ Failed to load clicks.</td></tr>';
+      }
+    }
+
+    document.getElementById('refresh-btn')!.addEventListener('click', loadClicks);
+    document.getElementById('filter-limit')!.addEventListener('change', loadClicks);
+    document.getElementById('filter-element')!.addEventListener('keyup', (e) => {
+      if ((e as KeyboardEvent).key === 'Enter') loadClicks();
+    });
+
+    // Sound toggle
+    const soundBtn = document.getElementById('sound-toggle')!;
+    let soundEnabled = localStorage.getItem('swf_clicks_sound') === 'on';
+    let lastClickCount = 0;
+
+    function updateSoundBtn() {
+      soundBtn.textContent = soundEnabled ? '🔊 Sound On' : '🔇 Sound Off';
+      soundBtn.classList.toggle('border-green-600', soundEnabled);
+      soundBtn.classList.toggle('text-green-400', soundEnabled);
+      soundBtn.classList.toggle('border-gray-600', !soundEnabled);
+      soundBtn.classList.toggle('text-gray-300', !soundEnabled);
+    }
+    updateSoundBtn();
+
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('swf_clicks_sound', soundEnabled ? 'on' : 'off');
+      updateSoundBtn();
+    });
+
+    function playClickSound() {
+      if (!soundEnabled) return;
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 800;
+      osc.type = 'sine';
+      gain.gain.value = 0.15;
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.stop(ctx.currentTime + 0.15);
+    }
+
+    // Auto-poll every 5 seconds
+    async function pollClicks() {
+      try {
+        const res = await fetch('/api/clicks?count=true');
+        const data = await res.json();
+        const newCount = data.total || 0;
+        if (lastClickCount > 0 && newCount > lastClickCount) {
+          playClickSound();
+          loadClicks(); // Refresh the table
+        }
+        lastClickCount = newCount;
+      } catch {}
+    }
+
+    loadClicks();
+    setInterval(pollClicks, 5000);
+  </script>
+</Layout>

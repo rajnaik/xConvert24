@@ -11,5 +11,10 @@ export default defineConfig({
   integrations: [mcp()],
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      watch: {
+        ignored: ['**/scrabblewordsfinder/**'],
+      },
+    },
   },
 });

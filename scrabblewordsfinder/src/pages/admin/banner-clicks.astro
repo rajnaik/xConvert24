@@ -1,0 +1,183 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Banner Clicks — Admin — ScrabbleWordsFinder" description="View banner click analytics for ScrabbleWordsFinder.com" keywords="admin, banner, clicks, analytics">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/report" class="hover:text-blue-400 transition-colors">Reports</a>
+      <a href="/admin/ops" class="hover:text-blue-400 transition-colors">Ops</a>
+      <a href="/admin/banner-management" class="hover:text-blue-400 transition-colors">Banner</a>
+      <a href="/admin/banner-clicks" class="text-blue-400 font-medium">Clicks</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="flex items-center justify-between mb-2">
+      <h1 class="text-3xl font-bold text-white">🖱️ Banner Clicks</h1>
+      <button id="randomize-btn" class="rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium py-2 px-4 transition-colors flex items-center gap-2">
+        <span aria-hidden="true">🎲</span> Randomize Banner ID
+      </button>
+    </div>
+    <p class="text-gray-400 mb-4">View all banner click events. Click "Randomize" to set a random banner_id in site_status.</p>
+
+    <!-- Current banner_id indicator -->
+    <div id="current-banner-bar" class="mb-6 rounded-xl border border-purple-800 bg-purple-950/30 p-4 flex items-center gap-4">
+      <div>
+        <p class="text-purple-300 text-sm font-medium">Active banner_id: <code id="active-banner-id" class="text-white bg-gray-800 px-2 py-0.5 rounded text-xs">—</code></p>
+        <p class="text-gray-400 text-xs mt-1" id="banner-updated-info">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Clicks</p>
+        <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Unique Banners</p>
+        <p class="text-2xl font-bold text-white" id="stat-banners">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Latest Click</p>
+        <p class="text-sm font-medium text-white" id="stat-latest">—</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="rounded-xl border border-gray-800 bg-gray-900/50 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-gray-800/80 text-xs text-gray-400 uppercase tracking-wide">
+            <tr>
+              <th class="px-4 py-3">ID</th>
+              <th class="px-4 py-3">Banner ID</th>
+              <th class="px-4 py-3">IP Address</th>
+              <th class="px-4 py-3">Page URL</th>
+              <th class="px-4 py-3">Referrer</th>
+              <th class="px-4 py-3">Date</th>
+            </tr>
+          </thead>
+          <tbody id="clicks-tbody" class="divide-y divide-gray-800">
+            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="text-xs text-gray-500 mt-3" id="showing-info"></p>
+  </div>
+
+  <script>
+    const RANDOM_IDS = [
+      'summer-2025', 'winter-2025', 'spring-promo', 'tournament-week',
+      'new-feature', 'holiday-special', 'beta-launch', 'grand-opening',
+      'community-event', 'milestone-1k', 'word-of-day', 'weekly-challenge',
+    ];
+
+    function randomBannerId(): string {
+      return RANDOM_IDS[Math.floor(Math.random() * RANDOM_IDS.length)] + '-' + Math.random().toString(36).slice(2, 8);
+    }
+
+    function escapeHtml(str: string): string {
+      const el = document.createElement('span');
+      el.textContent = str;
+      return el.innerHTML;
+    }
+
+    function formatDate(dateStr: string): string {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr + (dateStr.includes('Z') ? '' : 'Z'));
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function loadSiteStatus() {
+      try {
+        const res = await fetch('/api/site-status');
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById('active-banner-id')!.textContent = data.banner_id || '(none)';
+        const info = document.getElementById('banner-updated-info')!;
+        if (data.updated_at) {
+          info.textContent = `Updated: ${formatDate(data.updated_at)}${data.updated_by ? ' by ' + data.updated_by : ''}`;
+        }
+      } catch { /* ignore */ }
+    }
+
+    async function loadClicks() {
+      try {
+        const res = await fetch('/api/banner-clicks?limit=100');
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        const clicks = data.clicks || [];
+        const total = data.total || 0;
+
+        // Stats
+        document.getElementById('stat-total')!.textContent = String(total);
+        const uniqueBanners = new Set(clicks.map((c: any) => c.banner_id));
+        document.getElementById('stat-banners')!.textContent = String(uniqueBanners.size);
+        document.getElementById('stat-latest')!.textContent = clicks.length ? formatDate(clicks[0].created_at) : '—';
+
+        // Table
+        const tbody = document.getElementById('clicks-tbody')!;
+        if (!clicks.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No banner clicks recorded yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = clicks.map((c: any) => `
+          <tr class="hover:bg-gray-800/40 transition-colors">
+            <td class="px-4 py-3 text-gray-400 font-mono text-xs">${c.id}</td>
+            <td class="px-4 py-3"><code class="text-purple-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs">${escapeHtml(c.banner_id)}</code></td>
+            <td class="px-4 py-3 text-gray-300 font-mono text-xs">${escapeHtml(c.ip_address || '—')}</td>
+            <td class="px-4 py-3 text-gray-300 text-xs max-w-[200px] truncate">${escapeHtml(c.page_url || '—')}</td>
+            <td class="px-4 py-3 text-gray-400 text-xs max-w-[150px] truncate">${escapeHtml(c.referrer || '—')}</td>
+            <td class="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">${formatDate(c.created_at)}</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('showing-info')!.textContent = `Showing ${clicks.length} of ${total} total clicks`;
+      } catch {
+        document.getElementById('clicks-tbody')!.innerHTML =
+          '<tr><td colspan="6" class="px-4 py-8 text-center text-red-400">⚠️ Failed to load banner clicks.</td></tr>';
+      }
+    }
+
+    // Randomize button — update site_status with random banner_id
+    document.getElementById('randomize-btn')!.addEventListener('click', async () => {
+      const btn = document.getElementById('randomize-btn') as HTMLButtonElement;
+      btn.disabled = true;
+      btn.textContent = '⏳ Updating...';
+
+      try {
+        const newId = randomBannerId();
+        const res = await fetch('/api/site-status', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ banner_id: newId, updated_by: 'admin-banner-clicks' }),
+        });
+
+        if (!res.ok) throw new Error('PUT failed');
+
+        document.getElementById('active-banner-id')!.textContent = newId;
+        document.getElementById('banner-updated-info')!.textContent = 'Updated: just now by admin-banner-clicks';
+      } catch (e) {
+        alert('Failed to update banner_id');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span aria-hidden="true">🎲</span> Randomize Banner ID';
+      }
+    });
+
+    // Init
+    loadSiteStatus();
+    loadClicks();
+  </script>
+</Layout>

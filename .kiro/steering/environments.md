@@ -38,3 +38,19 @@ npx wrangler d1 migrations apply BUGS_DB --remote --config wrangler.staging.json
 # Live
 npx wrangler d1 migrations apply xconvert24-bugs --remote
 ```
+
+---
+
+## ScrabbleWordsFinder.com (Subproject)
+
+A separate Astro + Cloudflare Worker service living in `/scrabblewordsfinder/` with its own databases and deploy pipeline.
+
+| Environment | Command | D1 | URL |
+|-------------|---------|-----|-----|
+| **Dev** | `npm run dev` (from `/scrabblewordsfinder/`) | local miniflare | localhost |
+| **Staging** | `npm run deploy:staging` | scrabble-staging (be0fad12) | workers.dev |
+| **Live** | `npm run deploy` | scrabble-live (e9af2a48) | scrabblewordsfinder.com |
+
+Config files: `scrabblewordsfinder/wrangler.jsonc` (live), `scrabblewordsfinder/wrangler.staging.jsonc` (staging).
+
+This is a fully independent service — its databases are NOT part of the main xConvert24 migration pipeline.

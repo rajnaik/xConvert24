@@ -1,0 +1,242 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Emails — Admin — ScrabbleWordsFinder" description="Manage contact and suggestion emails" keywords="admin, emails" showHeader={false}>
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/emails" class="text-blue-400 font-medium">Emails</a>
+      <a href="/admin/clicks" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/admin/banner-management" class="hover:text-blue-400 transition-colors">Banner</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-white mb-2">📧 Emails</h1>
+    <p class="text-gray-400 mb-6">All contact form and suggestion submissions. Mark as read, add comments, action items.</p>
+
+    <!-- Filters -->
+    <div class="flex gap-3 mb-4">
+      <select id="filter-category" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm">
+        <option value="">All categories</option>
+        <option value="contact">Contact</option>
+        <option value="suggest">Suggestions</option>
+      </select>
+      <select id="filter-read" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm">
+        <option value="">All</option>
+        <option value="0">Unread</option>
+        <option value="1">Read</option>
+      </select>
+      <button id="refresh-btn" class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">🔄 Refresh</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total</p>
+        <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Unread</p>
+        <p class="text-2xl font-bold text-blue-400" id="stat-unread">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Actioned</p>
+        <p class="text-2xl font-bold text-green-400" id="stat-actioned">—</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
+          <tr>
+            <th class="px-3 py-3">ID</th>
+            <th class="px-3 py-3">Cat</th>
+            <th class="px-3 py-3">Name</th>
+            <th class="px-3 py-3">Email</th>
+            <th class="px-3 py-3">Subject</th>
+            <th class="px-3 py-3">Message</th>
+            <th class="px-3 py-3">Status</th>
+            <th class="px-3 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="emails-tbody" class="divide-y divide-gray-800 text-gray-300">
+          <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Edit modal — full fields -->
+    <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 overflow-y-auto py-8">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+        <h2 class="text-lg font-semibold text-white mb-4">Edit Email #<span id="modal-id"></span></h2>
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400">Category</label>
+              <select id="modal-category" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm">
+                <option value="contact">Contact</option>
+                <option value="suggest">Suggestion</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400">Subject</label>
+              <input id="modal-subject" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400">Name</label>
+              <input id="modal-name" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400">Email</label>
+              <input id="modal-email" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Message</label>
+            <textarea id="modal-message" class="w-full mt-1 h-24 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" readonly></textarea>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">IP Address</label>
+            <input id="modal-ip" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-500 text-sm" readonly />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Comment (admin notes)</label>
+            <textarea id="modal-comment" class="w-full mt-1 h-20 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm"></textarea>
+          </div>
+          <div class="flex items-center gap-6">
+            <label class="flex items-center gap-2 text-sm text-gray-300">
+              <input type="checkbox" id="modal-read" class="rounded border-gray-600 bg-gray-800 text-blue-500" /> Mark as Read
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-300">
+              <input type="checkbox" id="modal-actioned" class="rounded border-gray-600 bg-gray-800 text-green-500" /> Actioned
+            </label>
+          </div>
+          <div class="text-xs text-gray-500">
+            Created: <span id="modal-created"></span> | Actioned: <span id="modal-date-actioned">—</span>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-4">
+          <button id="modal-cancel" class="px-4 py-2 text-sm text-gray-400 border border-gray-600 rounded-lg hover:bg-gray-800">Cancel</button>
+          <button id="modal-save" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function escapeHtml(s: string): string { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function formatDate(iso: string): string {
+      const d = new Date(iso + (iso.includes('Z') ? '' : 'Z'));
+      return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) + ' ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    }
+
+    let allEmails: any[] = [];
+
+    async function loadEmails() {
+      const cat = (document.getElementById('filter-category') as HTMLSelectElement).value;
+      const read = (document.getElementById('filter-read') as HTMLSelectElement).value;
+      let url = '/api/emails?limit=100';
+      if (cat) url += '&category=' + cat;
+      if (read) url += '&read=' + read;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        allEmails = data.emails || [];
+        const total = data.total || 0;
+
+        document.getElementById('stat-total')!.textContent = String(total);
+        document.getElementById('stat-unread')!.textContent = String(allEmails.filter((e: any) => !e.read).length);
+        document.getElementById('stat-actioned')!.textContent = String(allEmails.filter((e: any) => e.actioned).length);
+
+        const tbody = document.getElementById('emails-tbody')!;
+        if (!allEmails.length) {
+          tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No emails yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = allEmails.map((e: any) => `
+          <tr class="hover:bg-gray-800/40 ${e.read ? 'opacity-60' : ''}">
+            <td class="px-3 py-3 font-mono text-xs text-gray-400">${e.id}</td>
+            <td class="px-3 py-3"><span class="px-1.5 py-0.5 rounded text-xs ${e.category === 'contact' ? 'bg-blue-900/40 text-blue-300' : 'bg-purple-900/40 text-purple-300'}">${e.category}</span></td>
+            <td class="px-3 py-3 text-xs">${escapeHtml(e.name || '—')}</td>
+            <td class="px-3 py-3 text-xs text-gray-400">${escapeHtml(e.email || '—')}</td>
+            <td class="px-3 py-3 text-xs">${escapeHtml(e.subject || '—')}</td>
+            <td class="px-3 py-3 text-xs max-w-[200px] truncate">${escapeHtml(e.message || '—')}</td>
+            <td class="px-3 py-3 text-xs">
+              ${e.read ? '✓ Read' : '● New'} ${e.actioned ? '✅' : ''}
+            </td>
+            <td class="px-3 py-3">
+              <button class="edit-btn text-xs text-blue-400 hover:underline mr-2" data-id="${e.id}">Edit</button>
+              <button class="del-btn text-xs text-red-400 hover:underline" data-id="${e.id}">Del</button>
+            </td>
+          </tr>
+        `).join('');
+
+        tbody.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => openEdit(parseInt((btn as HTMLElement).dataset.id!))));
+        tbody.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', () => deleteEmail(parseInt((btn as HTMLElement).dataset.id!))));
+      } catch {
+        document.getElementById('emails-tbody')!.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-red-400">Failed to load.</td></tr>';
+      }
+    }
+
+    function openEdit(id: number) {
+      const email = allEmails.find((e: any) => e.id === id);
+      if (!email) return;
+      document.getElementById('modal-id')!.textContent = String(id);
+      (document.getElementById('modal-category') as HTMLSelectElement).value = email.category || 'contact';
+      (document.getElementById('modal-subject') as HTMLInputElement).value = email.subject || '';
+      (document.getElementById('modal-name') as HTMLInputElement).value = email.name || '';
+      (document.getElementById('modal-email') as HTMLInputElement).value = email.email || '';
+      (document.getElementById('modal-message') as HTMLTextAreaElement).value = email.message || '';
+      (document.getElementById('modal-ip') as HTMLInputElement).value = email.ip_address || '';
+      (document.getElementById('modal-comment') as HTMLTextAreaElement).value = email.comment || '';
+      (document.getElementById('modal-read') as HTMLInputElement).checked = !!email.read;
+      (document.getElementById('modal-actioned') as HTMLInputElement).checked = !!email.actioned;
+      document.getElementById('modal-created')!.textContent = email.created_at ? formatDate(email.created_at) : '—';
+      document.getElementById('modal-date-actioned')!.textContent = email.date_actioned ? formatDate(email.date_actioned) : '—';
+      document.getElementById('edit-modal')!.classList.remove('hidden');
+      (document.getElementById('modal-save') as HTMLButtonElement).onclick = () => saveEdit(id);
+    }
+
+    async function saveEdit(id: number) {
+      const comment = (document.getElementById('modal-comment') as HTMLTextAreaElement).value;
+      const read = (document.getElementById('modal-read') as HTMLInputElement).checked;
+      const actioned = (document.getElementById('modal-actioned') as HTMLInputElement).checked;
+
+      await fetch('/api/emails', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, comment, read, actioned }),
+      });
+      document.getElementById('edit-modal')!.classList.add('hidden');
+      loadEmails();
+    }
+
+    async function deleteEmail(id: number) {
+      if (!confirm('Delete this email permanently?')) return;
+      await fetch('/api/emails', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      loadEmails();
+    }
+
+    document.getElementById('modal-cancel')!.addEventListener('click', () => document.getElementById('edit-modal')!.classList.add('hidden'));
+    document.getElementById('refresh-btn')!.addEventListener('click', loadEmails);
+    document.getElementById('filter-category')!.addEventListener('change', loadEmails);
+    document.getElementById('filter-read')!.addEventListener('change', loadEmails);
+
+    loadEmails();
+  </script>
+</Layout>
