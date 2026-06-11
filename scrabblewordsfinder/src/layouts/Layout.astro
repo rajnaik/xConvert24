@@ -192,21 +192,25 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
       <div class="mx-auto max-w-6xl mt-4 pt-4 border-t border-purple-800/50 flex items-center justify-center gap-4">
         <span id="footer-clicks" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-purple-700 bg-purple-950/30 text-xs font-mono text-purple-300">
           <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg>
-          <span id="footer-clicks-value">—</span> interactions
+          <span id="footer-clicks-value">—</span> clicks
         </span>
       </div>
     </footer>
     <script is:inline>
-      fetch('/api/clicks?count=true')
-        .then(r => r.json())
-        .then(d => {
-          const el = document.getElementById('footer-clicks-value');
-          if (el && d.total) el.textContent = d.total.toLocaleString();
-        })
-        .catch(() => {});
+      function updateClickCounter() {
+        fetch('/api/clicks?count=true')
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            var el = document.getElementById('footer-clicks-value');
+            if (el && d.total !== undefined) el.textContent = d.total.toLocaleString();
+          })
+          .catch(function(){});
+      }
+      updateClickCounter();
+      setInterval(updateClickCounter, 2000);
     </script>
 
-    <script src="/src/scripts/click-tracker.ts"></script>
+    
     <script>
       (async function loadSiteAssets() {
         try {
@@ -250,5 +254,24 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
       })();
     </script>
     <CookieConsent />
+    <script is:inline>
+    (function(){
+      // Don't track clicks on admin pages
+      if(window.location.pathname.startsWith("/admin"))return;
+
+      function getSessionId(){let s=sessionStorage.getItem("swf_session_id");if(!s){s=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36);sessionStorage.setItem("swf_session_id",s)}return s}
+      function getUserId(){let u=localStorage.getItem("swf_user_id");if(!u){u=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("swf_user_id",u)}return u}
+      function getDevice(){var a=navigator.userAgent;if(/tablet|ipad|playbook|silk/i.test(a))return"tablet";if(/mobile|iphone|ipod|android.*mobile|windows phone/i.test(a))return"mobile";return"desktop"}
+      function getBrowser(){var a=navigator.userAgent;if(a.includes("Firefox/"))return"Firefox";if(a.includes("Edg/"))return"Edge";if(a.includes("Chrome/")&&!a.includes("Edg/"))return"Chrome";if(a.includes("Safari/")&&!a.includes("Chrome"))return"Safari";return"Other"}
+      function getOS(){var a=navigator.userAgent;if(a.includes("Windows"))return"Windows";if(a.includes("Mac OS"))return"macOS";if(a.includes("Android"))return"Android";if(/iPhone|iPad|iPod/.test(a))return"iOS";if(a.includes("Linux"))return"Linux";return"Other"}
+      document.addEventListener("click",function(e){
+        var t=e.target;
+        var name=t.getAttribute("data-track")||(t.closest("[data-track]")||{}).getAttribute&&t.closest("[data-track]")&&t.closest("[data-track]").getAttribute("data-track")||(t.closest("a")||{textContent:""}).textContent&&t.closest("a")&&t.closest("a").textContent.trim().slice(0,60)||(t.closest("button")||{textContent:""}).textContent&&t.closest("button")&&t.closest("button").textContent.trim().slice(0,60)||t.tagName;
+        // Skip refresh/poll-related clicks
+        if(name==="🔄 Refresh"||name==="refresh"||name==="Refresh")return;
+        fetch("/api/clicks",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:getUserId(),ui_element:name,url:window.location.pathname,session_id:getSessionId(),screen_width:window.screen.width,screen_height:window.screen.height,viewport_width:window.innerWidth,viewport_height:window.innerHeight,click_x:e.clientX,click_y:e.clientY,page_title:document.title,device_type:getDevice(),browser:getBrowser(),os:getOS()})}).catch(function(){});
+      });
+    })();
+    </script>
   </body>
 </html>

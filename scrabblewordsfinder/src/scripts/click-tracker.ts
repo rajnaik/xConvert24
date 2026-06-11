@@ -77,11 +77,13 @@ export function trackClick(uiElement: string, event?: MouseEvent): void {
   }).catch(() => {});
 }
 
-// Auto-attach: any element with data-track="name" gets tracked on click
+// Track EVERY click on the page
 document.addEventListener('click', (e) => {
-  const target = (e.target as HTMLElement).closest('[data-track]');
-  if (target) {
-    const elementName = target.getAttribute('data-track') || 'unknown';
-    trackClick(elementName, e);
-  }
+  const target = e.target as HTMLElement;
+  const elementName = target.getAttribute('data-track')
+    || target.closest('[data-track]')?.getAttribute('data-track')
+    || target.closest('a')?.textContent?.trim().slice(0, 60)
+    || target.closest('button')?.textContent?.trim().slice(0, 60)
+    || target.tagName + (target.className ? '.' + target.className.split(' ')[0] : '');
+  trackClick(elementName, e as MouseEvent);
 });

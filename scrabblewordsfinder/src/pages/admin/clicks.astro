@@ -148,24 +148,34 @@ import '../../styles/global.css';
       soundEnabled = !soundEnabled;
       localStorage.setItem('swf_clicks_sound', soundEnabled ? 'on' : 'off');
       updateSoundBtn();
+      // Play test gong when enabling sound
+      if (soundEnabled) {
+        gongAudio.currentTime = 0;
+        gongAudio.play().catch(() => { console.log('Audio blocked — click page first'); });
+      }
     });
+
+    // Pre-load audio element
+    const gongAudio = new Audio('/media/bell-gong.wav');
+    gongAudio.volume = 0.4;
+    gongAudio.load();
+
+    // Unlock audio on first user interaction with the page
+    let audioUnlocked = false;
+    document.addEventListener('click', () => {
+      if (!audioUnlocked) {
+        gongAudio.play().then(() => { gongAudio.pause(); gongAudio.currentTime = 0; }).catch(() => {});
+        audioUnlocked = true;
+      }
+    }, { once: true });
 
     function playClickSound() {
       if (!soundEnabled) return;
-      const ctx = new AudioContext();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 800;
-      osc.type = 'sine';
-      gain.gain.value = 0.15;
-      osc.start();
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-      osc.stop(ctx.currentTime + 0.15);
+      gongAudio.currentTime = 0;
+      gongAudio.play().catch(() => {});
     }
 
-    // Auto-poll every 5 seconds
+    // Auto-poll every 2 seconds — always refresh, play sound on new clicks
     async function pollClicks() {
       try {
         const res = await fetch('/api/clicks?count=true');
@@ -173,13 +183,24 @@ import '../../styles/global.css';
         const newCount = data.total || 0;
         if (lastClickCount > 0 && newCount > lastClickCount) {
           playClickSound();
-          loadClicks(); // Refresh the table
         }
-        lastClickCount = newCount;
+        if (newCount !== lastClickCount) {
+          lastClickCount = newCount;
+          loadClicks();
+        }
       } catch {}
     }
 
-    loadClicks();
-    setInterval(pollClicks, 5000);
+    // Initial load + set baseline count
+    (async function init() {
+      await loadClicks();
+      try {
+        const r = await fetch('/api/clicks?count=true');
+        const d = await r.json();
+        lastClickCount = d.total || 0;
+      } catch {}
+      // Start polling
+      setInterval(pollClicks, 1000);
+    })();
   </script>
 </Layout>

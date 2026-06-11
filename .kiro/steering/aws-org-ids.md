@@ -28,6 +28,10 @@ Private reference for AWS setup. DO NOT expose these in any public page or commi
 4. **Sign back in with org identity** (xconvert24 via IAM Identity Center)
 5. **Verify credits in AWS Billing Console** — check Billing & Cost Management
 
+| GA4 Measurement ID | `G-XDDRM8BN29` |
+| GA4 Stream Name | Auto Clicker Extension |
+| GA4 Property | xConvert24 (shared) |
+
 ## Setup Status
 
 - [x] AWS Organization created
