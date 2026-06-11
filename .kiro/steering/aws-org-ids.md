@@ -32,6 +32,8 @@ Private reference for AWS setup. DO NOT expose these in any public page or commi
 | GA4 Stream Name | Auto Clicker Extension |
 | GA4 Property | xConvert24 (shared) |
 
+| Chrome Web Store Publisher ID | `d52aead3-704d-46fd-869f-7a09dcdf5ca5` |
+
 ## Setup Status
 
 - [x] AWS Organization created

@@ -2,22 +2,17 @@
 const GA_ID = 'G-XDDRM8BN29'; // Replace with your GA4 Measurement ID
 const GA_SECRET = ''; // Replace with API secret from GA4 admin
 
-async function trackEvent(eventName, params = {}) {
-  // Only track if GA is configured
-  if (!GA_ID || GA_ID === 'G-XXXXXXXXXX') return;
+function trackEvent(eventName, params = {}) {
   try {
+    if (!GA_ID || GA_ID === 'G-XXXXXXXXXX' || !GA_SECRET) return;
     const clientId = localStorage.getItem('abc_ga_cid') || (() => {
       const id = crypto.randomUUID();
       localStorage.setItem('abc_ga_cid', id);
       return id;
     })();
-    // Simple beacon — fire and forget
-    fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${GA_ID}&api_secret=${GA_SECRET}`, {
+    fetch('https://www.google-analytics.com/mp/collect?measurement_id=' + GA_ID + '&api_secret=' + GA_SECRET, {
       method: 'POST',
-      body: JSON.stringify({
-        client_id: clientId,
-        events: [{ name: eventName, params }],
-      }),
+      body: JSON.stringify({ client_id: clientId, events: [{ name: eventName, params }] }),
     }).catch(() => {});
   } catch {}
 }
@@ -114,6 +109,9 @@ function stopCountdown() {
 // Test click
 testBtn.addEventListener('click', async () => {
   trackEvent('test_click', { selector: selectorInput.value });
+  testResult.textContent = 'Testing...';
+  testResult.className = 'test-result test-fail';
+  testResult.style.display = 'block';
   const selector = selectorInput.value.trim();
   if (!selector) {
     selectorInput.classList.add('error');

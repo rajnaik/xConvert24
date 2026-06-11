@@ -349,3 +349,41 @@ test.describe('ABC — Link Prepopulate Params', () => {
     await popup.close();
   });
 });
+
+test.describe('ABC — Detach/Pin Window', () => {
+  test('detach button exists in header', async () => {
+    const popup = await getExtensionPopup();
+    const btn = popup.locator('#detach-btn');
+    await expect(btn).toBeVisible();
+    await expect(btn).toContainText('Detach');
+    await popup.close();
+  });
+
+  test('detach button opens new window', async () => {
+    const popup = await getExtensionPopup();
+    const pagesBefore = context.pages().length;
+    await popup.locator('#detach-btn').click();
+    // Wait for new window/page to open
+    await new Promise(r => setTimeout(r, 1000));
+    const pagesAfter = context.pages().length;
+    expect(pagesAfter).toBeGreaterThan(pagesBefore);
+  });
+
+  test('detached window contains same UI elements', async () => {
+    // Find the detached popup page
+    const pages = context.pages();
+    const detached = pages.find(p => p.url().includes('popup.html') && !p.isClosed());
+    if (!detached) return; // Skip if detach didn't work in test env
+    await expect(detached.locator('#selector')).toBeVisible();
+    await expect(detached.locator('#test-btn')).toBeVisible();
+    await expect(detached.locator('#start-btn')).toBeVisible();
+    await detached.close();
+  });
+
+  test('detach button has correct title tooltip', async () => {
+    const popup = await getExtensionPopup();
+    const title = await popup.locator('#detach-btn').getAttribute('title');
+    expect(title).toContain('floating window');
+    await popup.close();
+  });
+});

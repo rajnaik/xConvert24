@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Pre-Write Test Check",
+  "description": "Before writing any file, check the test_results table for recent failures. If failures exist, warn the user and suggest fixing them first before new work.",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before proceeding with this write, check for failing tests: run 'cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder && npx wrangler d1 execute DB --local --command \"SELECT test_name, status, error_message, file_changed FROM test_results WHERE status = 'fail' ORDER BY run_at DESC LIMIT 5;\" --json'. If there are failures, warn the user: 'There are failing tests that should be fixed first' and list them. If no failures, proceed with the write."
+  }
+}
