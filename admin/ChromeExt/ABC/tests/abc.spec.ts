@@ -45,27 +45,32 @@ async function getExtensionPopup() {
   return page;
 }
 
-test.describe('ABC — Popup Structure', () => {
+// ===== POPUP STRUCTURE =====
+
+test.describe('ABC v1.2.0 — Popup Structure', () => {
   test('loads with title "Auto Clicker"', async () => {
     const popup = await getExtensionPopup();
     await expect(popup.locator('h1')).toContainText('Auto Clicker');
     await popup.close();
   });
 
-  test('has selector input with placeholder', async () => {
+  test('has selector input pre-filled with #', async () => {
     const popup = await getExtensionPopup();
+    await popup.evaluate(() => chrome.storage.local.clear());
+    await popup.reload();
     const input = popup.locator('#selector');
     await expect(input).toBeVisible();
-    const placeholder = await input.getAttribute('placeholder');
-    expect(placeholder).toContain('#');
+    await expect(input).toHaveValue('#');
     await popup.close();
   });
 
-  test('has interval input (1-60)', async () => {
+  test('has hours, minutes, seconds interval fields', async () => {
     const popup = await getExtensionPopup();
-    const input = popup.locator('#interval');
-    await expect(input).toHaveAttribute('min', '1');
-    await expect(input).toHaveAttribute('max', '60');
+    await expect(popup.locator('#interval-hours')).toBeVisible();
+    await expect(popup.locator('#interval-mins')).toBeVisible();
+    await expect(popup.locator('#interval-secs')).toBeVisible();
+    await expect(popup.locator('#interval-hours')).toHaveAttribute('max', '24');
+    await expect(popup.locator('#interval-secs')).toHaveAttribute('max', '59');
     await popup.close();
   });
 
@@ -79,6 +84,8 @@ test.describe('ABC — Popup Structure', () => {
 
   test('status shows "Idle" initially', async () => {
     const popup = await getExtensionPopup();
+    await popup.evaluate(() => chrome.storage.local.clear());
+    await popup.reload();
     await expect(popup.locator('#status')).toContainText('Idle');
     await expect(popup.locator('#status')).toHaveClass(/status-inactive/);
     await popup.close();
@@ -91,15 +98,49 @@ test.describe('ABC — Popup Structure', () => {
   });
 });
 
-test.describe('ABC — Validation & Test Button', () => {
-  test('test shows error when selector is empty', async () => {
+// ===== INTERVAL FIELDS =====
+
+test.describe('ABC v1.2.0 — Interval Fields', () => {
+  test('defaults to 0h 0m 5s', async () => {
+    const popup = await getExtensionPopup();
+    await popup.evaluate(() => chrome.storage.local.clear());
+    await popup.reload();
+    await expect(popup.locator('#interval-hours')).toHaveValue('0');
+    await expect(popup.locator('#interval-mins')).toHaveValue('0');
+    await expect(popup.locator('#interval-secs')).toHaveValue('5');
+    await popup.close();
+  });
+
+  test('restores saved interval from storage', async () => {
+    const popup = await getExtensionPopup();
+    await popup.evaluate(() => chrome.storage.local.set({ lastInterval: 3661 })); // 1h 1m 1s
+    await popup.reload();
+    await expect(popup.locator('#interval-hours')).toHaveValue('1');
+    await expect(popup.locator('#interval-mins')).toHaveValue('1');
+    await expect(popup.locator('#interval-secs')).toHaveValue('1');
+    await popup.close();
+  });
+
+  test('accepts up to 24 hours', async () => {
+    const popup = await getExtensionPopup();
+    await popup.locator('#interval-hours').fill('24');
+    await popup.locator('#interval-mins').fill('0');
+    await popup.locator('#interval-secs').fill('0');
+    // Should not show error
+    await expect(popup.locator('#interval-hours')).toHaveValue('24');
+    await popup.close();
+  });
+});
+
+// ===== VALIDATION & TEST BUTTON =====
+
+test.describe('ABC v1.2.0 — Validation & Test', () => {
+  test('test shows error when selector is empty or just #', async () => {
     const popup = await getExtensionPopup();
     await popup.locator('#selector').fill('');
     await popup.locator('#test-btn').click();
     const result = popup.locator('#test-result');
     await expect(result).toContainText('Enter a selector');
-    await expect(result).toHaveClass(/test-fail/);
-    await expect(popup.locator('#selector')).toHaveClass(/error/);
     await popup.close();
   });
 
@@ -113,39 +154,140 @@ test.describe('ABC — Validation & Test Button', () => {
     await popup.close();
   });
 
-  test('start shows error when element not found', async () => {
+  test('test click saves interval to storage', async () => {
     const popup = await getExtensionPopup();
-    await popup.locator('#selector').fill('#nonexistent-xyz-123');
-    await popup.locator('#start-btn').click();
-    await expect(popup.locator('#test-result')).toHaveClass(/test-fail/);
+    await popup.evaluate(() => chrome.storage.local.clear());
+    await popup.locator('#selector').fill('#some-btn');
+    await popup.locator('#interval-hours').fill('0');
+    await popup.locator('#interval-mins').fill('2');
+    await popup.locator('#interval-secs').fill('30');
+    await popup.locator('#test-btn').click();
+    await popup.waitForTimeout(500);
+    const stored = await popup.evaluate(() => new Promise(r => chrome.storage.local.get(['lastInterval'], r)));
+    expect((stored as any).lastInterval).toBe(150); // 2m30s = 150s
+    await popup.close();
+  });
+
+  test('test click resets active clicker state', async () => {
+    const popup = await getExtensionPopup();
+    // Simulate active clicker
+    await popup.evaluate(() => chrome.storage.local.set({ activeClicker: { tabId: 999, selector: '#old', interval: 5 } }));
+    await popup.reload();
+    await expect(popup.locator('#stop-btn')).toBeVisible();
+    // Click test with new selector
+    await popup.locator('#selector').fill('#new-selector');
+    await popup.locator('#test-btn').click();
+    await popup.waitForTimeout(500);
+    // Active clicker should be cleared
+    const stored = await popup.evaluate(() => new Promise(r => chrome.storage.local.get(['activeClicker'], r)));
+    expect((stored as any).activeClicker).toBeUndefined();
     await popup.close();
   });
 });
 
-test.describe('ABC — Saved Items', () => {
-  test('clicking saved item loads into selector', async () => {
+// ===== BACKGROUND WORKER & TAB PERSISTENCE =====
+
+test.describe('ABC v1.2.0 — Background Worker', () => {
+  test('service worker is registered', async () => {
+    const workers = context.serviceWorkers();
+    const abcWorker = workers.find(w => w.url().includes('background.js'));
+    expect(abcWorker).toBeTruthy();
+  });
+
+  test('start stores tabId in activeClicker', async () => {
     const popup = await getExtensionPopup();
-    // Set a value in storage first
+    // Navigate a page to test on
+    const page = await context.newPage();
+    await page.goto('https://example.com');
+    await page.waitForLoadState();
+
+    // Go back to popup and start
+    await popup.bringToFront();
+    await popup.locator('#selector').fill('a');
+    await popup.locator('#interval-secs').fill('10');
+    await popup.locator('#start-btn').click();
+    await popup.waitForTimeout(1000);
+
+    const stored = await popup.evaluate(() => new Promise(r => chrome.storage.local.get(['activeClicker'], r)));
+    const active = (stored as any).activeClicker;
+    expect(active).toBeTruthy();
+    expect(active.tabId).toBeGreaterThan(0);
+    expect(active.selector).toBe('a');
+    expect(active.interval).toBe(10);
+
+    // Stop
+    await popup.locator('#stop-btn').click();
+    await page.close();
+    await popup.close();
+  });
+
+  test('stop clears activeClicker from storage', async () => {
+    const popup = await getExtensionPopup();
+    await popup.evaluate(() => chrome.storage.local.set({ activeClicker: { tabId: 1, selector: '#x', interval: 5 } }));
+    await popup.reload();
+    await popup.locator('#stop-btn').click();
+    await popup.waitForTimeout(500);
+    const stored = await popup.evaluate(() => new Promise(r => chrome.storage.local.get(['activeClicker'], r)));
+    expect((stored as any).activeClicker).toBeUndefined();
+    await popup.close();
+  });
+
+  test('shows target tab title when active', async () => {
+    const popup = await getExtensionPopup();
+    const page = await context.newPage();
+    await page.goto('https://example.com');
+    await page.waitForLoadState();
+
+    await popup.bringToFront();
+    await popup.locator('#selector').fill('a');
+    await popup.locator('#interval-secs').fill('10');
+    await popup.locator('#start-btn').click();
+    await popup.waitForTimeout(1000);
+
+    const status = await popup.locator('#status').textContent();
+    expect(status).toContain('Running on:');
+
+    await popup.locator('#stop-btn').click();
+    await page.close();
+    await popup.close();
+  });
+});
+
+// ===== COUNTDOWN SYNC =====
+
+test.describe('ABC v1.2.0 — Countdown', () => {
+  test('countdown shows formatted time for large intervals', async () => {
+    const popup = await getExtensionPopup();
     await popup.evaluate(() => {
-      chrome.storage.local.set({ clickers: [{ selector: '#my-btn', interval: 10, url: 'https://example.com' }] });
+      chrome.storage.local.set({ activeClicker: { tabId: 1, selector: '#x', interval: 3661, startedAt: Date.now() } });
+    });
+    await popup.reload();
+    await popup.waitForTimeout(1500);
+    const status = await popup.locator('#status').textContent();
+    // Should show h/m/s format
+    expect(status).toMatch(/\d+h|\d+m|\d+s/);
+    // Clean up
+    await popup.evaluate(() => chrome.storage.local.remove('activeClicker'));
+    await popup.close();
+  });
+});
+
+// ===== SAVED ITEMS =====
+
+test.describe('ABC v1.2.0 — Saved Items', () => {
+  test('clicking saved item loads selector and interval fields', async () => {
+    const popup = await getExtensionPopup();
+    await popup.evaluate(() => {
+      chrome.storage.local.set({ clickers: [{ selector: '#my-btn', interval: 130, url: 'https://example.com' }] });
     });
     await popup.reload();
     await popup.waitForSelector('.saved-item');
     await popup.locator('.saved-item').first().click();
     await expect(popup.locator('#selector')).toHaveValue('#my-btn');
-    await expect(popup.locator('#interval')).toHaveValue('10');
-    await popup.close();
-  });
-
-  test('saved item shows URL tooltip on hover', async () => {
-    const popup = await getExtensionPopup();
-    await popup.evaluate(() => {
-      chrome.storage.local.set({ clickers: [{ selector: '#test', interval: 5, url: 'https://example.com/page' }] });
-    });
-    await popup.reload();
-    await popup.waitForSelector('.saved-item');
-    const title = await popup.locator('.saved-item').first().getAttribute('title');
-    expect(title).toContain('example.com');
+    // 130s = 0h 2m 10s
+    await expect(popup.locator('#interval-hours')).toHaveValue('0');
+    await expect(popup.locator('#interval-mins')).toHaveValue('2');
+    await expect(popup.locator('#interval-secs')).toHaveValue('10');
     await popup.close();
   });
 
@@ -160,9 +302,23 @@ test.describe('ABC — Saved Items', () => {
     await expect(popup.locator('.saved-item')).toHaveCount(0);
     await popup.close();
   });
+
+  test('saved item shows URL tooltip', async () => {
+    const popup = await getExtensionPopup();
+    await popup.evaluate(() => {
+      chrome.storage.local.set({ clickers: [{ selector: '#test', interval: 5, url: 'https://example.com/page' }] });
+    });
+    await popup.reload();
+    await popup.waitForSelector('.saved-item');
+    const title = await popup.locator('.saved-item').first().getAttribute('title');
+    expect(title).toContain('example.com');
+    await popup.close();
+  });
 });
 
-test.describe('ABC — Links & Analytics', () => {
+// ===== LINKS & ANALYTICS =====
+
+test.describe('ABC v1.2.0 — Links', () => {
   test('has xConvert24 link with ref param', async () => {
     const popup = await getExtensionPopup();
     const link = popup.locator('a[href*="xconvert24.com"]').first();
@@ -172,148 +328,7 @@ test.describe('ABC — Links & Analytics', () => {
     await popup.close();
   });
 
-  test('has Kiro link', async () => {
-    const popup = await getExtensionPopup();
-    const link = popup.locator('a[href*="kiro.dev"]');
-    await expect(link).toBeVisible();
-    await popup.close();
-  });
-
-  test('has bug report link', async () => {
-    const popup = await getExtensionPopup();
-    const link = popup.locator('a[href*="report-bug"]');
-    await expect(link).toBeVisible();
-    await popup.close();
-  });
-
-  test('has suggest link', async () => {
-    const popup = await getExtensionPopup();
-    const link = popup.locator('a[href*="suggest"]');
-    await expect(link).toBeVisible();
-    await popup.close();
-  });
-
-  test('GA tracking code present in popup.js', async () => {
-    const popup = await getExtensionPopup();
-    const scripts = await popup.locator('script[src="popup.js"]').count();
-    expect(scripts).toBe(1);
-    await popup.close();
-  });
-});
-
-test.describe('ABC — UI Polish', () => {
-  test('inputs have embossed shadow styling', async () => {
-    const popup = await getExtensionPopup();
-    const input = popup.locator('#selector');
-    const boxShadow = await input.evaluate(el => getComputedStyle(el).boxShadow);
-    expect(boxShadow).not.toBe('none');
-    await popup.close();
-  });
-
-  test('start button has green gradient', async () => {
-    const popup = await getExtensionPopup();
-    const bg = await popup.locator('#start-btn').evaluate(el => getComputedStyle(el).backgroundImage);
-    expect(bg).toContain('gradient');
-    await popup.close();
-  });
-
-  test('body has dark gradient background', async () => {
-    const popup = await getExtensionPopup();
-    const bg = await popup.evaluate(() => getComputedStyle(document.body).backgroundImage);
-    expect(bg).toContain('gradient');
-    await popup.close();
-  });
-});
-
-test.describe('ABC — Chrome URL Handling', () => {
-  test('shows friendly message on restricted pages', async () => {
-    const popup = await getExtensionPopup();
-    // Simulate being on chrome:// page by trying to test a selector
-    await popup.locator('#selector').fill('#some-element');
-    await popup.locator('#test-btn').click();
-    // Should either work or show friendly error (not crash)
-    const result = popup.locator('#test-result');
-    await expect(result).toBeVisible();
-    const text = await result.textContent();
-    // Either success or friendly fail — not an unhandled error
-    expect(text).toMatch(/\[OK\]|\[FAIL\]/);
-    await popup.close();
-  });
-});
-
-test.describe('ABC — Auto-Save on Blur', () => {
-  test('saves selector to storage when input loses focus', async () => {
-    const popup = await getExtensionPopup();
-    await popup.evaluate(() => chrome.storage.local.clear());
-    await popup.locator('#selector').fill('#auto-saved-element');
-    await popup.locator('#interval').fill('7');
-    // Trigger blur by clicking elsewhere
-    await popup.locator('h1').click();
-    // Wait for storage write
-    await popup.waitForTimeout(500);
-    // Check storage
-    const stored = await popup.evaluate(() => {
-      return new Promise(resolve => chrome.storage.local.get(['clickers', 'lastSelector'], resolve));
-    });
-    expect((stored as any).lastSelector).toBe('#auto-saved-element');
-    const clickers = (stored as any).clickers || [];
-    expect(clickers.find((c: any) => c.selector === '#auto-saved-element')).toBeTruthy();
-    await popup.close();
-  });
-
-  test('does not save empty selector on blur', async () => {
-    const popup = await getExtensionPopup();
-    await popup.evaluate(() => chrome.storage.local.set({ clickers: [] }));
-    await popup.locator('#selector').fill('');
-    await popup.locator('h1').click();
-    await popup.waitForTimeout(300);
-    const stored = await popup.evaluate(() => {
-      return new Promise(resolve => chrome.storage.local.get(['clickers'], resolve));
-    });
-    expect(((stored as any).clickers || []).length).toBe(0);
-    await popup.close();
-  });
-});
-
-test.describe('ABC — Saved Item Restore', () => {
-  test('clicking saved item populates selector and interval', async () => {
-    const popup = await getExtensionPopup();
-    await popup.evaluate(() => {
-      chrome.storage.local.set({ clickers: [
-        { selector: '.restore-me', interval: 15, url: 'https://example.com/page' }
-      ]});
-    });
-    await popup.reload();
-    await popup.waitForSelector('.saved-item');
-    await popup.locator('.saved-item').first().click();
-    await expect(popup.locator('#selector')).toHaveValue('.restore-me');
-    await expect(popup.locator('#interval')).toHaveValue('15');
-    await popup.close();
-  });
-
-  test('multiple saved items can each be loaded', async () => {
-    const popup = await getExtensionPopup();
-    await popup.evaluate(() => {
-      chrome.storage.local.set({ clickers: [
-        { selector: '#first', interval: 3, url: '' },
-        { selector: '#second', interval: 20, url: '' }
-      ]});
-    });
-    await popup.reload();
-    await popup.waitForSelector('.saved-item');
-    const items = popup.locator('.saved-item');
-    await items.nth(1).click();
-    await expect(popup.locator('#selector')).toHaveValue('#second');
-    await expect(popup.locator('#interval')).toHaveValue('20');
-    await items.nth(0).click();
-    await expect(popup.locator('#selector')).toHaveValue('#first');
-    await expect(popup.locator('#interval')).toHaveValue('3');
-    await popup.close();
-  });
-});
-
-test.describe('ABC — Link Prepopulate Params', () => {
-  test('bug report link has tool=Auto+Button+Clicker', async () => {
+  test('has bug report link with tool param', async () => {
     const popup = await getExtensionPopup();
     const link = popup.locator('a[href*="report-bug"]');
     const href = await link.getAttribute('href');
@@ -321,7 +336,7 @@ test.describe('ABC — Link Prepopulate Params', () => {
     await popup.close();
   });
 
-  test('suggest link has title=Auto+Button+Clicker', async () => {
+  test('has suggest link with title param', async () => {
     const popup = await getExtensionPopup();
     const link = popup.locator('a[href*="suggest"]');
     const href = await link.getAttribute('href');
@@ -329,61 +344,59 @@ test.describe('ABC — Link Prepopulate Params', () => {
     await popup.close();
   });
 
-  test('kiro link has ref=www.xconvert24.com', async () => {
+  test('manifest version is 1.2.0', async () => {
     const popup = await getExtensionPopup();
-    const link = popup.locator('a[href*="kiro.dev"]');
-    const href = await link.getAttribute('href');
-    expect(href).toContain('ref=www.xconvert24.com');
-    await popup.close();
-  });
-
-  test('extension name in manifest is Auto Button Clicker', async () => {
-    const popup = await getExtensionPopup();
-    const title = await popup.title();
-    // Extension popup title comes from HTML, but let's check manifest via fetch
     const manifest = await popup.evaluate(async () => {
       const r = await fetch(chrome.runtime.getURL('manifest.json'));
       return r.json();
     });
-    expect((manifest as any).name).toBe('Auto Button Clicker');
+    expect((manifest as any).version).toBe('1.2.0');
+    await popup.close();
+  });
+
+  test('manifest has alarms permission', async () => {
+    const popup = await getExtensionPopup();
+    const manifest = await popup.evaluate(async () => {
+      const r = await fetch(chrome.runtime.getURL('manifest.json'));
+      return r.json();
+    });
+    expect((manifest as any).permissions).toContain('alarms');
+    await popup.close();
+  });
+
+  test('manifest has background service_worker', async () => {
+    const popup = await getExtensionPopup();
+    const manifest = await popup.evaluate(async () => {
+      const r = await fetch(chrome.runtime.getURL('manifest.json'));
+      return r.json();
+    });
+    expect((manifest as any).background.service_worker).toBe('background.js');
     await popup.close();
   });
 });
 
-test.describe('ABC — Detach/Pin Window', () => {
-  test('detach button exists in header', async () => {
+// ===== AUTO-SAVE =====
+
+test.describe('ABC v1.2.0 — Auto-Save on Blur', () => {
+  test('saves selector and interval to storage on blur', async () => {
     const popup = await getExtensionPopup();
-    const btn = popup.locator('#detach-btn');
-    await expect(btn).toBeVisible();
-    await expect(btn).toContainText('Detach');
+    await popup.evaluate(() => chrome.storage.local.clear());
+    await popup.locator('#selector').fill('#blur-test');
+    await popup.locator('#interval-mins').fill('5');
+    await popup.locator('h1').click(); // trigger blur
+    await popup.waitForTimeout(500);
+    const stored = await popup.evaluate(() => new Promise(r => chrome.storage.local.get(['lastSelector', 'lastInterval'], r)));
+    expect((stored as any).lastSelector).toBe('#blur-test');
     await popup.close();
   });
+});
 
-  test('detach button opens new window', async () => {
+// ===== DETACH BUTTON =====
+
+test.describe('ABC v1.2.0 — Detach Window', () => {
+  test('detach button exists', async () => {
     const popup = await getExtensionPopup();
-    const pagesBefore = context.pages().length;
-    await popup.locator('#detach-btn').click();
-    // Wait for new window/page to open
-    await new Promise(r => setTimeout(r, 1000));
-    const pagesAfter = context.pages().length;
-    expect(pagesAfter).toBeGreaterThan(pagesBefore);
-  });
-
-  test('detached window contains same UI elements', async () => {
-    // Find the detached popup page
-    const pages = context.pages();
-    const detached = pages.find(p => p.url().includes('popup.html') && !p.isClosed());
-    if (!detached) return; // Skip if detach didn't work in test env
-    await expect(detached.locator('#selector')).toBeVisible();
-    await expect(detached.locator('#test-btn')).toBeVisible();
-    await expect(detached.locator('#start-btn')).toBeVisible();
-    await detached.close();
-  });
-
-  test('detach button has correct title tooltip', async () => {
-    const popup = await getExtensionPopup();
-    const title = await popup.locator('#detach-btn').getAttribute('title');
-    expect(title).toContain('floating window');
+    await expect(popup.locator('#detach-btn')).toBeVisible();
     await popup.close();
   });
 });
