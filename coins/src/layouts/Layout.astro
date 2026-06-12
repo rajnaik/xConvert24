@@ -1,0 +1,94 @@
+---
+interface Props {
+  title: string;
+  showHeader?: boolean;
+}
+const { title, showHeader = true } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Track memecoins, analyze trends, and make informed crypto decisions. Free real-time coin tracking with DexScreener data." />
+  <link rel="canonical" href={"https://xcrypto24.com" + Astro.url.pathname} />
+  <meta property="og:title" content={title + " | xCrypto24"} />
+  <meta property="og:description" content="Free memecoin tracker with real-time data, rug check safety scores, and technical analysis charts." />
+  <meta property="og:url" content={"https://xcrypto24.com" + Astro.url.pathname} />
+  <meta property="og:type" content="website" />
+  <title>{title} | xCrypto24</title>
+  <style is:global>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    .container { max-width: 1600px; margin: 0 auto; padding: 1rem; }
+    nav { background: #1e293b; padding: 0.8rem 1.5rem; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+    .nav-links { display: flex; gap: 1.2rem; align-items: center; }
+    .nav-links a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.15s; }
+    .nav-links a:hover, .nav-links a.active { color: #f59e0b; }
+    .nav-brand { display: flex; align-items: center; gap: 8px; }
+    .nav-brand a { color: #f8fafc; text-decoration: none; font-size: 1rem; font-weight: 700; }
+    h1 { color: #f8fafc; margin: 1.5rem 0; }
+    h2 { color: #f8fafc; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #334155; }
+    th { background: #1e293b; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { color: #e2e8f0; font-size: 0.9rem; white-space: nowrap; }
+    tr:hover td { background: #1e293b; }
+    .btn { padding: 0.4rem 0.8rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+    .btn-edit { background: #3b82f6; color: white; }
+    .btn-delete { background: #ef4444; color: white; }
+    .btn-add { background: #10b981; color: white; padding: 0.6rem 1.2rem; font-size: 0.9rem; }
+    .btn-track { background: #8b5cf6; color: white; }
+    .btn:hover { opacity: 0.85; }
+    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-yes { background: #065f46; color: #6ee7b7; }
+    .badge-no { background: #7f1d1d; color: #fca5a5; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 2rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal h2 { color: #f8fafc; margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.3rem; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.6rem; background: #0f172a; border: 1px solid #475569; border-radius: 4px; color: #e2e8f0; font-size: 0.9rem; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .modal-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
+    .btn-save { background: #10b981; color: white; padding: 0.6rem 1.5rem; }
+    .btn-cancel { background: #475569; color: white; padding: 0.6rem 1.5rem; }
+    .toast { position: fixed; top: 1rem; right: 1rem; padding: 0.8rem 1.5rem; border-radius: 6px; font-size: 0.9rem; z-index: 200; display: none; }
+    .toast-success { background: #065f46; color: #6ee7b7; }
+    .toast-error { background: #7f1d1d; color: #fca5a5; }
+    footer { border-top: 1px solid #334155; padding: 1.5rem; text-align: center; margin-top: 2rem; }
+    footer a { color: #64748b; text-decoration: none; font-size: 0.8rem; margin: 0 0.8rem; }
+    footer a:hover { color: #f59e0b; }
+  </style>
+</head>
+<body>
+  {showHeader && (
+    <nav>
+      <div class="nav-brand">
+        <span style="font-size:1.4rem;">🪙</span>
+        <a href="/">xCrypto24</a>
+      </div>
+      <div class="nav-links">
+        <a href="/admin/coins">Coins</a>
+        <a href="/admin/tracker">Tracker</a>
+        <a href="/admin/analysis">Analysis</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+      </div>
+    </nav>
+  )}
+  <div class="container">
+    <slot />
+  </div>
+  <footer>
+    <a href="/about">About</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/disclaimer">Disclaimer</a>
+    <a href="/contact">Contact</a>
+    <a href="/suggest">Suggest</a>
+    <span style="color:#475569;font-size:0.75rem;margin-left:1rem;">&copy; 2026 xCrypto24.com</span>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,267 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Tech Analysis">
+  <style is:global>
+    .chart-container { background: #131722; border-radius: 8px; border: 1px solid #334155; overflow: hidden; margin-bottom: 0.5rem; }
+    .chart-header { padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b; }
+    .chart-header span { font-size: 11px; color: #94a3b8; }
+    .coin-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; margin-bottom: 1.5rem; overflow: hidden; }
+    .coin-card-header { padding: 0.8rem 1rem; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.4rem; padding: 0.8rem 1rem; font-size: 0.8rem; }
+    .metrics-grid div { padding: 0.4rem; background: #0f172a; border-radius: 4px; }
+    .metrics-grid .label { color: #64748b; font-size: 0.7rem; }
+    .metrics-grid .value { font-weight: 600; margin-top: 2px; }
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 0; }
+  </style>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h1>📊 Tech Analysis</h1>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn btn-add" id="refreshBtn">🔄 Refresh</button>
+      <button class="btn btn-add" id="fetchHistBtn" style="background:#06b6d4;">📜 Fetch History</button>
+    </div>
+  </div>
+  <p style="color:#94a3b8;margin-bottom:1rem;font-size:0.85rem;">Candlestick charts powered by your OHLCV data</p>
+
+  <div id="analysisGrid"></div>
+
+  <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js" is:inline></script>
+  <script is:inline>
+    function getTrendColor(status, trend) {
+      var s = (status || '').toLowerCase();
+      var t = (trend || '').toLowerCase();
+      if (s === 'mooning' || s === 'pumping hard' || t === 'pumping') return '#10b981';
+      if (s === 'pumping' || s === 'creeping up' || t === 'accumulating') return '#4ade80';
+      if (s === 'consolidating' || t === 'consolidating') return '#f59e0b';
+      if (s === 'bleeding' || t === 'distributing') return '#f97316';
+      if (s === 'dumping' || s === 'profit taking' || t === 'dumping') return '#ef4444';
+      if (s === 'dumping hard' || s === 'crashing') return '#dc2626';
+      return '#94a3b8';
+    }
+
+    var charts = [];
+
+    async function loadAnalysis() {
+      // Destroy old charts
+      charts.forEach(function(c) { c.remove(); });
+      charts = [];
+
+      var coinsRes = await fetch('/api/coins');
+      var coinsData = await coinsRes.json();
+      var coins = coinsData.coins.filter(function(c) { return c.enabled === 'yes' && c.dexscreenerurl; });
+
+      var trackerRes = await fetch('/api/tracker');
+      var trackerData = await trackerRes.json();
+
+      var grid = document.getElementById('analysisGrid');
+      var html = '';
+
+      // Build HTML cards
+      coins.forEach(function(c, idx) {
+        var entries = trackerData.tracker.filter(function(t) { return t.coinid === c.coinid; }).reverse();
+        var latest = entries.length > 0 ? entries[entries.length - 1] : null;
+        var icon = c.icon_url ? '<img src="' + c.icon_url + '" style="width:24px;height:24px;border-radius:50%;margin-right:8px;" />' : '';
+        var tColor = getTrendColor(c.currentstatus, c.trend);
+
+        var metricsHtml = '';
+        if (latest) {
+          metricsHtml = '<div class="metrics-grid">' +
+            '<div><span class="label">FDV</span><div class="value" style="color:' + tColor + ';">' + (latest.fdv || '\u2014') + '</div></div>' +
+            '<div><span class="label">Mkt Cap</span><div class="value" style="color:' + tColor + ';">' + (latest.mktcap || '\u2014') + '</div></div>' +
+            '<div><span class="label">Liquidity</span><div class="value" style="color:' + tColor + ';">' + (latest.liquidity || '\u2014') + '</div></div>' +
+            '<div><span class="label">Volume 24h</span><div class="value" style="color:' + tColor + ';">' + (latest.volume || '\u2014') + '</div></div>' +
+            '<div><span class="label">Holders</span><div class="value" style="color:' + tColor + ';">' + (latest.holders_count || '\u2014') + '</div></div>' +
+            '<div><span class="label">Buys/Sells</span><div class="value" style="color:' + tColor + ';">' + (latest.buys || '\u2014') + '/' + (latest.sells || '\u2014') + '</div></div>' +
+            '<div><span class="label">Top Holder</span><div class="value" style="color:' + tColor + ';">' + (latest.top_holder_pct || '\u2014') + '</div></div>' +
+            '<div><span class="label">Bundles</span><div class="value" style="color:' + tColor + ';">' + (latest.traders || '\u2014') + '</div></div>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.3rem;padding:0 1rem 0.6rem;font-size:0.75rem;text-align:center;">' +
+            '<div style="padding:0.3rem;border-radius:4px;background:#0f172a;"><span style="color:#64748b;">5M</span><br><span style="color:' + (parseFloat(latest.price_5m) >= 0 ? '#10b981' : '#ef4444') + ';">' + (latest.price_5m || '\u2014') + '</span></div>' +
+            '<div style="padding:0.3rem;border-radius:4px;background:#0f172a;"><span style="color:#64748b;">1H</span><br><span style="color:' + (parseFloat(latest.price_1h) >= 0 ? '#10b981' : '#ef4444') + ';">' + (latest.price_1h || '\u2014') + '</span></div>' +
+            '<div style="padding:0.3rem;border-radius:4px;background:#0f172a;"><span style="color:#64748b;">6H</span><br><span style="color:' + (parseFloat(latest.price_6h) >= 0 ? '#10b981' : '#ef4444') + ';">' + (latest.price_6h || '\u2014') + '</span></div>' +
+            '<div style="padding:0.3rem;border-radius:4px;background:#0f172a;"><span style="color:#64748b;">24H</span><br><span style="color:' + (parseFloat(latest.price_24h) >= 0 ? '#10b981' : '#ef4444') + ';">' + (latest.price_24h || '\u2014') + '</span></div>' +
+          '</div>';
+        }
+
+        html += '<div class="coin-card" style="display:grid;grid-template-columns:1fr 1fr;gap:0;overflow:hidden;">' +
+          '<div style="border-right:1px solid #334155;">' +
+            '<div class="coin-card-header">' +
+              '<div style="display:flex;align-items:center;">' + icon +
+                '<strong style="color:#f59e0b;font-size:0.95rem;">' + (c.coinname || 'Coin') + '</strong>' +
+                '<span style="margin-left:8px;color:' + tColor + ';font-size:0.8rem;font-weight:600;">' + (c.currentstatus || '') + '</span>' +
+              '</div>' +
+              '<span style="font-size:0.75rem;color:#64748b;">' + (c.safety || '') + '</span>' +
+            '</div>' +
+            '<div class="chart-container" style="border:none;border-radius:0;"><div class="chart-header"><span>Price (Candlestick)</span><span id="interval-' + idx + '"></span></div><div id="chart-price-' + idx + '" style="height:350px;"></div></div>' +
+          '</div>' +
+          '<div style="overflow-y:auto;max-height:430px;padding:0;">' +
+            metricsHtml +
+            
+          '</div>' +
+        '</div>';
+      });
+
+      grid.innerHTML = html || '<p style="color:#94a3b8;">No enabled coins.</p>';
+
+      // Render Lightweight Charts
+      for (var i = 0; i < coins.length; i++) {
+        var c = coins[i];
+        // Fetch price history
+        var hRes = await fetch('/api/fetch-history?coinid=' + c.coinid + '&interval=hour&limit=500');
+        var hData = await hRes.json();
+        var candles = hData.candles || [];
+        var interval = 'hourly';
+
+        if (candles.length < 5) {
+          var dRes = await fetch('/api/fetch-history?coinid=' + c.coinid + '&interval=day&limit=500');
+          var dData = await dRes.json();
+          candles = dData.candles || [];
+          interval = 'daily';
+        }
+
+        var intervalEl = document.getElementById('interval-' + i);
+        if (intervalEl) intervalEl.textContent = candles.length + ' ' + interval + ' candles';
+
+        if (candles.length < 2) continue;
+
+        // Price chart (candlestick)
+        var priceEl = document.getElementById('chart-price-' + i);
+        if (priceEl) {
+          var priceChart = LightweightCharts.createChart(priceEl, {
+            width: priceEl.clientWidth,
+            height: 300,
+            layout: { background: { color: '#131722' }, textColor: '#94a3b8' },
+            grid: { vertLines: { color: '#1e293b' }, horzLines: { color: '#1e293b' } },
+            timeScale: { timeVisible: true, borderColor: '#334155' },
+            rightPriceScale: { borderColor: '#334155' },
+            crosshair: { mode: LightweightCharts.CrosshairMode.Normal }
+          });
+
+          var candleSeries = priceChart.addCandlestickSeries({
+            upColor: '#10b981', downColor: '#ef4444',
+            borderUpColor: '#10b981', borderDownColor: '#ef4444',
+            wickUpColor: '#10b981', wickDownColor: '#ef4444'
+          });
+
+          var candleData = candles.map(function(cd) {
+            return { time: cd.timestamp, open: cd.open, high: cd.high, low: cd.low, close: cd.close };
+          });
+          candleSeries.setData(candleData);
+          priceChart.timeScale().fitContent();
+          charts.push(priceChart);
+        }
+
+        // Volume as overlay on price chart
+        if (priceChart) {
+          var volSeries = priceChart.addHistogramSeries({
+            priceFormat: { type: 'volume' },
+            priceScaleId: 'vol',
+          });
+          priceChart.priceScale('vol').applyOptions({
+            scaleMargins: { top: 0.8, bottom: 0 }
+          });
+          var volData = candles.map(function(cd) {
+            return { time: cd.timestamp, value: cd.volume, color: cd.close >= cd.open ? '#10b98144' : '#ef444444' };
+          });
+          volSeries.setData(volData);
+        }
+
+        // Mini liquidity sparkline from tracker history
+        var liqEl = document.getElementById("mini-liq-" + i);
+        if (liqEl) {
+          var entries = trackerData.tracker.filter(function(t) { return t.coinid === c.coinid; }).reverse();
+          if (entries.length >= 2) {
+            var liqChart = LightweightCharts.createChart(liqEl, {
+              width: liqEl.clientWidth,
+              height: 100,
+              layout: { background: { color: "#131722" }, textColor: "#64748b" },
+              grid: { vertLines: { visible: false }, horzLines: { color: "#1e293b" } },
+              timeScale: { visible: false },
+              rightPriceScale: { borderVisible: false },
+              handleScroll: false,
+              handleScale: false
+            });
+            var liqLine = liqChart.addAreaSeries({ lineColor: "#3b82f6", topColor: "#3b82f622", bottomColor: "transparent", lineWidth: 2 });
+            var liqData = entries.map(function(e) {
+              var val = parseFloat((e.liquidity || "0").replace(/[$,]/g, "")) || 0;
+              var t = e.tracked_at ? Math.floor(new Date(e.tracked_at).getTime() / 1000) : 0;
+              return { time: t, value: val };
+            }).filter(function(d) { return d.time > 0 && d.value > 0; });
+            if (liqData.length >= 2) { liqLine.setData(liqData); liqChart.timeScale().fitContent(); charts.push(liqChart); }
+            else { liqEl.innerHTML = "<p style=\"color:#475569;font-size:0.7rem;text-align:center;padding-top:40px;\">Need more tracker data</p>"; }
+          } else { liqEl.innerHTML = "<p style=\"color:#475569;font-size:0.7rem;text-align:center;padding-top:40px;\">Liquidity: need 2+ fetches</p>"; }
+        }      }
+
+        // Mini holders sparkline
+        var holdEl = document.getElementById("mini-hold-" + i);
+        if (holdEl && entries.length >= 2) {
+          var holdChart = LightweightCharts.createChart(holdEl, {
+            width: holdEl.clientWidth, height: 80,
+            layout: { background: { color: "#131722" }, textColor: "#64748b" },
+            grid: { vertLines: { visible: false }, horzLines: { color: "#1e293b" } },
+            timeScale: { visible: false }, rightPriceScale: { borderVisible: false },
+            handleScroll: false, handleScale: false
+          });
+          var holdLine = holdChart.addAreaSeries({ lineColor: "#10b981", topColor: "#10b98122", bottomColor: "transparent", lineWidth: 2 });
+          var holdData = entries.map(function(e) {
+            var val = parseFloat((e.holders_count || "0").replace(/,/g, "")) || 0;
+            var t = e.tracked_at ? Math.floor(new Date(e.tracked_at).getTime() / 1000) : 0;
+            return { time: t, value: val };
+          }).filter(function(d) { return d.time > 0 && d.value > 0; });
+          if (holdData.length >= 2) { holdLine.setData(holdData); holdChart.timeScale().fitContent(); charts.push(holdChart); }
+        }
+
+        // Mini buys/sells sparkline
+        var bsEl = document.getElementById("mini-bs-" + i);
+        if (bsEl && entries.length >= 2) {
+          var bsChart = LightweightCharts.createChart(bsEl, {
+            width: bsEl.clientWidth, height: 80,
+            layout: { background: { color: "#131722" }, textColor: "#64748b" },
+            grid: { vertLines: { visible: false }, horzLines: { color: "#1e293b" } },
+            timeScale: { visible: false }, rightPriceScale: { borderVisible: false },
+            handleScroll: false, handleScale: false
+          });
+          var buyLine = bsChart.addLineSeries({ color: "#10b981", lineWidth: 2 });
+          var sellLine = bsChart.addLineSeries({ color: "#ef4444", lineWidth: 2 });
+          var buyData = []; var sellData = [];
+          entries.forEach(function(e) {
+            var t = e.tracked_at ? Math.floor(new Date(e.tracked_at).getTime() / 1000) : 0;
+            if (t <= 0) return;
+            var b = parseFloat((e.buys || "0").replace(/,/g, "")) || 0;
+            var s = parseFloat((e.sells || "0").replace(/,/g, "")) || 0;
+            if (b > 0) buyData.push({ time: t, value: b });
+            if (s > 0) sellData.push({ time: t, value: s });
+          });
+          if (buyData.length >= 2) buyLine.setData(buyData);
+          if (sellData.length >= 2) sellLine.setData(sellData);
+          bsChart.timeScale().fitContent();
+          charts.push(bsChart);
+        }    }
+
+    // Refresh
+    document.getElementById('refreshBtn').addEventListener('click', function() { loadAnalysis(); });
+
+    // Fetch History
+    document.getElementById('fetchHistBtn').addEventListener('click', async function() {
+      this.disabled = true;
+      this.textContent = '\u23F3 Fetching...';
+      var res = await fetch('/api/fetch-history', { method: 'POST' });
+      if (res.ok) {
+        var data = await res.json();
+        var total = data.results.reduce(function(s, r) { return s + (r.hourlyCandles || 0) + (r.dailyCandles || 0); }, 0);
+        alert('Loaded ' + total + ' candles. Refreshing...');
+        loadAnalysis();
+      }
+      this.disabled = false;
+      this.textContent = '\uD83D\uDCDC Fetch History';
+    });
+
+    // Handle resize
+    window.addEventListener('resize', function() {
+      charts.forEach(function(c) { c.applyOptions({ width: c.chartElement().parentElement.clientWidth }); });
+    });
+
+    loadAnalysis();
+  </script>
+</Layout>

@@ -1,0 +1,98 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Field Mappings">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1>🗺️ Field Mappings</h1>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn btn-add" id="addFieldBtn">+ Add Mapping</button>
+      <a href="/admin/coins" class="btn btn-cancel" style="text-decoration:none;">← Back to Coins</a>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <p style="color:#94a3b8;margin:1rem 0;">XPath selectors mapped to tracker fields. Used as reference for DexScreener page elements.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Field Name</th>
+        <th>Lookup / Source</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="fieldMapTable"></tbody>
+  </table>
+
+  <script is:inline>
+    var fieldMapTable = document.getElementById('fieldMapTable');
+    var toast = document.getElementById('toast');
+
+    function showToast(msg, type) {
+      toast.textContent = msg;
+      toast.className = 'toast toast-' + type;
+      toast.style.display = 'block';
+      setTimeout(function() { toast.style.display = 'none'; }, 3000);
+    }
+
+    async function loadFieldMap() {
+      var res = await fetch('/api/fieldmap');
+      var data = await res.json();
+      fieldMapTable.innerHTML = data.fields.map(function(f) {
+        return '<tr id="fmrow-' + f.id + '">' +
+          '<td>' + f.id + '</td>' +
+          '<td><span>' + f.fieldname + '</span></td>' +
+          '<td><code style="font-size:0.75rem;color:#94a3b8;word-break:break-all;">' + f.lookupid + '</code></td>' +
+          '<td>' +
+            '<button class="btn btn-edit" onclick="editFieldMap(' + f.id + ')">Edit</button> ' +
+            '<button class="btn btn-delete" onclick="deleteFieldMap(' + f.id + ')">Delete</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    document.getElementById('addFieldBtn').addEventListener('click', function() {
+      var newRow = document.createElement('tr');
+      newRow.innerHTML = '<td>\u2014</td><td><input type="text" id="efn-new" placeholder="Field name" style="width:100%;padding:0.4rem;background:#0f172a;border:1px solid #475569;border-radius:4px;color:#e2e8f0;" /></td><td><input type="text" id="elu-new" placeholder="XPath or source" style="width:100%;padding:0.4rem;background:#0f172a;border:1px solid #475569;border-radius:4px;color:#e2e8f0;font-size:0.75rem;" /></td><td><button class="btn btn-save" onclick="saveNewFieldMap()">Save</button> <button class="btn btn-cancel" onclick="loadFieldMap()">Cancel</button></td>';
+      fieldMapTable.insertBefore(newRow, fieldMapTable.firstChild);
+      document.getElementById('efn-new').focus();
+    });
+
+    window.saveNewFieldMap = async function() {
+      var fn = document.getElementById('efn-new').value;
+      var lu = document.getElementById('elu-new').value;
+      if (!fn || !lu) { showToast('Both fields required', 'error'); return; }
+      var res = await fetch('/api/fieldmap', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({fieldname:fn,lookupid:lu}) });
+      if (res.ok) { showToast('Mapping added', 'success'); loadFieldMap(); } else showToast('Add failed', 'error');
+    };
+
+    window.editFieldMap = function(id) {
+      var row = document.getElementById('fmrow-' + id);
+      if (!row) return;
+      var cells = row.querySelectorAll('td');
+      var fn = cells[1].textContent.trim();
+      var lu = cells[2].textContent.trim();
+      cells[1].innerHTML = '<input type="text" id="efn-' + id + '" value="' + fn + '" style="width:100%;padding:0.4rem;background:#0f172a;border:1px solid #475569;border-radius:4px;color:#e2e8f0;" />';
+      cells[2].innerHTML = '<input type="text" id="elu-' + id + '" value="' + lu.replace(/"/g,'&quot;') + '" style="width:100%;padding:0.4rem;background:#0f172a;border:1px solid #475569;border-radius:4px;color:#e2e8f0;font-size:0.75rem;" />';
+      cells[3].innerHTML = '<button class="btn btn-save" onclick="saveFieldMap(' + id + ')">Save</button> <button class="btn btn-cancel" onclick="loadFieldMap()">Cancel</button>';
+    };
+
+    window.saveFieldMap = async function(id) {
+      var fn = document.getElementById('efn-' + id).value;
+      var lu = document.getElementById('elu-' + id).value;
+      if (!fn || !lu) { showToast('Both fields required', 'error'); return; }
+      var res = await fetch('/api/fieldmap', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id:id,fieldname:fn,lookupid:lu}) });
+      if (res.ok) { showToast('Mapping updated', 'success'); loadFieldMap(); } else showToast('Update failed', 'error');
+    };
+
+    window.deleteFieldMap = async function(id) {
+      if (!confirm('Delete this mapping?')) return;
+      var res = await fetch('/api/fieldmap?id=' + id, { method: 'DELETE' });
+      if (res.ok) { showToast('Deleted', 'success'); loadFieldMap(); } else showToast('Failed', 'error');
+    };
+
+    loadFieldMap();
+  </script>
+</Layout>

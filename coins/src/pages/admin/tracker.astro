@@ -1,0 +1,290 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Coin Tracker">
+  <style is:global>
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 5px #10b981; }
+      50% { box-shadow: 0 0 20px #10b981, 0 0 40px #10b98155; }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes slide-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .fetch-loading { animation: pulse-glow 1.2s ease-in-out infinite; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #10b98155; border-top-color: #10b981; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
+    .new-row { animation: slide-in 0.5s ease-out; background: #0f2a1f !important; }
+    .fetch-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 50; align-items: center; justify-content: center; }
+    .fetch-overlay.active { display: flex; }
+    .fetch-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 2rem 3rem; text-align: center; animation: pulse-glow 1.5s ease-in-out infinite; }
+    .fetch-card .big-spinner { width: 40px; height: 40px; border: 3px solid #10b98133; border-top-color: #10b981; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+    .fetch-card p { color: #94a3b8; margin-top: 0.5rem; font-size: 0.85rem; }
+    .fetch-card h3 { color: #10b981; margin: 0; }
+    .group-header { background: #1e293b; border-top: 2px solid #f59e0b; }
+    .group-header td { padding: 0.8rem 1rem; }
+  </style>
+
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <h1 id="pageTitle">📈 Tracker</h1>
+      <button class="btn btn-add" id="fetchBtn" style="display:none;">⚡ Fetch Data</button>
+    </div>
+    <div>
+      <a href="/admin/coins" class="btn btn-cancel" style="text-decoration:none;">← Back to Coins</a>
+    </div>
+  </div>
+
+  <div class="fetch-overlay" id="fetchOverlay">
+    <div class="fetch-card">
+      <div class="big-spinner"></div>
+      <h3>Fetching from DexScreener...</h3>
+      <p id="fetchStatus">Connecting to API</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="coinInfo" style="margin: 1rem 0; padding: 1rem; background: #1e293b; border-radius: 8px; border: 1px solid #334155;"></div>
+
+  <div id="chartContainer" style="display:none; margin: 1rem 0; border-radius: 8px; overflow: hidden; border: 1px solid #334155;">
+    <iframe id="dexChart" style="width:100%; height:400px; border:none;" allowfullscreen></iframe>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:1.5rem 0 0.5rem;">
+    <h2 style="color: #f8fafc;">Tracking History</h2>
+    <button class="btn btn-delete" id="deleteSelectedBtn" style="display:none;">🗑️ Delete Selected</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="selectAll" /></th>
+        <th></th>
+        <th>ID</th>
+        <th>Coin</th>
+        <th>FDV</th>
+        <th>Liquidity</th>
+        <th>Mkt Cap</th>
+        <th>5M</th>
+        <th>1H</th>
+        <th>6H</th>
+        <th>24H</th>
+        <th>Txns</th>
+        <th>Volume</th>
+        <th>Buys</th>
+        <th>Sells</th>
+        <th>Buy Vol</th>
+        <th>Sell Vol</th>
+        <th>Buyers</th>
+        <th>Sellers</th>
+        <th>Traders</th>
+        <th>Holders</th>
+        <th>Top Holder</th>
+        <th>Tracked At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="trackerTable"></tbody>
+  </table>
+
+  <script is:inline>
+    var trackerTable = document.getElementById('trackerTable');
+    var coinInfo = document.getElementById('coinInfo');
+    var pageTitle = document.getElementById('pageTitle');
+    var fetchBtn = document.getElementById('fetchBtn');
+    var fetchOverlay = document.getElementById('fetchOverlay');
+    var fetchStatus = document.getElementById('fetchStatus');
+    var toast = document.getElementById('toast');
+
+    var params = new URLSearchParams(window.location.search);
+    var coinid = params.get('coinid');
+    var currentCoin = null;
+    var lastFetchedId = null;
+    var coinsMap = {};
+
+    var drumAudio = new Audio('/media/drumroll.mp3');
+    var drumLoopInterval = null;
+
+    function startDrumroll() {
+      drumAudio.currentTime = 0;
+      drumAudio.play();
+      drumLoopInterval = setInterval(function() {
+        if (drumAudio.currentTime >= 4) drumAudio.currentTime = 0;
+      }, 50);
+    }
+    function finishDrumroll() {
+      if (drumLoopInterval) { clearInterval(drumLoopInterval); drumLoopInterval = null; }
+      drumAudio.currentTime = 4;
+      drumAudio.play();
+    }
+    function stopDrumroll() {
+      if (drumLoopInterval) { clearInterval(drumLoopInterval); drumLoopInterval = null; }
+      drumAudio.pause();
+      drumAudio.currentTime = 0;
+    }
+
+    function showToast(msg, type) {
+      toast.textContent = msg;
+      toast.className = 'toast toast-' + type;
+      toast.style.display = 'block';
+      setTimeout(function() { toast.style.display = 'none'; }, 3000);
+    }
+
+    async function loadCoinInfo() {
+      var res = await fetch('/api/coins');
+      var data = await res.json();
+      data.coins.forEach(function(c) { coinsMap[c.coinid] = c.coinname || 'Coin #' + c.coinid; });
+      if (!coinid) { coinInfo.innerHTML = '<em>No coin selected</em>'; return; }
+      currentCoin = data.coins.find(function(c) { return c.coinid == coinid; });
+      if (currentCoin) {
+        pageTitle.textContent = '\u{1F4C8} Tracker \u2014 ' + (currentCoin.coinname || 'Coin #' + currentCoin.coinid);
+        fetchBtn.style.display = 'inline-block';
+        var chartContainer = document.getElementById('chartContainer');
+        var dexChart = document.getElementById('dexChart');
+        dexChart.src = currentCoin.dexscreenerurl + '?embed=1&theme=dark&info=0';
+        chartContainer.style.display = 'block';
+        coinInfo.innerHTML =
+          '<strong style="color:#f59e0b;">' + (currentCoin.coinname || '\u2014') + '</strong>' +
+          ' &nbsp;|&nbsp; Narrative: ' + (currentCoin.narrative || '\u2014') +
+          ' &nbsp;|&nbsp; Status: ' + (currentCoin.currentstatus || '\u2014') +
+          ' &nbsp;|&nbsp; Trend: ' + (currentCoin.trend || '\u2014') +
+          (currentCoin.dexscreenerurl ? ' &nbsp;|&nbsp; <a href="' + currentCoin.dexscreenerurl + '" target="_blank" style="color:#3b82f6;">DexScreener \u2197</a>' : '');
+      }
+    }
+
+    async function loadTracker() {
+      var url = coinid ? '/api/tracker?coinid=' + coinid : '/api/tracker';
+      var res = await fetch(url);
+      var data = await res.json();
+
+      // Group by coinid
+      var grouped = {};
+      data.tracker.forEach(function(t) {
+        if (!grouped[t.coinid]) grouped[t.coinid] = [];
+        grouped[t.coinid].push(t);
+      });
+
+      var html = '';
+      var coinIds = Object.keys(grouped);
+      if (coinIds.length === 0) {
+        html = '<tr><td colspan="17" style="text-align:center;color:#94a3b8;">No tracking data yet</td></tr>';
+      } else {
+        coinIds.forEach(function(cid) {
+          var coinLabel = coinsMap[cid] || 'Coin #' + cid;
+          var rows = grouped[cid];
+          html += '<tr class="group-header"><td colspan="17"><strong style="color:#f59e0b;font-size:1rem;">\u{1FA99} ' + coinLabel + '</strong> <span style="color:#64748b;font-size:0.8rem;">(' + rows.length + ' entries)</span></td></tr>';
+          rows.forEach(function(t) {
+            var isNew = (lastFetchedId && t.id === lastFetchedId);
+            var arrow = isNew ? '<span style="color:#10b981;font-size:1.2rem;" title="New">\u2191</span>' : '';
+            var rowClass = isNew ? 'class="new-row"' : '';
+            html += '<tr ' + rowClass + '>' +
+              '<td><input type="checkbox" class="track-check" data-id="' + t.id + '" /></td>' +
+              '<td>' + arrow + '</td>' +
+              '<td>' + t.id + '</td>' +
+              '<td><span style="font-size:0.75rem;color:#94a3b8;">#' + t.coinid + '</span></td>' +
+              '<td>' + (t.fdv || '\u2014') + '</td>' +
+              '<td>' + (t.liquidity || '\u2014') + '</td>' +
+              '<td>' + (t.mktcap || '\u2014') + '</td>' +
+              '<td>' + (t.price_5m || '\u2014') + '</td>' +
+              '<td>' + (t.price_1h || '\u2014') + '</td>' +
+              '<td>' + (t.price_6h || '\u2014') + '</td>' +
+              '<td>' + (t.price_24h || '\u2014') + '</td>' +
+              '<td>' + (t.txns || '\u2014') + '</td>' +
+              '<td>' + (t.volume || '\u2014') + '</td>' +
+              '<td>' + (t.traders || '\u2014') + '</td>' +
+              '<td>' + (t.holders_count || t.holders || '\u2014') + '</td>' +
+              '<td>' + (t.top_holder_pct || '\u2014') + '</td>' +
+              '<td>' + (t.tracked_at || '\u2014') + '</td>' +
+              '<td><button class="btn btn-delete" onclick="deleteTrack(' + t.id + ')">Delete</button></td>' +
+            '</tr>';
+          });
+        });
+      }
+      trackerTable.innerHTML = html;
+    }
+
+
+    // Fetch Data with drumroll
+    fetchBtn.addEventListener('click', async function() {
+      if (!currentCoin || !currentCoin.dexscreenerurl) { showToast('No DexScreener URL set', 'error'); return; }
+      fetchBtn.disabled = true;
+      fetchBtn.classList.add('fetch-loading');
+      fetchBtn.innerHTML = '<span class="spinner"></span> Fetching...';
+      fetchOverlay.classList.add('active');
+      fetchStatus.textContent = 'Connecting to DexScreener API...';
+      startDrumroll();
+      try {
+        setTimeout(function() { fetchStatus.textContent = 'Parsing pair data...'; }, 800);
+        setTimeout(function() { fetchStatus.textContent = 'Running RugCheck...'; }, 1500);
+        setTimeout(function() { fetchStatus.textContent = 'Saving to database...'; }, 2200);
+        var res = await fetch('/api/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coinid: currentCoin.coinid, dexscreenerurl: currentCoin.dexscreenerurl })
+        });
+        if (res.ok) {
+          var result = await res.json();
+          lastFetchedId = result.id;
+          fetchStatus.textContent = '\u2705 Done!';
+          finishDrumroll();
+          setTimeout(function() { fetchOverlay.classList.remove('active'); showToast('Data fetched and saved!', 'success'); loadTracker(); }, 1500);
+        } else {
+          var err = await res.json();
+          stopDrumroll();
+          fetchOverlay.classList.remove('active');
+          showToast('Fetch failed: ' + (err.error || 'unknown'), 'error');
+        }
+      } catch(e) { stopDrumroll(); fetchOverlay.classList.remove('active'); showToast('Fetch error: ' + e.message, 'error'); }
+      fetchBtn.disabled = false;
+      fetchBtn.classList.remove('fetch-loading');
+      fetchBtn.innerHTML = '\u26A1 Fetch Data';
+    });
+
+    // Add field mapping
+
+
+
+
+    window.deleteTrack = async function(id) {
+      if (!confirm('Delete this entry?')) return;
+      var res = await fetch('/api/tracker?id=' + id, { method: 'DELETE' });
+      if (res.ok) { showToast('Deleted', 'success'); loadTracker(); } else showToast('Failed', 'error');
+    };
+
+
+    // Select all checkbox
+    document.getElementById('selectAll').addEventListener('change', function() {
+      var checks = document.querySelectorAll('.track-check');
+      var checked = this.checked;
+      checks.forEach(function(cb) { cb.checked = checked; });
+      toggleDeleteBtn();
+    });
+
+    document.getElementById('trackerTable').addEventListener('change', function(e) {
+      if (e.target.classList.contains('track-check')) toggleDeleteBtn();
+    });
+
+    function toggleDeleteBtn() {
+      var checked = document.querySelectorAll('.track-check:checked');
+      document.getElementById('deleteSelectedBtn').style.display = checked.length > 0 ? 'inline-block' : 'none';
+    }
+
+    document.getElementById('deleteSelectedBtn').addEventListener('click', async function() {
+      var checks = document.querySelectorAll('.track-check:checked');
+      if (checks.length === 0) return;
+      if (!confirm('Delete ' + checks.length + ' selected entries?')) return;
+      var ids = [];
+      checks.forEach(function(cb) { ids.push(cb.getAttribute('data-id')); });
+      var failed = 0;
+      for (var i = 0; i < ids.length; i++) {
+        var res = await fetch('/api/tracker?id=' + ids[i], { method: 'DELETE' });
+        if (!res.ok) failed++;
+      }
+      if (failed === 0) showToast(ids.length + ' entries deleted', 'success');
+      else showToast((ids.length - failed) + ' deleted, ' + failed + ' failed', 'error');
+      document.getElementById('selectAll').checked = false;
+      toggleDeleteBtn();
+      loadTracker();
+    });
+
+    loadCoinInfo();
+    loadTracker();
+  </script>
+</Layout>
