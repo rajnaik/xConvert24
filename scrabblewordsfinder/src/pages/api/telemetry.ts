@@ -34,7 +34,7 @@ export const GET: APIRoute = async ({ url }) => {
   }
 
   // Live check mode
-  const baseUrl = 'https://scrabblewordsfinder.com';
+  const baseUrl = 'https://www.scrabblewordsfinder.com';
   const results = [];
   const checkedAt = new Date().toISOString();
 
