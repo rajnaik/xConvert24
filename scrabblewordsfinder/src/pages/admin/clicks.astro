@@ -49,7 +49,8 @@ import '../../styles/global.css';
       </select>
       <button id="refresh-btn" class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">🔄 Refresh</button>
       <button id="sound-toggle" class="h-9 px-4 rounded-lg border border-gray-600 text-sm font-medium text-gray-300 hover:bg-gray-800 transition-colors">🔇 Sound Off</button>
-    </div>
+      <input type="text" id="search-input" placeholder="Search all fields..." class="h-9 px-3 rounded-lg border border-gray-600 bg-gray-900 text-sm text-gray-200 w-44" />
+      <button id="search-btn" class="h-9 px-4 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-colors">🔍</button>    </div>
 
     <!-- Table -->
     <div class="overflow-x-auto rounded-xl border border-gray-800">
@@ -111,7 +112,7 @@ import '../../styles/global.css';
         tbody.innerHTML = clicks.map((c: any) => `
           <tr class="hover:bg-gray-800/40 transition-colors">
             <td class="px-4 py-3 text-gray-400 font-mono text-xs">${c.id}</td>
-            <td class="px-4 py-3 text-gray-300 font-mono text-xs">${escapeHtml(c.user_id || '—')}</td>
+            <td class="px-4 py-3 text-gray-300 font-mono text-xs">${escapeHtml(c.user_id || '—')}<span class="copy-uid cursor-pointer text-gray-500 hover:text-blue-400 ml-1" data-uid="${c.user_id || ''}" title="Copy">📋</span></td>
             <td class="px-4 py-3"><code class="text-emerald-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs">${escapeHtml(c.ui_element)}</code></td>
             <td class="px-4 py-3 text-gray-300 text-xs max-w-[200px] truncate">${escapeHtml(c.url || '—')}</td>
             <td class="px-4 py-3 text-gray-400 font-mono text-xs">${escapeHtml(c.ip_address || '—')}</td>
@@ -202,5 +203,28 @@ import '../../styles/global.css';
       // Start polling
       setInterval(pollClicks, 1000);
     })();
-  </script>
+    // Search functionality
+    document.getElementById("search-btn")!.addEventListener("click", async () => {
+      const q = (document.getElementById("search-input") as HTMLInputElement).value.trim();
+      if (!q) { loadClicks(); return; }
+      try {
+        const res = await fetch("/api/clicks?search=" + encodeURIComponent(q));
+        const data = await res.json();
+        const clicks = data.clicks || [];
+        const tbody = document.getElementById("clicks-tbody")!;
+        if (!clicks.length) { tbody.innerHTML = "<tr><td colspan=\"6\" class=\"px-4 py-8 text-center text-gray-500\">No matches for \"" + escapeHtml(q) + "\"</td></tr>"; return; }
+        document.getElementById("stat-total")!.textContent = String(clicks.length) + " results";
+        // Re-render the same way as loadClicks
+        tbody.innerHTML = clicks.map((c: any) => `<tr class="hover:bg-gray-800/40"><td class="px-4 py-3 text-gray-400 font-mono text-xs">${c.id}</td><td class="px-4 py-3 text-gray-300 font-mono text-xs">${escapeHtml(c.user_id || "\u2014")} <span class="copy-uid cursor-pointer text-gray-500 hover:text-blue-400 ml-1" data-uid="${c.user_id || ""}" title="Copy">\uD83D\uDCCB</span></td><td class="px-4 py-3"><code class="text-emerald-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs">${escapeHtml(c.ui_element)}</code></td><td class="px-4 py-3 text-gray-300 text-xs max-w-[200px] truncate">${escapeHtml(c.url || "\u2014")}</td><td class="px-4 py-3 text-gray-400 font-mono text-xs">${escapeHtml(c.ip_address || "\u2014")}</td><td class="px-4 py-3 text-gray-400 text-xs">${formatDate(c.created_at)}</td></tr>`).join("");
+      } catch(e) {}
+    });
+    document.getElementById("search-input")!.addEventListener("keydown", (e: any) => { if (e.key === "Enter") document.getElementById("search-btn")!.click(); });
+
+    // Copy to clipboard on click
+    document.addEventListener("click", (e: any) => {
+      if (e.target.classList?.contains("copy-uid")) {
+        const uid = e.target.getAttribute("data-uid");
+        if (uid) { navigator.clipboard.writeText(uid); e.target.textContent = "\u2705"; setTimeout(() => e.target.textContent = "\uD83D\uDCCB", 1000); }
+      }
+    });  </script>
 </Layout>

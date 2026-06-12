@@ -128,7 +128,7 @@ export const GET: APIRoute = async ({ url }) => {
     const element = url.searchParams.get('ui_element');
     const country = url.searchParams.get('country');
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '50') || 50, 500);
-
+    const search = url.searchParams.get("search");
     let query = 'SELECT * FROM clicks';
     const conditions: string[] = [];
     const params: any[] = [];
@@ -136,7 +136,7 @@ export const GET: APIRoute = async ({ url }) => {
     if (userId) { conditions.push('user_id = ?'); params.push(userId); }
     if (element) { conditions.push('ui_element = ?'); params.push(element); }
     if (country) { conditions.push('country = ?'); params.push(country); }
-
+    if (search) { conditions.push("(user_id LIKE ? OR ui_element LIKE ? OR url LIKE ? OR ip_address LIKE ? OR page_title LIKE ?)"); const s = "%" + search + "%"; params.push(s, s, s, s, s); }
     if (conditions.length) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
