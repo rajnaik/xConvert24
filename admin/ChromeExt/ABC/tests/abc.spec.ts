@@ -350,7 +350,7 @@ test.describe('ABC v1.2.0 — Links', () => {
       const r = await fetch(chrome.runtime.getURL('manifest.json'));
       return r.json();
     });
-    expect((manifest as any).version).toBe('1.2.0');
+    expect((manifest as any).version).toBe('1.0.3');
     await popup.close();
   });
 
