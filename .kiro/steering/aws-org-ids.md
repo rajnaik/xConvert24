@@ -14,6 +14,7 @@ Private reference for AWS setup. DO NOT expose these in any public page or commi
 | Org User Email | xconvert24@gmail.com |
 | Kiro Startup Credits | Approved (1 year) |
 | AWS Credit ID | `10062326539` |
+| Credits Billing URL | https://us-east-1.console.aws.amazon.com/costmanagement/home#/credits/10062326539 |
 | Region | (whatever you selected) |
 
 | AWS Support Case ID | `178115013500434` |
@@ -42,3 +43,39 @@ Private reference for AWS setup. DO NOT expose these in any public page or commi
 - [ ] User invitation accepted
 - [ ] Kiro signed in with org identity
 - [ ] Credits confirmed active
+
+
+## Business Registration — Sole Trader (UK)
+
+| Field | Value |
+|-------|-------|
+| Business Name | xSoft (or xSoftware — TBD) |
+| Type | Sole Trader |
+| Registration | HMRC Self Assessment |
+| Cost | Free |
+| UTR Number | Pending (arrives within 10 days) |
+| Government Gateway ID | [REDACTED] |
+| Gateway Email | xconvert24@gmail.com |
+| Business Start Date | June 4, 2026 |
+| VAT Registered | No (register when turnover exceeds threshold) |
+
+### Key Rules
+- Keep all profits after paying tax
+- Must register for Self Assessment if earning >£1,000/year
+- Submit Self Assessment tax return annually (6 Apr to 5 Apr)
+- HMRC calculates Income Tax + National Insurance from profits
+- Register for VAT when meeting requirements (currently £90K threshold)
+- Check tax reliefs for sole traders to reduce bill
+- Keep financial records from day one
+
+### Trading Names
+- xConvert24.com
+- ScrabbleWordsFinder.com
+- Future products under xSoft umbrella
+
+### Next Steps
+- [ ] Register at gov.uk/set-up-sole-trader
+- [ ] Receive UTR number
+- [ ] Use UTR to verify Google Ads account
+- [ ] Set up separate business bank account (recommended)
+- [ ] Keep records of all income/expenses from June 4, 2026
