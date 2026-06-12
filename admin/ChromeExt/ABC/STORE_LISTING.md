@@ -61,3 +61,16 @@ Kiro (https://kiro.dev) — AI-powered development environment
 - https://xconvert24.com/report-bug/?ref=abc-ext
 - https://xconvert24.com/suggest/?ref=abc-ext
 - https://kiro.dev/?ref=xconvert24
+
+
+## Dashboard Settings (fill in Chrome Web Store developer console)
+- **Website URL:** https://www.xconvert24.com
+- **Support URL:** https://xconvert24.com/report-bug/?ref=abc-ext
+- **Privacy policy URL:** https://scrabblewordsfinder.com/privacy-abc
+
+## Screenshots Needed (take these states)
+1. Idle state — popup just opened, empty selector, "Idle" status
+2. Test success — green "[OK] Click successful!" message shown
+3. Running — purple countdown "Next click in 3s" with selector filled
+4. Saved items — 2-3 items in the saved list with tooltips
+5. Error state — red "[FAIL] Element NOT found" with red input border

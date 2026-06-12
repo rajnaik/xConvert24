@@ -1,0 +1,155 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Testing Environments — Admin — ScrabbleWordsFinder" description="Environment URLs and status" keywords="admin, environments, dev, staging, live" showHeader={false}>
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/environments" class="text-blue-400 font-medium">Environments</a>
+      <a href="/admin/telemetry" class="hover:text-blue-400 transition-colors">Telemetry</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-white mb-2">🌐 Testing Environments</h1>
+    <p class="text-gray-400 mb-8">All deployment environments for ScrabbleWordsFinder.com</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Dev -->
+      <div class="rounded-xl border-2 border-blue-700 bg-gray-900/50 p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+            <span class="text-white font-bold text-sm">DEV</span>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-white">Development</h2>
+            <p class="text-xs text-gray-400">Local miniflare</p>
+          </div>
+        </div>
+        <div class="space-y-2 text-sm">
+          <div>
+            <span class="text-gray-400 text-xs">Site:</span>
+            <a href="http://localhost:4323" target="_blank" class="block text-blue-400 hover:underline font-mono text-xs">http://localhost:4323</a>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">Admin:</span>
+            <a href="http://localhost:4323/admin" target="_blank" class="block text-blue-400 hover:underline font-mono text-xs">http://localhost:4323/admin</a>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">DB:</span>
+            <span class="text-gray-300 font-mono text-xs">Local SQLite (miniflare)</span>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">Command:</span>
+            <code class="text-green-400 text-xs">npm run dev</code>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-gray-800">
+          <span id="dev-status" class="px-2 py-1 rounded text-xs bg-gray-800 text-gray-400">Unknown</span>
+        </div>
+      </div>
+
+      <!-- Staging -->
+      <div class="rounded-xl border-2 border-amber-700 bg-gray-900/50 p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="h-10 w-10 rounded-full bg-amber-600 flex items-center justify-center">
+            <span class="text-white font-bold text-sm">STG</span>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-white">Staging</h2>
+            <p class="text-xs text-gray-400">Workers.dev preview</p>
+          </div>
+        </div>
+        <div class="space-y-2 text-sm">
+          <div>
+            <span class="text-gray-400 text-xs">Site:</span>
+            <a href="https://scrabblewordsfinder-staging.xconvert.workers.dev" target="_blank" class="block text-amber-400 hover:underline font-mono text-xs">https://scrabblewordsfinder-staging.xconvert.workers.dev</a>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">Admin:</span>
+            <a href="https://scrabblewordsfinder-staging.xconvert.workers.dev/admin" target="_blank" class="block text-amber-400 hover:underline font-mono text-xs">https://scrabblewordsfinder-staging.xconvert.workers.dev/admin</a>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">DB:</span>
+            <span class="text-gray-300 font-mono text-xs">scrabble-staging (be0fad12)</span>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">Command:</span>
+            <code class="text-amber-400 text-xs">npm run deploy:staging</code>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-gray-800">
+          <span id="stg-status" class="px-2 py-1 rounded text-xs bg-amber-900/30 text-amber-400">Checking...</span>
+        </div>
+      </div>
+
+      <!-- Live -->
+      <div class="rounded-xl border-2 border-green-700 bg-gray-900/50 p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+            <span class="text-white font-bold text-sm">LIVE</span>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-white">Production</h2>
+            <p class="text-xs text-gray-400">Custom domain</p>
+          </div>
+        </div>
+        <div class="space-y-2 text-sm">
+          <div>
+            <span class="text-gray-400 text-xs">Site:</span>
+            <a href="https://scrabblewordsfinder.com" target="_blank" class="block text-green-400 hover:underline font-mono text-xs">https://scrabblewordsfinder.com</a>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">Admin:</span>
+            <a href="https://scrabblewordsfinder.com/admin" target="_blank" class="block text-green-400 hover:underline font-mono text-xs">https://scrabblewordsfinder.com/admin</a>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">DB:</span>
+            <span class="text-gray-300 font-mono text-xs">scrabble-live (e9af2a48)</span>
+          </div>
+          <div>
+            <span class="text-gray-400 text-xs">Command:</span>
+            <code class="text-green-400 text-xs">npm run deploy</code>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-gray-800">
+          <span id="live-status" class="px-2 py-1 rounded text-xs bg-green-900/30 text-green-400">Checking...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check live status
+    fetch('https://scrabblewordsfinder.com/api/site-status')
+      .then(r => { 
+        document.getElementById('live-status')!.textContent = r.ok ? 'Online' : 'Issues';
+        document.getElementById('live-status')!.className = r.ok 
+          ? 'px-2 py-1 rounded text-xs bg-green-900/30 text-green-400'
+          : 'px-2 py-1 rounded text-xs bg-red-900/30 text-red-400';
+      })
+      .catch(() => {
+        document.getElementById('live-status')!.textContent = 'Offline';
+        document.getElementById('live-status')!.className = 'px-2 py-1 rounded text-xs bg-red-900/30 text-red-400';
+      });
+
+    // Check dev (will fail if not running — that's fine)
+    fetch('http://localhost:4323/api/site-status')
+      .then(r => {
+        document.getElementById('dev-status')!.textContent = r.ok ? 'Running' : 'Error';
+        document.getElementById('dev-status')!.className = r.ok
+          ? 'px-2 py-1 rounded text-xs bg-blue-900/30 text-blue-400'
+          : 'px-2 py-1 rounded text-xs bg-red-900/30 text-red-400';
+      })
+      .catch(() => {
+        document.getElementById('dev-status')!.textContent = 'Not running';
+        document.getElementById('dev-status')!.className = 'px-2 py-1 rounded text-xs bg-gray-800 text-gray-500';
+      });
+  </script>
+</Layout>

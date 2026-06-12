@@ -1,0 +1,226 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Click Analysis — Admin — ScrabbleWordsFinder" description="Visual click analytics with bubble charts" keywords="admin, analytics, clicks" showHeader={false}>
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/clicks" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/admin/clicks-analysis" class="text-blue-400 font-medium">Analysis</a>
+      <a href="/admin/telemetry" class="hover:text-blue-400 transition-colors">Telemetry</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <h1 class="text-3xl font-bold text-white mb-2">🫧 Click Analysis</h1>
+    <p class="text-gray-400 mb-6">Visual breakdown of user interactions — bubble size = click count</p>
+
+    <!-- View switcher -->
+    <div class="flex gap-2 mb-6">
+      <button class="view-btn active px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="elements">By Element</button>
+      <button class="view-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="pages">By Page</button>
+      <button class="view-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="countries">By Country</button>
+      <button class="view-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="devices">By Device</button>
+      <button class="view-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="browsers">By Browser</button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+        <p class="text-xs text-gray-400 uppercase">Total Clicks</p>
+        <p class="text-xl font-bold text-white" id="stat-total">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+        <p class="text-xs text-gray-400 uppercase">Unique Elements</p>
+        <p class="text-xl font-bold text-white" id="stat-elements">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+        <p class="text-xs text-gray-400 uppercase">Countries</p>
+        <p class="text-xl font-bold text-white" id="stat-countries">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+        <p class="text-xs text-gray-400 uppercase">Pages Hit</p>
+        <p class="text-xl font-bold text-white" id="stat-pages">—</p>
+      </div>
+    </div>
+
+    <!-- Bubble canvas -->
+    <div id="bubble-container" class="relative w-full h-[500px] bg-gray-900/50 rounded-xl border border-gray-800 overflow-hidden">
+      <!-- Bubbles rendered here -->
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="hidden fixed z-50 bg-gray-900 border border-gray-700 rounded-xl p-4 shadow-xl max-w-sm pointer-events-none">
+      <div id="tooltip-content"></div>
+    </div>
+  </div>
+
+  <style>
+    .view-btn { background: rgba(255,255,255,0.05); color: #9ca3af; border: 1px solid transparent; }
+    .view-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+    .view-btn.active { background: rgba(99,102,241,0.2); color: #818cf8; border-color: #6366f1; }
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+    }
+    .bubble:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(99,102,241,0.4);
+      z-index: 10;
+    }
+  </style>
+
+  <script>
+    interface ClickData {
+      ui_element: string;
+      url: string;
+      country: string;
+      device_type: string;
+      browser: string;
+      os: string;
+      city: string;
+      created_at: string;
+    }
+
+    let allClicks: ClickData[] = [];
+    let currentView = 'elements';
+
+    const COLORS = ['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444','#22c55e','#3b82f6','#f97316','#06b6d4','#a855f7','#84cc16'];
+
+    async function loadData() {
+      const res = await fetch('/api/clicks?limit=500');
+      const data = await res.json();
+      allClicks = data.clicks || [];
+
+      document.getElementById('stat-total')!.textContent = String(data.total || allClicks.length);
+      document.getElementById('stat-elements')!.textContent = String(new Set(allClicks.map(c => c.ui_element)).size);
+      document.getElementById('stat-countries')!.textContent = String(new Set(allClicks.filter(c => c.country).map(c => c.country)).size);
+      document.getElementById('stat-pages')!.textContent = String(new Set(allClicks.map(c => c.url)).size);
+
+      renderBubbles();
+    }
+
+    function groupBy(field: keyof ClickData): Map<string, ClickData[]> {
+      const map = new Map<string, ClickData[]>();
+      for (const click of allClicks) {
+        const key = (click[field] as string) || 'Unknown';
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(click);
+      }
+      return map;
+    }
+
+    function renderBubbles() {
+      const container = document.getElementById('bubble-container')!;
+      container.innerHTML = '';
+
+      let grouped: Map<string, ClickData[]>;
+      switch (currentView) {
+        case 'elements': grouped = groupBy('ui_element'); break;
+        case 'pages': grouped = groupBy('url'); break;
+        case 'countries': grouped = groupBy('country'); break;
+        case 'devices': grouped = groupBy('device_type'); break;
+        case 'browsers': grouped = groupBy('browser'); break;
+        default: grouped = groupBy('ui_element');
+      }
+
+      // Sort by count descending
+      const sorted = [...grouped.entries()].sort((a, b) => b[1].length - a[1].length).slice(0, 30);
+      const maxCount = sorted[0]?.[1].length || 1;
+      const containerW = container.clientWidth;
+      const containerH = container.clientHeight;
+
+      // Pack bubbles in a grid-like layout
+      let x = 40, y = 40, rowHeight = 0;
+
+      sorted.forEach(([label, clicks], i) => {
+        const count = clicks.length;
+        const ratio = count / maxCount;
+        const size = Math.max(50, Math.min(180, ratio * 160 + 40));
+
+        if (x + size + 20 > containerW) {
+          x = 40;
+          y += rowHeight + 20;
+          rowHeight = 0;
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        const color = COLORS[i % COLORS.length];
+        bubble.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:${color}22;border:2px solid ${color};`;
+
+        const shortLabel = label.length > 15 ? label.slice(0, 14) + '…' : label;
+        bubble.innerHTML = `<div style="padding:4px"><div style="font-size:${Math.max(9, size/10)}px;font-weight:600;color:${color}">${count}</div><div style="font-size:${Math.max(8, size/14)}px;color:#d1d5db;margin-top:2px">${shortLabel}</div></div>`;
+
+        // Tooltip on hover
+        bubble.addEventListener('mouseenter', (e) => showTooltip(e, label, clicks, color));
+        bubble.addEventListener('mouseleave', hideTooltip);
+
+        container.appendChild(bubble);
+
+        x += size + 15;
+        rowHeight = Math.max(rowHeight, size);
+      });
+    }
+
+    function showTooltip(e: MouseEvent, label: string, clicks: ClickData[], color: string) {
+      const tooltip = document.getElementById('tooltip')!;
+      const content = document.getElementById('tooltip-content')!;
+
+      const countries = [...new Set(clicks.filter(c => c.country).map(c => c.country))].slice(0, 5).join(', ') || 'Unknown';
+      const devices = [...new Set(clicks.filter(c => c.device_type).map(c => c.device_type))].join(', ') || 'Unknown';
+      const browsers = [...new Set(clicks.filter(c => c.browser).map(c => c.browser))].join(', ') || 'Unknown';
+      const pages = [...new Set(clicks.map(c => c.url))].slice(0, 3).join(', ') || '/';
+      const latest = clicks[0]?.created_at ? new Date(clicks[0].created_at + 'Z').toLocaleString() : '—';
+      const oldest = clicks[clicks.length-1]?.created_at ? new Date(clicks[clicks.length-1].created_at + 'Z').toLocaleString() : '—';
+
+      content.innerHTML = `
+        <div style="border-left:3px solid ${color};padding-left:10px">
+          <div class="text-sm font-semibold text-white mb-2">${label}</div>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+            <span class="text-gray-400">Clicks:</span><span class="text-white font-medium">${clicks.length}</span>
+            <span class="text-gray-400">Countries:</span><span class="text-white">${countries}</span>
+            <span class="text-gray-400">Devices:</span><span class="text-white">${devices}</span>
+            <span class="text-gray-400">Browsers:</span><span class="text-white">${browsers}</span>
+            <span class="text-gray-400">Pages:</span><span class="text-white">${pages}</span>
+            <span class="text-gray-400">Latest:</span><span class="text-white">${latest}</span>
+            <span class="text-gray-400">First:</span><span class="text-white">${oldest}</span>
+          </div>
+        </div>
+      `;
+
+      tooltip.classList.remove('hidden');
+      tooltip.style.left = e.clientX + 15 + 'px';
+      tooltip.style.top = e.clientY + 15 + 'px';
+    }
+
+    function hideTooltip() {
+      document.getElementById('tooltip')!.classList.add('hidden');
+    }
+
+    // View switcher
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentView = (btn as HTMLElement).dataset.view || 'elements';
+        renderBubbles();
+      });
+    });
+
+    loadData();
+  </script>
+</Layout>

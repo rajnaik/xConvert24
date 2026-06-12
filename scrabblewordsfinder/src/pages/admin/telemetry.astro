@@ -1,0 +1,156 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Telemetry — Admin — ScrabbleWordsFinder" description="Site health and response times" keywords="admin, telemetry, health" showHeader={false}>
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/telemetry" class="text-blue-400 font-medium">Telemetry</a>
+      <a href="/admin/clicks" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/admin/emails" class="hover:text-blue-400 transition-colors">Emails</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-white mb-2">📡 Telemetry</h1>
+    <p class="text-gray-400 mb-6">Live site health — endpoint response times and status.</p>
+
+    <!-- Summary -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Health</p>
+        <p class="text-2xl font-bold" id="stat-health">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Avg Response</p>
+        <p class="text-2xl font-bold text-white" id="stat-avg">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Last Check</p>
+        <p class="text-sm font-medium text-white" id="stat-time">—</p>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex gap-3 mb-4">
+      <button id="refresh-btn" class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">Refresh</button>
+      <label class="flex items-center gap-2 text-sm text-gray-400">
+        <input type="checkbox" id="auto-poll" class="rounded border-gray-600 bg-gray-800 text-blue-500" checked />
+        Auto-refresh (5s)
+      </label>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
+          <tr>
+            <th class="px-4 py-3">Endpoint</th>
+            <th class="px-4 py-3">Path</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">Response (ms)</th>
+            <th class="px-4 py-3">Health</th>
+          </tr>
+        </thead>
+        <tbody id="telem-tbody" class="divide-y divide-gray-800 text-gray-300">
+          <tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- History -->
+    <h2 class="text-xl font-semibold text-white mt-10 mb-4">History (Last 50 checks)</h2>
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
+          <tr>
+            <th class="px-4 py-3">Time</th>
+            <th class="px-4 py-3">Endpoint</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">Response</th>
+            <th class="px-4 py-3">Health</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody" class="divide-y divide-gray-800 text-gray-300">
+          <tr><td colspan="5" class="px-4 py-4 text-center text-gray-500">Loading history...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
+
+    async function loadTelemetry() {
+      try {
+        const res = await fetch('/api/telemetry');
+        const data = await res.json();
+
+        // Summary
+        const healthEl = document.getElementById('stat-health')!;
+        healthEl.textContent = data.healthy ? 'ALL OK' : 'ISSUES';
+        healthEl.className = 'text-2xl font-bold ' + (data.healthy ? 'text-green-400' : 'text-red-400');
+
+        document.getElementById('stat-avg')!.textContent = data.avg_ms + 'ms';
+        document.getElementById('stat-time')!.textContent = new Date(data.checked_at).toLocaleTimeString();
+
+        // Table
+        const tbody = document.getElementById('telem-tbody')!;
+        tbody.innerHTML = data.endpoints.map((ep: any) => `
+          <tr class="hover:bg-gray-800/40">
+            <td class="px-4 py-3 font-medium text-white">${ep.name}</td>
+            <td class="px-4 py-3 font-mono text-xs text-gray-400">${ep.path}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs font-medium ${ep.status >= 200 && ep.status < 400 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}">${ep.status}</span></td>
+            <td class="px-4 py-3 font-mono ${ep.time_ms > 500 ? 'text-amber-400' : 'text-white'}">${ep.time_ms}ms</td>
+            <td class="px-4 py-3">${ep.ok ? '<span class="text-green-400">OK</span>' : '<span class="text-red-400">FAIL</span>'}</td>
+          </tr>
+        `).join('');
+      } catch {
+        document.getElementById('telem-tbody')!.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-400">Failed to load telemetry</td></tr>';
+      }
+    }
+
+    document.getElementById('refresh-btn')!.addEventListener('click', loadTelemetry);
+
+    const autoCheck = document.getElementById('auto-poll') as HTMLInputElement;
+    function startPoll() { pollInterval = setInterval(loadTelemetry, 5000); }
+    function stopPoll() { if (pollInterval) { clearInterval(pollInterval); pollInterval = null; } }
+
+    autoCheck.addEventListener('change', () => {
+      if (autoCheck.checked) startPoll(); else stopPoll();
+    });
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/telemetry?history=true&limit=50');
+        const data = await res.json();
+        const rows = data.history || [];
+        const tbody = document.getElementById('history-tbody')!;
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500">No history yet</td></tr>';
+          return;
+        }
+        tbody.innerHTML = rows.map((r: any) => `
+          <tr class="hover:bg-gray-800/40">
+            <td class="px-4 py-2 text-xs text-gray-400">${new Date(r.checked_at + 'Z').toLocaleTimeString()}</td>
+            <td class="px-4 py-2 text-xs">${r.endpoint_name}</td>
+            <td class="px-4 py-2"><span class="px-1.5 py-0.5 rounded text-xs ${r.status_code >= 200 && r.status_code < 400 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}">${r.status_code}</span></td>
+            <td class="px-4 py-2 font-mono text-xs ${r.response_ms > 500 ? 'text-amber-400' : 'text-white'}">${r.response_ms}ms</td>
+            <td class="px-4 py-2">${r.healthy ? '<span class="text-green-400 text-xs">OK</span>' : '<span class="text-red-400 text-xs">FAIL</span>'}</td>
+          </tr>
+        `).join('');
+      } catch {
+        document.getElementById('history-tbody')!.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-red-400">Failed to load</td></tr>';
+      }
+    }
+
+    loadTelemetry();
+    loadHistory();
+    startPoll();
+  </script>
+</Layout>

@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
         await EMAIL.send({
           from: 'noreply@scrabblewordsfinder.com',
           to: SWF_NOTIFY_EMAIL,
-          subject: `[SWF Suggestion] ${name || 'Anonymous'}: ${suggestion.trim().slice(0, 50)}`,
+          subject: `[SWF Suggestion] from ${name || 'Anonymous'}`,
           text: [
             'New feature suggestion received:',
             '',
