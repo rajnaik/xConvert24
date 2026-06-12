@@ -1,6 +1,6 @@
-// Google Analytics — Measurement Protocol (no cookies, privacy-friendly)
-const GA_ID = 'G-XDDRM8BN29'; // Replace with your GA4 Measurement ID
-const GA_SECRET = ''; // Replace with API secret from GA4 admin
+// Google Analytics — Measurement Protocol
+const GA_ID = 'G-XDDRM8BN29';
+const GA_SECRET = '';
 
 function trackEvent(eventName, params = {}) {
   try {
@@ -17,11 +17,14 @@ function trackEvent(eventName, params = {}) {
   } catch {}
 }
 
-// Track popup open
 trackEvent('extension_popup_opened');
 
 const selectorInput = document.getElementById('selector');
-const intervalInput = document.getElementById('interval');
+const intervalHours = document.getElementById('interval-hours');
+const intervalMins = document.getElementById('interval-mins');
+const intervalSecs = document.getElementById('interval-secs');
+function getIntervalSeconds() { return (parseInt(intervalHours.value) || 0) * 3600 + (parseInt(intervalMins.value) || 0) * 60 + (parseInt(intervalSecs.value) || 0); }
+function setIntervalFields(secs) { intervalHours.value = Math.floor(secs / 3600); intervalMins.value = Math.floor((secs % 3600) / 60); intervalSecs.value = secs % 60; }
 const startBtn = document.getElementById('start-btn');
 const stopBtn = document.getElementById('stop-btn');
 const testBtn = document.getElementById('test-btn');
@@ -36,11 +39,10 @@ function loadSaved() {
     const clickers = data.clickers || [];
 
     if (data.lastSelector) selectorInput.value = data.lastSelector;
-    if (data.lastInterval) intervalInput.value = data.lastInterval;
+    if (data.lastInterval) setIntervalFields(data.lastInterval);
 
     savedList.innerHTML = clickers.map((c, i) => '<div class="saved-item" data-sel="' + c.selector.replace(/"/g, '&quot;') + '" data-int="' + c.interval + '" title="' + (c.url || 'No URL saved').replace(/"/g, '&quot;') + '"><span class="saved-label" style="cursor:pointer;flex:1">' + c.selector + ' (' + c.interval + 's)</span><span class="del" data-idx="' + i + '">&times;</span></div>').join('') || '<div style="color:#636366;font-size:11px;text-align:center">No saved items</div>';
 
-    // Click saved item to load into selector
     savedList.querySelectorAll('.saved-item').forEach(item => {
       item.addEventListener('click', (e) => {
         if (e.target.classList.contains('del')) return;
@@ -48,7 +50,7 @@ function loadSaved() {
         const int = item.getAttribute('data-int');
         if (sel) {
           selectorInput.value = sel;
-          intervalInput.value = int || '5';
+          setIntervalFields(parseInt(int) || 5);
           chrome.storage.local.set({ lastSelector: sel, lastInterval: parseInt(int) || 5 });
         }
       });
@@ -65,21 +67,29 @@ function loadSaved() {
 
     if (data.activeClicker) {
       selectorInput.value = data.activeClicker.selector;
-      intervalInput.value = data.activeClicker.interval;
-      // Check if current tab is accessible
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const url = tabs[0]?.url || '';
-        if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('about:')) {
-          statusEl.textContent = 'Active (switch to target page)';
-          statusEl.className = 'status status-inactive';
-          startBtn.style.display = 'none';
-          stopBtn.style.display = 'block';
-        } else {
-          startBtn.style.display = 'none';
-          stopBtn.style.display = 'block';
-          startCountdown(data.activeClicker.interval);
-        }
-      });
+      setIntervalFields(data.activeClicker.interval);
+      startBtn.style.display = 'none';
+      stopBtn.style.display = 'block';
+
+      // Show which tab it's running on
+      try {
+        chrome.tabs.get(data.activeClicker.tabId, (tab) => {
+          if (chrome.runtime.lastError || !tab) {
+            statusEl.textContent = 'Target tab closed';
+            statusEl.className = 'status status-inactive';
+            chrome.storage.local.remove('activeClicker');
+            startBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+          } else {
+            const tabTitle = tab.title ? tab.title.slice(0, 30) : 'Tab #' + tab.id;
+            statusEl.textContent = '✓ Running on: ' + tabTitle;
+            statusEl.className = 'status status-active';
+            startCountdown(data.activeClicker.interval);
+          }
+        });
+      } catch {
+        startCountdown(data.activeClicker.interval);
+      }
     } else {
       statusEl.textContent = 'Idle';
       statusEl.className = 'status status-inactive';
@@ -92,9 +102,17 @@ function loadSaved() {
 function startCountdown(seconds) {
   let remaining = seconds;
   if (countdownInterval) clearInterval(countdownInterval);
+  function formatTime(s) {
+    if (s >= 3600) return Math.floor(s/3600) + 'h ' + Math.floor((s%3600)/60) + 'm ' + (s%60) + 's';
+    if (s >= 60) return Math.floor(s/60) + 'm ' + (s%60) + 's';
+    return s + 's';
+  }
   function update() {
-    statusEl.textContent = `✓ Next click in ${remaining}s`;
-    statusEl.className = 'status status-active';
+    const el = document.getElementById('status');
+    if (el && el.className.includes('status-active')) {
+      const base = el.textContent.split(' — ')[0];
+      el.textContent = base + ' — next in ' + formatTime(remaining);
+    }
     remaining--;
     if (remaining < 0) remaining = seconds;
   }
@@ -106,18 +124,31 @@ function stopCountdown() {
   if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
 }
 
-// Test click
+// Test click — resets state to new selector
 testBtn.addEventListener('click', async () => {
+  // Stop any active clicker first
+  stopCountdown();
+  const activeData = await chrome.storage.local.get(['activeClicker']);
+  if (activeData.activeClicker) {
+    chrome.runtime.sendMessage({ action: 'stop', tabId: activeData.activeClicker.tabId });
+    startBtn.style.display = 'block';
+    stopBtn.style.display = 'none';
+    statusEl.textContent = 'Idle';
+    statusEl.className = 'status status-inactive';
+  }
+
   trackEvent('test_click', { selector: selectorInput.value });
   testResult.textContent = 'Testing...';
   testResult.className = 'test-result test-fail';
   testResult.style.display = 'block';
   const selector = selectorInput.value.trim();
+  // Save interval when testing
+  const testInterval = getIntervalSeconds() || 5;
+  chrome.storage.local.set({ lastSelector: selector, lastInterval: testInterval });
   if (!selector) {
     selectorInput.classList.add('error');
     selectorInput.focus();
     testResult.textContent = '[X] Enter a selector first';
-    testResult.className = 'test-result test-fail';
     return;
   }
 
@@ -149,19 +180,16 @@ testBtn.addEventListener('click', async () => {
   }
 
   const result = results[0]?.result;
-
   if (!result || !result.found) {
     testResult.textContent = '[FAIL] Element NOT found: "' + selector + '"';
     testResult.className = 'test-result test-fail';
     selectorInput.classList.add('error');
-    selectorInput.focus();
   } else if (result.clicked) {
     testResult.textContent = '[OK] Click successful! Found <' + result.tag.toLowerCase() + '> "' + result.text + '"';
     testResult.className = 'test-result test-pass';
     selectorInput.classList.remove('error');
-    // Save to clickers list only after successful test
     const pageUrl = tab.url || '';
-    const int = parseInt(intervalInput.value) || 5;
+    const int = getIntervalSeconds() || 5;
     chrome.storage.local.get(['clickers'], (data) => {
       const clickers = data.clickers || [];
       if (!clickers.find(c => c.selector === selector)) {
@@ -177,112 +205,107 @@ testBtn.addEventListener('click', async () => {
   }
 });
 
-// Start clicking
+// Start clicking — sends to background worker
 startBtn.addEventListener('click', async () => {
-  trackEvent('start_click', { selector: selectorInput.value, interval: intervalInput.value });
+  trackEvent('start_click', { selector: selectorInput.value, interval: getIntervalSeconds() });
   const selector = selectorInput.value.trim();
-  const interval = parseInt(intervalInput.value) || 5;
+  const interval = getIntervalSeconds() || 5;
 
   if (!selector) { selectorInput.classList.add('error'); selectorInput.focus(); return; }
-  if (interval < 1 || interval > 60) { alert('Interval must be 1-60 seconds'); return; }
+  if (interval < 1 || interval > 86400) { alert('Interval must be 1 second to 24 hours'); return; }
 
   let tab;
   try {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     tab = tabs[0];
     if (!tab || !tab.id) throw new Error('No active tab');
+    const url = tab.url || '';
+    if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('about:')) {
+      testResult.textContent = '[FAIL] Cannot run on this page';
+      testResult.className = 'test-result test-fail';
+      testResult.style.display = 'block';
+      return;
+    }
   } catch (err) {
     testResult.textContent = '[FAIL] Navigate to a webpage first';
     testResult.className = 'test-result test-fail';
+    testResult.style.display = 'block';
     return;
   }
 
-  // Verify element exists first
+  // Verify element exists
   let results;
   try {
     results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: (sel) => { return !!document.querySelector(sel); },
+      func: (sel) => { const el = document.querySelector(sel); if (!el) return null; return el.textContent?.trim().slice(0, 40) || el.tagName; },
       args: [selector],
     });
   } catch (err) {
-    testResult.textContent = '[FAIL] Cannot access this page (try a normal website)';
+    testResult.textContent = '[FAIL] Cannot access this page';
     testResult.className = 'test-result test-fail';
+    testResult.style.display = 'block';
     return;
   }
 
-  if (!results[0]?.result) {
-    testResult.textContent = '[FAIL] Cannot start — element not found: "' + selector + '"';
+  const elText = results[0]?.result;
+  if (!elText) {
+    testResult.textContent = '[FAIL] Element not found: "' + selector + '"';
     testResult.className = 'test-result test-fail';
+    testResult.style.display = 'block';
     selectorInput.classList.add('error');
-    selectorInput.focus();
     return;
   }
 
   selectorInput.classList.remove('error');
-  
 
-  // Save with URL
-  const clicker = { selector, interval, url: tab.url || '' };
+  // Save to clickers list
   chrome.storage.local.get(['clickers'], (data) => {
     const clickers = data.clickers || [];
     if (!clickers.find(c => c.selector === selector)) {
-      clickers.push(clicker);
+      clickers.push({ selector, interval, url: tab.url || '' });
+      chrome.storage.local.set({ clickers });
     }
-    chrome.storage.local.set({ clickers, activeClicker: clicker, lastSelector: selector, lastInterval: interval });
   });
 
-  // Inject
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: startAutoClick,
-    args: [selector, interval * 1000],
+  // Tell background worker to start
+  chrome.runtime.sendMessage({ action: 'start', tabId: tab.id, selector, interval }, () => {
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'block';
+    const tabTitle = tab.title ? tab.title.slice(0, 30) : 'Tab #' + tab.id;
+    statusEl.textContent = '✓ Running on: ' + tabTitle;
+    statusEl.className = 'status status-active';
+    testResult.textContent = '[OK] Running — clicking "' + (elText || selector) + '" every ' + interval + 's';
+    testResult.className = 'test-result test-pass';
+    testResult.style.display = 'block';
+    startCountdown(interval);
+    chrome.storage.local.set({ lastSelector: selector, lastInterval: interval });
+    loadSaved();
   });
-
-  startBtn.style.display = 'none';
-  stopBtn.style.display = 'block';
-  testResult.textContent = '[OK] Running — clicking "' + selector + '" every ' + interval + 's';
-  testResult.className = 'test-result test-pass';
-  setTimeout(() => startCountdown(interval), 500);
-  loadSaved();
 });
 
 // Stop
 stopBtn.addEventListener('click', async () => {
-  chrome.storage.local.remove('activeClicker');
   stopCountdown();
-  try { const tabs = await chrome.tabs.query({ active: true, currentWindow: true }); if(tabs[0]) chrome.scripting.executeScript({ target: { tabId: tabs[0].id }, func: stopAutoClick }); } catch {}
-  statusEl.textContent = 'Stopped';
-  statusEl.className = 'status status-inactive';
-  startBtn.style.display = 'block';
-  stopBtn.style.display = 'none';
-  testResult.className = 'test-result';
-  testResult.style.display = 'none';
-  loadSaved();
+  const data = await chrome.storage.local.get(['activeClicker']);
+  const tabId = data.activeClicker?.tabId;
+  chrome.runtime.sendMessage({ action: 'stop', tabId }, () => {
+    statusEl.textContent = 'Stopped';
+    statusEl.className = 'status status-inactive';
+    startBtn.style.display = 'block';
+    stopBtn.style.display = 'none';
+    testResult.style.display = 'none';
+    loadSaved();
+  });
 });
-
-// Injected functions
-function startAutoClick(selector, intervalMs) {
-  if (window.__autoClickerInterval) clearInterval(window.__autoClickerInterval);
-  window.__autoClickerInterval = setInterval(() => {
-    const el = document.querySelector(selector);
-    if (el) { el.click(); console.log('[Auto Clicker] Clicked:', selector, new Date().toLocaleTimeString()); }
-    else { console.log('[Auto Clicker] Not found:', selector); }
-  }, intervalMs);
-  console.log('[Auto Clicker] Started:', selector, 'every', intervalMs/1000, 's');
-}
-
-function stopAutoClick() {
-  if (window.__autoClickerInterval) { clearInterval(window.__autoClickerInterval); window.__autoClickerInterval = null; console.log('[Auto Clicker] Stopped'); }
-}
 
 // Clear error on input
 selectorInput.addEventListener('input', () => { selectorInput.classList.remove('error'); });
 
-// Auto-save on blur (no duplicates)
+// Auto-save on blur
 selectorInput.addEventListener('blur', () => {
   const sel = selectorInput.value.trim();
-  const int = parseInt(intervalInput.value) || 5;
+  const int = getIntervalSeconds() || 5;
   if (!sel) return;
   chrome.storage.local.set({ lastSelector: sel, lastInterval: int });
   chrome.storage.local.get(['clickers'], (data) => {
@@ -294,4 +317,14 @@ selectorInput.addEventListener('blur', () => {
   });
 });
 
-loadSaved();
+// Sync countdown with actual clicks from background
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.action === "clicked") {
+    chrome.storage.local.get(["activeClicker"], (data) => {
+      if (data.activeClicker) {
+        stopCountdown();
+        startCountdown(data.activeClicker.interval);
+      }
+    });
+  }
+});loadSaved();
