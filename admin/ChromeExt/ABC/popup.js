@@ -327,4 +327,136 @@ chrome.runtime.onMessage.addListener((msg) => {
       }
     });
   }
-});loadSaved();
+});
+
+loadSaved();
+
+// === FIND ON PAGE ===
+let findResults = [];
+let findIndex = 0;
+
+document.getElementById('find-btn').addEventListener('click', async () => {
+  const query = document.getElementById('find-input').value.trim();
+  if (!query) return;
+
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  const tab = tabs[0];
+  if (!tab || !tab.id) return;
+
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: (q) => {
+        // Find all elements containing the search text
+        const matches = [];
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
+        while (walker.nextNode()) {
+          const el = walker.currentNode;
+          if (el.children.length === 0 || el.tagName === 'BUTTON' || el.tagName === 'A' || el.tagName === 'INPUT') {
+            const text = el.textContent?.trim() || el.value || '';
+            if (text.toLowerCase().includes(q.toLowerCase())) {
+              // Build a selector for this element
+              let selector = '';
+              if (el.id) selector = '#' + el.id;
+              else if (el.className && typeof el.className === 'string') selector = el.tagName.toLowerCase() + '.' + el.className.trim().split(/\s+/).join('.');
+              else selector = el.tagName.toLowerCase();
+
+              // Highlight it
+              el.style.outline = '2px solid #5e5ce6';
+              el.style.outlineOffset = '2px';
+
+              matches.push({
+                selector,
+                text: text.slice(0, 50),
+                tag: el.tagName,
+                id: el.id || ''
+              });
+            }
+          }
+        }
+        return matches;
+      },
+      args: [query],
+    });
+
+    findResults = results[0]?.result || [];
+    findIndex = 0;
+    updateFindNav();
+  } catch (e) {
+    document.getElementById('find-count').textContent = 'Error';
+  }
+});
+
+function updateFindNav() {
+  const nav = document.getElementById('find-nav');
+  const count = document.getElementById('find-count');
+  if (findResults.length > 0) {
+    nav.classList.add('active');
+    count.textContent = (findIndex + 1) + '/' + findResults.length;
+    highlightCurrent();
+  } else {
+    nav.classList.add('active');
+    count.textContent = '0 found';
+  }
+}
+
+async function highlightCurrent() {
+  if (findResults.length === 0) return;
+  const current = findResults[findIndex];
+
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  const tab = tabs[0];
+  if (!tab || !tab.id) return;
+
+  await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: (idx, total, selector) => {
+      // Remove all highlights, then highlight current
+      document.querySelectorAll('[style*="outline: 2px solid"]').forEach(el => {
+        el.style.outline = '';
+        el.style.outlineOffset = '';
+      });
+      // Re-highlight all with subtle outline
+      // Highlight current with strong outline + scroll
+      const allEls = document.querySelectorAll(selector);
+      if (allEls.length > 0) {
+        const el = allEls[0];
+        el.style.outline = '3px solid #bf5af2';
+        el.style.outlineOffset = '3px';
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    },
+    args: [findIndex, findResults.length, current.selector],
+  });
+}
+
+document.getElementById('find-next').addEventListener('click', () => {
+  if (findResults.length === 0) return;
+  findIndex = (findIndex + 1) % findResults.length;
+  updateFindNav();
+});
+
+document.getElementById('find-prev').addEventListener('click', () => {
+  if (findResults.length === 0) return;
+  findIndex = (findIndex - 1 + findResults.length) % findResults.length;
+  updateFindNav();
+});
+
+// Grab — put the current found element's selector into the selector field
+document.getElementById('find-grab').addEventListener('click', () => {
+  if (findResults.length === 0) return;
+  const current = findResults[findIndex];
+  const sel = current.id ? '#' + current.id : current.selector;
+  document.getElementById('selector').value = sel;
+  chrome.storage.local.set({ lastSelector: sel });
+});
+
+// Search on Enter key
+document.getElementById('find-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('find-btn').click();
+});
+
+// Detach button
+document.getElementById('detach-btn').addEventListener('click', () => {
+  chrome.windows.create({ url: chrome.runtime.getURL('popup.html'), type: 'popup', width: 360, height: 520 });
+});

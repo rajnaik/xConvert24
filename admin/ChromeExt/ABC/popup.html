@@ -4,61 +4,71 @@
   <meta charset="UTF-8">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { width: 300px; padding: 16px 18px; box-shadow: inset 0 0 30px rgba(0,0,0,0.3); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; background: linear-gradient(180deg, #1c1c1e 0%, #2c2c2e 100%); color: #f5f5f7; -webkit-font-smoothing: antialiased; }
+    body { width: 320px; padding: 14px 16px; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; background: linear-gradient(180deg, #1c1c1e 0%, #2c2c2e 100%); color: #f5f5f7; -webkit-font-smoothing: antialiased; }
     
-    /* Header */
-    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .header-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #5e5ce6, #bf5af2); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(94,92,230,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
-    .header-icon svg { width: 18px; height: 18px; fill: white; }
-    .header h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .header-icon { width: 28px; height: 28px; background: linear-gradient(135deg, #5e5ce6, #bf5af2); border-radius: 7px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(94,92,230,0.4); }
+    .header-icon svg { width: 14px; height: 14px; fill: white; }
+    .header h1 { font-size: 14px; font-weight: 600; letter-spacing: -0.3px; flex: 1; }
+    #detach-btn { font-size: 10px; color: #86868b; background: none; border: 1px solid rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+    #detach-btn:hover { color: #bf5af2; border-color: rgba(191,90,242,0.4); }
     
-    /* Form elements */
-    .field { margin-bottom: 12px; }
-    .field label { display: block; font-size: 11px; font-weight: 500; color: #86868b; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .field input { width: 100%; padding: 10px 12px; border: none; border-radius: 10px; background: rgba(255,255,255,0.07); color: #f5f5f7; font-size: 14px; transition: all 0.2s; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.05); }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 10px; font-weight: 500; color: #86868b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input { width: 100%; padding: 9px 11px; border: none; border-radius: 8px; background: rgba(255,255,255,0.07); color: #f5f5f7; font-size: 13px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.05); }
     .field input:focus { outline: none; background: rgba(255,255,255,0.12); box-shadow: 0 0 0 2px rgba(94,92,230,0.5); }
     .field input.error { box-shadow: 0 0 0 2px rgba(255,69,58,0.6); }
-    .field input::placeholder { color: #636366; }
+    .field input::placeholder { color: #636366; font-size: 11px; }
     
-    /* Controls row */
-    .controls { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-    .controls input { width: 56px; padding: 8px 10px; border: none; border-radius: 8px; background: rgba(255,255,255,0.07); color: #f5f5f7; font-size: 14px; text-align: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.05); }
-    .controls input:focus { outline: none; background: rgba(255,255,255,0.12); box-shadow: 0 0 0 2px rgba(94,92,230,0.5); }
-    .controls label { font-size: 11px; color: #86868b; white-space: nowrap; }
+    .interval-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+    .interval-group { display: flex; align-items: center; gap: 4px; }
+    .interval-group input { width: 100%; padding: 7px 6px; border: none; border-radius: 6px; background: rgba(255,255,255,0.07); color: #f5f5f7; font-size: 13px; text-align: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); }
+    .interval-group input:focus { outline: none; box-shadow: 0 0 0 2px rgba(94,92,230,0.5); }
+    .interval-group span { font-size: 10px; color: #636366; min-width: 18px; }
     
-    /* Buttons */
-    .btn { padding: 8px 14px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; letter-spacing: -0.2px; }
+    .btn-row { display: flex; gap: 6px; margin-bottom: 10px; }
+    .btn { padding: 8px 12px; border: none; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; flex: 1; text-align: center; }
     .btn:active { transform: scale(0.96); }
-    .btn-test { background: rgba(255,255,255,0.1); color: #f5f5f7; box-shadow: 0 2px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08); }
+    .btn-test { background: rgba(255,255,255,0.1); color: #f5f5f7; }
     .btn-test:hover { background: rgba(255,255,255,0.15); }
-    .btn-start { background: linear-gradient(135deg, #30d158, #34c759); color: #000; box-shadow: 0 3px 8px rgba(48,209,88,0.35), inset 0 1px 0 rgba(255,255,255,0.25); }
+    .btn-start { background: linear-gradient(135deg, #30d158, #34c759); color: #000; }
     .btn-start:hover { opacity: 0.9; }
-    .btn-stop { background: linear-gradient(135deg, #ff453a, #ff3b30); color: #fff; display: none; box-shadow: 0 3px 8px rgba(255,69,58,0.35), inset 0 1px 0 rgba(255,255,255,0.2); }
+    .btn-stop { background: linear-gradient(135deg, #ff453a, #ff3b30); color: #fff; display: none; }
     .btn-stop:hover { opacity: 0.9; }
     
-    /* Status pill */
-    .status-wrap { text-align: center; margin: 10px 0; }
-    .status { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; letter-spacing: -0.1px; }
-    .status-active { background: rgba(94,92,230,0.15); color: #bf5af2; border: 1px solid rgba(94,92,230,0.4); box-shadow: 0 2px 8px rgba(94,92,230,0.25), inset 0 1px 0 rgba(255,255,255,0.05); }
+    .status-wrap { text-align: center; margin: 8px 0; }
+    .status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 500; }
+    .status-active { background: rgba(94,92,230,0.15); color: #bf5af2; border: 1px solid rgba(94,92,230,0.4); }
     .status-inactive { background: rgba(255,255,255,0.05); color: #86868b; border: 1px solid rgba(255,255,255,0.08); }
     
-    /* Test result */
-    .test-result { margin: 8px 0; padding: 8px 12px; border-radius: 8px; font-size: 11px; text-align: center; display: none; font-weight: 500; }
+    .test-result { margin: 6px 0; padding: 7px 10px; border-radius: 6px; font-size: 10px; text-align: center; display: none; font-weight: 500; }
     .test-pass { background: rgba(48,209,88,0.12); color: #30d158; border: 1px solid rgba(48,209,88,0.3); display: block; }
     .test-fail { background: rgba(255,69,58,0.12); color: #ff453a; border: 1px solid rgba(255,69,58,0.3); display: block; }
     
-    /* Saved list */
-    .saved-section { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .saved-title { font-size: 11px; font-weight: 500; color: #86868b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .saved-list { max-height: 80px; overflow-y: auto; }
-    .saved-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 4px; font-size: 11px; cursor: pointer; transition: all 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04); }
-    .saved-item:hover { background: rgba(255,255,255,0.1); }
-    .saved-item .del { color: #ff453a; font-size: 13px; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
-    .saved-item .del:hover { background: rgba(255,69,58,0.15); }
+    /* Find section */
+    .find-section { margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); }
+    .find-section label { display: block; font-size: 10px; font-weight: 500; color: #86868b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .find-row { display: flex; gap: 4px; }
+    .find-row input { flex: 1; padding: 7px 9px; border: none; border-radius: 6px; background: rgba(255,255,255,0.07); color: #f5f5f7; font-size: 12px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.3); }
+    .find-row input:focus { outline: none; box-shadow: 0 0 0 2px rgba(94,92,230,0.5); }
+    .find-row button { padding: 6px 8px; border: none; border-radius: 6px; background: rgba(255,255,255,0.08); color: #f5f5f7; font-size: 11px; cursor: pointer; white-space: nowrap; }
+    .find-row button:hover { background: rgba(255,255,255,0.15); }
+    .find-nav { display: none; margin-top: 5px; font-size: 10px; color: #86868b; align-items: center; gap: 6px; }
+    .find-nav.active { display: flex; }
+    .find-nav button { padding: 3px 8px; border: none; border-radius: 4px; background: rgba(255,255,255,0.08); color: #f5f5f7; cursor: pointer; font-size: 11px; }
+    .find-nav button:hover { background: rgba(94,92,230,0.3); color: #bf5af2; }
+    .find-nav .grab-btn { background: rgba(48,209,88,0.15); color: #30d158; }
+    .find-nav .grab-btn:hover { background: rgba(48,209,88,0.3); }
     
-    /* Footer links */
-    .footer { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-    .footer a { font-size: 10px; color: #86868b; text-decoration: none; transition: color 0.15s; }
+    .saved-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .saved-title { font-size: 10px; font-weight: 500; color: #86868b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .saved-list { max-height: 70px; overflow-y: auto; }
+    .saved-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 3px; font-size: 10px; cursor: pointer; }
+    .saved-item:hover { background: rgba(255,255,255,0.1); }
+    .saved-item .del { color: #ff453a; font-size: 12px; cursor: pointer; padding: 2px 4px; }
+    
+    .footer { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .footer a { font-size: 9px; color: #86868b; text-decoration: none; }
     .footer a:hover { color: #bf5af2; }
   </style>
 </head>
@@ -68,17 +78,39 @@
       <svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
     </div>
     <h1>Auto Button Clicker</h1>
+    <button id="detach-btn" title="Open in floating window">Detach</button>
+  </div>
+  
+  <!-- Find on page -->
+  <div class="find-section">
+    <label>Find on Page</label>
+    <div class="find-row">
+      <input type="text" id="find-input" placeholder="Search text on page..." />
+      <button id="find-btn">Search</button>
+    </div>
+    <div class="find-nav" id="find-nav">
+      <button id="find-prev">&lt;</button>
+      <span id="find-count">0/0</span>
+      <button id="find-next">&gt;</button>
+      <button id="find-grab" class="grab-btn">Grab</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>#ID or CSS Selector</label>
+    <input type="text" id="selector" value="#" placeholder="#btn-id  .class  [data-action]" />
   </div>
   
   <div class="field">
-    <label>#ID or CSS Selector</label>
-    <input type="text" id="selector" value="#" placeholder="#refresh-btn  .my-class  [data-action]" />
-  </div>
-  
-  <div class="controls">
     <label>Interval (max 24h)</label>
-    <div style="display:flex;gap:6px;align-items:center;"><input type="number" id="interval-hours" min="0" max="24" value="0" style="width:50px;" /><span style="font-size:11px;color:#8e8e93;">hr</span><input type="number" id="interval-mins" min="0" max="59" value="0" style="width:50px;" /><span style="font-size:11px;color:#8e8e93;">min</span><input type="number" id="interval-secs" min="0" max="59" value="5" style="width:50px;" /><span style="font-size:11px;color:#8e8e93;">sec</span></div>
-    <label style="color:#636366">sec</label>
+    <div class="interval-row">
+      <div class="interval-group"><input type="number" id="interval-hours" min="0" max="24" value="0" /><span>hr</span></div>
+      <div class="interval-group"><input type="number" id="interval-mins" min="0" max="59" value="0" /><span>min</span></div>
+      <div class="interval-group"><input type="number" id="interval-secs" min="0" max="59" value="5" /><span>sec</span></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
     <button class="btn btn-test" id="test-btn">Test</button>
     <button class="btn btn-start" id="start-btn">Start</button>
     <button class="btn btn-stop" id="stop-btn">Stop</button>
