@@ -8,54 +8,39 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
   <meta name="robots" content="noindex, nofollow" />
   <title>Databases | Admin</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; padding: 1rem; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    nav { background: #1e293b; padding: 0.8rem 1.5rem; border-bottom: 1px solid #334155; display: flex; gap: 1.5rem; align-items: center; }
+    nav a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 500; }
+    nav a:hover { color: #f59e0b; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
     h1 { color: #f8fafc; margin-bottom: 1rem; }
-    h2 { color: #f8fafc; margin: 1.5rem 0 0.5rem; }
-    .nav { margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; }
-    .nav a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; }
-    .nav a:hover { color: #f59e0b; }
-    .tables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
-    .table-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.15s; }
-    .table-card:hover { border-color: #f59e0b; background: #1e293b; }
-    .table-card.active { border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,0.2); }
-    .table-card h3 { color: #f59e0b; font-size: 0.9rem; margin-bottom: 0.3rem; }
-    .table-card p { color: #64748b; font-size: 0.75rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.8rem; }
-    th, td { padding: 0.5rem 0.8rem; text-align: left; border-bottom: 1px solid #334155; }
-    th { background: #1e293b; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; position: sticky; top: 0; }
-    td { color: #e2e8f0; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .data-view { max-height: 500px; overflow: auto; border: 1px solid #334155; border-radius: 8px; }
-    .toolbar { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center; }
-    .btn { padding: 0.4rem 0.8rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
-    .btn-primary { background: #3b82f6; color: white; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-success { background: #10b981; color: white; }
-    .btn:hover { opacity: 0.85; }
-    input, select { padding: 0.4rem 0.6rem; background: #0f172a; border: 1px solid #475569; border-radius: 4px; color: #e2e8f0; font-size: 0.8rem; }
-    .status { color: #10b981; font-size: 0.8rem; margin-left: 1rem; }
+    .tables-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .table-chip { padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; background: #1e293b; border: 1px solid #334155; color: #94a3b8; transition: all 0.15s; }
+    .table-chip:hover, .table-chip.active { background: #f59e0b; color: #000; border-color: #f59e0b; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.8rem; }
+    th { background: #1e293b; color: #94a3b8; padding: 0.6rem 0.8rem; text-align: left; font-size: 0.7rem; text-transform: uppercase; border-bottom: 1px solid #334155; position: sticky; top: 0; }
+    td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #1e293b; color: #e2e8f0; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    tr:hover td { background: #1e293b; }
+    .btn-del { background: #ef4444; color: white; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+    .btn-del:hover { opacity: 0.8; }
+    .stats { color: #64748b; font-size: 0.8rem; margin-bottom: 0.5rem; }
+    .table-wrap { max-height: 70vh; overflow: auto; border: 1px solid #334155; border-radius: 8px; }
   </style>
 </head>
 <body>
-  <div class="nav">
+  <nav>
     <a href="/admin">← Admin</a>
+    <a href="/admin/databases" style="color:#f59e0b;">🗄️ Databases</a>
+  </nav>
+  <div class="container">
     <h1>🗄️ Databases</h1>
-    <span class="status" id="status"></span>
-  </div>
-
-  <div class="tables-grid" id="tablesGrid"></div>
-
-  <div id="tableView" style="display:none;">
-    <div class="toolbar">
-      <h2 id="tableName"></h2>
-      <span style="color:#64748b;font-size:0.8rem;margin-left:0.5rem;" id="rowCount"></span>
-      <input type="number" id="limitInput" value="50" min="1" max="500" style="width:60px;margin-left:auto;" title="Row limit" />
-      <button class="btn btn-primary" id="refreshRows">🔄 Refresh</button>
-    </div>
-    <div class="data-view">
+    <div class="tables-list" id="tablesList"></div>
+    <div class="stats" id="stats"></div>
+    <div class="table-wrap">
       <table>
-        <thead id="tableHead"></thead>
-        <tbody id="tableBody"></tbody>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
       </table>
     </div>
   </div>
@@ -66,54 +51,49 @@ const user = (Astro.locals as any).user || { email: '', name: '', picture: '' };
     async function loadTables() {
       var res = await fetch('/api/databases');
       var data = await res.json();
-      var grid = document.getElementById('tablesGrid');
-      grid.innerHTML = data.tables.map(function(t) {
-        return '<div class="table-card" data-table="' + t.name + '">' +
-          '<h3>' + t.name + '</h3>' +
-          '<p>' + (t.count || 0) + ' rows</p>' +
-        '</div>';
+      var list = document.getElementById('tablesList');
+      list.innerHTML = data.tables.map(function(t) {
+        return '<span class="table-chip" data-table="' + t + '">' + t + '</span>';
       }).join('');
-
-      grid.querySelectorAll('.table-card').forEach(function(card) {
-        card.addEventListener('click', function() {
-          grid.querySelectorAll('.table-card').forEach(function(c) { c.classList.remove('active'); });
-          card.classList.add('active');
-          currentTable = card.getAttribute('data-table');
-          loadRows();
+      list.querySelectorAll('.table-chip').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          document.querySelectorAll('.table-chip').forEach(function(c) { c.classList.remove('active'); });
+          this.classList.add('active');
+          loadTable(this.getAttribute('data-table'));
         });
       });
     }
 
-    async function loadRows() {
-      if (!currentTable) return;
-      var limit = document.getElementById('limitInput').value || 50;
-      document.getElementById('tableName').textContent = currentTable;
-      document.getElementById('tableView').style.display = 'block';
-
-      var res = await fetch('/api/databases?table=' + currentTable + '&limit=' + limit);
+    async function loadTable(name) {
+      currentTable = name;
+      var res = await fetch('/api/databases?table=' + encodeURIComponent(name));
       var data = await res.json();
+      document.getElementById('stats').textContent = data.count + ' rows in "' + name + '"';
 
-      if (!data.rows || data.rows.length === 0) {
-        document.getElementById('tableHead').innerHTML = '<tr><th>Empty table</th></tr>';
-        document.getElementById('tableBody').innerHTML = '<tr><td>No rows</td></tr>';
-        document.getElementById('rowCount').textContent = '(0 rows)';
-        return;
-      }
+      var cols = data.columns || [];
+      var idCol = cols.length > 0 ? cols[0].name : 'id';
 
-      var cols = Object.keys(data.rows[0]);
-      document.getElementById('rowCount').textContent = '(' + data.rows.length + ' rows shown)';
-      document.getElementById('tableHead').innerHTML = '<tr>' + cols.map(function(c) { return '<th>' + c + '</th>'; }).join('') + '</tr>';
-      document.getElementById('tableBody').innerHTML = data.rows.map(function(row) {
-        return '<tr>' + cols.map(function(c) {
-          var val = row[c];
-          if (val === null) return '<td style="color:#475569;">NULL</td>';
-          return '<td title="' + String(val).replace(/"/g, '&quot;') + '">' + String(val).slice(0, 80) + '</td>';
-        }).join('') + '</tr>';
-      }).join('');
+      document.getElementById('thead').innerHTML = '<tr>' +
+        cols.map(function(c) { return '<th>' + c.name + '</th>'; }).join('') +
+        '<th>Actions</th></tr>';
+
+      document.getElementById('tbody').innerHTML = data.rows.map(function(row) {
+        return '<tr>' +
+          cols.map(function(c) {
+            var val = row[c.name];
+            if (val === null) return '<td style="color:#475569;">NULL</td>';
+            return '<td title="' + String(val).replace(/"/g, '&quot;') + '">' + String(val).slice(0, 80) + '</td>';
+          }).join('') +
+          '<td><button class="btn-del" onclick="deleteRow(\'' + name + '\',\'' + idCol + '\',\'' + String(row[idCol]).replace(/'/g, "\\'") + '\')">Del</button></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="' + (cols.length + 1) + '" style="text-align:center;color:#64748b;padding:2rem;">Empty table</td></tr>';
     }
 
-    document.getElementById('refreshRows').addEventListener('click', loadRows);
-    document.getElementById('limitInput').addEventListener('change', loadRows);
+    window.deleteRow = async function(table, idCol, id) {
+      if (!confirm('Delete this row?')) return;
+      await fetch('/api/databases?table=' + table + '&idCol=' + idCol + '&id=' + encodeURIComponent(id), { method: 'DELETE' });
+      loadTable(table);
+    };
 
     loadTables();
   </script>
