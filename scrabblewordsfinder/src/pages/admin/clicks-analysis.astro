@@ -4,6 +4,12 @@ import '../../styles/global.css';
 ---
 
 <Layout title="Click Analysis — Admin — ScrabbleWordsFinder" description="Visual click analytics with bubble charts" keywords="admin, analytics, clicks" showHeader={false}>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
   <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
     <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
       <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
@@ -28,6 +34,7 @@ import '../../styles/global.css';
       <button class="view-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="countries">By Country</button>
       <button class="view-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="devices">By Device</button>
       <button class="view-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="browsers">By Browser</button>
+      <button class="view-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors" data-view="map">Map View</button>
     </div>
 
     <!-- Stats bar -->
@@ -53,6 +60,14 @@ import '../../styles/global.css';
     <!-- Bubble canvas -->
     <div id="bubble-container" class="relative w-full h-[500px] bg-gray-900/50 rounded-xl border border-gray-800 overflow-hidden">
       <!-- Bubbles rendered here -->
+    </div>
+
+    <!-- Map container (hidden by default) -->
+    <div id="mapContainer" class="hidden w-full min-h-[500px] rounded-xl border border-gray-800 overflow-hidden relative">
+      <div id="map" class="w-full" style="min-height:500px;height:500px;"></div>
+      <div id="mapNoData" class="hidden absolute inset-0 flex items-center justify-center bg-gray-900/80 z-[1000]">
+        <p class="text-gray-400 text-lg font-medium">No location data available</p>
+      </div>
     </div>
 
     <!-- Tooltip -->
@@ -83,6 +98,11 @@ import '../../styles/global.css';
     }
   </style>
 
+  <!-- Leaflet JS -->
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- MarkerCluster JS -->
+  <script is:inline src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
   <script>
     interface ClickData {
       ui_element: string;
@@ -95,10 +115,134 @@ import '../../styles/global.css';
       created_at: string;
     }
 
+    interface LocationData {
+      ip_address: string;
+      click_count: number;
+      latitude: number;
+      longitude: number;
+      city: string;
+      country: string;
+      last_seen: string;
+    }
+
     let allClicks: ClickData[] = [];
     let currentView = 'elements';
+    let mapInstance: any = null;
+    let markerClusterGroup: any = null;
+    let mapLoaded = false;
 
     const COLORS = ['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#ef4444','#22c55e','#3b82f6','#f97316','#06b6d4','#a855f7','#84cc16'];
+
+    // --- Map View Functions ---
+
+    function filterValidLocations(locations: LocationData[]): LocationData[] {
+      return locations.filter(loc => {
+        if (loc.latitude == null || loc.longitude == null) return false;
+        if (loc.latitude === 0 && loc.longitude === 0) return false;
+        if (loc.latitude < -90 || loc.latitude > 90) return false;
+        if (loc.longitude < -180 || loc.longitude > 180) return false;
+        return true;
+      });
+    }
+
+    function initMap(): any {
+      const mapEl = document.getElementById('map');
+      if (!mapEl) return null;
+
+      const map = (window as any).L.map(mapEl).setView([20, 0], 2);
+
+      (window as any).L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+      }).addTo(map);
+
+      return map;
+    }
+
+    function createMarkers(map: any, locations: LocationData[]): any {
+      const L = (window as any).L;
+      const cluster = L.markerClusterGroup();
+
+      locations.forEach(loc => {
+        const lastSeenFormatted = loc.last_seen
+          ? loc.last_seen.substring(0, 10)
+          : 'Unknown';
+
+        const tooltipContent = `
+          <div style="min-width:150px">
+            <strong>${loc.city || 'Unknown'}, ${loc.country || 'Unknown'}</strong><br/>
+            <span>Clicks: ${loc.click_count}</span><br/>
+            <span>Last seen: ${lastSeenFormatted}</span>
+          </div>
+        `;
+
+        const marker = L.marker([loc.latitude, loc.longitude]);
+        marker.bindPopup(tooltipContent);
+        marker.bindTooltip(tooltipContent);
+        cluster.addLayer(marker);
+      });
+
+      map.addLayer(cluster);
+      return cluster;
+    }
+
+    function destroyMap() {
+      if (mapInstance) {
+        mapInstance.remove();
+        mapInstance = null;
+        markerClusterGroup = null;
+        mapLoaded = false;
+      }
+    }
+
+    async function loadMapView() {
+      const mapContainer = document.getElementById('mapContainer')!;
+      const noDataEl = document.getElementById('mapNoData')!;
+
+      // Check if Leaflet loaded
+      if (!(window as any).L) {
+        noDataEl.querySelector('p')!.textContent = 'Map unavailable — Leaflet failed to load';
+        noDataEl.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/clicks-analysis');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const locations: LocationData[] = data.locations || [];
+        const validLocations = filterValidLocations(locations);
+
+        if (validLocations.length === 0) {
+          noDataEl.classList.remove('hidden');
+          return;
+        }
+
+        noDataEl.classList.add('hidden');
+
+        // Initialize map
+        mapInstance = initMap();
+        if (!mapInstance) return;
+
+        // Create markers
+        markerClusterGroup = createMarkers(mapInstance, validLocations);
+
+        // Auto-fit bounds with padding
+        const bounds = markerClusterGroup.getBounds();
+        if (bounds.isValid()) {
+          mapInstance.fitBounds(bounds, { padding: [40, 40] });
+        }
+
+        mapLoaded = true;
+      } catch (err) {
+        console.error('Map view error:', err);
+        noDataEl.querySelector('p')!.textContent = 'Error loading location data';
+        noDataEl.classList.remove('hidden');
+      }
+    }
+
+    // --- Bubble Chart Functions ---
 
     async function loadData() {
       const res = await fetch('/api/clicks?limit=500');
@@ -211,13 +355,46 @@ import '../../styles/global.css';
       document.getElementById('tooltip')!.classList.add('hidden');
     }
 
-    // View switcher
+    // --- View Switcher Logic ---
+
+    function switchView(view: string) {
+      const bubbleContainer = document.getElementById('bubble-container')!;
+      const mapContainer = document.getElementById('mapContainer')!;
+      const noDataEl = document.getElementById('mapNoData')!;
+
+      if (view === 'map') {
+        // Show map, hide bubbles
+        bubbleContainer.classList.add('hidden');
+        mapContainer.classList.remove('hidden');
+
+        // Load map if not already loaded
+        if (!mapLoaded) {
+          loadMapView();
+        } else if (mapInstance) {
+          // Invalidate size in case container was hidden
+          setTimeout(() => mapInstance.invalidateSize(), 100);
+        }
+      } else {
+        // Show bubbles, hide map
+        mapContainer.classList.add('hidden');
+        bubbleContainer.classList.remove('hidden');
+        noDataEl.classList.add('hidden');
+
+        // Destroy map when switching away to prevent rendering issues
+        destroyMap();
+
+        // Render bubble view
+        currentView = view;
+        renderBubbles();
+      }
+    }
+
     document.querySelectorAll('.view-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        currentView = (btn as HTMLElement).dataset.view || 'elements';
-        renderBubbles();
+        const view = (btn as HTMLElement).dataset.view || 'elements';
+        switchView(view);
       });
     });
 

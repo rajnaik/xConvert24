@@ -2,8 +2,12 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
 /**
- * POST /api/contact — Send contact form email via Cloudflare Email Service
- * Falls back to DB storage if email binding not available
+ * POST /api/contact — Save-before-send pattern
+ * 1. Validate input
+ * 2. INSERT into emails table (PRIMARY operation)
+ * 3. Attempt email send (SECONDARY, best-effort)
+ * 4. On email failure: UPDATE emails.comment with error
+ * 5. Return 200 if DB save succeeded, regardless of email outcome
  */
 export const POST: APIRoute = async ({ request }) => {
   let body: any;
@@ -14,6 +18,8 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const { name, email, subject, message } = body;
+
+  // Validate message is non-empty after trimming
   if (!message || !message.trim()) {
     return json({ error: 'Message is required' }, 400);
   }
@@ -22,6 +28,12 @@ export const POST: APIRoute = async ({ request }) => {
   const EMAIL = (env as any).EMAIL;
   const SWF_NOTIFY_EMAIL = (env as any).SWF_NOTIFY_EMAIL;
 
+  // 503 if neither DB nor EMAIL binding is available
+  if (!db && !EMAIL) {
+    return json({ error: 'Service unavailable' }, 503);
+  }
+
+  // Subject category mapping
   const subjectMap: Record<string, string> = {
     general: 'General Question',
     bug: 'Bug Report',
@@ -30,21 +42,53 @@ export const POST: APIRoute = async ({ request }) => {
     other: 'Other',
   };
 
-  const emailSubject = `[SWF Contact] ${subjectMap[subject] || 'Message'} from ${name || 'Anonymous'}`;
-  const emailBody = [
-    `From: ${name || 'Anonymous'}`,
-    email ? `Reply-to: ${email}` : '',
-    `Subject: ${subjectMap[subject] || subject || 'General'}`,
-    '',
-    message.trim(),
-    '',
-    '---',
-    'Sent via ScrabbleWordsFinder.com contact form',
-    `IP: ${request.headers.get('cf-connecting-ip') || 'unknown'}`,
-  ].filter(Boolean).join('\n');
+  const mappedSubject = subjectMap[subject] || 'Other';
+  const ipAddress = request.headers.get('cf-connecting-ip') || 'unknown';
+  const trimmedMessage = message.trim();
 
-  // Try email first
+  // PRIMARY: Save to emails table first
+  let savedRowId: number | null = null;
+  if (db) {
+    try {
+      const result = await db.prepare(
+        'INSERT INTO emails (category, name, email, subject, message, ip_address) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind('contact', name || '', email || '', mappedSubject, trimmedMessage, ipAddress).run();
+      savedRowId = result.meta?.last_row_id ?? null;
+    } catch (e: any) {
+      return json({ error: e.message || 'Database save failed' }, 500);
+    }
+  }
+
+  // Test email tracking: save to test_emails table for SWF-TEST pattern
+  if (db && savedRowId !== null) {
+    const testMatch = (trimmedMessage).match(/\[SWF-TEST-([a-z0-9]+)\]/i);
+    if (testMatch) {
+      try {
+        const emailSubject = `[SWF Contact] ${mappedSubject} from ${name || 'Anonymous'}`;
+        await db.prepare(
+          'INSERT INTO test_emails (unique_id, from_address, to_address, subject, body) VALUES (?, ?, ?, ?, ?)'
+        ).bind(testMatch[1], 'noreply@scrabblewordsfinder.com', SWF_NOTIFY_EMAIL || '', emailSubject, trimmedMessage).run();
+      } catch {
+        // Non-critical, ignore
+      }
+    }
+  }
+
+  // SECONDARY: Attempt email send (best-effort)
   if (EMAIL && SWF_NOTIFY_EMAIL) {
+    const emailSubject = `[SWF Contact] ${mappedSubject} from ${name || 'Anonymous'}`;
+    const emailBody = [
+      `From: ${name || 'Anonymous'}`,
+      email ? `Reply-to: ${email}` : '',
+      `Subject: ${mappedSubject}`,
+      '',
+      trimmedMessage,
+      '',
+      '---',
+      'Sent via ScrabbleWordsFinder.com contact form',
+      `IP: ${ipAddress}`,
+    ].filter(Boolean).join('\n');
+
     try {
       await EMAIL.send({
         from: 'noreply@scrabblewordsfinder.com',
@@ -52,57 +96,22 @@ export const POST: APIRoute = async ({ request }) => {
         subject: emailSubject,
         text: emailBody,
       });
-      // If this is a test email, also save to test_emails table for verification
-      const testMatch = (emailSubject + ' ' + message).match(/\[SWF-TEST-([a-z0-9]+)\]/i);
-      if (testMatch && db) {
-        try {
-          await db.prepare(
-            'INSERT INTO test_emails (unique_id, from_address, to_address, subject, body) VALUES (?, ?, ?, ?, ?)'
-          ).bind(testMatch[1], 'noreply@scrabblewordsfinder.com', SWF_NOTIFY_EMAIL, emailSubject, emailBody).run();
-        } catch {}
-      }
-      // Save to emails table
-      if (db) {
-        try {
-          await db.prepare(
-            'INSERT INTO emails (category, name, email, subject, message, ip_address) VALUES (?, ?, ?, ?, ?, ?)'
-          ).bind('contact', name || '', email || '', subjectMap[subject] || subject || '', message.trim(), request.headers.get('cf-connecting-ip') || '').run();
-        } catch {}
-      }
-      return json({ ok: true, method: 'email' });
     } catch (e: any) {
-      // Fall through to DB fallback
+      // Email failed — update comment field with error (truncated to 500 chars)
+      if (db && savedRowId !== null) {
+        const errorMsg = (e.message || 'Email send failed').slice(0, 500);
+        try {
+          await db.prepare(
+            'UPDATE emails SET comment = ? WHERE id = ?'
+          ).bind(errorMsg, savedRowId).run();
+        } catch {
+          // Non-critical, ignore
+        }
+      }
     }
   }
 
-  // Fallback: save to DB
-  if (db) {
-    try {
-      await db.prepare(
-        'INSERT INTO suggestions (name, email, suggestion) VALUES (?, ?, ?)'
-      ).bind(name || '', email || '', `[CONTACT - ${subjectMap[subject] || 'General'}] ${message.trim()}`).run();
-      // If test email, also save to test_emails
-      const testMatch2 = (emailSubject + ' ' + message).match(/\[SWF-TEST-([a-z0-9]+)\]/i);
-      if (testMatch2) {
-        try {
-          await db.prepare(
-            'INSERT INTO test_emails (unique_id, from_address, to_address, subject, body) VALUES (?, ?, ?, ?, ?)'
-          ).bind(testMatch2[1], name || '', email || '', emailSubject, message.trim()).run();
-        } catch {}
-      }
-      // Also save to emails table
-      try {
-        await db.prepare(
-          'INSERT INTO emails (category, name, email, subject, message, ip_address) VALUES (?, ?, ?, ?, ?, ?)'
-        ).bind('contact', name || '', email || '', subjectMap[subject] || subject || '', message.trim(), request.headers.get('cf-connecting-ip') || '').run();
-      } catch {}
-      return json({ ok: true, method: 'db_fallback' });
-    } catch (e: any) {
-      return json({ error: e.message }, 500);
-    }
-  }
-
-  return json({ error: 'No email or database available' }, 503);
+  return json({ ok: true });
 };
 
 function json(data: any, status = 200) {
