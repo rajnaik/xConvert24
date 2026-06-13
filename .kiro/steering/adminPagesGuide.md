@@ -18,6 +18,14 @@ Every workspace gets these admin pages. All protected by Google OAuth middleware
 | 10 | ⚙️ Ops | `/admin/ops/` | Gray | Operations console |
 | 11 | 📈 Reports | `/admin/report/` | Gray | Analytics reports |
 
+## No Duplicate Tiles Rule
+
+**NEVER add a tile to the admin dashboard if it already exists.** Before adding any new admin tile:
+1. Check `/admin/index.astro` for existing tiles with the same href
+2. Each page MUST appear as a tile exactly ONCE
+3. If a tile already exists, do NOT add another — update the existing one instead
+4. Automated test enforces this: `tests/admin-no-duplicates.spec.ts`
+
 ## Features per Admin Page
 
 ### /admin/emails
