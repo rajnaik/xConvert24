@@ -4,6 +4,17 @@ inclusion: manual
 
 # Blog Pipeline — Incomplete Work
 
+## Cross-Linking Rule (MANDATORY)
+
+After creating ANY new blog post (CHOP, Blog Burst, or manual), you MUST:
+
+1. Open `scrabblewordsfinder/src/components/BlogRelatedLinks.astro`
+2. Add the new post's slug to the `crossLinks` map with 3 related slugs
+3. Add the new post's slug + title to the `titles` map
+4. Add the new post's slug to 2-3 OTHER posts' crossLinks arrays (so they link back)
+
+This is the ONLY place cross-linking lives. Never hardcode "Related Articles" in blog posts — use `<BlogRelatedLinks slug="..." />` instead.
+
 **Date noted:** June 7, 2026  
 **Reminder:** Complete remaining blog content by June 9-10, 2026
 
