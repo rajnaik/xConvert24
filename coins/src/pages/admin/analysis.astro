@@ -26,18 +26,38 @@ import Layout from '../../layouts/Layout.astro';
 
   <div id="analysisGrid"></div>
 
-  <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js" is:inline></script>
+  <script src="/lightweight-charts.js" is:inline></script>
   <script is:inline>
     function getTrendColor(status, trend) {
-      var s = (status || '').toLowerCase();
-      var t = (trend || '').toLowerCase();
-      if (s === 'mooning' || s === 'pumping hard' || t === 'pumping') return '#10b981';
-      if (s === 'pumping' || s === 'creeping up' || t === 'accumulating') return '#4ade80';
-      if (s === 'consolidating' || t === 'consolidating') return '#f59e0b';
-      if (s === 'bleeding' || t === 'distributing') return '#f97316';
-      if (s === 'dumping' || s === 'profit taking' || t === 'dumping') return '#ef4444';
-      if (s === 'dumping hard' || s === 'crashing') return '#dc2626';
-      return '#94a3b8';
+      const s = (status || '').toLowerCase();
+      const t = (trend || '').toLowerCase();
+
+      // Tier 1: Critical (dark red) — severe downturn
+      const critical = ['crashing', 'dumping hard'];
+      if (critical.includes(s) || critical.includes(t)) return '#991b1b';
+
+      // Tier 2: Very Negative (red) — significant decline
+      const veryNegative = ['bleeding', 'dumping'];
+      if (veryNegative.includes(s) || veryNegative.includes(t)) return '#dc2626';
+
+      // Tier 3: Negative (orange/amber) — moderate decline
+      const negative = ['falling', 'declining', 'distributing', 'profit taking'];
+      if (negative.includes(s) || negative.includes(t)) return '#f59e0b';
+
+      // Tier 4: Neutral (gray/slate) — sideways movement
+      const neutral = ['stable', 'sideways', 'consolidating'];
+      if (neutral.includes(s) || neutral.includes(t)) return '#64748b';
+
+      // Tier 5: Positive (green) — moderate gain
+      const positive = ['rising', 'gaining', 'creeping up', 'accumulating'];
+      if (positive.includes(s) || positive.includes(t)) return '#22c55e';
+
+      // Tier 6: Very Positive (bright green/emerald) — strong gain
+      const veryPositive = ['mooning', 'pumping hard', 'surging', 'pumping'];
+      if (veryPositive.includes(s) || veryPositive.includes(t)) return '#10b981';
+
+      // Default: neutral gray for unknown values
+      return '#64748b';
     }
 
     var charts = [];
@@ -97,6 +117,16 @@ import Layout from '../../layouts/Layout.astro';
           '</div>' +
           '<div style="overflow-y:auto;max-height:430px;padding:0;">' +
             metricsHtml +
+            '<div style="padding:0.5rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;">' +
+            '<div style="background:#131722;border-radius:6px;padding:4px;"><div style="font-size:9px;color:#64748b;padding:2px 4px;">Liquidity</div><div id="mini-liq-' + idx + '" style="height:80px;"></div></div>' +
+            '<div style="background:#131722;border-radius:6px;padding:4px;"><div style="font-size:9px;color:#64748b;padding:2px 4px;">Holders</div><div id="mini-hold-' + idx + '" style="height:80px;"></div></div>' +
+            '<div style="background:#131722;border-radius:6px;padding:4px;"><div style="font-size:9px;color:#64748b;padding:2px 4px;">Buys/Sells</div><div id="mini-bs-' + idx + '" style="height:80px;"></div></div>' +
+            '</div>' +
+            '<div style="padding:0.5rem 1rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;">' +
+            '<div style="background:#131722;border-radius:6px;padding:4px;"><div style="font-size:9px;color:#64748b;padding:2px 6px;">Liquidity</div><div id="mini-liq-' + idx + '" style="height:80px;"></div></div>' +
+            '<div style="background:#131722;border-radius:6px;padding:4px;"><div style="font-size:9px;color:#64748b;padding:2px 6px;">Holders</div><div id="mini-hold-' + idx + '" style="height:80px;"></div></div>' +
+            '<div style="background:#131722;border-radius:6px;padding:4px;"><div style="font-size:9px;color:#64748b;padding:2px 6px;">Buys / Sells</div><div id="mini-bs-' + idx + '" style="height:80px;"></div></div>' +
+            '</div>' +
             
           '</div>' +
         '</div>';

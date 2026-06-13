@@ -85,6 +85,38 @@ import Layout from '../../layouts/Layout.astro';
   </table>
 
   <script is:inline>
+    function getTrendColor(status, trend) {
+      const s = (status || '').toLowerCase();
+      const t = (trend || '').toLowerCase();
+
+      // Tier 1: Critical (dark red) — severe downturn
+      const critical = ['crashing', 'dumping hard'];
+      if (critical.includes(s) || critical.includes(t)) return '#991b1b';
+
+      // Tier 2: Very Negative (red) — significant decline
+      const veryNegative = ['bleeding', 'dumping'];
+      if (veryNegative.includes(s) || veryNegative.includes(t)) return '#dc2626';
+
+      // Tier 3: Negative (orange/amber) — moderate decline
+      const negative = ['falling', 'declining', 'distributing', 'profit taking'];
+      if (negative.includes(s) || negative.includes(t)) return '#f59e0b';
+
+      // Tier 4: Neutral (gray/slate) — sideways movement
+      const neutral = ['stable', 'sideways', 'consolidating'];
+      if (neutral.includes(s) || neutral.includes(t)) return '#64748b';
+
+      // Tier 5: Positive (green) — moderate gain
+      const positive = ['rising', 'gaining', 'creeping up', 'accumulating'];
+      if (positive.includes(s) || positive.includes(t)) return '#22c55e';
+
+      // Tier 6: Very Positive (bright green/emerald) — strong gain
+      const veryPositive = ['mooning', 'pumping hard', 'surging', 'pumping'];
+      if (veryPositive.includes(s) || veryPositive.includes(t)) return '#10b981';
+
+      // Default: neutral gray for unknown values
+      return '#64748b';
+    }
+
     var trackerTable = document.getElementById('trackerTable');
     var coinInfo = document.getElementById('coinInfo');
     var pageTitle = document.getElementById('pageTitle');
@@ -143,8 +175,8 @@ import Layout from '../../layouts/Layout.astro';
         coinInfo.innerHTML =
           '<strong style="color:#f59e0b;">' + (currentCoin.coinname || '\u2014') + '</strong>' +
           ' &nbsp;|&nbsp; Narrative: ' + (currentCoin.narrative || '\u2014') +
-          ' &nbsp;|&nbsp; Status: ' + (currentCoin.currentstatus || '\u2014') +
-          ' &nbsp;|&nbsp; Trend: ' + (currentCoin.trend || '\u2014') +
+          ' &nbsp;|&nbsp; Status: <span style="color:' + getTrendColor(currentCoin.currentstatus, currentCoin.trend) + ';font-weight:bold;">' + (currentCoin.currentstatus || '\u2014') + '</span>' +
+          ' &nbsp;|&nbsp; Trend: <span style="color:' + getTrendColor(currentCoin.currentstatus, currentCoin.trend) + ';font-weight:bold;">' + (currentCoin.trend || '\u2014') + '</span>' +
           (currentCoin.dexscreenerurl ? ' &nbsp;|&nbsp; <a href="' + currentCoin.dexscreenerurl + '" target="_blank" style="color:#3b82f6;">DexScreener \u2197</a>' : '');
       }
     }
