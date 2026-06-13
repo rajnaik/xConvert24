@@ -103,21 +103,21 @@ import '../styles/global.css';
       <!-- Left: Input & Results -->
       <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 sm:p-6">
 
-        <!-- Text Solver (traditional single input) -->
+        <!-- Word Solver (up to 15 letters) -->
         <div class="mb-4">
-          <label for="text-solver" class="block text-sm font-medium text-gray-300 mb-1.5">Text Solver</label>
+          <label for="text-solver" class="block text-sm font-medium text-gray-300 mb-1.5">Word Solver</label>
           <div class="flex gap-2 sm:gap-3">
-            <input id="text-solver" type="text" maxlength="15" placeholder="Type all your tiles here e.g. AERTBLS" inputmode="text" autocapitalize="characters" class="flex-1 h-11 px-3 bg-gray-800 border border-gray-700 rounded-lg text-blue-300 text-lg font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off"/>
+            <input id="text-solver" type="text" maxlength="15" placeholder="Type all your tiles e.g. ARRESTEDERNING" inputmode="text" autocapitalize="characters" class="flex-1 h-11 px-3 bg-gray-800 border border-gray-700 rounded-lg text-blue-300 text-lg font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off"/>
             <button id="text-solve-btn" class="h-11 px-5 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm">Solve</button>
           </div>
-          <p class="mt-1.5 text-xs text-gray-500">Use ? for blank tiles. Up to 15 letters.</p>
+          <p class="mt-1.5 text-xs text-gray-500">Use ? for blank tiles. Up to 15 letters. Finds all words you can make.</p>
         </div>
 
         <div class="border-t border-gray-800 my-4"></div>
 
-        <!-- Tile Solver (7 individual boxes) -->
+        <!-- Tile Rack (7 boxes — your current Scrabble rack) -->
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-300 mb-1.5">Tile Rack</label>
+          <label class="block text-sm font-medium text-gray-300 mb-1.5">Tile Rack <span class="text-gray-500 font-normal">(7 tiles max)</span></label>
           <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center">
             <div class="flex gap-1.5" id="tile-inputs">
               <input type="text" maxlength="1" class="tile-box w-12 h-14 sm:w-14 sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="0" autocomplete="off" inputmode="text" />
@@ -349,11 +349,16 @@ import '../styles/global.css';
   // User can click any box to start. Backspace moves LEFT.
   const tileBoxes = document.querySelectorAll('.tile-box') as NodeListOf<HTMLInputElement>;
   const hiddenTiles = document.getElementById('tiles') as HTMLInputElement;
+  let syncingFromTextSolver = false; // Guard to prevent circular sync
 
   function syncTiles() {
+    if (syncingFromTextSolver) return; // Don't overwrite when Word Solver is driving
     const val = Array.from(tileBoxes).map(b => b.value.toUpperCase()).join('');
     hiddenTiles.value = val;
     hiddenTiles.dispatchEvent(new Event('input'));
+    // Sync tile rack → Word Solver (bidirectional)
+    const textSolverEl = document.getElementById('text-solver') as HTMLInputElement;
+    if (textSolverEl) textSolverEl.value = val;
   }
 
   tileBoxes.forEach((box, idx) => {
@@ -407,16 +412,33 @@ import '../styles/global.css';
 
   async function loadDictionary() {
     try {
-      const [sowRes, twlRes] = await Promise.all([
+      const [sowRes, twlRes, longRes] = await Promise.all([
         fetch('/data/sowpods-2-7.json'),
         fetch('/data/twl06-2-7.json'),
+        fetch('/data/sowpods-8-15.json'),
       ]);
       if (!sowRes.ok) throw new Error('Failed to load SOWPODS');
-      SOWPODS = await sowRes.json();
-      TWL = twlRes.ok ? await twlRes.json() : SOWPODS;
-      // WWF and Collins both use SOWPODS/Collins word list
+      const sowShort: string[] = await sowRes.json();
+      let longWords: string[] = [];
+      if (longRes.ok) {
+        try {
+          longWords = await longRes.json();
+          console.log('[SWF] Long words (8-15) loaded:', longWords.length);
+        } catch (e) {
+          console.warn('[SWF] Failed to parse sowpods-8-15.json:', e);
+        }
+      } else {
+        console.warn('[SWF] sowpods-8-15.json fetch failed:', longRes.status);
+      }
+      SOWPODS = [...sowShort, ...longWords];
+      let twlShort: string[] = [];
+      if (twlRes.ok) {
+        try { twlShort = await twlRes.json(); } catch { twlShort = []; }
+      }
+      TWL = twlShort.length > 0 ? [...twlShort, ...longWords] : SOWPODS;
       WORDS = (currentDict === 'twl') ? TWL : SOWPODS;
       dictionaryLoaded = true;
+      console.log('[SWF] Dictionary loaded:', WORDS.length, 'words (' + currentDict + ', 2-15 letters)');
 
       (document.getElementById('dictionary') as HTMLSelectElement).value = currentDict;
 
@@ -484,8 +506,9 @@ import '../styles/global.css';
     return true;
   }
 
-  function solve() {
-    const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim();
+  function solve(overrideMaxLen?: number) {
+    const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim().toUpperCase();
+    const maxLen = overrideMaxLen || tiles.length;
     const minLen = parseInt((document.getElementById('min-len') as HTMLSelectElement).value);
     const sortBy = (document.getElementById('sort-by') as HTMLSelectElement).value;
     const startsWith = (document.getElementById('starts-with') as HTMLInputElement).value.trim().toLowerCase();
@@ -497,7 +520,7 @@ import '../styles/global.css';
     if (!tiles || tiles.length < 2) { resultsEl.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm italic">Enter at least 2 tiles</div>'; return; }
 
     let found = WORDS.filter(w => {
-      if (w.length < minLen || w.length > tiles.length) return false;
+      if (w.length < minLen || w.length > maxLen) return false;
       if (startsWith && !w.startsWith(startsWith)) return false;
       if (endsWith && !w.endsWith(endsWith)) return false;
       if (contains && !w.includes(contains)) return false;
@@ -803,8 +826,8 @@ import '../styles/global.css';
   loadFilterPrefs();
 
   // ── Init Event Listeners ────────────────────────────────────────────────
-  document.getElementById('solve-btn')!.addEventListener('click', solve);
-  document.getElementById('tiles')!.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') solve(); });
+  document.getElementById('solve-btn')!.addEventListener('click', () => solve(7));
+  document.getElementById('tiles')!.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') solve(7); });
 
   document.getElementById('min-len')!.addEventListener('change', () => {
     saveFilterPref('minLen', (document.getElementById('min-len') as HTMLSelectElement).value);
@@ -893,16 +916,22 @@ import '../styles/global.css';
     solveTimer = setTimeout(() => { if ((document.getElementById('tiles') as HTMLInputElement).value.trim().length >= 2) solve(); }, 300);
   });
 
-  // ── Text Solver (syncs to hidden tiles field and tile boxes) ────────────
+  // ── Word Solver (bidirectional sync with tile rack, solves up to 15 letters) ──
   const textSolver = document.getElementById('text-solver') as HTMLInputElement;
   const textSolveBtn = document.getElementById('text-solve-btn')!;
 
   function syncTextToTiles() {
+    syncingFromTextSolver = true;
     const text = textSolver.value.toUpperCase();
-    // Fill tile boxes from text (up to 7 chars)
-    tileBoxes.forEach((box, i) => { box.value = text[i] || ''; });
+    // Fill tile boxes from text (first 7 chars only). ? = blank (empty tile box)
+    tileBoxes.forEach((box, i) => {
+      const ch = text[i] || '';
+      box.value = (ch === '?') ? '' : ch;
+    });
+    // Hidden tiles gets the FULL text solver value (including ? as wildcards)
     hiddenTiles.value = text;
     hiddenTiles.dispatchEvent(new Event('input'));
+    syncingFromTextSolver = false;
   }
 
   textSolver.addEventListener('input', () => {
@@ -910,13 +939,22 @@ import '../styles/global.css';
     syncTextToTiles();
   });
 
+  // "Solve" button — finds words up to the FULL text input length (up to 15)
   textSolveBtn.addEventListener('click', () => {
-    syncTextToTiles();
+    const text = textSolver.value.trim().toUpperCase();
+    if (!text || text.length < 2) return;
+    hiddenTiles.value = text;
+    console.log('[SOLVE-BTN] tiles set to:', text, 'len:', text.length, 'dictLoaded:', dictionaryLoaded, 'WORDS count:', WORDS.length);
     solve();
   });
 
   textSolver.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { syncTextToTiles(); solve(); }
+    if (e.key === 'Enter') {
+      const text = textSolver.value.trim().toUpperCase();
+      if (!text || text.length < 2) return;
+      hiddenTiles.value = text;
+      solve();
+    }
   });
 
   // ── Tile Scores Display ─────────────────────────────────────────────────
