@@ -66,8 +66,13 @@ import '../../styles/global.css';
     <div id="mapContainer" class="hidden w-full min-h-[500px] rounded-xl border border-gray-800 overflow-hidden relative">
       <div id="map" class="w-full" style="min-height:500px;height:500px;"></div>
       <div id="mapNoData" class="hidden absolute inset-0 flex items-center justify-center bg-gray-900/80 z-[1000]">
-        <p class="text-gray-400 text-lg font-medium">No location data available</p>
+        <div class="text-center">
+          <p class="text-gray-400 text-lg font-medium mb-4">No location data available</p>
+          <button id="enrichBtn" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors">🌍 Enrich IPs Now</button>
+          <p id="enrichStatus" class="text-xs text-gray-500 mt-2"></p>
+        </div>
       </div>
+      <button id="enrichBtnFloat" class="hidden absolute top-3 right-3 z-[1001] px-3 py-1.5 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white text-xs font-medium transition-colors shadow-lg">🌍 Enrich IPs</button>
     </div>
 
     <!-- Tooltip -->
@@ -235,12 +240,48 @@ import '../../styles/global.css';
         }
 
         mapLoaded = true;
+        // Show floating enrich button for re-enrichment
+        document.getElementById('enrichBtnFloat')?.classList.remove('hidden');
       } catch (err) {
         console.error('Map view error:', err);
         noDataEl.querySelector('p')!.textContent = 'Error loading location data';
         noDataEl.classList.remove('hidden');
       }
     }
+
+    // --- Enrich IPs Button Logic ---
+
+    async function enrichIPs(statusEl: HTMLElement | null) {
+      if (statusEl) statusEl.textContent = 'Enriching...';
+      try {
+        const res = await fetch('/api/geo-enrich', { method: 'POST' });
+        const data = await res.json();
+        if (statusEl) {
+          statusEl.textContent = `✅ Enriched: ${data.enriched}, Skipped: ${data.skipped}, Failed: ${data.failed}`;
+          statusEl.classList.remove('text-gray-500');
+          statusEl.classList.add('text-emerald-400');
+        }
+        // Reload map after enrichment
+        setTimeout(() => {
+          destroyMap();
+          mapLoaded = false;
+          loadMapView();
+        }, 1000);
+      } catch (err: any) {
+        if (statusEl) {
+          statusEl.textContent = `❌ ${err.message || 'Enrichment failed'}`;
+          statusEl.classList.add('text-red-400');
+        }
+      }
+    }
+
+    document.getElementById('enrichBtn')?.addEventListener('click', () => {
+      enrichIPs(document.getElementById('enrichStatus'));
+    });
+
+    document.getElementById('enrichBtnFloat')?.addEventListener('click', () => {
+      enrichIPs(null);
+    });
 
     // --- Bubble Chart Functions ---
 
