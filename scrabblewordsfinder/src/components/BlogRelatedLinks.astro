@@ -1,0 +1,92 @@
+---
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+
+/**
+ * Centralized cross-links map.
+ * To add a new blog post, add its slug here with related slugs,
+ * and add its title to the titles map below.
+ */
+const crossLinks: Record<string, string[]> = {
+  "what-is-scrabble": [
+    "how-to-play-scrabble",
+    "scrabble-rules-explained",
+    "scrabble-history-origins-great-depression",
+  ],
+  "how-to-play-scrabble": [
+    "what-is-scrabble",
+    "scrabble-rules-explained",
+    "scrabble-scoring-guide",
+  ],
+  "scrabble-rules-explained": [
+    "how-to-play-scrabble",
+    "scrabble-scoring-guide",
+    "understanding-premium-squares",
+  ],
+  "scrabble-scoring-guide": [
+    "scrabble-rules-explained",
+    "understanding-premium-squares",
+    "scrabble-tile-strategy-letters-scoring",
+  ],
+  "understanding-premium-squares": [
+    "scrabble-scoring-guide",
+    "scrabble-tile-strategy-letters-scoring",
+    "scrabble-rules-explained",
+  ],
+  "scrabble-history-origins-great-depression": [
+    "what-is-scrabble",
+    "scrabble-tile-strategy-letters-scoring",
+    "competitive-scrabble-tournament-world",
+  ],
+  "scrabble-tile-strategy-letters-scoring": [
+    "scrabble-scoring-guide",
+    "understanding-premium-squares",
+    "scrabble-history-origins-great-depression",
+  ],
+  "scrabble-dictionaries-languages-weird-words": [
+    "what-is-scrabble",
+    "scrabble-rules-explained",
+    "competitive-scrabble-tournament-world",
+  ],
+  "competitive-scrabble-tournament-world": [
+    "scrabble-rules-explained",
+    "scrabble-history-origins-great-depression",
+    "scrabble-dictionaries-languages-weird-words",
+  ],
+};
+
+const titles: Record<string, string> = {
+  "what-is-scrabble": "What Is Scrabble? A Complete Introduction",
+  "how-to-play-scrabble": "How to Play Scrabble: A Beginner's Guide",
+  "scrabble-rules-explained": "Scrabble Rules Explained: Complete Breakdown",
+  "scrabble-scoring-guide": "Scrabble Scoring Guide: Points & Values",
+  "understanding-premium-squares": "Understanding Premium Squares: DL, TL, DW, TW",
+  "scrabble-history-origins-great-depression": "History of Scrabble: From the Great Depression",
+  "scrabble-tile-strategy-letters-scoring": "Tile Strategy: Letters, Scores & Rack Management",
+  "scrabble-dictionaries-languages-weird-words": "Scrabble Dictionaries, Languages & Weird Words",
+  "competitive-scrabble-tournament-world": "Competitive Scrabble: The Tournament World",
+};
+
+const relatedSlugs = crossLinks[slug] || [];
+const links = relatedSlugs.map((s) => ({ slug: s, title: titles[s] || s }));
+---
+
+{links.length > 0 && (
+  <aside class="border-t border-gray-800 mt-12 pt-8">
+    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+    <div class="grid gap-3">
+      {links.map((link) => (
+        <a
+          href={`/blog/${link.slug}`}
+          class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"
+        >
+          <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">{link.title}</span>
+        </a>
+      ))}
+    </div>
+  </aside>
+)}
