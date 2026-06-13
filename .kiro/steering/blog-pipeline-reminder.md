@@ -15,6 +15,12 @@ After creating ANY new blog post (CHOP, Blog Burst, or manual), you MUST:
 
 This is the ONLY place cross-linking lives. Never hardcode "Related Articles" in blog posts — use `<BlogRelatedLinks slug="..." />` instead.
 
+## Category Landing Pages Rule (MANDATORY)
+
+After every CHOP or Blog Burst, check if any category has crossed the **10-post threshold**. If yes, create a category landing page at `/blog/<category-slug>`. See `.kiro/steering/blog-category-landing-pages.md` for full spec.
+
+Quick check: count blog files per category and compare against the threshold table in that steering file.
+
 **Date noted:** June 7, 2026  
 **Reminder:** Complete remaining blog content by June 9-10, 2026
 
