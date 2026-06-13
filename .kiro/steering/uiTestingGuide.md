@@ -31,6 +31,40 @@ Every UI feature must have BOTH:
 5. **No flaky waits** — use `waitForSelector` over `waitForTimeout` where possible
 6. **Skip gracefully** — if a precondition fails, `test.skip()` instead of crashing
 
+## Mandatory: Positive + Negative Tests
+
+Every test file MUST include BOTH positive and negative tests:
+
+- **Positive tests** confirm the UI works as expected (happy path). These SHOULD PASS on correct code.
+- **Negative tests** check for unexpected behaviours (duplicate elements, crashes, missing data, wrong state). These catch regressions and bugs.
+
+When creating a test for a feature, always write at minimum:
+- 1-2 positive tests (feature exists, behaves correctly)
+- 1-2 negative tests (no duplicates, no crashes, handles edge cases)
+
+Example structure:
+```typescript
+test.describe('Feature Name — Positive', () => {
+  test('feature is visible and functional', ...);
+  test('feature updates correctly on interaction', ...);
+});
+
+test.describe('Feature Name — Negative', () => {
+  test('no duplicate elements exist', ...);
+  test('does not crash with empty data', ...);
+});
+```
+
+## Test Suite Registration Rule (MANDATORY)
+
+Every time a new `.spec.ts` test file is created, it MUST be runnable by the default `npx playwright test` command. This means:
+1. Place test files in the `tests/` directory (already included by Playwright config)
+2. Do NOT create test files outside the `tests/` directory
+3. After creating a test, verify it runs with: `npx playwright test tests/<filename>.spec.ts --reporter=list`
+4. Log the test creation to the `test_results` table with status='pass' or 'fail'
+
+No orphan test files. No tests that exist but aren't part of the suite.
+
 ## What to Test for Every UI Change
 
 | Change Type | Positive Test | Negative Test |
