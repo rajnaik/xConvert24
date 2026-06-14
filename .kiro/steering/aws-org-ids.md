@@ -30,6 +30,7 @@ Private reference for AWS setup. DO NOT expose these in any public page or commi
 5. **Verify credits in AWS Billing Console** — check Billing & Cost Management
 
 | GA4 Measurement ID | `G-XDDRM8BN29` |
+| Google Ads Tag | `AW-18216393264` |
 | GA4 Stream Name | Auto Clicker Extension |
 | GA4 Property | xConvert24 (shared) |
 
@@ -79,3 +80,13 @@ Private reference for AWS setup. DO NOT expose these in any public page or commi
 - [ ] Use UTR to verify Google Ads account
 - [ ] Set up separate business bank account (recommended)
 - [ ] Keep records of all income/expenses from June 4, 2026
+
+
+## Google Tags — Per Workspace
+
+| Workspace | Tag ID | Type | Purpose |
+|-----------|--------|------|---------|
+| **xConvert24** | `AW-18216393264` | Google Ads (gtag) | Conversion tracking |
+| **xConvert24** | `G-XDDRM8BN29` | GA4 | Analytics |
+| **ABC Extension** | `G-XDDRM8BN29` | GA4 (Measurement Protocol) | Extension events |
+| **SWF** | None yet | — | TODO: create separate GA4 property |

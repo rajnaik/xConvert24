@@ -100,7 +100,39 @@ import Layout from '../../layouts/Layout.astro';
       </div>
     </div>
 
-
+    <!-- Live from X panel -->
+    <div id="x-timeline-panel" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 mb-6 shadow-sm overflow-hidden">
+      <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+        <!-- X logo SVG -->
+        <svg class="w-4 h-4 text-gray-900 dark:text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Live from X</h2>
+        <span id="x-profile-label" class="text-xs text-amber-600 dark:text-amber-400 font-mono"></span>
+        <a id="x-profile-link" href="#" target="_blank" rel="noopener" class="ml-auto text-xs text-gray-400 hover:text-amber-500 transition-colors">
+          Open on X ↗
+        </a>
+      </div>
+      <div id="x-timeline-container" class="relative" style="min-height: 200px; max-height: 500px; overflow-y: auto;">
+        <!-- Loading skeleton -->
+        <div id="x-timeline-loading" class="flex items-center justify-center py-12">
+          <div class="animate-pulse flex items-center gap-2 text-sm text-gray-400">
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            Loading X timeline...
+          </div>
+        </div>
+        <!-- Fallback (shown if widgets.js blocked) -->
+        <div id="x-timeline-fallback" class="hidden text-center py-8 px-4">
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">X timeline couldn't load (possibly blocked by an ad blocker)</p>
+          <a id="x-fallback-link" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+            View on X.com ↗
+          </a>
+        </div>
+      </div>
+    </div>
 
     <!-- Disease info panel -->
     <div id="disease-info" class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 mb-6 shadow-sm">
@@ -251,6 +283,7 @@ import Layout from '../../layouts/Layout.astro';
       updateTabStyles();
       loadData();
       loadBreakingNews();
+      renderXTimeline(activeDisease);
     });
   });
 
@@ -426,6 +459,97 @@ import Layout from '../../layouts/Layout.astro';
   }
   updateTabStyles();
   loadData();
+  renderXTimeline(activeDisease);
+
+  // X Timeline widget logic
+  const xTimelineUrls: Record<string, { url: string; label: string }> = {
+    covid: { url: 'https://x.com/COVID19Tracking', label: '@COVID19Tracking' },
+    ebola: { url: 'https://x.com/Ebola_Updates', label: '@Ebola_Updates' },
+    hantavirus: { url: 'https://x.com/HantaVirusol', label: '@HantaVirusol' },
+  };
+
+  let twttrReady: Promise<void>;
+
+  function loadWidgetsScript(): Promise<void> {
+    if (twttrReady) return twttrReady;
+    twttrReady = new Promise((resolve, reject) => {
+      if ((window as any).twttr?.widgets) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = 'https://platform.twitter.com/widgets.js';
+      script.async = true;
+      script.onload = () => {
+        const checkReady = setInterval(() => {
+          if ((window as any).twttr?.widgets) {
+            clearInterval(checkReady);
+            resolve();
+          }
+        }, 100);
+        setTimeout(() => { clearInterval(checkReady); reject(new Error('timeout')); }, 10000);
+      };
+      script.onerror = () => reject(new Error('blocked'));
+      document.head.appendChild(script);
+    });
+    return twttrReady;
+  }
+
+  async function renderXTimeline(disease: string) {
+    const container = document.getElementById('x-timeline-container')!;
+    const loading = document.getElementById('x-timeline-loading')!;
+    const fallback = document.getElementById('x-timeline-fallback')!;
+    const profileLabel = document.getElementById('x-profile-label')!;
+    const profileLink = document.getElementById('x-profile-link')! as HTMLAnchorElement;
+    const fallbackLink = document.getElementById('x-fallback-link')! as HTMLAnchorElement;
+
+    const config = xTimelineUrls[disease];
+    if (!config) {
+      container.innerHTML = '<p class="text-sm text-gray-400 text-center py-8">No X feed configured for this disease.</p>';
+      return;
+    }
+
+    // Update header links
+    profileLabel.textContent = config.label;
+    profileLink.href = config.url;
+    fallbackLink.href = config.url;
+
+    // Show loading, hide fallback
+    loading.classList.remove('hidden');
+    fallback.classList.add('hidden');
+
+    // Remove existing embed
+    const existingIframe = container.querySelector('iframe');
+    if (existingIframe) existingIframe.remove();
+    const existingAnchor = container.querySelector('.twitter-timeline');
+    if (existingAnchor) existingAnchor.remove();
+
+    try {
+      await loadWidgetsScript();
+      loading.classList.add('hidden');
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const twttr = (window as any).twttr;
+
+      await twttr.widgets.createTimeline(
+        { sourceType: 'url', url: config.url },
+        container,
+        {
+          height: 500,
+          theme: isDark ? 'dark' : 'light',
+          chrome: 'noheader nofooter noborders transparent',
+          linkColor: '#d97706',
+          dnt: true,
+        }
+      );
+    } catch {
+      loading.classList.add('hidden');
+      fallback.classList.remove('hidden');
+    }
+  }
+
+  // Re-render X timeline on dark/light mode toggle
+  const themeObserver = new MutationObserver(() => {
+    renderXTimeline(activeDisease);
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
   // Load breaking news
   async function loadBreakingNews() {

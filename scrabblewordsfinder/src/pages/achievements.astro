@@ -1,0 +1,273 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="My Achievements — ScrabbleWordsFinder" description="View your scored achievements and word milestones on ScrabbleWordsFinder.com. Track your progress from Rising Star to Scrabble Legend with our free word solver." showSectionLinks={false}>
+  <main class="mx-auto max-w-4xl px-4 sm:px-6 py-12">
+    <a href="/" class="text-sm text-blue-400 hover:underline mb-6 inline-block">← Back to Solver</a>
+
+    <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">🏅 My Achievements</h1>
+    <p class="text-sm text-gray-400 mb-8">Your personal word scoring milestones.</p>
+
+    <!-- Loading state -->
+    <div id="achievements-loading" class="text-center py-8">
+      <p class="text-sm text-gray-500">Loading achievements...</p>
+    </div>
+
+    <!-- Achievements table (shown when user has achievements) -->
+    <div id="achievements-table" class="hidden rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
+      <div id="achievements-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"></div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+          <thead class="bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left text-gray-300">Icon</th>
+              <th class="px-4 py-3 text-left text-gray-300">Word</th>
+              <th class="px-4 py-3 text-left text-gray-300">Score</th>
+              <th class="px-4 py-3 text-left text-gray-300">Level</th>
+              <th class="px-4 py-3 text-left text-gray-300">Note</th>
+              <th class="px-4 py-3 text-left text-gray-300">Date</th>
+            </tr>
+          </thead>
+          <tbody id="achievements-body" class="divide-y divide-gray-800"></tbody>
+        </table>
+        <div id="achievements-pagination" class="hidden flex items-center justify-between mt-4">
+          <button id="page-prev" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 hover:border-blue-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">&lt; Prev</button>
+          <span id="page-info" class="text-xs text-gray-500"></span>
+          <button id="page-next" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 hover:border-blue-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">Next &gt;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state (shown when no achievements) -->
+    <div id="achievements-empty" class="hidden">
+      <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-8 text-center">
+        <span class="text-5xl block mb-4">🏅</span>
+        <h2 class="text-lg font-semibold text-white mb-3">No Achievements Yet</h2>
+        <p class="text-gray-400 mb-6 max-w-md mx-auto">Achievements are earned by finding words with the Scrabble solver. Here's how to get started:</p>
+
+        <div class="text-left max-w-md mx-auto space-y-4 mb-8">
+          <div class="flex items-start gap-3">
+            <span class="text-xl">1️⃣</span>
+            <div>
+              <p class="text-sm font-medium text-gray-200">Enter your tiles</p>
+              <p class="text-xs text-gray-500">Type your Scrabble rack letters in the Word Solver (up to 15 tiles)</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-xl">2️⃣</span>
+            <div>
+              <p class="text-sm font-medium text-gray-200">Click a word in the results</p>
+              <p class="text-xs text-gray-500">The Tile Scores panel will light up showing your word's score and achievement level</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="text-xl">3️⃣</span>
+            <div>
+              <p class="text-sm font-medium text-gray-200">Click "Save" to file your achievement</p>
+              <p class="text-xs text-gray-500">Add an optional note, then hit "File Achievement" to save it permanently</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-sm font-semibold text-purple-400 mb-3">Achievement Levels</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 max-w-lg mx-auto mb-6">
+          <div class="flex flex-col items-center p-3 rounded-lg bg-gray-800">
+            <span class="text-2xl">⭐</span>
+            <span class="text-xs text-gray-300 mt-1">1–9 pts</span>
+            <span class="text-xs text-gray-500">Rising Star</span>
+          </div>
+          <div class="flex flex-col items-center p-3 rounded-lg bg-gray-800">
+            <span class="text-2xl">👍</span>
+            <span class="text-xs text-gray-300 mt-1">10–19 pts</span>
+            <span class="text-xs text-gray-500">Word Builder</span>
+          </div>
+          <div class="flex flex-col items-center p-3 rounded-lg bg-gray-800">
+            <span class="text-2xl">🔥</span>
+            <span class="text-xs text-gray-300 mt-1">20–29 pts</span>
+            <span class="text-xs text-gray-500">Hot Streak</span>
+          </div>
+          <div class="flex flex-col items-center p-3 rounded-lg bg-gray-800">
+            <span class="text-2xl">🏆</span>
+            <span class="text-xs text-gray-300 mt-1">30–49 pts</span>
+            <span class="text-xs text-gray-500">Triple Threat</span>
+          </div>
+          <div class="flex flex-col items-center p-3 rounded-lg bg-gray-800">
+            <span class="text-2xl">🌟</span>
+            <span class="text-xs text-gray-300 mt-1">50+ pts</span>
+            <span class="text-xs text-gray-500">Legend</span>
+          </div>
+        </div>
+
+        <a href="/" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors">
+          🔤 Start Solving →
+        </a>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const LEVEL_ICONS: Record<number, string> = { 1: '⭐', 2: '👍', 3: '🔥', 4: '🏆', 5: '🌟' };
+  const LEVEL_NAMES: Record<number, string> = { 1: 'Rising Star', 2: 'Word Builder', 3: 'Hot Streak', 4: 'Triple Threat', 5: 'Scrabble Legend' };
+
+  async function loadAchievements() {
+    const uid = localStorage.getItem('swf-uid') || '';
+    const loading = document.getElementById('achievements-loading')!;
+    const table = document.getElementById('achievements-table')!;
+    const empty = document.getElementById('achievements-empty')!;
+
+    if (!uid) {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/achievements?user_id=${encodeURIComponent(uid)}`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const { achievements } = await res.json();
+
+      loading.classList.add('hidden');
+
+      if (!achievements || achievements.length === 0) {
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      // Show stats
+      const stats = document.getElementById('achievements-stats')!;
+      const totalScore = achievements.reduce((s: number, a: any) => s + (a.score || 0), 0);
+      const highestLevel = Math.max(...achievements.map((a: any) => a.achievement_id));
+      stats.innerHTML = `
+        <div class="rounded-lg bg-gray-800 p-4 text-center">
+          <p class="text-2xl font-bold text-blue-400">${achievements.length}</p>
+          <p class="text-xs text-gray-500">Total</p>
+        </div>
+        <div class="rounded-lg bg-gray-800 p-4 text-center">
+          <p class="text-2xl font-bold text-green-400">${totalScore}</p>
+          <p class="text-xs text-gray-500">Total Points</p>
+        </div>
+        <div class="rounded-lg bg-gray-800 p-4 text-center">
+          <p class="text-2xl">${LEVEL_ICONS[highestLevel] || '⭐'}</p>
+          <p class="text-xs text-gray-500">Best Level</p>
+        </div>
+        <div class="rounded-lg bg-gray-800 p-4 text-center">
+          <p class="text-2xl font-bold text-purple-400">${Math.round(totalScore / achievements.length)}</p>
+          <p class="text-xs text-gray-500">Avg Score</p>
+        </div>`;
+
+      // Show table with pagination
+      const body = document.getElementById('achievements-body')!;
+      const pagination = document.getElementById('achievements-pagination')!;
+      const prevBtn = document.getElementById('page-prev') as HTMLButtonElement;
+      const nextBtn = document.getElementById('page-next') as HTMLButtonElement;
+      const pageInfo = document.getElementById('page-info')!;
+      const PAGE_SIZE = 10;
+      let currentPage = 0;
+      const totalPages = Math.ceil(achievements.length / PAGE_SIZE);
+
+      function renderPage(page: number) {
+        currentPage = page;
+        const start = page * PAGE_SIZE;
+        const pageItems = achievements.slice(start, start + PAGE_SIZE);
+        body.innerHTML = pageItems.map((a: any, i: number) => {
+          const icon = LEVEL_ICONS[a.achievement_id] || '⭐';
+          const name = LEVEL_NAMES[a.achievement_id] || 'Unknown';
+          const date = a.created_at ? new Date(a.created_at + 'Z').toLocaleDateString() : '—';
+          const rowBg = (start + i) % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
+          const noteText = a.encouragement_words || '';
+          return `<tr class="${rowBg}" data-id="${a.id}">
+            <td class="px-4 py-3 text-lg">${icon}</td>
+            <td class="px-4 py-3 font-mono font-bold text-white uppercase">${a.word || '—'}</td>
+            <td class="px-4 py-3 text-blue-400 font-semibold">${a.score || 0} pts</td>
+            <td class="px-4 py-3 text-gray-400 text-xs">${name}</td>
+            <td class="px-4 py-3 text-xs">
+              <span class="note-display text-gray-500">${noteText || '—'}</span>
+              <button class="edit-note-btn ml-2 text-purple-400 hover:text-purple-300 text-xs" data-id="${a.id}">✏️</button>
+              <div class="note-edit hidden mt-1">
+                <textarea class="note-input w-full px-2 py-1 rounded bg-gray-800 border border-gray-700 text-xs text-gray-200 resize-none" rows="3" maxlength="200">${noteText}</textarea>
+                <div class="flex gap-1 mt-1">
+                  <button class="save-note-btn px-2 py-0.5 rounded bg-purple-600 text-white text-xs hover:bg-purple-500">Save</button>
+                  <button class="cancel-note-btn px-2 py-0.5 rounded bg-gray-700 text-gray-300 text-xs hover:bg-gray-600">Cancel</button>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-gray-500 text-xs">${date}</td>
+          </tr>`;
+        }).join('');
+
+        // Pagination controls
+        if (totalPages > 1) {
+          pagination.classList.remove('hidden');
+          pageInfo.textContent = `Page ${page + 1} of ${totalPages}`;
+          prevBtn.disabled = page === 0;
+          nextBtn.disabled = page >= totalPages - 1;
+        }
+
+        // Bind edit note buttons
+        bindNoteButtons();
+      }
+
+      function bindNoteButtons() {
+        body.querySelectorAll('.edit-note-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const row = btn.closest('tr')!;
+            row.querySelector('.note-display')!.classList.add('hidden');
+            (btn as HTMLElement).classList.add('hidden');
+            row.querySelector('.note-edit')!.classList.remove('hidden');
+          });
+        });
+
+        body.querySelectorAll('.cancel-note-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const row = btn.closest('tr')!;
+            row.querySelector('.note-display')!.classList.remove('hidden');
+            row.querySelector('.edit-note-btn')!.classList.remove('hidden');
+            row.querySelector('.note-edit')!.classList.add('hidden');
+          });
+        });
+
+        body.querySelectorAll('.save-note-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const row = btn.closest('tr')!;
+            const id = row.dataset.id;
+            const input = row.querySelector('.note-input') as HTMLTextAreaElement;
+            const newNote = input.value.trim();
+            (btn as HTMLButtonElement).textContent = '⏳';
+            try {
+              const res = await fetch('/api/achievements', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: Number(id), encouragement_words: newNote })
+              });
+              if (res.ok) {
+                const display = row.querySelector('.note-display')!;
+                display.textContent = newNote || '—';
+                display.classList.remove('hidden');
+                row.querySelector('.edit-note-btn')!.classList.remove('hidden');
+                row.querySelector('.note-edit')!.classList.add('hidden');
+              } else {
+                (btn as HTMLButtonElement).textContent = '❌ Retry';
+              }
+            } catch {
+              (btn as HTMLButtonElement).textContent = '❌ Error';
+            }
+          });
+        });
+      }
+
+      prevBtn.addEventListener('click', () => { if (currentPage > 0) renderPage(currentPage - 1); });
+      nextBtn.addEventListener('click', () => { if (currentPage < totalPages - 1) renderPage(currentPage + 1); });
+
+      renderPage(0);
+      table.classList.remove('hidden');
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  loadAchievements();
+</script>

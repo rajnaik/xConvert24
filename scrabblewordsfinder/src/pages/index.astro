@@ -95,20 +95,30 @@ import '../styles/global.css';
 
 
   <!-- Main solver area -->
-  <main class="mx-auto max-w-5xl px-4 sm:px-6 pb-20">
+  <main class="mx-auto max-w-5xl px-4 sm:px-6 pb-20 pt-4">
 
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-4 tracking-tight"><span class="text-blue-400">Scrabble</span> Words Finder</h1>
 
-    <!-- Two-column layout: Solver + Saved Words -->
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 mb-6">
+    <!-- Two-column layout: Solver + Memory Workbench -->
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_calc(50%-33px)] gap-6 mb-6">
       <!-- Left: Input & Results -->
       <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 sm:p-6">
 
         <!-- Word Solver (up to 15 letters) -->
         <div class="mb-4">
-          <label for="text-solver" class="block text-sm font-medium text-gray-300 mb-1.5">Word Solver</label>
+          <div class="flex items-center gap-2 mb-2">
+            <h2 class="font-semibold text-white flex items-center gap-2">
+              <span aria-hidden="true">🔍</span> Word Solver
+            </h2>
+            <a id="copy-solver" href="#" class="p-1 rounded text-gray-500 hover:text-blue-400 transition-colors opacity-30" title="Copy to clipboard"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg></a>
+            <a id="paste-solver" href="#" class="p-1 rounded text-gray-500 hover:text-blue-400 transition-colors" title="Paste from clipboard"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></a>
+          </div>
           <div class="flex gap-2 sm:gap-3">
             <input id="text-solver" type="text" maxlength="15" placeholder="Type all your tiles e.g. ARRESTEDERNING" inputmode="text" autocapitalize="characters" class="flex-1 h-11 px-3 bg-gray-800 border border-gray-700 rounded-lg text-blue-300 text-lg font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off"/>
-            <button id="text-solve-btn" class="h-11 px-5 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm">Solve</button>
+            <a id="clear-text-solver" href="#" class="flex items-center justify-center w-7 h-7 rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 transition-colors self-center" title="Clear">
+              <svg class="w-3 h-3 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </a>
+            <button id="text-solve-btn" class="h-11 px-5 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm ml-auto">Solve</button>
           </div>
           <p class="mt-1.5 text-xs text-gray-500">Use ? for blank tiles. Up to 15 letters. Finds all words you can make.</p>
         </div>
@@ -120,15 +130,15 @@ import '../styles/global.css';
           <label class="block text-sm font-medium text-gray-300 mb-1.5">Tile Rack <span class="text-gray-500 font-normal">(7 tiles max)</span></label>
           <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center">
             <div class="flex gap-1.5" id="tile-inputs">
-              <input type="text" maxlength="1" class="tile-box w-12 h-14 sm:w-14 sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="0" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-12 h-14 sm:w-14 sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="1" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-12 h-14 sm:w-14 sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="2" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-12 h-14 sm:w-14 sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="3" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-12 h-14 sm:w-14 sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="4" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-12 h-14 sm:w-14 sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="5" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-12 h-14 sm:w-14 sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="6" autocomplete="off" inputmode="text" />
+              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="0" autocomplete="off" inputmode="text" />
+              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="1" autocomplete="off" inputmode="text" />
+              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="2" autocomplete="off" inputmode="text" />
+              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="3" autocomplete="off" inputmode="text" />
+              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="4" autocomplete="off" inputmode="text" />
+              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="5" autocomplete="off" inputmode="text" />
+              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="6" autocomplete="off" inputmode="text" />
             </div>
-            <button id="solve-btn" class="h-12 sm:h-16 px-6 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-base sm:text-lg">Find Words</button>
+            <button id="solve-btn" class="h-12 sm:h-16 px-4 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm sm:text-base ml-auto">Find Words</button>
           </div>
           <p class="mt-2 text-xs text-gray-500">One letter per tile. Use <kbd class="rounded bg-gray-800 px-1 py-0.5 font-mono text-blue-400">?</kbd> for blanks.</p>
           <input id="tiles" type="hidden" />
@@ -193,14 +203,17 @@ import '../styles/global.css';
         <div id="high-scoring-panel" class="hidden"></div>
       </div>
 
-      <!-- Right: Saved Words -->
+      <!-- Right: Memory Workbench -->
       <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-6 h-fit lg:sticky lg:top-4">
         <div class="flex items-center justify-between mb-4">
           <h2 class="font-semibold text-white flex items-center gap-2">
-            <span aria-hidden="true">👑</span> Saved Words
+            <span aria-hidden="true">👑</span> Memory Workbench
           </h2>
           <div class="flex items-center gap-2">
-            <button id="download-saved-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 transition-colors opacity-30" title="Download saved words" aria-label="Download saved words">
+            <button id="flashcard-mode-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-900/20 transition-colors" title="Flash Cards Mode" aria-label="Flash Cards Mode">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </button>
+            <button id="download-saved-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 transition-colors opacity-30" title="Download memory workbench" aria-label="Download memory workbench">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
             </button>
             <span id="saved-count" class="text-xs text-gray-400">0</span>
@@ -208,7 +221,7 @@ import '../styles/global.css';
         </div>
         <p class="text-xs text-gray-500 mb-3">Click any word in results or reference panels to save it here.</p>
         <div id="saved-words-list" class="max-h-[400px] overflow-y-auto">
-          <p id="saved-empty" class="text-sm text-gray-500 text-center py-4 italic">No saved words yet. Click any word to collect it.</p>
+          <p id="saved-empty" class="text-sm text-gray-500 text-center py-4 italic">No memory workbench yet. Click any word to collect it.</p>
         </div>
 
         <!-- Rack Leave Analyzer -->
@@ -224,20 +237,23 @@ import '../styles/global.css';
         <div id="section-probability" class="mt-6 pt-4 border-t border-purple-800/40">
           <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-semibold text-white flex items-center gap-1.5"><span aria-hidden="true">🎲</span> Tile Bag</span>
-            <button id="prob-popup-btn" type="button" class="px-2 py-1 rounded bg-gray-800 border border-gray-700 text-xs font-medium text-gray-400 hover:text-blue-400 hover:border-blue-700 transition-colors">Draw %</button>
-          </div>
-          <div class="flex items-center gap-3 text-xs">
-            <div class="flex items-center gap-1">
-              <span class="text-gray-500">Bag:</span>
-              <input id="tiles-in-bag" type="number" min="0" max="100" value="100" class="w-9 text-center text-xs font-bold text-white bg-gray-800 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:border-blue-500" />
+            <div class="flex items-center gap-2">
+              <button id="prob-reset-btn" type="button" class="px-2 py-1 rounded bg-gray-800 border border-gray-700 text-xs font-medium text-gray-400 hover:text-rose-400 hover:border-rose-700 transition-colors">↺ Reset</button>
+              <button id="prob-popup-btn" type="button" class="px-2 py-1 rounded bg-gray-800 border border-gray-700 text-xs font-medium text-gray-400 hover:text-blue-400 hover:border-blue-700 transition-colors">Draw %</button>
             </div>
-            <div class="flex items-center gap-1">
-              <span class="text-gray-500">Rack:</span>
+          </div>
+          <div class="flex items-center gap-5 text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="text-gray-400 font-medium">Bag:</span>
+              <input id="tiles-in-bag" type="number" min="0" max="100" value="100" class="w-[55px] text-center text-xs font-bold text-white bg-gray-800 border border-gray-700 rounded px-1.5 py-1 focus:outline-none focus:border-blue-500" />
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-gray-400 font-medium">Rack:</span>
               <span id="prob-your-rack" class="text-xs font-bold text-blue-400">0</span>
             </div>
-            <div class="flex items-center gap-1">
-              <span class="text-gray-500">Played:</span>
-              <input id="tiles-played" type="number" min="0" max="86" value="0" class="w-9 text-center text-xs font-bold text-rose-400 bg-gray-800 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:border-blue-500" />
+            <div class="flex items-center gap-1.5">
+              <span class="text-gray-400 font-medium">Played:</span>
+              <input id="tiles-played" type="number" min="0" max="86" value="0" class="w-[55px] text-center text-xs font-bold text-rose-400 bg-gray-800 border border-gray-700 rounded px-1 py-0.5 focus:outline-none focus:border-blue-500" />
             </div>
           </div>
           <div id="prob-popup" class="hidden mt-3 pt-2 border-t border-gray-800">
@@ -257,25 +273,32 @@ import '../styles/global.css';
     </div>
 
     <!-- Tile Scores -->
+    <div class="lg:mr-[-50px]">
     <div id="section-tile-scores" class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
-      <h2 id="tile-scores-heading" class="font-semibold text-white mb-4">Scrabble Tile Scores</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="tile-scores-heading" class="font-semibold text-white">Scrabble Tile Scores</h2>
+        <a id="view-achievements-link" href="/achievements" class="hidden text-xs text-blue-400 hover:underline">🏅 View Achievements →</a>
+      </div>
+      <div id="tile-score-encouragement" class="mb-4 mt-[10px] text-center">
+        <p class="text-sm text-gray-500 italic">Solve a word to see your Tile Scores</p>
+      </div>
       <div class="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-13 gap-3 justify-items-center" id="tile-scores"></div>
     </div>
 
     <!-- Reference Panels -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
       <div id="section-two-letter" class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
-        <h2 class="font-semibold text-white mb-2 flex items-start gap-2"><span aria-hidden="true">🔤</span> Two-Letter Words</h2>
+        <h2 class="font-semibold text-white mb-2 flex items-start gap-2"><span aria-hidden="true">🔤</span> Two-Letter Words <button class="import-section-btn ml-2 px-2 py-0.5 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" data-section="two-letter-words" data-cat="two-letter">📥 Import</button></h2>
         <p class="text-xs text-gray-400 mb-3">All valid 2-letter Scrabble words (SOWPODS)</p>
         <div id="two-letter-words" class="text-xs text-gray-500 italic">Loading dictionary…</div>
       </div>
       <div id="section-three-letter" class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
-        <h2 class="font-semibold text-white mb-2 flex items-start gap-2"><span aria-hidden="true">🏆</span> Top 3-Letter Words</h2>
+        <h2 class="font-semibold text-white mb-2 flex items-start gap-2"><span aria-hidden="true">🏆</span> Top 3-Letter Words <button class="import-section-btn ml-2 px-2 py-0.5 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" data-section="three-letter-words" data-cat="three-letter">📥 Import</button></h2>
         <p class="text-xs text-gray-400 mb-3">Highest-scoring 3-letter words</p>
         <div id="three-letter-words" class="text-xs text-gray-500 italic">Loading dictionary…</div>
       </div>
       <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
-        <h2 class="font-semibold text-white mb-2 flex items-start gap-2"><span aria-hidden="true">🅀</span> Q Without U</h2>
+        <h2 class="font-semibold text-white mb-2 flex items-start gap-2"><span aria-hidden="true">🅀</span> Q Without U <button class="import-section-btn ml-2 px-2 py-0.5 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" data-section="q-without-u" data-cat="q-without-u">📥 Import</button></h2>
         <p class="text-xs text-gray-400 mb-3">Legal Scrabble words with Q but no U</p>
         <div id="q-without-u" class="text-xs text-gray-500 italic">Loading dictionary…</div>
       </div>
@@ -283,7 +306,7 @@ import '../styles/global.css';
 
     <!-- Rare Letters -->
     <div id="section-rare-letters" class="mt-6 rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
-      <h2 class="font-semibold text-white mb-2 flex items-start gap-2"><span aria-hidden="true">💎</span> Words with Rare Letters</h2>
+      <h2 class="font-semibold text-white mb-2 flex items-start gap-2"><span aria-hidden="true">💎</span> Words with Rare Letters <button class="import-section-btn ml-2 px-2 py-0.5 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" data-section="rare-letter-results" data-cat="rare-letters">📥 Import</button></h2>
       <div class="flex gap-2 mb-4" id="rare-tabs">
         <button data-rare="q" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-purple-900/30 text-purple-300 border border-purple-800">Q</button>
         <button data-rare="z" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700">Z</button>
@@ -291,6 +314,7 @@ import '../styles/global.css';
         <button data-rare="j" class="rare-tab px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700">J</button>
       </div>
       <div id="rare-letter-results" class="text-xs text-gray-500 italic">Loading dictionary…</div>
+    </div>
     </div>
 
     <!-- Edit Modal -->
@@ -328,7 +352,7 @@ import '../styles/global.css';
     </div>
 
     <!-- Related Articles -->
-    <div class="mt-10 rounded-xl border border-gray-800 bg-gray-900/50 p-6">
+    <div class="mt-10 rounded-xl border border-gray-800 bg-gray-900/50 p-6 lg:mr-[-38px]">
       <h2 class="font-semibold text-white mb-4 flex items-center gap-2"><span aria-hidden="true">📝</span> Related Articles</h2>
       <ul class="space-y-3">
         <li><a href="/blog/scrabble-history-origins-great-depression" class="flex items-center gap-3 text-sm text-gray-400 hover:text-blue-400 transition-colors"><span class="shrink-0 text-base" aria-hidden="true">🏛️</span><span>The History of Scrabble: From the Great Depression to Global Phenomenon</span></a></li>
@@ -353,7 +377,10 @@ import '../styles/global.css';
 
   function syncTiles() {
     if (syncingFromTextSolver) return; // Don't overwrite when Word Solver is driving
-    const val = Array.from(tileBoxes).map(b => b.value.toUpperCase()).join('');
+    // Empty boxes between filled boxes become ? (blank tiles)
+    const boxes = Array.from(tileBoxes).map(b => b.value.toUpperCase());
+    const lastFilled = boxes.reduce((last, v, i) => v ? i : last, -1);
+    const val = boxes.slice(0, lastFilled + 1).map(v => v || '?').join('');
     hiddenTiles.value = val;
     hiddenTiles.dispatchEvent(new Event('input'));
     // Sync tile rack → Word Solver (bidirectional)
@@ -465,7 +492,7 @@ import '../styles/global.css';
         resultsEl.innerHTML = '';
 
         highScoringPanel.innerHTML = `
-          <div class="text-center mb-3"><span class="inline-flex items-center gap-2 text-sm font-semibold text-blue-400"><span>🏆</span> High-Scoring Words by Length</span></div>
+          <div class="text-center mb-3"><span class="inline-flex items-center gap-2 text-sm font-semibold text-blue-400"><span>🏆</span> High-Scoring Words by Length</span> <button id="import-highscoring-btn" class="ml-2 px-2 py-0.5 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" title="Import all to Memory Workbench">📥 Import</button></div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
               <thead class="bg-gray-800"><tr><th class="px-4 py-3 text-left font-semibold text-gray-300 w-32">Length</th><th class="px-4 py-3 text-left font-semibold text-gray-300">Highest Scoring Words</th></tr></thead>
@@ -480,6 +507,25 @@ import '../styles/global.css';
         highScoringPanel.classList.remove('hidden');
         applyAchievements(highScoringPanel);
         bindAchievementClicks(highScoringPanel);
+        // Import all high-scoring words to Memory Workbench
+        document.getElementById('import-highscoring-btn')?.addEventListener('click', () => {
+          const words = highScoringPanel.querySelectorAll('[data-achieve-word]');
+          let imported = 0;
+          const existing = getAchievedWords();
+          words.forEach(el => {
+            const word = (el as HTMLElement).dataset.achieveWord;
+            if (word && !existing.includes(word)) {
+              const achievements = getAchievements();
+              achievements.unshift({ word, meaning: '', category: 'high-scoring' });
+              saveAchievements(achievements);
+              imported++;
+            }
+          });
+          const btn = document.getElementById('import-highscoring-btn')!;
+          btn.textContent = `✅ ${imported} imported`;
+          setTimeout(() => { btn.textContent = '📥 Import'; }, 2000);
+          renderSavedWords();
+        });
       }
     } catch {
       WORDS = ["quiz","qi","qat","ax","ox","za","zo","xi","xu"];
@@ -535,16 +581,15 @@ import '../styles/global.css';
 
     const achievements = getAchievedWords();
     resultsEl.innerHTML = `
-      <div class="text-xs text-gray-400 mb-3">${found.length} words found — click to save and copy to clipboard</div>
+      <div class="text-xs text-gray-400 mb-3">${found.length} words found — click to save and copy to clipboard <span class="ml-2">💎 = 20+ points</span></div>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-1">
         ${found.slice(0, 100).map(w => {
           const isAchieved = achievements.includes(w);
           const achievedClass = isAchieved ? 'ring-2 ring-emerald-500' : '';
           const tiara = isAchieved ? '<span class="achievement-tiara absolute -top-2 -left-1 text-xs">👑</span>' : '';
-          const rareLetters = ['q','z','x','j'];
-          const rareMatch = rareLetters.filter(l => w.includes(l));
-          const rareIcon = rareMatch.length ? `<span class="absolute -top-2 -right-1 text-xs" title="Contains rare letter: ${rareMatch.join(', ').toUpperCase()}">💎</span>` : '';
-          return `<div class="relative flex items-center justify-between px-3 py-2.5 bg-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all ${achievedClass}" data-achieve-word="${w}" data-highlight-word="${w}">${tiara}${rareIcon}<span class="font-mono font-semibold text-white uppercase tracking-wider" style="font-size:0.65rem">${w}</span><div class="flex items-center gap-1"><span class="text-green-400" style="font-size:0.5rem" title="Valid in dictionary">✓</span><span class="font-bold text-blue-400" style="font-size:0.6rem">${wordScore(w)} pts</span></div></div>`;
+          const wScore = wordScore(w);
+          const diamondIcon = wScore > 20 ? `<span class="absolute -top-2 -right-1 text-xs" title="High scorer: ${wScore} pts">💎</span>` : '';
+          return `<div class="relative flex items-center justify-between px-3 py-2.5 bg-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all ${achievedClass}" data-achieve-word="${w}" data-highlight-word="${w}">${tiara}${diamondIcon}<span class="font-mono font-semibold text-white uppercase tracking-wider" style="font-size:0.65rem">${w}</span><div class="flex items-center gap-1"><span class="text-green-400" style="font-size:0.5rem" title="Valid in dictionary">✓</span><span class="font-bold text-blue-400" style="font-size:0.6rem">${wScore} pts</span></div></div>`;
         }).join('')}
       </div>
       ${found.length > 100 ? '<div class="mt-2 text-xs text-gray-500 text-center">Showing top 100 of ' + found.length + '</div>' : ''}`;
@@ -560,23 +605,37 @@ import '../styles/global.css';
     });
   }
 
-  // ── Saved Words / Achievements ──────────────────────────────────────────
+  // ── Memory Workbench / Achievements ──────────────────────────────────────────
   const ACHIEVEMENTS_KEY = 'scbAchievements';
-  interface Achievement { word: string; meaning: string; }
+  interface Achievement { word: string; meaning: string; category?: string; }
 
   function getAchievements(): Achievement[] {
     try {
       const data = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY) || '[]');
       if (data.length > 0 && typeof data[0] === 'string') {
-        const migrated = data.map((w: string) => ({ word: w, meaning: '' })).reverse();
+        const migrated = data.map((w: string) => ({ word: w, meaning: '', category: 'manual' })).reverse();
         localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(migrated));
         return migrated;
       }
-      return data;
+      // Migrate entries without category
+      let needsMigration = false;
+      const migrated = data.map((a: any) => {
+        if (!a.category) { needsMigration = true; return { ...a, category: 'manual' }; }
+        return a;
+      });
+      if (needsMigration) localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(migrated));
+      return migrated;
     } catch { return []; }
   }
 
   function getAchievedWords(): string[] { return getAchievements().map(a => a.word); }
+  function getCategories(): { name: string; count: number }[] {
+    const all = getAchievements();
+    const cats: Record<string, number> = {};
+    all.forEach(a => { const c = a.category || 'manual'; cats[c] = (cats[c] || 0) + 1; });
+    return Object.entries(cats).map(([name, count]) => ({ name, count }));
+  }
+  let activeCategory = 'all';
 
   function saveAchievements(achievements: Achievement[]) {
     localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
@@ -620,7 +679,7 @@ import '../styles/global.css';
       const tiara = el.querySelector('.achievement-tiara');
       if (tiara) tiara.remove();
     } else {
-      achievements.unshift({ word, meaning: '' });
+      achievements.unshift({ word, meaning: '', category: 'manual' });
       el.classList.add('ring-2', 'ring-emerald-500');
       if (!el.querySelector('.achievement-tiara')) {
         const tiara = document.createElement('span');
@@ -667,7 +726,7 @@ import '../styles/global.css';
     });
   }
 
-  // ── Render Saved Words ──────────────────────────────────────────────────
+  // ── Render Memory Workbench ──────────────────────────────────────────────────
   const downloadBtn = document.getElementById('download-saved-btn')!;
   let savedWordsPage = 0;
 
@@ -678,15 +737,31 @@ import '../styles/global.css';
   }
 
   function renderSavedWords() {
-    const achievements = getAchievements();
+    const allAchievements = getAchievements();
     const listEl = document.getElementById('saved-words-list')!;
     const countEl = document.getElementById('saved-count')!;
-    countEl.textContent = `${achievements.length}`;
     updateDownloadBtnVisibility();
+
+    // Filter by active category
+    const achievements = activeCategory === 'all' ? allAchievements : allAchievements.filter(a => (a.category || 'manual') === activeCategory);
+    countEl.textContent = `${allAchievements.length}`;
+
+    if (!allAchievements.length) {
+      savedWordsPage = 0;
+      listEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-4 italic">No memory workbench yet. Click any word to collect it.</p>';
+      return;
+    }
+
+    // Category tabs
+    const cats = getCategories();
+    const catTabs = cats.length > 1 ? `<div class="flex flex-wrap gap-1 mb-3">${[{ name: 'all', count: allAchievements.length }, ...cats].map(c => 
+      `<button class="cat-tab px-2 py-0.5 rounded text-xs ${activeCategory === c.name ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-purple-300'} transition-colors" data-cat="${c.name}">${c.name} (${c.count})</button>`
+    ).join('')}</div>` : '';
 
     if (!achievements.length) {
       savedWordsPage = 0;
-      listEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-4 italic">No saved words yet. Click any word to collect it.</p>';
+      listEl.innerHTML = catTabs + '<p class="text-sm text-gray-500 text-center py-4 italic">No words in this category.</p>';
+      bindCatTabs(listEl);
       return;
     }
     if (savedWordsPage >= achievements.length) savedWordsPage = achievements.length - 1;
@@ -695,7 +770,7 @@ import '../styles/global.css';
     const a = achievements[savedWordsPage];
     const idx = savedWordsPage;
 
-    listEl.innerHTML = `
+    listEl.innerHTML = catTabs + `
       <div class="flex items-center justify-between mb-3">
         <button id="saved-prev-btn" class="p-1.5 rounded-lg transition-colors ${idx === 0 ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-blue-400 cursor-pointer'}" ${idx === 0 ? 'disabled' : ''} aria-label="Previous saved word"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
         <span class="text-xs text-gray-400 font-mono">${idx + 1} / ${achievements.length}</span>
@@ -708,6 +783,7 @@ import '../styles/global.css';
         </div>
         ${a.meaning ? `<p class="text-xs text-gray-400 mt-1 leading-relaxed">${escapeHtml(a.meaning)}</p>` : '<p class="text-xs text-gray-500 italic mt-1">No meaning saved</p>'}
         <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-700">
+          <button class="copy-word-btn flex-1 py-1.5 text-xs text-center text-gray-400 hover:text-green-400 hover:bg-green-900/20 rounded transition-colors" data-word="${escapeHtml(a.word)}">📋 Copy</button>
           <button class="edit-achievement-btn flex-1 py-1.5 text-xs text-center text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 rounded transition-colors" data-idx="${idx}">✏️ Edit</button>
           <button class="delete-achievement-btn flex-1 py-1.5 text-xs text-center text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors" data-idx="${idx}">🗑️ Delete</button>
         </div>
@@ -716,12 +792,110 @@ import '../styles/global.css';
     document.getElementById('saved-prev-btn')?.addEventListener('click', () => { if (savedWordsPage > 0) { savedWordsPage--; renderSavedWords(); } });
     document.getElementById('saved-next-btn')?.addEventListener('click', () => { if (savedWordsPage < achievements.length - 1) { savedWordsPage++; renderSavedWords(); } });
     listEl.querySelectorAll('.edit-achievement-btn').forEach(btn => { btn.addEventListener('click', () => openEditModal(parseInt((btn as HTMLElement).dataset.idx!))); });
+    listEl.querySelectorAll('.copy-word-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const word = (btn as HTMLElement).dataset.word || '';
+        navigator.clipboard.writeText(word.toUpperCase()).then(() => {
+          (btn as HTMLElement).textContent = '✅ Copied!';
+          setTimeout(() => { (btn as HTMLElement).textContent = '📋 Copy'; }, 1000);
+        });
+      });
+    });
     listEl.querySelectorAll('.delete-achievement-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const idx = parseInt((btn as HTMLElement).dataset.idx!);
         let achs = getAchievements(); const removed = achs[idx]; achs.splice(idx, 1); saveAchievements(achs); renderSavedWords();
         document.querySelectorAll(`[data-achieve-word="${removed?.word}"]`).forEach(el => { el.classList.remove('ring-2', 'ring-emerald-500'); el.querySelector('.achievement-tiara')?.remove(); });
       });
+    });
+    bindCatTabs(listEl);
+  }
+
+  function bindCatTabs(container: HTMLElement) {
+    container.querySelectorAll('.cat-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCategory = (btn as HTMLElement).dataset.cat || 'all';
+        savedWordsPage = 0;
+        renderSavedWords();
+      });
+    });
+  }
+
+  // ── Import section buttons ──────────────────────────────────────────────
+  document.querySelectorAll('.import-section-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sectionId = (btn as HTMLElement).dataset.section!;
+      const category = (btn as HTMLElement).dataset.cat!;
+      const container = document.getElementById(sectionId);
+      if (!container) return;
+      const words = container.querySelectorAll('[data-achieve-word]');
+      let imported = 0;
+      const existing = getAchievedWords();
+      words.forEach(el => {
+        const word = (el as HTMLElement).dataset.achieveWord;
+        if (word && !existing.includes(word)) {
+          const achievements = getAchievements();
+          achievements.unshift({ word, meaning: '', category });
+          saveAchievements(achievements);
+          imported++;
+        }
+      });
+      (btn as HTMLElement).textContent = `✅ ${imported}`;
+      setTimeout(() => { (btn as HTMLElement).textContent = '📥'; }, 2000);
+      renderSavedWords();
+    });
+  });
+
+  // ── Flash Cards Mode ────────────────────────────────────────────────────
+  let flashCardMode = false;
+  let flashCardIdx = 0;
+  let flashCardRevealed = false;
+
+  document.getElementById('flashcard-mode-btn')!.addEventListener('click', () => {
+    const allAchievements = getAchievements();
+    const filtered = activeCategory === 'all' ? allAchievements : allAchievements.filter(a => (a.category || 'manual') === activeCategory);
+    if (!filtered.length) return;
+    flashCardMode = true;
+    flashCardIdx = 0;
+    flashCardRevealed = false;
+    renderFlashCard(filtered);
+  });
+
+  function renderFlashCard(cards: Achievement[]) {
+    const listEl = document.getElementById('saved-words-list')!;
+    const card = cards[flashCardIdx];
+    if (!card) { flashCardMode = false; renderSavedWords(); return; }
+
+    listEl.innerHTML = `
+      <div class="relative">
+        <button id="flashcard-close" class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 text-purple-300 text-sm transition-colors">✕</button>
+        <div class="text-center py-6">
+          <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-2">Flash Card ${flashCardIdx + 1} / ${cards.length}</p>
+          <div class="p-6 bg-gray-800 rounded-xl border border-purple-800/50 min-h-[120px] flex flex-col items-center justify-center cursor-pointer" id="flashcard-body">
+            <span class="font-mono font-extrabold text-2xl text-white uppercase tracking-widest">${card.word}</span>
+            <span class="text-sm text-blue-400 mt-1">${wordScore(card.word)} pts</span>
+            ${flashCardRevealed ? `<p class="text-xs text-gray-400 mt-3 max-w-[200px] text-center">${card.meaning || 'No definition saved'}</p>` : '<p class="text-xs text-gray-500 mt-3 italic">Tap to reveal meaning</p>'}
+          </div>
+          <div class="flex items-center justify-center gap-4 mt-4">
+            <button id="fc-prev" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 transition-colors ${flashCardIdx === 0 ? 'opacity-30' : ''}">&lt;</button>
+            <span class="text-xs text-gray-500">${card.category || 'manual'}</span>
+            <button id="fc-next" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 transition-colors ${flashCardIdx >= cards.length - 1 ? 'opacity-30' : ''}">&gt;</button>
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById('flashcard-body')!.addEventListener('click', () => {
+      if (!flashCardRevealed) { flashCardRevealed = true; renderFlashCard(cards); }
+    });
+    document.getElementById('fc-prev')!.addEventListener('click', () => {
+      if (flashCardIdx > 0) { flashCardIdx--; flashCardRevealed = false; renderFlashCard(cards); }
+    });
+    document.getElementById('fc-next')!.addEventListener('click', () => {
+      if (flashCardIdx < cards.length - 1) { flashCardIdx++; flashCardRevealed = false; renderFlashCard(cards); }
+    });
+    document.getElementById('flashcard-close')!.addEventListener('click', () => {
+      flashCardMode = false;
+      renderSavedWords();
     });
   }
 
@@ -826,8 +1000,11 @@ import '../styles/global.css';
   loadFilterPrefs();
 
   // ── Init Event Listeners ────────────────────────────────────────────────
-  document.getElementById('solve-btn')!.addEventListener('click', () => solve(7));
-  document.getElementById('tiles')!.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') solve(7); });
+  document.getElementById('solve-btn')!.addEventListener('click', () => {
+    const text = (document.getElementById('tiles') as HTMLInputElement).value.trim().toUpperCase();
+    if (text.length > 7) { solve(); } else { solve(7); }
+  });
+  document.getElementById('tiles')!.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') { const t = (document.getElementById('tiles') as HTMLInputElement).value.trim(); if (t.length > 7) { solve(); } else { solve(7); } } });
 
   document.getElementById('min-len')!.addEventListener('change', () => {
     saveFilterPref('minLen', (document.getElementById('min-len') as HTMLSelectElement).value);
@@ -957,6 +1134,62 @@ import '../styles/global.css';
     }
   });
 
+  // ── Clear buttons ───────────────────────────────────────────────────────
+  document.getElementById('clear-text-solver')!.addEventListener('click', (e) => {
+    e.preventDefault();
+    textSolver.value = '';
+    hiddenTiles.value = '';
+    tileBoxes.forEach(box => { box.value = ''; });
+    document.getElementById('results')!.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm italic">Enter at least 2 tiles</div>';
+    document.getElementById('copy-solver')!.classList.add('opacity-30');
+  });
+
+  // ── Copy & Paste buttons ────────────────────────────────────────────────
+  const copyBtn = document.getElementById('copy-solver')!;
+  const pasteBtn = document.getElementById('paste-solver')!;
+
+  textSolver.addEventListener('input', () => {
+    if (textSolver.value.trim()) copyBtn.classList.remove('opacity-30');
+    else copyBtn.classList.add('opacity-30');
+  });
+
+  copyBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const text = textSolver.value.trim();
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.innerHTML = '<span class="text-xs text-green-400">✓</span>';
+      setTimeout(() => { copyBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg>'; }, 1000);
+    });
+  });
+
+  pasteBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigator.clipboard.readText().then(text => {
+      const clean = text.replace(/[^a-zA-Z?]/g, '').toUpperCase().slice(0, 15);
+      if (clean) {
+        textSolver.value = clean;
+        textSolver.dispatchEvent(new Event('input'));
+        copyBtn.classList.remove('opacity-30');
+      }
+    }).catch(() => {});
+  });
+
+  // ── Check if user has achievements (show link in Tile Scores header) ────
+  (function checkAchievements() {
+    const uid = localStorage.getItem('swf-uid') || '';
+    if (!uid) return;
+    fetch(`/api/achievements?user_id=${encodeURIComponent(uid)}`).then(r => r.json()).then(data => {
+      if (data.achievements && data.achievements.length > 1) {
+        const link = document.getElementById('view-achievements-link');
+        if (link) {
+          link.classList.remove('hidden');
+          link.textContent = `🏅 View ${data.achievements.length} Achievements →`;
+        }
+      }
+    }).catch(() => {});
+  })();
+
   // ── Tile Scores Display ─────────────────────────────────────────────────
   const scoresEl = document.getElementById('tile-scores')!;
   scoresEl.innerHTML = Object.entries(scores).map(([letter, pts]) =>
@@ -973,7 +1206,7 @@ import '../styles/global.css';
       (tile as HTMLElement).style.outline = ''; (tile as HTMLElement).style.outlineOffset = '';
       tile.classList.remove('tile-highlighted');
     });
-    if (!word) { heading.textContent = 'Scrabble Tile Scores'; return; }
+    if (!word) { heading.textContent = 'Scrabble Tile Scores'; showEncouragement(0, ''); return; }
     const score = wordScore(word);
     heading.innerHTML = `Tile Scores = <span class="text-blue-400">${score} pts</span> <span class="text-sm font-normal text-gray-400">(${word.toUpperCase()})</span>`;
     const letterCounts: Record<string, number> = {};
@@ -986,6 +1219,84 @@ import '../styles/global.css';
         tile.classList.add('tile-highlighted');
       }
     });
+    showEncouragement(score, word);
+  }
+
+  // ── Score Encouragement System ──────────────────────────────────────────
+  function getEncouragementLevel(score: number): { icon: string; text: string; level: number; name: string } {
+    if (score >= 50) return { icon: '🌟', text: 'Legendary! You are a Scrabble master. Scores like this win tournaments.', level: 5, name: 'Scrabble Legend' };
+    if (score >= 30) return { icon: '🏆', text: 'Outstanding! Triple-word territory. Premium squares bow to your strategy.', level: 4, name: 'Triple Threat' };
+    if (score >= 20) return { icon: '🔥', text: 'Great play! You are on fire. You are reading the board well.', level: 3, name: 'Hot Streak' };
+    if (score >= 10) return { icon: '👍', text: 'Nice word! Keep building. You are finding solid plays.', level: 2, name: 'Word Builder' };
+    return { icon: '⭐', text: 'Good start! Every point counts. Keep going!', level: 1, name: 'Rising Star' };
+  }
+
+  function showEncouragement(score: number, word: string) {
+    const el = document.getElementById('tile-score-encouragement')!;
+    if (score === 0) {
+      el.innerHTML = '<p class="text-sm text-gray-500 italic">Solve a word to see your Tile Scores</p>';
+      return;
+    }
+    const { icon, text, level, name } = getEncouragementLevel(score);
+    el.innerHTML = `
+      <div class="flex items-center justify-center gap-3">
+        <span class="text-3xl">${icon}</span>
+        <div>
+          <p class="text-sm font-medium text-gray-200">${name}: ${text}</p>
+          <p class="text-xs text-gray-500">${word.toUpperCase()} = ${score} pts (Level ${level}/5)</p>
+        </div>
+        <button id="save-achievement-btn" class="ml-3 px-3 py-1.5 rounded-lg bg-purple-600/30 border border-purple-500/50 text-xs font-medium text-purple-300 hover:bg-purple-600/50 transition-colors" data-score="${score}" data-word="${word}" data-level="${level}" data-text="${text}">
+          Save ${icon}
+        </button>
+      </div>`;
+    const saveBtn = document.getElementById('save-achievement-btn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        // Show achievement modal with optional note
+        el.innerHTML = `
+          <div class="flex flex-col items-center gap-3 p-4 rounded-xl bg-gray-800/80 border border-purple-500/30">
+            <span class="text-4xl">${icon}</span>
+            <p class="text-base font-semibold text-gray-100">${name}</p>
+            <p class="text-xs text-gray-400 text-center max-w-xs">${text}</p>
+            <p class="text-xs text-gray-500">${word.toUpperCase()} = ${score} pts</p>
+            <textarea id="achievement-note" maxlength="200" rows="4" placeholder="Add a note (optional)" class="w-full max-w-xs px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"></textarea>
+            <div class="flex gap-2">
+              <button id="achievement-file-btn" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-xs font-semibold hover:bg-purple-500 transition-colors">File Achievement ${icon}</button>
+              <button id="achievement-cancel-btn" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-300 text-xs font-medium hover:bg-gray-600 transition-colors">Cancel</button>
+            </div>
+          </div>`;
+        // File button
+        document.getElementById('achievement-file-btn')!.addEventListener('click', () => {
+          const note = (document.getElementById('achievement-note') as HTMLTextAreaElement).value.trim();
+          const uid = localStorage.getItem('swf-uid') || 'anonymous';
+          const fileBtn = document.getElementById('achievement-file-btn')!;
+          fileBtn.innerHTML = '⏳ Saving...';
+          fetch('/api/achievements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: uid, achievement_id: level, encouragement_words: note || text, score, word: word.toUpperCase() })
+          }).then(res => {
+            if (res.ok) {
+              // Check if user has multiple achievements
+              const uid = localStorage.getItem('swf-uid') || '';
+              fetch(`/api/achievements?user_id=${encodeURIComponent(uid)}`).then(r => r.json()).then(data => {
+                const count = data.achievements?.length || 1;
+                const viewAll = count > 1 ? ` <a href="/achievements" class="text-xs text-blue-400 hover:underline ml-2">View all ${count} achievements →</a>` : '';
+                el.innerHTML = `<div class="flex items-center justify-center gap-2 py-2 flex-wrap"><span class="text-2xl">${icon}</span><p class="text-sm text-green-400 font-medium">Achievement filed! ${name} — ${word.toUpperCase()} (${score} pts)</p>${viewAll}</div>`;
+              }).catch(() => {
+                el.innerHTML = `<div class="flex items-center justify-center gap-2 py-2"><span class="text-2xl">${icon}</span><p class="text-sm text-green-400 font-medium">Achievement filed! ${name} — ${word.toUpperCase()} (${score} pts)</p></div>`;
+              });
+            } else {
+              fileBtn.innerHTML = '❌ Error — try again';
+            }
+          }).catch(() => { fileBtn.innerHTML = '❌ Error'; });
+        });
+        // Cancel button
+        document.getElementById('achievement-cancel-btn')!.addEventListener('click', () => {
+          showEncouragement(score, word);
+        });
+      });
+    }
   }
 
   // ── Reference Panels ────────────────────────────────────────────────────
@@ -1060,6 +1371,14 @@ import '../styles/global.css';
   const playedInput = document.getElementById('tiles-played') as HTMLInputElement;
   inBagInput.value = String(probState.inBag);
   playedInput.value = String(probState.played);
+
+  // Reset button
+  document.getElementById('prob-reset-btn')!.addEventListener('click', () => {
+    inBagInput.value = '100';
+    playedInput.value = '0';
+    saveProbState(100, 0);
+    updateProbability();
+  });
 
   function updateProbability() {
     const tiles = (document.getElementById('tiles') as HTMLInputElement).value.trim().toUpperCase();
