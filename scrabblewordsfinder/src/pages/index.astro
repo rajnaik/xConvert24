@@ -991,19 +991,28 @@ import '../styles/global.css';
     if (!card) { flashCardMode = false; renderSavedWords(); return; }
 
     listEl.innerHTML = `
+      <style>
+        @keyframes fcSlideIn { from { transform: translateX(30px) rotateY(15deg); opacity: 0; } to { transform: translateX(0) rotateY(0); opacity: 1; } }
+        @keyframes fcSlideOut { from { transform: translateX(-30px) rotateY(-15deg); opacity: 0; } to { transform: translateX(0) rotateY(0); opacity: 1; } }
+        @keyframes fcReveal { 0% { max-height: 0; opacity: 0; transform: translateY(-5px); } 100% { max-height: 80px; opacity: 1; transform: translateY(0); } }
+        @keyframes fcWordPulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .fc-card-enter { animation: fcSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        .fc-meaning-reveal { animation: fcReveal 0.5s ease-out both; overflow: hidden; }
+        .fc-word-pulse { animation: fcWordPulse 0.3s ease-out; }
+      </style>
       <div class="relative">
         <button id="flashcard-close" class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 text-purple-300 text-sm transition-colors">✕</button>
         <div class="text-center py-6">
           <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-2">Flash Card ${flashCardIdx + 1} / ${cards.length}</p>
-          <div class="p-6 bg-gray-800 rounded-xl border border-purple-800/50 min-h-[120px] flex flex-col items-center justify-center cursor-pointer" id="flashcard-body">
-            <span class="font-mono font-extrabold text-2xl text-white uppercase tracking-widest">${card.word}</span>
+          <div class="fc-card-enter p-6 bg-gray-800 rounded-xl border border-purple-800/50 min-h-[120px] flex flex-col items-center justify-center cursor-pointer transition-shadow hover:shadow-lg hover:shadow-purple-900/20" id="flashcard-body">
+            <span class="font-mono font-extrabold text-2xl text-white uppercase tracking-widest ${flashCardRevealed ? 'fc-word-pulse' : ''}">${card.word}</span>
             <span class="text-sm text-blue-400 mt-1">${wordScore(card.word)} pts</span>
-            ${flashCardRevealed ? `<p class="text-xs text-gray-400 mt-3 max-w-[200px] text-center">${card.meaning || 'No definition saved'}</p>` : '<p class="text-xs text-gray-500 mt-3 italic">Tap to reveal meaning</p>'}
+            ${flashCardRevealed ? `<div class="fc-meaning-reveal mt-3"><p class="text-xs text-gray-400 max-w-[220px] text-center leading-relaxed">${card.meaning || 'No definition saved'}</p></div>` : '<p class="text-xs text-gray-500 mt-3 italic animate-pulse">Tap to reveal meaning</p>'}
           </div>
           <div class="flex items-center justify-center gap-4 mt-4">
-            <button id="fc-prev" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 transition-colors ${flashCardIdx === 0 ? 'opacity-30' : ''}">&lt;</button>
+            <button id="fc-prev" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 hover:border-blue-700 transition-all ${flashCardIdx === 0 ? 'opacity-30 pointer-events-none' : ''}">&lt;</button>
             <span class="text-xs text-gray-500">${card.category || 'manual'}</span>
-            <button id="fc-next" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 transition-colors ${flashCardIdx >= cards.length - 1 ? 'opacity-30' : ''}">&gt;</button>
+            <button id="fc-next" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 hover:border-blue-700 transition-all ${flashCardIdx >= cards.length - 1 ? 'opacity-30 pointer-events-none' : ''}">&gt;</button>
           </div>
         </div>
       </div>`;

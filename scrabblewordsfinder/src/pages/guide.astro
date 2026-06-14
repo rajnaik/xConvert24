@@ -5,6 +5,42 @@ import '../styles/global.css';
 ---
 
 <Layout title="Free Scrabble Solver Guide — Tips, Filters & Strategy" description="Learn how to use our free Scrabble word finder. Master tile entry, filters, rack leave analysis, bingo hunting, and strategy tips. No sign-up required." keywords="scrabble word finder guide, scrabble strategy tips, scrabble rack leave, scrabble opening moves, scrabble bingo words, free word finder tutorial, scrabble tile probability">
+
+<style>
+  @keyframes typeIn { from { width: 0; } to { width: 100%; } }
+  @keyframes blink { 0%, 100% { border-color: transparent; } 50% { border-color: #60a5fa; } }
+  @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(168,85,247,0); } 50% { box-shadow: 0 0 8px 2px rgba(168,85,247,0.3); } }
+  @keyframes flipReveal { 0% { transform: rotateY(90deg); opacity: 0; } 100% { transform: rotateY(0); opacity: 1; } }
+  @keyframes slideScore { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes syncType { 0%, 100% { width: 0; } 50% { width: 100%; } }
+  @keyframes syncTile { 0%, 100% { opacity: 0; transform: scale(0.5); } 14%, 85% { opacity: 1; transform: scale(1); } }
+  @keyframes slowReveal { 0% { opacity: 0; max-height: 0; filter: blur(4px); transform: translateY(-4px); } 100% { opacity: 1; max-height: 60px; filter: blur(0); transform: translateY(0); } }
+  @keyframes cardSwap { 0% { transform: translateX(40px) scale(0.9); opacity: 0; } 100% { transform: translateX(0) scale(1); opacity: 1; } }
+  @keyframes cardSwapReverse { 0% { transform: translateX(-40px) scale(0.9); opacity: 0; } 100% { transform: translateX(0) scale(1); opacity: 1; } }
+  .demo-type { overflow: hidden; white-space: nowrap; border-right: 2px solid #60a5fa; animation: syncType 4s steps(7) infinite, blink 0.7s step-end infinite; }
+  .demo-tile { animation: syncTile 4s ease-out infinite; }
+  .demo-tile:nth-child(1) { animation-delay: 0s; }
+  .demo-tile:nth-child(2) { animation-delay: 0.28s; }
+  .demo-tile:nth-child(3) { animation-delay: 0.56s; }
+  .demo-tile:nth-child(4) { animation-delay: 0.84s; }
+  .demo-tile:nth-child(5) { animation-delay: 1.12s; }
+  .demo-tile:nth-child(6) { animation-delay: 1.4s; }
+  .demo-tile:nth-child(7) { animation-delay: 1.68s; }
+  .demo-result { animation: fadeSlideUp 0.5s ease-out both; }
+  .demo-result:nth-child(1) { animation-delay: 0.2s; }
+  .demo-result:nth-child(2) { animation-delay: 0.5s; }
+  .demo-result:nth-child(3) { animation-delay: 0.8s; }
+  .demo-card-flip { animation: flipReveal 0.6s ease-out both; animation-delay: 0.5s; }
+  .demo-score { animation: slideScore 0.4s ease-out both; animation-delay: 1.2s; }
+  .demo-glow { animation: pulseGlow 2s ease-in-out infinite; }
+  .fc-guide-card { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .fc-guide-card.flip-next { animation: cardSwap 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .fc-guide-card.flip-prev { animation: cardSwapReverse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .fc-guide-meaning { animation: slowReveal 0.8s ease-out both; }
+</style>
+
 <div class="max-w-3xl mx-auto px-6 pt-4 pb-6">
     <h1 class="text-3xl font-bold text-white mb-2">User Guide</h1>
     <p class="text-gray-400 mb-8">Everything you need to know to get the most out of ScrabbleWordsFinder.com.</p>
@@ -24,7 +60,7 @@ import '../styles/global.css';
         <span class="text-gray-600 text-xs">📋 📌</span>
       </div>
       <div class="flex gap-2">
-        <div class="flex-1 h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg flex items-center"><span class="text-blue-300 font-mono uppercase tracking-widest text-sm">AEINRST</span></div>
+        <div class="flex-1 h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg flex items-center"><span class="demo-type text-blue-300 font-mono uppercase tracking-widest text-sm">AEINRST</span></div>
         <div class="w-7 h-7 rounded-full bg-purple-600/30 border border-purple-500/50 flex items-center justify-center self-center"><span class="text-purple-300 text-xs">✕</span></div>
         <button class="h-10 px-4 rounded-lg bg-blue-500 text-gray-950 font-semibold text-xs">Solve</button>
       </div>
@@ -35,13 +71,13 @@ import '../styles/global.css';
     <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-4 mb-6">
       <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-3">Demo — Tile Rack</p>
       <div class="flex gap-1.5 items-center">
-        <div class="w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">A</div>
-        <div class="w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">E</div>
-        <div class="w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">I</div>
-        <div class="w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">N</div>
-        <div class="w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">R</div>
-        <div class="w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">S</div>
-        <div class="w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">T</div>
+        <div class="demo-tile w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">A</div>
+        <div class="demo-tile w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">E</div>
+        <div class="demo-tile w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">I</div>
+        <div class="demo-tile w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">N</div>
+        <div class="demo-tile w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">R</div>
+        <div class="demo-tile w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">S</div>
+        <div class="demo-tile w-10 h-12 rounded-lg bg-gray-800 border-2 border-purple-700/50 flex items-center justify-center text-blue-300 text-xl font-mono font-bold">T</div>
         <button class="h-10 px-3 rounded-lg bg-blue-500 text-gray-950 font-semibold text-xs ml-2">Find Words</button>
       </div>
       <p class="text-[10px] text-gray-500 mt-2">↑ One letter per box. Both inputs sync — type in either one</p>
@@ -169,31 +205,82 @@ import '../styles/global.css';
 
     <!-- Demo: Memory Workbench Card -->
     <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-4 mb-4">
-      <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-3">Demo — Memory Workbench (Flash Card Mode)</p>
-      <div class="text-center py-4">
-        <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-2">Flash Card 3 / 12</p>
-        <div class="p-5 bg-gray-800 rounded-xl border border-purple-800/50 inline-block min-w-[200px]">
-          <span class="font-mono font-extrabold text-2xl text-white uppercase tracking-widest">QUARTZ</span>
-          <span class="block text-sm text-blue-400 mt-1">24 pts</span>
-          <p class="text-xs text-gray-400 mt-3">(noun) A hard mineral consisting of silica</p>
+      <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-3">Demo — Memory Workbench (Flash Card Mode) <span class="text-gray-600">— click ◀ ▶ to flip, tap card to reveal</span></p>
+      <div class="text-center py-4" id="guide-fc-container">
+        <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-2" id="guide-fc-counter">Flash Card 1 / 4</p>
+        <div class="fc-guide-card p-5 bg-gray-800 rounded-xl border border-purple-800/50 inline-block min-w-[200px] cursor-pointer transition-shadow hover:shadow-lg hover:shadow-purple-900/20" id="guide-fc-body">
+          <span class="font-mono font-extrabold text-2xl text-white uppercase tracking-widest" id="guide-fc-word">QUARTZ</span>
+          <span class="block text-sm text-blue-400 mt-1" id="guide-fc-pts">24 pts</span>
+          <div id="guide-fc-meaning" class="mt-3">
+            <p class="text-xs text-gray-500 italic animate-pulse">Tap to reveal meaning</p>
+          </div>
         </div>
         <div class="flex items-center justify-center gap-4 mt-3">
-          <span class="px-3 py-1 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400">&lt;</span>
-          <span class="text-xs text-gray-500">manual</span>
-          <span class="px-3 py-1 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400">&gt;</span>
+          <button id="guide-fc-prev" class="px-3 py-1 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 hover:border-blue-700 transition-all">&lt;</button>
+          <span class="text-xs text-gray-500" id="guide-fc-cat">manual</span>
+          <button id="guide-fc-next" class="px-3 py-1 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-blue-400 hover:border-blue-700 transition-all">&gt;</button>
         </div>
       </div>
-      <p class="text-[10px] text-gray-500 mt-2">↑ Tap card to reveal meaning. Use ◀ ▶ to flip through. Click 📇 icon to enter this mode.</p>
+      <p class="text-[10px] text-gray-500 mt-2">↑ Tap card to slowly reveal meaning. Use ◀ ▶ to flip through cards with animation.</p>
     </div>
+
+    <script>
+      (function() {
+        const cards = [
+          { word: 'QUARTZ', pts: 24, meaning: '(noun) A hard mineral consisting of silica', cat: 'manual' },
+          { word: 'ZAX', pts: 19, meaning: '(noun) A tool for cutting roofing slates', cat: 'rare-letters' },
+          { word: 'QI', pts: 11, meaning: '(noun) The vital force in Chinese philosophy', cat: 'two-letter' },
+          { word: 'JOKILY', pts: 20, meaning: '(adverb) In a joking or humorous manner', cat: 'high-scoring' }
+        ];
+        let idx = 0, revealed = false, direction = 'next';
+        const wordEl = document.getElementById('guide-fc-word');
+        const ptsEl = document.getElementById('guide-fc-pts');
+        const meaningEl = document.getElementById('guide-fc-meaning');
+        const counterEl = document.getElementById('guide-fc-counter');
+        const catEl = document.getElementById('guide-fc-cat');
+        const bodyEl = document.getElementById('guide-fc-body');
+
+        function render() {
+          if (!wordEl || !bodyEl) return;
+          const c = cards[idx];
+          wordEl.textContent = c.word;
+          ptsEl.textContent = c.pts + ' pts';
+          counterEl.textContent = 'Flash Card ' + (idx + 1) + ' / ' + cards.length;
+          catEl.textContent = c.cat;
+          if (revealed) {
+            meaningEl.innerHTML = '<p class="fc-guide-meaning text-xs text-gray-400 max-w-[220px] mx-auto text-center leading-relaxed">' + c.meaning + '</p>';
+          } else {
+            meaningEl.innerHTML = '<p class="text-xs text-gray-500 italic animate-pulse">Tap to reveal meaning</p>';
+          }
+          bodyEl.classList.remove('flip-next', 'flip-prev');
+          void bodyEl.offsetWidth;
+          bodyEl.classList.add(direction === 'next' ? 'flip-next' : 'flip-prev');
+        }
+
+        if (bodyEl) {
+          bodyEl.addEventListener('click', function() {
+            if (!revealed) { revealed = true; direction = 'next'; render(); }
+          });
+        }
+        var prevBtn = document.getElementById('guide-fc-prev');
+        var nextBtn = document.getElementById('guide-fc-next');
+        if (nextBtn) nextBtn.addEventListener('click', function() {
+          if (idx < cards.length - 1) { idx++; revealed = false; direction = 'next'; render(); }
+        });
+        if (prevBtn) prevBtn.addEventListener('click', function() {
+          if (idx > 0) { idx--; revealed = false; direction = 'prev'; render(); }
+        });
+      })();
+    </script>
 
     <!-- Demo: Results with Diamond -->
     <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-4 mb-6">
       <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-3">Demo — Word Results</p>
       <p class="text-xs text-gray-400 mb-2">7 words found — click to save and copy to clipboard 💎 = 20+ points</p>
       <div class="grid grid-cols-3 gap-2">
-        <div class="relative flex items-center justify-between px-2 py-2 bg-gray-800 rounded-lg"><span class="font-mono font-semibold text-white uppercase" style="font-size:0.6rem">NASTIER</span><span class="font-bold text-blue-400" style="font-size:0.55rem">7 pts</span></div>
-        <div class="relative flex items-center justify-between px-2 py-2 bg-gray-800 rounded-lg"><span class="absolute -top-1.5 -right-1 text-[10px]">💎</span><span class="font-mono font-semibold text-white uppercase" style="font-size:0.6rem">RETAINS</span><span class="font-bold text-blue-400" style="font-size:0.55rem">22 pts</span></div>
-        <div class="relative flex items-center justify-between px-2 py-2 bg-gray-800 rounded-lg ring-2 ring-emerald-500"><span class="absolute -top-1.5 -left-0.5 text-[10px]">👑</span><span class="font-mono font-semibold text-white uppercase" style="font-size:0.6rem">ANTSIER</span><span class="font-bold text-blue-400" style="font-size:0.55rem">7 pts</span></div>
+        <div class="demo-result relative flex items-center justify-between px-2 py-2 bg-gray-800 rounded-lg"><span class="font-mono font-semibold text-white uppercase" style="font-size:0.6rem">NASTIER</span><span class="font-bold text-blue-400" style="font-size:0.55rem">7 pts</span></div>
+        <div class="demo-result relative flex items-center justify-between px-2 py-2 bg-gray-800 rounded-lg"><span class="absolute -top-1.5 -right-1 text-[10px]">💎</span><span class="font-mono font-semibold text-white uppercase" style="font-size:0.6rem">RETAINS</span><span class="font-bold text-blue-400" style="font-size:0.55rem">22 pts</span></div>
+        <div class="demo-result relative flex items-center justify-between px-2 py-2 bg-gray-800 rounded-lg ring-2 ring-emerald-500 demo-glow"><span class="absolute -top-1.5 -left-0.5 text-[10px]">👑</span><span class="font-mono font-semibold text-white uppercase" style="font-size:0.6rem">ANTSIER</span><span class="font-bold text-blue-400" style="font-size:0.55rem">7 pts</span></div>
       </div>
       <p class="text-[10px] text-gray-500 mt-2">↑ 💎 = high scorer (20+ pts). 👑 = saved to Memory Workbench. Click any word to save.</p>
     </div>
