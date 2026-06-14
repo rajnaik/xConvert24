@@ -2,11 +2,23 @@ import { defineMiddleware } from 'astro:middleware';
 
 const ALLOWED_EMAILS = ['raj007@gmail.com', 'xconvert24@gmail.com'];
 
+// Auth is DISABLED on localhost (dev), ENABLED everywhere else (staging, live)
+function isLocalDev(url: URL): boolean {
+  return url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+}
+
 export const onRequest = defineMiddleware(async ({ url, request, redirect }, next) => {
   // Only protect /admin routes
   if (!url.pathname.startsWith('/admin')) {
     return next();
   }
+
+  // Skip auth on local development — but ENFORCE on staging/live
+  if (isLocalDev(url)) {
+    return next();
+  }
+
+  // --- Auth enforced beyond this point (staging + live) ---
 
   // Read cookie from request header
   const cookieHeader = request.headers.get('cookie') || '';

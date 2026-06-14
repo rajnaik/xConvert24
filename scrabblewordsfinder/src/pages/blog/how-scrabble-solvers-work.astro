@@ -1,0 +1,214 @@
+---
+export const prerender = true;
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import '../../styles/global.css';
+---
+
+<BlogLayout
+  title="How Scrabble Solvers Work — Algorithms and Data Structures"
+  description="Understand the technology behind Scrabble word solvers. From DAWG and GADDAG data structures to search algorithms, learn how tools find every valid word from your rack in milliseconds."
+  keywords="how scrabble solvers work, scrabble algorithm, DAWG data structure, GADDAG scrabble, word solver technology, scrabble word search algorithm"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How Scrabble Solvers Work — Algorithms and Data Structures",
+    "description": "Understand the technology behind Scrabble word solvers. From DAWG and GADDAG data structures to search algorithms, learn how tools find every valid word from your rack in milliseconds.",
+    "datePublished": "2026-06-14",
+    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/how-scrabble-solvers-work" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What algorithm do Scrabble solvers use to find words?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Most Scrabble solvers use a combination of trie-based data structures (like DAWG or GADDAG) and backtracking search algorithms. The dictionary is pre-loaded into a compressed tree structure where each path from root to leaf represents a valid word. The solver then traverses this tree using only the available rack tiles, pruning branches where no valid word can be formed — finding all possible words in milliseconds." }
+      },
+      {
+        "@type": "Question",
+        "name": "What is a DAWG and why is it used in Scrabble programs?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A DAWG (Directed Acyclic Word Graph) is a compressed trie that merges identical suffixes to save memory. A standard English Scrabble dictionary contains 270,000+ words — storing them as a plain list would be slow to search. A DAWG compresses this to roughly 30% of the original size while enabling O(n) lookup time where n is word length. This makes real-time word validation and generation feasible." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do solvers handle blank tiles and wildcards?",
+        "acceptedAnswer": { "@type": "Answer", "text": "When a blank tile is present, the solver branches into 26 parallel searches — one for each letter the blank could represent. At each position in the search tree where the blank is used, it tries all 26 possibilities and continues down any branch that leads to a valid word. This is why searches with blanks take slightly longer but still complete in under a second on modern hardware." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4 py-12">
+    <article class="prose prose-invert prose-gray max-w-none">
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">Solver-Related Topics</span>
+      </nav>
+
+      <h1 class="text-3xl font-bold text-white mb-4">How Scrabble Solvers Work — Algorithms and Data Structures</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-06-14">June 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <span>9 min read</span>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-300 mb-8">
+        When you type seven letters into a Scrabble word finder and get hundreds of valid results in under a second, there's serious computer science happening behind the scenes. The challenge isn't trivial — searching through 270,000+ words in a Scrabble dictionary while respecting tile constraints requires clever data structures and efficient algorithms. Here's how it all works under the hood.
+      </p>
+
+      <div class="not-prose my-8 p-6 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/30 to-yellow-950/20 text-center">
+        <p class="text-2xl font-black text-white tracking-wider mb-2">SOLVER ENGINE</p>
+        <div class="flex items-center justify-center gap-6 mt-4 flex-wrap">
+          <div>
+            <p class="text-3xl font-bold text-amber-400">270K+</p>
+            <p class="text-xs text-gray-400">Words in dictionary</p>
+          </div>
+          <div>
+            <p class="text-3xl font-bold text-amber-400">&lt;50ms</p>
+            <p class="text-xs text-gray-400">Search time</p>
+          </div>
+          <div>
+            <p class="text-3xl font-bold text-amber-400">O(n)</p>
+            <p class="text-xs text-gray-400">Lookup complexity</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">The Dictionary Problem</h2>
+
+      <p>The first challenge any Scrabble solver must address: how do you store and search a dictionary of hundreds of thousands of words efficiently enough to deliver real-time results?</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">✗ Naive Approach (Array)</p>
+          <p class="text-xs text-gray-400">Storing words in a flat array and checking each one against your rack: O(n × m) where n=270,000 words and m=average word length. Workable but slow — hundreds of milliseconds per search.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Tree Approach (Trie/DAWG)</p>
+          <p class="text-xs text-gray-400">Organizing words into a tree where shared prefixes merge into single paths. Search time drops to O(m) per word — independent of dictionary size. Millions of times faster for validation checks.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+        <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">🔧 How Tries Work</p>
+        <p class="text-base text-gray-200">A trie (prefix tree) stores words as paths through a tree. Each node represents a letter, and each path from root to a marked node spells a valid word. The words CAT, CAR, and CART share the C→A path, then branch. This <span class="text-white font-medium">eliminates redundant storage of shared prefixes</span> — critical when thousands of words share common beginnings.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">DAWG — The Solver's Workhorse</h2>
+
+      <p>The DAWG (Directed Acyclic Word Graph) improves on the basic trie by also merging shared suffixes. Words ending in -ING, -TION, or -ED share suffix nodes, compressing the structure dramatically.</p>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">~30%</p><p class="text-xs text-gray-400">Size vs plain trie</p></div>
+          <div><p class="text-xl font-bold text-amber-400">O(m)</p><p class="text-xs text-gray-400">Lookup time</p></div>
+          <div><p class="text-xl font-bold text-amber-400">1970s</p><p class="text-xs text-gray-400">First described</p></div>
+          <div><p class="text-xl font-bold text-amber-400">~500KB</p><p class="text-xs text-gray-400">Full dictionary size</p></div>
+        </div>
+      </div>
+
+      <p>Tools like ScrabbleWordsFinder.com load the dictionary into a structure that allows both prefix matching (finding all words that START with given letters) and containment checking (finding all words CONSTRUCTABLE from given letters). The DAWG handles both elegantly.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 GADDAG — The Advanced Variant</p>
+        <p class="text-base text-gray-200">The GADDAG (a variation by Steven Gordon) stores words in both forward AND reverse directions from every possible starting point. This makes it <span class="text-white font-medium">ideal for board-aware solving</span> — finding words that cross existing tiles on a Scrabble board. It's larger in memory but enables the most powerful move generators used in tournament-level AI.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">The Search Algorithm</h2>
+
+      <p>Once the dictionary is loaded into a tree structure, the solver needs to find all words constructable from your rack tiles. This is where backtracking search comes in.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Backtracking Search Steps</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Start at root:</span> Begin at the trie root with all rack tiles available.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Try each tile:</span> For each tile on your rack, check if the trie has a child node for that letter. If yes, move to that node and mark the tile as used.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Check for word:</span> At each node, check if it's marked as a valid word endpoint. If yes, add that word to results.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Recurse deeper:</span> From the current node, repeat step 2 with remaining unused tiles.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Backtrack:</span> When no more valid branches exist, return the tile to available pool and try the next option.</p>
+          </div>
+        </div>
+      </div>
+
+      <p>The key insight: the trie structure prunes invalid branches immediately. If no word in the dictionary starts with "QZ", the solver never explores that path — it stops at Q and skips Z entirely. This pruning makes the search fast despite the combinatorial explosion of possible letter arrangements.</p>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Handling Blanks and Wildcards</h2>
+
+      <p>Blank tiles (wildcards) are the most computationally expensive feature for solvers. A single blank multiplies the search space by 26 because it could represent any letter.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">⚡ No Blanks</p>
+          <p class="text-xs text-gray-400">7 tiles = at most 7! = 5,040 permutations to explore (in practice far fewer due to pruning). Search completes in 5-10ms.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">⚡ One Blank</p>
+          <p class="text-xs text-gray-400">Each position the blank occupies branches into 26 paths. Effective search space grows ~26x. Still under 50ms with good pruning.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Client-side solvers (browser):</span> The entire dictionary loads into your browser's memory. Searches happen locally — no internet needed after initial load. Faster response, better privacy, works offline. ScrabbleWordsFinder.com uses this approach.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Server-side solvers (API):</span> Your letters are sent to a server that runs the search and returns results. Enables more complex analysis (board-aware solving, move generation) but adds network latency.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hybrid approach:</span> Dictionary cached locally for basic word finding, server called for advanced features like board position analysis or optimal move calculation. Balances speed with capability.</p>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/best-bingo-racks" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Best Bingo Racks — Top Tile Combinations</span>
+          </a>
+          <a href="/blog/probability-based-play" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Probability-Based Play — Using Math to Win</span>
+          </a>
+          <a href="/blog/scrabble-and-mathematics" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble and Mathematics</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-300 font-medium">🔤 See the algorithm in action — try our free Scrabble Word Finder</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      </div>
+    </article>
+  </div>
+</BlogLayout>

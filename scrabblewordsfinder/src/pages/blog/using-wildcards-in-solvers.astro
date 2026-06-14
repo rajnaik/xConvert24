@@ -1,0 +1,217 @@
+---
+export const prerender = true;
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import '../../styles/global.css';
+---
+
+<BlogLayout
+  title="Using Wildcards in Scrabble Solvers"
+  description="Learn how blank tiles and wildcards work in Scrabble word finders. Understand the ? notation, how solvers handle 26x branching, scoring differences, and strategic tips for wildcard searches."
+  keywords="wildcards scrabble solver, blank tiles word finder, scrabble blank tile strategy, wildcard notation scrabble, question mark solver, blank tile scoring"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Using Wildcards in Scrabble Solvers",
+    "description": "Learn how blank tiles and wildcards work in Scrabble word finders. Understand the ? notation, how solvers handle 26x branching, scoring differences, and strategic tips for wildcard searches.",
+    "datePublished": "2026-06-14",
+    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/using-wildcards-in-solvers" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do you enter blank tiles in a Scrabble word finder?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Most Scrabble word finders use the ? (question mark) symbol to represent a blank tile. Enter your regular letters plus ? for each blank you have. For example, if your rack is A, T, R, E, and one blank, you'd type 'ATRE?' into the solver. Some tools also accept * (asterisk) or . (period) as wildcard characters." }
+      },
+      {
+        "@type": "Question",
+        "name": "Do blank tiles score zero points in Scrabble?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes — blank tiles always score 0 points regardless of which letter they represent. A blank used as a Z still scores 0, not 10. This is why solvers show different scores for words found with and without blanks. The strategic value of blanks comes from enabling high-scoring positions and bingos, not from direct point contribution." }
+      },
+      {
+        "@type": "Question",
+        "name": "Why do searches with blank tiles take longer in word finders?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Each blank tile multiplies the search space by 26 because it can represent any letter A-Z. With one blank, the solver runs 26 parallel searches. With two blanks, it's 676 (26×26) combinations. Modern solvers still complete these searches in under a second thanks to efficient tree pruning, but the computational work is measurably greater than rack-only searches." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4 py-12">
+    <article class="prose prose-invert prose-gray max-w-none">
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">Solver-Related Topics</span>
+      </nav>
+
+      <h1 class="text-3xl font-bold text-white mb-4">Using Wildcards in Scrabble Solvers</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-06-14">June 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <span>8 min read</span>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-300 mb-8">
+        Blank tiles are the most powerful pieces in Scrabble — and the most computationally interesting for word solvers. Worth zero points individually, they unlock words that would otherwise be impossible from your rack. Understanding how to use wildcards effectively in solvers transforms them from a simple search tool into a strategic weapon for vocabulary exploration and game preparation.
+      </p>
+
+      <div class="not-prose my-8 p-6 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/30 to-yellow-950/20 text-center">
+        <p class="text-2xl font-black text-white tracking-wider mb-2">BLANK TILE FACTS</p>
+        <div class="flex items-center justify-center gap-6 mt-4 flex-wrap">
+          <div>
+            <p class="text-3xl font-bold text-amber-400">2</p>
+            <p class="text-xs text-gray-400">Blanks per game</p>
+          </div>
+          <div>
+            <p class="text-3xl font-bold text-amber-400">0 pts</p>
+            <p class="text-xs text-gray-400">Face value</p>
+          </div>
+          <div>
+            <p class="text-3xl font-bold text-amber-400">26×</p>
+            <p class="text-xs text-gray-400">Search branching</p>
+          </div>
+          <div>
+            <p class="text-3xl font-bold text-amber-400">~25 pts</p>
+            <p class="text-xs text-gray-400">Strategic value</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">How Wildcard Notation Works</h2>
+
+      <p>Every Scrabble word finder needs a way to distinguish between regular tiles and blanks in your input. The standard convention across most tools uses specific characters as placeholders.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-cyan-400 font-semibold text-sm mb-1">? Question Mark</p>
+          <p class="text-xs text-gray-400">The most common wildcard symbol. ScrabbleWordsFinder.com and most major solvers use ? to represent one blank tile. Type ATRE? to search with 4 letters plus one blank.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-cyan-400 font-semibold text-sm mb-1">* Asterisk (less common)</p>
+          <p class="text-xs text-gray-400">Some older tools use * for blanks. Occasionally * means "any number of letters" (pattern matching) rather than "one blank tile" — check the tool's documentation.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Input Examples</p>
+        <p class="text-base text-gray-200">Rack: S, T, A, R, E + 1 blank → type <span class="text-white font-medium">STARE?</span> — finds words like MASTER, STREAM, RECAST. Rack: I, N, G + 2 blanks → type <span class="text-white font-medium">ING??</span> — finds DOING, BRING, SWING, THING, and hundreds more.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">The 26× Branching Problem</h2>
+
+      <p>When a solver encounters a ? in your input, it doesn't just check one path through the dictionary tree — it checks all 26. This is because the blank could represent any letter from A to Z, and the solver must explore every possibility to find all valid words.</p>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">7 tiles</p><p class="text-xs text-gray-400">No blanks: ~5,040 paths</p></div>
+          <div><p class="text-xl font-bold text-amber-400">6 + 1?</p><p class="text-xs text-gray-400">One blank: ~130K paths</p></div>
+          <div><p class="text-xl font-bold text-amber-400">5 + 2?</p><p class="text-xs text-gray-400">Two blanks: ~3.4M paths</p></div>
+          <div><p class="text-xl font-bold text-amber-400">&lt;100ms</p><p class="text-xs text-gray-400">Still fast (pruning)</p></div>
+        </div>
+      </div>
+
+      <p>Despite this exponential growth in search space, modern solvers handle it efficiently through tree pruning. If the dictionary has no words starting with "QX", the solver abandons that branch immediately — even if the blank makes Q and X both available. This aggressive pruning keeps response times under 100ms on ScrabbleWordsFinder.com, even with two blanks.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 How the Solver Processes a Blank</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Parse input:</span> Identify which characters are regular tiles and which are wildcards (?).</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Expand blanks:</span> At each tree node where a blank is used, branch into all 26 child nodes that exist in the dictionary trie.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Track assignment:</span> Record which letter the blank represents in each found word (needed for scoring).</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Score correctly:</span> Assign 0 points to the blank's position, regardless of which high-value letter it represents.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Scoring Differences with Blanks</h2>
+
+      <p>The critical rule: blank tiles always score zero. This has significant implications for how solvers rank results and how you should evaluate the words they find.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ QUIZ with real Q, U, I, Z</p>
+          <p class="text-xs text-gray-400">Score: Q(10) + U(1) + I(1) + Z(10) = 22 points. Full tile values apply when all letters come from actual tiles on your rack.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">⚡ QUIZ with blank as Z</p>
+          <p class="text-xs text-gray-400">Score: Q(10) + U(1) + I(1) + blank(0) = 12 points. The blank acting as Z contributes nothing — a 10-point loss compared to the real Z.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+        <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">🔧 Solver Score Display</p>
+        <p class="text-base text-gray-200">Good solvers (like ScrabbleWordsFinder.com) show scores <span class="text-white font-medium">adjusted for blank usage</span>. When a blank is used, the displayed score reflects 0 for that position. Some tools highlight which letter is the blank so you can see the scoring impact at a glance.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Strategic Tips for Wildcard Searches</h2>
+
+      <p>Knowing how to use wildcards in a solver is one thing. Using them strategically to improve your game is another. Here's how experienced players leverage blank tile searches during study sessions.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Save blanks for bingos:</span> The consensus among strong players is that blanks should be saved for 7-letter words (50-point bonus). Search your rack + ? to see if a bingo is available before using the blank on a shorter word.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Don't waste blanks on common letters:</span> Using a blank as E or S is usually inefficient — you'll likely draw those naturally. Reserve blanks for letters that complete rare combinations or enable premium square access.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Practice "blank as X" drills:</span> Enter your strongest racks + ? into the solver and study which letter assignments yield the highest scores. Over time you'll recognize the patterns without needing the tool.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Check both options:</span> If you have two blanks, search with both (RACK??) but also try RACK? with just one — sometimes playing one blank now and saving the other yields better long-term value.</p>
+        </div>
+      </div>
+
+      <p>The real power of wildcard searches in tools like ScrabbleWordsFinder.com is revealing possibilities you'd never spot at the board. A rack of AEIRST? might look average — until the solver shows you that the blank as N gives NASTIER, RETINAS, RETAINS, and STAINER. That's knowledge you carry into your next game.</p>
+
+      <aside class="border-t border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/best-bingo-racks" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Best Bingo Racks — Top Tile Combinations</span>
+          </a>
+          <a href="/blog/rack-management-basics" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Rack Management Basics</span>
+          </a>
+          <a href="/blog/probability-based-play" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Probability-Based Play — Using Math to Win</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-300 font-medium">🔤 Try wildcard searches now — enter ? for blanks in our free Word Finder</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      </div>
+    </article>
+  </div>
+</BlogLayout>

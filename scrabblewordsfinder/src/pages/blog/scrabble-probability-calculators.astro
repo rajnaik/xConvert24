@@ -1,0 +1,211 @@
+---
+export const prerender = true;
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import '../../styles/global.css';
+---
+
+<BlogLayout
+  title="Scrabble Probability Calculators"
+  description="Tile probability math for Scrabble: calculating what's left in the bag, drawing odds for specific tiles, and how probability tools help with tile tracking and strategic decisions."
+  keywords="scrabble probability calculator, tile drawing odds, scrabble bag probability, tile tracking math, scrabble statistics tool, remaining tiles calculator"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Scrabble Probability Calculators",
+    "description": "Tile probability math for Scrabble: calculating what's left in the bag, drawing odds for specific tiles, and how probability tools help with tile tracking and strategic decisions.",
+    "datePublished": "2026-06-14",
+    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-probability-calculators" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do you calculate the probability of drawing a specific tile in Scrabble?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The probability equals (number of that tile remaining in the bag) divided by (total tiles remaining in the bag). For example, at game start there are 12 E tiles in a bag of 100, so the probability of drawing an E on any single draw is 12/100 = 12%. As tiles are played and tracked, these probabilities shift — if 8 E tiles have been played, there are 4 left in perhaps 50 remaining tiles: 4/50 = 8%." }
+      },
+      {
+        "@type": "Question",
+        "name": "How many tiles of each letter are in a Scrabble bag?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A standard English Scrabble game has 100 tiles: E×12, A×9, I×9, O×8, N×6, R×6, T×6, L×4, S×4, U×4, D×4, G×3, B×2, C×2, M×2, P×2, F×2, H×2, V×2, W×2, Y×2, K×1, J×1, X×1, Q×1, Z×1, and 2 blanks. Knowing these distributions is fundamental to probability calculations and tile tracking." }
+      },
+      {
+        "@type": "Question",
+        "name": "How does tile tracking help with probability calculations?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Tile tracking means recording which letters have been played on the board. By subtracting played tiles from the known starting distribution, you know exactly what remains in the bag (plus your opponent's rack). This lets you calculate drawing probabilities, assess whether your opponent might have specific high-value tiles, and make informed decisions about exchanging tiles versus playing." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4 py-12">
+    <article class="prose prose-invert prose-gray max-w-none">
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">Solver-Related Topics</span>
+      </nav>
+
+      <h1 class="text-3xl font-bold text-white mb-4">Scrabble Probability Calculators</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-06-14">June 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <span>9 min read</span>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-300 mb-8">
+        Every tile draw in Scrabble is governed by probability. With 100 tiles distributed across 27 different types (26 letters plus blanks), the odds of drawing any specific tile shift constantly as the game progresses. Probability calculators formalize what expert players do intuitively — tracking what's been played, computing what remains, and using those odds to make better strategic decisions about whether to play, exchange, or hold.
+      </p>
+
+      <div class="not-prose my-8 p-6 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/30 to-yellow-950/20 text-center">
+        <p class="text-2xl font-black text-white tracking-wider mb-2">TILE DISTRIBUTION</p>
+        <div class="flex items-center justify-center gap-6 mt-4 flex-wrap">
+          <div>
+            <p class="text-3xl font-bold text-amber-400">100</p>
+            <p class="text-xs text-gray-400">Total tiles</p>
+          </div>
+          <div>
+            <p class="text-3xl font-bold text-amber-400">42</p>
+            <p class="text-xs text-gray-400">Vowels (inc. Y)</p>
+          </div>
+          <div>
+            <p class="text-3xl font-bold text-amber-400">56</p>
+            <p class="text-xs text-gray-400">Consonants</p>
+          </div>
+          <div>
+            <p class="text-3xl font-bold text-amber-400">2</p>
+            <p class="text-xs text-gray-400">Blanks</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">The Basic Probability Formula</h2>
+
+      <p>Calculating tile probabilities in Scrabble uses the hypergeometric distribution — the same math behind card counting in poker. At any point in the game, you know the starting distribution, what's on the board, and what's on your rack. Everything else is in the bag or your opponent's rack.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+        <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">🔧 The Core Formula</p>
+        <p class="text-base text-gray-200">P(drawing tile X) = <span class="text-white font-medium">(copies of X remaining) ÷ (total tiles remaining in bag)</span>. If 3 S tiles have been played (out of 4 total), and there are 40 tiles left in the bag: P(S) = 1/40 = 2.5%. Simple but powerful when tracked turn by turn.</p>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Multi-Tile Draw Probability</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Drawing at least 1 S in 5 draws:</span> 1 - P(no S in 5 draws). If bag has 40 tiles with 2 S tiles: P ≈ 23%.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Drawing a blank:</span> With 2 blanks in 100 tiles at game start, P(blank in first 7) ≈ 13.3% per player.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300"><span class="text-white font-medium">Opponent has the Q:</span> If Q hasn't appeared and bag has 10 tiles left: P(opponent has Q) = 7/(7+10) ≈ 41%.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Tracking What's Left in the Bag</h2>
+
+      <p>Tile tracking is the foundation that makes probability calculations possible. Without knowing what's been played, you can't compute what remains.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ What You Know</p>
+          <p class="text-xs text-gray-400">Starting distribution (fixed, memorizable). Tiles on the board (visible). Your own rack tiles. Total tiles played (countable). From these, you can deduce everything else.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">⚡ What You Can Calculate</p>
+          <p class="text-xs text-gray-400">Tiles remaining in bag + opponent's rack (combined pool). Probability of drawing any specific letter. Whether opponent likely has power tiles. Whether exchanging is worthwhile.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 ScrabbleWordsFinder.com's Tile Tracker</p>
+        <p class="text-base text-gray-200">Our tool includes a built-in tile probability display that <span class="text-white font-medium">automatically shows remaining tile counts and drawing probabilities</span> as you play. No manual tracking needed — the interface updates in realtime as you mark tiles played, giving you instant probability awareness.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Strategic Decisions Driven by Probability</h2>
+
+      <p>Raw probability numbers become powerful when they inform actual decisions at the board. Here's how probability calculators change gameplay at every stage.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Exchange decisions:</span> If your rack is AEIIOUU and you know there are still 30+ consonants in the bag, exchanging 4-5 vowels gives a high probability (~75%) of getting a playable balanced rack. The math justifies losing a turn.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Defensive blocking:</span> If both blanks and 3 S tiles are still unaccounted for, your opponent has high bingo probability. Playing defensively (closing triple word lanes) is mathematically justified.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Endgame counting:</span> When the bag is empty, you know your opponent's exact rack (100 tiles - board - your rack = theirs). This perfect information allows mathematically optimal endgame play.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hold or play the S:</span> If there are still 3 S tiles in the unseen pool, your opponent probably has or will get one. Playing your S now for 5 points is less valuable than saving it for a 20-point parallel play later.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Advanced Probability Concepts</h2>
+
+      <p>Beyond basic "what's the chance of drawing X," probability calculators can answer more complex strategic questions that affect game-level decisions.</p>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">~15%</p><p class="text-xs text-gray-400">Bingo probability (avg turn)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">~33%</p><p class="text-xs text-gray-400">With SATINE + draw</p></div>
+          <div><p class="text-xl font-bold text-amber-400">~67%</p><p class="text-xs text-gray-400">SATINE + blank held</p></div>
+          <div><p class="text-xl font-bold text-amber-400">100%</p><p class="text-xs text-gray-400">Endgame (bag empty)</p></div>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-cyan-400 font-semibold text-sm mb-1">Expected Value (EV)</p>
+          <p class="text-xs text-gray-400">Each move has an EV = (points scored now) + (expected future value based on leave probabilities). Probability calculators make EV comparisons concrete rather than intuitive.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-cyan-400 font-semibold text-sm mb-1">Conditional Probability</p>
+          <p class="text-xs text-gray-400">If your opponent plays a word using S, what does that tell you about their remaining tiles? Bayesian updates let you refine your model of their rack with each play.</p>
+        </div>
+      </div>
+
+      <p>Probability calculators turn Scrabble from a vocabulary contest into a strategic information game. The player who tracks tiles and computes odds accurately has a measurable advantage — studies show that consistent tile tracking alone improves scores by 20-30 points per game. Combined with the word-finding power of ScrabbleWordsFinder.com, probability awareness gives you a complete strategic toolkit.</p>
+
+      <aside class="border-t border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/probability-based-play" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Probability-Based Play — Using Math to Win</span>
+          </a>
+          <a href="/blog/tile-tracking-guide" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Tile Tracking Guide</span>
+          </a>
+          <a href="/blog/scrabble-and-mathematics" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group">
+            <span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble and Mathematics</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-300 font-medium">🔤 Track tile probabilities in realtime — try our free Scrabble Word Finder</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      </div>
+    </article>
+  </div>
+</BlogLayout>

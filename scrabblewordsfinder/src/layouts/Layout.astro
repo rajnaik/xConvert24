@@ -382,6 +382,8 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
         <span class="text-blue-400 font-mono">v{VERSION}</span>
         <span class="text-gray-500 font-mono mt-0.5">{new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'').toUpperCase()}</span>
       </a>
+      <!-- Tiny admin link — only visible if logged in -->
+      <a id="admin-dot" href="/admin" class="block mt-1 ml-auto" style="width:2px;height:2px;background:#333;display:none;" title="Admin"></a>
     </div>
     <!-- Footer -->
     <footer class="border-t border-gray-800 px-6 py-4 mt-2">
@@ -416,6 +418,13 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
       }
       updateClickCounter();
       setInterval(updateClickCounter, 2000);
+    </script>
+    <script is:inline>
+      // Show admin dot only if session cookie exists
+      if (document.cookie.includes('swf_admin_session')) {
+        var dot = document.getElementById('admin-dot');
+        if (dot) dot.style.display = 'block';
+      }
     </script>
 
     
