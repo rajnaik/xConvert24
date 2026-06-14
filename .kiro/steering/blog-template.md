@@ -202,3 +202,159 @@ Place AFTER the last content section, BEFORE the CTA box. Link to 2-3 related bl
 12. ✅ Gradient CTA box linking to relevant converter/tool
 13. ✅ "Back to all articles" link
 14. ✅ Also add the blog to `BlogCrossLinks` crossLinks map if it relates to a converter
+
+
+---
+
+## Visual Enhancement Recipe — Rich Content Blocks (SWF Standard)
+
+Plain paragraphs are NOT enough for quality blog posts. Every section should use at least one visual block. Apply these patterns to transform walls of text into scannable, engaging content.
+
+### Available Block Types
+
+#### 1. Insight Callout (key takeaway or pattern)
+```html
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Label</p>
+  <p class="text-base text-gray-200">Key insight text with <span class="text-white font-medium">highlighted terms</span>.</p>
+</div>
+```
+Colors: blue (insight), cyan (technical), green (practical), amber (warning/rule).
+
+#### 2. Stat Strip (2-4 numbers in a row)
+```html
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">Value</p><p class="text-xs text-gray-400">Label</p></div>
+    <div><p class="text-xl font-bold text-amber-400">Value</p><p class="text-xs text-gray-400">Label</p></div>
+  </div>
+</div>
+```
+
+#### 3. Card Grid (information nuggets)
+- **Odd count (3, 5, 7):** `grid-cols-1` (single column stack)
+- **Even count (2):** `grid-cols-1 sm:grid-cols-2`
+- **Even count (4):** `grid-cols-1 sm:grid-cols-2` (2×2)
+- **Even count (6):** `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` (3×2)
+
+```html
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-COLOR-500/30 bg-COLOR-950/10">
+    <p class="text-COLOR-400 font-semibold text-sm mb-1">🏷️ Title</p>
+    <p class="text-xs text-gray-400">Description text.</p>
+  </div>
+</div>
+```
+Colors by mood: purple (tips), red (barriers/warnings), green (valid/good), amber (features), gray (neutral).
+
+#### 4. Purple Strategy Tips Tiles
+Replace bullet lists of tips with purple-bordered tiles:
+```html
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Tip title:</span> Tip content.</p>
+  </div>
+</div>
+```
+
+#### 5. Numbered Steps (process/path)
+```html
+<div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+  <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Label</p>
+  <div class="space-y-3">
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+      <p class="text-sm text-gray-300">Step description.</p>
+    </div>
+  </div>
+</div>
+```
+
+#### 6. Pill Badges (small values in a row)
+```html
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+    <span class="text-white font-bold">Label</span><span class="text-blue-400 text-xs">value</span>
+  </span>
+</div>
+```
+
+#### 7. Comparison Cards (valid vs invalid, pro vs con)
+```html
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-1">✓ Good</p>
+    <p class="text-xs text-gray-400">Why this is good.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">✗ Bad</p>
+    <p class="text-xs text-gray-400">Why this is bad.</p>
+  </div>
+</div>
+```
+
+#### 8. Hero/Legendary Card (for standout items)
+```html
+<div class="not-prose my-8 p-6 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/30 to-yellow-950/20 relative overflow-hidden">
+  <div class="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-amber-500/70">👑 Label</div>
+  <p class="text-2xl font-black text-white tracking-wider mb-2">TITLE</p>
+  <p class="text-sm text-amber-300 font-semibold mb-3">Subtitle stats</p>
+  <p class="text-sm text-gray-300 leading-relaxed">Description.</p>
+</div>
+```
+
+### Rules for Applying Visual Blocks
+
+1. **Every h2 section** should have at least ONE visual block (callout, grid, stat strip, or card)
+2. **Never have more than 2 consecutive plain `<p>` paragraphs** — break them up with a visual element
+3. **Strategy Tips / bullet lists** → always use purple tiles (not `<ul>`)
+4. **Numbers/stats** → always use stat strips or pill badges
+5. **Comparisons** → always use side-by-side cards (green/red or any pair)
+6. **Processes/steps** → always use numbered step cards
+7. **Key takeaways** → always use insight callouts
+8. **Lead paragraph stays as `<p>`** — that's the one exception (it's the hook)
+9. **Tables are fine** — keep them for large datasets (5+ rows). Enhance with a stat strip above/below for key numbers.
+
+### Color Guide
+
+| Context | Border Color | Background | Text Accent |
+|---------|-------------|------------|-------------|
+| Insight/Pattern | `blue-500/30` | `blue-950/20` | `text-blue-400` |
+| Technical/Chemical | `cyan-500/30` | `cyan-950/10` | `text-cyan-400` |
+| Practical/Do This | `green-500/30` | `green-950/10` | `text-green-400` |
+| Warning/Rule | `amber-500/30` | `amber-950/10` | `text-amber-400` |
+| Tips/Strategy | `purple-500/30` | `purple-950/20` | `text-purple-400` |
+| Danger/Barriers | `red-500/30` | `red-950/10` | `text-red-400` |
+| Neutral/Data | `gray-700` | `gray-800/40` | `text-white` |
+
+
+---
+
+## Post-Treatment Prettify Step (MANDATORY)
+
+After applying the Visual Enhancement Recipe to any blog post, **always run a prettify verification pass** before marking it done:
+
+### Checklist (run mentally or via grep)
+
+1. ✅ **No 3+ consecutive `<p>` paragraphs** — every section broken up with visual blocks
+2. ✅ **Every h2 section has at least 1 visual block** (callout, grid, stat strip, steps, or cards)
+3. ✅ **Strategy Tips use purple tiles** — not bullet lists
+4. ✅ **JSON-LD Article + FAQPage schemas present** (minimum 3 Q&A)
+5. ✅ **CTA box present** (blue gradient for SWF, amber for xConvert)
+6. ✅ **"Back to all articles" link** at bottom
+7. ✅ **Related Articles aside** with 2-3 linked posts
+8. ✅ **No orphaned plain-text sections** — every content block has visual treatment
+
+### After Passing
+
+Log to local DB:
+```bash
+cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder && npx wrangler d1 execute DB --local --command "INSERT INTO test_results (test_name, status, file_changed) VALUES ('prettify: SLUG', 'pass', 'src/pages/blog/SLUG.astro');"
+```
+
+### Tracking
+
+Keep a running count:
+- **Treated + Prettified:** X posts
+- **Existing (needs treatment):** Y posts
+- **New (created with recipe):** Z posts
