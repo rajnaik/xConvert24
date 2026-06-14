@@ -21,6 +21,12 @@ import '../../styles/global.css';
     <h1 class="text-3xl font-bold text-white mb-2">🎨 Logo Management</h1>
     <p class="text-gray-400 mb-8">Select the active logo for ScrabbleWordsFinder.com. Your choice will be stored in the database and used site-wide.</p>
 
+    <!-- Security notice -->
+    <div class="mb-6 rounded-xl border border-amber-800/50 bg-amber-950/20 p-3 flex items-center gap-3">
+      <span class="text-amber-400 text-lg">🔒</span>
+      <p class="text-xs text-amber-300/80">Logo changes require re-authentication. Only <strong class="text-amber-200">raj007@gmail.com</strong> and <strong class="text-amber-200">xconvert24@gmail.com</strong> can update the active logo.</p>
+    </div>
+
     <!-- Current active indicator -->
     <div id="current-logo-banner" class="mb-6 rounded-xl border border-blue-800 bg-blue-950/30 p-4 flex items-center gap-4">
       <img id="current-logo-img" src="/logo-options/option-1.svg" alt="Current active logo" class="h-12 w-12 rounded-lg bg-gray-800 p-1" />
@@ -165,7 +171,7 @@ import '../../styles/global.css';
       }
     }
 
-    // Set logo via API
+    // Set logo via API (with re-auth handling)
     async function setLogo(option: string) {
       const confirmation = document.getElementById('confirmation')!;
       const confirmText = document.getElementById('confirmation-text')!;
@@ -174,12 +180,36 @@ import '../../styles/global.css';
 
       errorBanner.classList.add('hidden');
 
+      // Show re-auth confirmation
+      if (!confirm('🔒 Changing the active logo requires authentication.\n\nOnly raj007@gmail.com and xconvert24@gmail.com can make this change.\n\nProceed?')) {
+        return;
+      }
+
       try {
         const res = await fetch('/api/site-status', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ logo_option: Number(option), updated_by: 'admin' }),
+          body: JSON.stringify({ logo_option: Number(option) }),
         });
+
+        if (res.status === 401) {
+          // Session expired or missing — redirect to re-login then come back
+          const err = await res.json();
+          errorBanner.classList.remove('hidden');
+          errorText.textContent = `🔒 ${err.error || 'Session expired.'} Redirecting to login...`;
+          setTimeout(() => {
+            window.location.href = '/api/auth/login?redirect=/admin/logo-management';
+          }, 1500);
+          return;
+        }
+
+        if (res.status === 403) {
+          const err = await res.json();
+          errorBanner.classList.remove('hidden');
+          errorText.textContent = `⛔ ${err.error || 'Access denied.'}`;
+          setTimeout(() => errorBanner.classList.add('hidden'), 6000);
+          return;
+        }
 
         if (!res.ok) {
           const err = await res.json();

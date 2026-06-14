@@ -63,13 +63,17 @@ After every CHOP or Blog Burst command, check:
 
 | Category | Count | Landing Page? |
 |----------|-------|--------------|
-| Beginner Guides | 10 | Ready to create |
-| Two-Letter Words | 10 | Ready to create |
-| Three-Letter Words | 5 | Not yet |
-| History & Culture | 1 | Not yet |
-| Strategy | 1 | Not yet |
-| Tournament | 1 | Not yet |
-| Dictionaries | 1 | Not yet |
+| Beginner Guides | 10 | ✅ Created |
+| Two-Letter Words | 10 | ✅ Created |
+| Three-Letter Words | 10 | ✅ Created |
+| Strategy | 16 | ✅ Created |
+| Tournament & Competitive | 13 | ✅ Created |
+| Bingos | 15 | ✅ Created |
+| High-Scoring Words | 11 | ✅ Created |
+| Letter Guides | 136 | ✅ Created |
+| Dictionaries | 7 | ✅ Created (hub page) |
+| History & Culture | 5 | Not yet |
+| Tools & Solvers | 7 | Not yet |
 
 ## Link From Main Blog Index
 

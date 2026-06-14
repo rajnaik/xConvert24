@@ -28,6 +28,12 @@ const staticPages = [
   { url: '/blog/beginner-guides', priority: '0.7', changefreq: 'weekly' },
   { url: '/blog/two-letter-words', priority: '0.7', changefreq: 'weekly' },
   { url: '/blog/three-letter-words', priority: '0.7', changefreq: 'weekly' },
+  { url: '/blog/strategy', priority: '0.7', changefreq: 'weekly' },
+  { url: '/blog/tournament', priority: '0.7', changefreq: 'weekly' },
+  { url: '/blog/bingos', priority: '0.7', changefreq: 'weekly' },
+  { url: '/blog/high-scoring', priority: '0.7', changefreq: 'weekly' },
+  { url: '/blog/letter-guides', priority: '0.7', changefreq: 'weekly' },
+  { url: '/blog/dictionaries', priority: '0.7', changefreq: 'weekly' },
 ];
 
 // Generate blog entries from discovered files

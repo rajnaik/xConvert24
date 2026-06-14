@@ -25,23 +25,46 @@ export const PUT: APIRoute = async ({ request }) => {
   const db = (env as any).DB;
   if (!db) return jsonError('DB not configured', 500);
 
+  const url = new URL(request.url);
+  const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+
   try {
     const body = await request.json();
     const updates: string[] = [];
     const params: any[] = [];
+
+    // Logo changes require re-authentication on staging/live
+    if (body.logo_option !== undefined) {
+      if (!isLocal) {
+        const cookieHeader = request.headers.get('cookie') || '';
+        const match = cookieHeader.match(/swf_admin_session=([^;]+)/);
+        if (!match) return jsonError('Authentication required to change logo. Please re-login.', 401);
+        try {
+          const sessionData = decodeURIComponent(match[1]);
+          const user = JSON.parse(sessionData);
+          const ALLOWED_EMAILS = ['raj007@gmail.com', 'xconvert24@gmail.com'];
+          if (!ALLOWED_EMAILS.includes(user.email)) {
+            return jsonError('Only raj007@gmail.com or xconvert24@gmail.com can change the logo.', 403);
+          }
+          // Set updated_by to the authenticated email
+          updates.push('updated_by = ?');
+          params.push(user.email);
+        } catch {
+          return jsonError('Invalid session. Please re-login to change logo.', 401);
+        }
+      }
+
+      const opt = Number(body.logo_option);
+      if (!opt || opt < 1 || opt > 5) return jsonError('logo_option must be between 1 and 5', 400);
+      updates.push('logo_option = ?');
+      params.push(opt);
+    }
 
     if (body.status !== undefined) {
       const valid = ['golden', 'green', 'red'];
       if (!valid.includes(body.status)) return jsonError(`Invalid status. Must be one of: ${valid.join(', ')}`, 400);
       updates.push('status = ?');
       params.push(body.status);
-    }
-
-    if (body.logo_option !== undefined) {
-      const opt = Number(body.logo_option);
-      if (!opt || opt < 1 || opt > 5) return jsonError('logo_option must be between 1 and 5', 400);
-      updates.push('logo_option = ?');
-      params.push(opt);
     }
 
     if (body.banner_option !== undefined) {
@@ -60,7 +83,8 @@ export const PUT: APIRoute = async ({ request }) => {
       }
     }
 
-    if (body.updated_by !== undefined) {
+    // Only accept explicit updated_by when not a logo change (logo changes use auth email)
+    if (body.updated_by !== undefined && body.logo_option === undefined) {
       updates.push('updated_by = ?');
       params.push(String(body.updated_by));
     }
