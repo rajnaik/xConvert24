@@ -1,0 +1,258 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Blog Tasks — Admin" description="Manage blog content pipeline" keywords="admin, blog tasks, content pipeline">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/admin" class="flex items-center gap-2 text-sm text-gray-400 hover:text-blue-400 transition-colors">← Admin</a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <span class="text-orange-400 font-medium">Blog Tasks</span>
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Dashboard</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white">📝 Blog Tasks</h1>
+        <p class="text-gray-400 text-sm mt-1" id="statsLine">Loading...</p>
+      </div>
+      <div class="flex gap-3">
+        <button id="addBtn" class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors">+ Add Task</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-3 mb-6">
+      <select id="filterCategory" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm">
+        <option value="">All Categories</option>
+      </select>
+      <select id="filterStatus" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="analysed">Analysed</option>
+        <option value="completed">Completed</option>
+        <option value="deployed_staging">Deployed Staging</option>
+        <option value="deployed_live">Deployed Live</option>
+      </select>
+      <select id="filterReady" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm">
+        <option value="">All Ready Status</option>
+        <option value="pending">Pending</option>
+        <option value="ready">Ready</option>
+        <option value="in_progress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-800/80">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">ID</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Title</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Category</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Status</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Ready</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Agent</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Est.</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tasksTable" class="divide-y divide-gray-800"></tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-4">
+      <button id="prevBtn" class="px-3 py-1.5 rounded bg-gray-800 text-gray-400 text-sm hover:text-white transition-colors disabled:opacity-40" disabled>← Previous</button>
+      <span id="pageInfo" class="text-gray-500 text-sm"></span>
+      <button id="nextBtn" class="px-3 py-1.5 rounded bg-gray-800 text-gray-400 text-sm hover:text-white transition-colors disabled:opacity-40">Next →</button>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg mx-4">
+      <h2 id="modalTitle" class="text-lg font-bold text-white mb-4">Add Blog Task</h2>
+      <input type="hidden" id="fId" />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Title *</label>
+          <input id="fTitle" type="text" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="Blog post title" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Category</label>
+            <input id="fCategory" type="text" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="e.g. Strategy" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Est. Time</label>
+            <input id="fEstimate" type="text" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="e.g. 15min" />
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Status</label>
+            <select id="fStatus" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm">
+              <option value="pending">Pending</option>
+              <option value="analysed">Analysed</option>
+              <option value="completed">Completed</option>
+              <option value="deployed_staging">Deployed Staging</option>
+              <option value="deployed_live">Deployed Live</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Ready Status</label>
+            <select id="fReady" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm">
+              <option value="pending">Pending</option>
+              <option value="ready">Ready</option>
+              <option value="in_progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Agent</label>
+            <input id="fAgent" type="text" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="e.g. quill" />
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button id="saveBtn" class="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors">Save</button>
+        <button id="cancelBtn" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm transition-colors">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed top-4 right-4 px-4 py-2 rounded-lg text-sm font-medium z-50 hidden"></div>
+
+  <script is:inline>
+    var tasksData = [];
+    var categories = [];
+    var currentOffset = 0;
+    var pageSize = 50;
+
+    function showToast(msg, type) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'fixed top-4 right-4 px-4 py-2 rounded-lg text-sm font-medium z-50 ' + (type === 'success' ? 'bg-green-900 text-green-300 border border-green-700' : 'bg-red-900 text-red-300 border border-red-700');
+      setTimeout(function() { t.className += ' hidden'; }, 3000);
+    }
+
+    function statusBadge(s) {
+      var colors = { pending: 'bg-gray-700 text-gray-300', analysed: 'bg-blue-900 text-blue-300', completed: 'bg-green-900 text-green-300', deployed_staging: 'bg-amber-900 text-amber-300', deployed_live: 'bg-emerald-900 text-emerald-300' };
+      return '<span class="px-2 py-0.5 rounded text-xs font-medium ' + (colors[s] || colors.pending) + '">' + (s || 'pending') + '</span>';
+    }
+
+    function readyBadge(s) {
+      var colors = { pending: 'bg-gray-700 text-gray-300', ready: 'bg-cyan-900 text-cyan-300', in_progress: 'bg-purple-900 text-purple-300', done: 'bg-green-900 text-green-300' };
+      return '<span class="px-2 py-0.5 rounded text-xs font-medium ' + (colors[s] || colors.pending) + '">' + (s || 'pending') + '</span>';
+    }
+
+    async function loadTasks() {
+      var cat = document.getElementById('filterCategory').value;
+      var status = document.getElementById('filterStatus').value;
+      var ready = document.getElementById('filterReady').value;
+      var params = '?limit=' + pageSize + '&offset=' + currentOffset;
+      if (cat) params += '&category=' + encodeURIComponent(cat);
+      if (status) params += '&status=' + encodeURIComponent(status);
+      if (ready) params += '&ready_status=' + encodeURIComponent(ready);
+
+      var res = await fetch('/api/blog-tasks' + params);
+      var data = await res.json();
+      tasksData = data.tasks;
+
+      document.getElementById('statsLine').textContent = 'Total: ' + data.counts.total + ' | Pending: ' + data.counts.pending + ' | Completed: ' + data.counts.completed;
+
+      if (data.categories && data.categories.length > 0) {
+        var sel = document.getElementById('filterCategory');
+        var current = sel.value;
+        sel.innerHTML = '<option value="">All Categories</option>' + data.categories.map(function(c) { return '<option value="' + c + '"' + (c === current ? ' selected' : '') + '>' + c + '</option>'; }).join('');
+      }
+
+      var tbody = document.getElementById('tasksTable');
+      tbody.innerHTML = tasksData.map(function(t) {
+        return '<tr class="hover:bg-gray-800/50">' +
+          '<td class="px-4 py-3 text-gray-500 font-mono text-xs">' + t.id + '</td>' +
+          '<td class="px-4 py-3 text-white font-medium">' + (t.title || '\u2014') + '</td>' +
+          '<td class="px-4 py-3 text-gray-400 text-xs">' + (t.category || '\u2014') + '</td>' +
+          '<td class="px-4 py-3">' + statusBadge(t.status) + '</td>' +
+          '<td class="px-4 py-3">' + readyBadge(t.ready_status) + '</td>' +
+          '<td class="px-4 py-3 text-gray-400 text-xs">' + (t.agent_name || '\u2014') + '</td>' +
+          '<td class="px-4 py-3 text-gray-400 text-xs">' + (t.estimated_execution_time || '\u2014') + '</td>' +
+          '<td class="px-4 py-3"><button onclick="editTask(' + t.id + ')" class="text-blue-400 hover:underline text-xs mr-2">Edit</button><button onclick="deleteTask(' + t.id + ')" class="text-red-400 hover:underline text-xs">Del</button></td>' +
+        '</tr>';
+      }).join('') || '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No tasks found</td></tr>';
+
+      document.getElementById('prevBtn').disabled = currentOffset === 0;
+      document.getElementById('nextBtn').disabled = tasksData.length < pageSize;
+      document.getElementById('pageInfo').textContent = 'Showing ' + (currentOffset + 1) + '-' + (currentOffset + tasksData.length);
+    }
+
+    function openModal(task) {
+      document.getElementById('modalTitle').textContent = task ? 'Edit Blog Task' : 'Add Blog Task';
+      document.getElementById('fId').value = task ? task.id : '';
+      document.getElementById('fTitle').value = task ? (task.title || '') : '';
+      document.getElementById('fCategory').value = task ? (task.category || '') : '';
+      document.getElementById('fEstimate').value = task ? (task.estimated_execution_time || '') : '';
+      document.getElementById('fStatus').value = task ? (task.status || 'pending') : 'pending';
+      document.getElementById('fReady').value = task ? (task.ready_status || 'pending') : 'pending';
+      document.getElementById('fAgent').value = task ? (task.agent_name || '') : '';
+      document.getElementById('modal').classList.remove('hidden');
+      document.getElementById('modal').classList.add('flex');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('modal').classList.remove('flex');
+    }
+
+    window.editTask = function(id) {
+      var task = tasksData.find(function(t) { return t.id === id; });
+      if (task) openModal(task);
+    };
+
+    window.deleteTask = async function(id) {
+      if (!confirm('Delete this blog task?')) return;
+      var res = await fetch('/api/blog-tasks?id=' + id, { method: 'DELETE' });
+      if (res.ok) { showToast('Deleted', 'success'); loadTasks(); }
+      else showToast('Delete failed', 'error');
+    };
+
+    document.getElementById('addBtn').addEventListener('click', function() { openModal(null); });
+    document.getElementById('cancelBtn').addEventListener('click', closeModal);
+    document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+
+    document.getElementById('saveBtn').addEventListener('click', async function() {
+      var id = document.getElementById('fId').value;
+      var body = {
+        id: id ? Number(id) : undefined,
+        title: document.getElementById('fTitle').value,
+        category: document.getElementById('fCategory').value,
+        estimated_execution_time: document.getElementById('fEstimate').value,
+        status: document.getElementById('fStatus').value,
+        ready_status: document.getElementById('fReady').value,
+        agent_name: document.getElementById('fAgent').value,
+      };
+      if (!body.title) { showToast('Title required', 'error'); return; }
+      var method = id ? 'PUT' : 'POST';
+      var res = await fetch('/api/blog-tasks', { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) { showToast(id ? 'Updated' : 'Created', 'success'); closeModal(); loadTasks(); }
+      else showToast('Save failed', 'error');
+    });
+
+    document.getElementById('filterCategory').addEventListener('change', function() { currentOffset = 0; loadTasks(); });
+    document.getElementById('filterStatus').addEventListener('change', function() { currentOffset = 0; loadTasks(); });
+    document.getElementById('filterReady').addEventListener('change', function() { currentOffset = 0; loadTasks(); });
+
+    document.getElementById('prevBtn').addEventListener('click', function() { currentOffset = Math.max(0, currentOffset - pageSize); loadTasks(); });
+    document.getElementById('nextBtn').addEventListener('click', function() { currentOffset += pageSize; loadTasks(); });
+
+    loadTasks();
+  </script>
+</Layout>
