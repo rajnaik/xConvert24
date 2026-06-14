@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ url }) => {
       code,
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uri: 'https://scrabblewordsfinder.com/api/auth/callback',
+      redirect_uri: 'https://www.scrabblewordsfinder.com/api/auth/callback',
       grant_type: 'authorization_code',
     }),
   });
@@ -53,7 +53,7 @@ export const GET: APIRoute = async ({ url }) => {
   return new Response(null, {
     status: 302,
     headers: {
-      'Location': 'https://scrabblewordsfinder.com/admin',
+      'Location': 'https://www.scrabblewordsfinder.com/admin',
       'Set-Cookie': `swf_admin_session=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
     },
   });
