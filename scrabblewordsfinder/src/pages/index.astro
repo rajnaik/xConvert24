@@ -85,6 +85,17 @@ import '../styles/global.css';
       0% { outline-color: #3b82f6; transform: scale(1); }
       100% { outline-color: #dc2626; transform: scale(1.08); }
     }
+    .rack-tile {
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    }
+    .rack-tile.tile-drop {
+      animation: rack-tile-drop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes rack-tile-drop {
+      0% { transform: translateY(-18px) scale(0.7); opacity: 0; }
+      60% { transform: translateY(3px) scale(1.05); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
     @media (max-width: 639px) {
       .scrabble-tile { width: 44px !important; height: 44px !important; }
       .scrabble-tile .text-3xl { font-size: 1.25rem !important; }
@@ -118,29 +129,26 @@ import '../styles/global.css';
             <a id="clear-text-solver" href="#" class="flex items-center justify-center w-7 h-7 rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 transition-colors self-center" title="Clear">
               <svg class="w-3 h-3 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </a>
-            <button id="text-solve-btn" class="h-11 px-5 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm ml-auto">Solve</button>
+            <button id="text-solve-btn" class="h-11 px-5 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm ml-auto">Find Words</button>
           </div>
-          <p class="mt-1.5 text-xs text-gray-500">Use ? for blank tiles. Up to 15 letters. Finds all words you can make.</p>
+          <p class="mt-1.5 text-xs text-gray-500">Use <span class="text-blue-400 font-mono font-bold">?</span> for blank tiles. Up to 15 letters. Finds all words you can make.</p>
         </div>
 
         <div class="border-t border-gray-800 my-4"></div>
 
-        <!-- Tile Rack (7 boxes — your current Scrabble rack) -->
+        <!-- Tile Rack (read-only visual display synced from Word Solver) -->
         <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-300 mb-1.5">Tile Rack <span class="text-gray-500 font-normal">(7 tiles max)</span></label>
-          <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 items-center">
-            <div class="flex gap-1.5" id="tile-inputs">
-              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="0" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="1" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="2" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="3" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="4" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="5" autocomplete="off" inputmode="text" />
-              <input type="text" maxlength="1" class="tile-box w-[46px] h-14 sm:w-[54px] sm:h-16 text-center bg-gray-800 border-2 border-purple-700/50 rounded-lg text-blue-300 text-2xl sm:text-3xl font-mono uppercase focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-colors" data-idx="6" autocomplete="off" inputmode="text" />
-            </div>
-            <button id="solve-btn" class="h-12 sm:h-16 px-4 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm sm:text-base ml-auto">Find Words</button>
+          <label class="block text-sm font-medium text-gray-300 mb-1.5">Tile Rack <span class="text-gray-500 font-normal">(first 7 tiles)</span></label>
+          <div class="flex gap-1.5" id="tile-rack">
+            <div class="rack-tile w-[46px] h-14 sm:w-[54px] sm:h-16 rounded-lg flex flex-col items-center justify-center select-none relative overflow-hidden" data-idx="0" style="background: linear-gradient(145deg, #e8d5c0, #dcc8b0); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.2); border: 2px solid #c4a882; opacity: 0.3;"></div>
+            <div class="rack-tile w-[46px] h-14 sm:w-[54px] sm:h-16 rounded-lg flex flex-col items-center justify-center select-none relative overflow-hidden" data-idx="1" style="background: linear-gradient(145deg, #e8d5c0, #dcc8b0); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.2); border: 2px solid #c4a882; opacity: 0.3;"></div>
+            <div class="rack-tile w-[46px] h-14 sm:w-[54px] sm:h-16 rounded-lg flex flex-col items-center justify-center select-none relative overflow-hidden" data-idx="2" style="background: linear-gradient(145deg, #e8d5c0, #dcc8b0); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.2); border: 2px solid #c4a882; opacity: 0.3;"></div>
+            <div class="rack-tile w-[46px] h-14 sm:w-[54px] sm:h-16 rounded-lg flex flex-col items-center justify-center select-none relative overflow-hidden" data-idx="3" style="background: linear-gradient(145deg, #e8d5c0, #dcc8b0); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.2); border: 2px solid #c4a882; opacity: 0.3;"></div>
+            <div class="rack-tile w-[46px] h-14 sm:w-[54px] sm:h-16 rounded-lg flex flex-col items-center justify-center select-none relative overflow-hidden" data-idx="4" style="background: linear-gradient(145deg, #e8d5c0, #dcc8b0); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.2); border: 2px solid #c4a882; opacity: 0.3;"></div>
+            <div class="rack-tile w-[46px] h-14 sm:w-[54px] sm:h-16 rounded-lg flex flex-col items-center justify-center select-none relative overflow-hidden" data-idx="5" style="background: linear-gradient(145deg, #e8d5c0, #dcc8b0); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.2); border: 2px solid #c4a882; opacity: 0.3;"></div>
+            <div class="rack-tile w-[46px] h-14 sm:w-[54px] sm:h-16 rounded-lg flex flex-col items-center justify-center select-none relative overflow-hidden" data-idx="6" style="background: linear-gradient(145deg, #e8d5c0, #dcc8b0); box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -3px 0 rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.2); border: 2px solid #c4a882; opacity: 0.3;"></div>
           </div>
-          <p class="mt-2 text-xs text-gray-500">One letter per tile. Use <kbd class="rounded bg-gray-800 px-1 py-0.5 font-mono text-blue-400">?</kbd> for blanks.</p>
+          <p class="mt-2 text-xs text-gray-500">Tiles mirror first 7 letters from Word Solver.</p>
           <input id="tiles" type="hidden" />
         </div>
 
@@ -374,71 +382,48 @@ import '../styles/global.css';
 </Layout>
 
 <script>
-  // ── Tile Input Boxes Logic ──────────────────────────────────────────────
-  // After entering a letter, cursor moves to the box on the RIGHT.
-  // User can click any box to start. Backspace moves LEFT.
-  const tileBoxes = document.querySelectorAll('.tile-box') as NodeListOf<HTMLInputElement>;
+  // ── Tile Rack (Read-Only Visual Display) ─────────────────────────────────
+  // One-way sync: Word Solver text input → visual rack tiles
+  const rackTiles = document.querySelectorAll('.rack-tile') as NodeListOf<HTMLElement>;
   const hiddenTiles = document.getElementById('tiles') as HTMLInputElement;
-  let syncingFromTextSolver = false; // Guard to prevent circular sync
 
-  function syncTiles() {
-    if (syncingFromTextSolver) return; // Don't overwrite when Word Solver is driving
-    // Empty boxes between filled boxes become ? (blank tiles)
-    const boxes = Array.from(tileBoxes).map(b => b.value.toUpperCase());
-    const lastFilled = boxes.reduce((last, v, i) => v ? i : last, -1);
-    const val = boxes.slice(0, lastFilled + 1).map(v => v || '?').join('');
-    hiddenTiles.value = val;
-    hiddenTiles.dispatchEvent(new Event('input'));
-    // Sync tile rack → Word Solver (bidirectional)
-    // Only overwrite text solver if it doesn't have MORE than 7 chars (user typed in tiles directly)
-    const textSolverEl = document.getElementById('text-solver') as HTMLInputElement;
-    if (textSolverEl && textSolverEl.value.length <= 7) {
-      textSolverEl.value = val;
-    }
-  }
-
-  tileBoxes.forEach((box, idx) => {
-    box.addEventListener('focus', () => box.select());
-
-    box.addEventListener('input', () => {
-      const v = box.value;
-      if (v.length > 0) {
-        box.value = v.slice(-1).toUpperCase();
-        // After entering a letter, move cursor to the box on the RIGHT
-        if (idx < tileBoxes.length - 1) {
-          tileBoxes[idx + 1].focus();
-        }
-      }
-      syncTiles();
-    });
-
-    box.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace') {
-        if (box.value !== '') {
-          box.value = '';
-          syncTiles();
-          // Backspace moves cursor LEFT (opposite of fill direction)
-          if (idx > 0) tileBoxes[idx - 1].focus();
-          e.preventDefault();
-        } else if (idx > 0) {
-          tileBoxes[idx - 1].focus();
-          e.preventDefault();
-        }
-      } else if (e.key === 'ArrowLeft' && idx > 0) {
-        tileBoxes[idx - 1].focus();
-      } else if (e.key === 'ArrowRight' && idx < tileBoxes.length - 1) {
-        tileBoxes[idx + 1].focus();
-      } else if (e.key === 'Enter') {
-        (document.getElementById('solve-btn') as HTMLElement).click();
-      }
-    });
-  });
-
-  // ── Scrabble tile scores ────────────────────────────────────────────────
   const scores: Record<string, number> = {
     A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,
     N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10
   };
+
+  // ── Render Rack (one-way: text → visual tiles with drop animation) ──────
+  let prevRackLetters: string[] = ['','','','','','',''];
+
+  function renderRack(text: string) {
+    const letters = text.toUpperCase().slice(0, 7).split('');
+    rackTiles.forEach((tile, i) => {
+      const letter = letters[i] || '';
+      const prevLetter = prevRackLetters[i] || '';
+      if (letter === prevLetter) return; // No change on this tile
+
+      if (!letter) {
+        // Empty tile — show faded placeholder
+        tile.innerHTML = '';
+        tile.style.opacity = '0.3';
+        tile.classList.remove('tile-drop');
+      } else {
+        // Filled tile — show letter + score with drop animation
+        const pts = letter === '?' ? 0 : (scores[letter] || 0);
+        const displayChar = letter === '?' ? '★' : letter;
+        tile.innerHTML = `
+          <span class="text-2xl sm:text-3xl font-black text-gray-900 leading-none" style="font-family: 'Arial Black', sans-serif;">${displayChar}</span>
+          <span class="text-[9px] sm:text-xs font-bold text-gray-900 absolute bottom-0.5 right-1.5 leading-none" style="font-family: 'Arial Black', sans-serif;">${pts}</span>
+        `;
+        tile.style.opacity = '1';
+        // Trigger drop animation
+        tile.classList.remove('tile-drop');
+        void tile.offsetWidth; // Force reflow to restart animation
+        tile.classList.add('tile-drop');
+      }
+    });
+    prevRackLetters = Array.from({ length: 7 }, (_, i) => letters[i] || '');
+  }
 
   let WORDS: string[] = [];
   let SOWPODS: string[] = [];
@@ -1136,10 +1121,6 @@ import '../styles/global.css';
   loadFilterPrefs();
 
   // ── Init Event Listeners ────────────────────────────────────────────────
-  document.getElementById('solve-btn')!.addEventListener('click', () => {
-    const text = (document.getElementById('tiles') as HTMLInputElement).value.trim().toUpperCase();
-    if (text.length > 7) { solve(); } else { solve(7); }
-  });
   document.getElementById('tiles')!.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Enter') { const t = (document.getElementById('tiles') as HTMLInputElement).value.trim(); if (t.length > 7) { solve(); } else { solve(7); } } });
 
   document.getElementById('min-len')!.addEventListener('change', () => {
@@ -1229,35 +1210,29 @@ import '../styles/global.css';
     solveTimer = setTimeout(() => { if ((document.getElementById('tiles') as HTMLInputElement).value.trim().length >= 2) solve(); }, 300);
   });
 
-  // ── Word Solver (bidirectional sync with tile rack, solves up to 15 letters) ──
+  // ── Word Solver (one-way sync to tile rack, solves up to 15 letters) ──
   const textSolver = document.getElementById('text-solver') as HTMLInputElement;
   const textSolveBtn = document.getElementById('text-solve-btn')!;
 
-  function syncTextToTiles() {
-    syncingFromTextSolver = true;
+  function syncTextToRack() {
     const text = textSolver.value.toUpperCase();
-    // Fill tile boxes from text (first 7 chars only). ? = blank (empty tile box)
-    tileBoxes.forEach((box, i) => {
-      const ch = text[i] || '';
-      box.value = (ch === '?') ? '' : ch;
-    });
+    // Render visual rack tiles (first 7 only)
+    renderRack(text);
     // Hidden tiles gets the FULL text solver value (including ? as wildcards)
     hiddenTiles.value = text;
     hiddenTiles.dispatchEvent(new Event('input'));
-    syncingFromTextSolver = false;
   }
 
   textSolver.addEventListener('input', () => {
     textSolver.value = textSolver.value.toUpperCase();
-    syncTextToTiles();
+    syncTextToRack();
   });
 
-  // "Solve" button — finds words up to the FULL text input length (up to 15)
+  // "Find Words" button — finds words up to the FULL text input length (up to 15)
   textSolveBtn.addEventListener('click', () => {
     const text = textSolver.value.trim().toUpperCase();
     if (!text || text.length < 2) return;
     hiddenTiles.value = text;
-    console.log('[SOLVE-BTN] tiles set to:', text, 'len:', text.length, 'dictLoaded:', dictionaryLoaded, 'WORDS count:', WORDS.length);
     solve();
   });
 
@@ -1276,7 +1251,7 @@ import '../styles/global.css';
     // Full state reset — clears everything including probability and panels
     textSolver.value = '';
     hiddenTiles.value = '';
-    tileBoxes.forEach(box => { box.value = ''; });
+    renderRack('');
     document.getElementById('results')!.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm italic">Enter at least 2 tiles</div>';
     document.getElementById('copy-solver')!.classList.add('opacity-30');
     // Reset probability panel
@@ -1671,7 +1646,7 @@ import '../styles/global.css';
   }
 
   document.getElementById('tiles')!.addEventListener('input', updateBestOpeners);
-  document.getElementById('solve-btn')!.addEventListener('click', updateBestOpeners);
+  document.getElementById('text-solve-btn')!.addEventListener('click', updateBestOpeners);
 
   // ── Word Definitions ────────────────────────────────────────────────────
   async function showDefinition(target: HTMLElement, word: string) {
