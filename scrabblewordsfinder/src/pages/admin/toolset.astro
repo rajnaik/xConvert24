@@ -1,0 +1,366 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="ToolSet — Admin — ScrabbleWordsFinder" description="Manage tech stack dependencies and services" keywords="admin, toolset, dependencies, versions">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/environments" class="hover:text-blue-400 transition-colors">Environments</a>
+      <a href="/admin/toolset" class="text-cyan-400 font-medium">ToolSet</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">🧰 ToolSet</h1>
+        <p class="text-gray-400 text-sm mt-1">All libraries, APIs, services, and tools tracked across workspaces.</p>
+      </div>
+      <button id="add-btn" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium transition-colors">+ Add Tool</button>
+    </div>
+
+    <!-- Stats bar (clickable for filtering) -->
+    <div id="stats-bar" class="grid grid-cols-4 gap-4 mb-6">
+      <button id="filter-all" class="rounded-lg border border-gray-800 bg-gray-900/50 p-3 text-center cursor-pointer hover:bg-cyan-900/20 transition-colors">
+        <span id="stat-total" class="text-cyan-400 font-bold text-xl">-</span>
+        <p class="text-xs text-gray-500 mt-1">Total</p>
+      </button>
+      <button id="filter-current" class="rounded-lg border border-gray-800 bg-gray-900/50 p-3 text-center cursor-pointer hover:bg-green-900/20 transition-colors">
+        <span id="stat-current" class="text-green-400 font-bold text-xl">-</span>
+        <p class="text-xs text-gray-500 mt-1">Up to date</p>
+      </button>
+      <button id="filter-outdated" class="rounded-lg border-2 border-amber-500 bg-gray-900/50 p-3 text-center cursor-pointer hover:bg-amber-900/20 transition-colors">
+        <span id="stat-outdated" class="text-amber-400 font-bold text-xl">-</span>
+        <p class="text-xs text-gray-500 mt-1">Updates available</p>
+      </button>
+      <button id="filter-services" class="rounded-lg border border-gray-800 bg-gray-900/50 p-3 text-center cursor-pointer hover:bg-purple-900/20 transition-colors">
+        <span id="stat-categories" class="text-purple-400 font-bold text-xl">-</span>
+        <p class="text-xs text-gray-500 mt-1">Services</p>
+      </button>
+    </div>
+
+    <!-- Filter pills -->
+    <div id="filter-pills" class="flex flex-wrap gap-2 mb-4">
+      <button class="filter-pill px-3 py-1 rounded-full text-xs font-medium bg-gray-800 border border-gray-700 text-gray-400 hover:border-green-500 hover:text-green-400 transition-colors" data-filter="all">All</button>
+      <button class="filter-pill px-3 py-1 rounded-full text-xs font-medium bg-gray-800 border border-gray-700 text-gray-400 hover:border-green-500 hover:text-green-400 transition-colors" data-filter="current">✓ Current</button>
+      <button class="filter-pill px-3 py-1 rounded-full text-xs font-medium bg-amber-900/30 border border-amber-500 text-amber-400" data-filter="update">↑ Update</button>
+      <button class="filter-pill px-3 py-1 rounded-full text-xs font-medium bg-gray-800 border border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors" data-filter="service">Service</button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-900 border-b border-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Name</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Category</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Workspace</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Installed</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Latest</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Status</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Notes</th>
+            <th class="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="toolset-table" class="divide-y divide-gray-800">
+          <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 hidden px-4 py-3 rounded-lg bg-green-900/90 border border-green-700 text-green-300 text-sm font-medium shadow-lg z-50"></div>
+  </div>
+
+  <!-- Edit/Add Modal -->
+  <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-lg shadow-xl">
+      <h2 id="modal-title" class="text-lg font-semibold text-white mb-4">Add Tool</h2>
+      <form id="tool-form" class="space-y-3">
+        <input type="hidden" id="form-id" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400">Name *</label>
+            <input id="form-name" type="text" required class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Category</label>
+            <select id="form-category" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none">
+              <option value="framework">Framework</option>
+              <option value="adapter">Adapter</option>
+              <option value="styling">Styling</option>
+              <option value="deploy">Deploy</option>
+              <option value="language">Language</option>
+              <option value="tooling">Tooling</option>
+              <option value="testing">Testing</option>
+              <option value="runtime">Runtime</option>
+              <option value="hosting">Hosting</option>
+              <option value="database">Database</option>
+              <option value="storage">Storage</option>
+              <option value="service">Service</option>
+              <option value="auth">Auth</option>
+              <option value="api">API</option>
+              <option value="advertising">Advertising</option>
+              <option value="plugin">Plugin</option>
+              <option value="library">Library</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="text-xs text-gray-400">Workspace</label>
+            <select id="form-workspace" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none">
+              <option value="shared">Shared</option>
+              <option value="swf">SWF</option>
+              <option value="xconvert">xConvert</option>
+              <option value="coins">Coins</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Installed Version</label>
+            <input id="form-installed" type="text" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Latest Version</label>
+            <input id="form-latest" type="text" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400">Release Date</label>
+            <input id="form-release-date" type="text" placeholder="e.g. 2026-06-10" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Target Upgrade</label>
+            <input id="form-target" type="text" placeholder="e.g. Next session" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none" />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400">Breaking Changes</label>
+          <input id="form-breaking" type="text" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-400">Website URL</label>
+          <input id="form-url" type="url" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-xs text-gray-400">Notes</label>
+          <input id="form-notes" type="text" class="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white focus:border-cyan-500 focus:outline-none" />
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" id="modal-cancel" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm hover:bg-gray-700 transition-colors">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium transition-colors">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    interface Tool {
+      id: number; name: string; category: string; workspace: string;
+      installed_version: string; latest_version: string; release_date: string;
+      breaking_changes: string; target_upgrade: string; website_url: string;
+      notes: string; last_checked: string;
+    }
+
+    let tools: Tool[] = [];
+    let activeFilter = 'update';
+
+    function getStatusKey(t: Tool): string {
+      if (!t.installed_version || t.installed_version === '-') return 'service';
+      if (t.installed_version === t.latest_version) return 'current';
+      if (t.latest_version && t.latest_version !== t.installed_version) return 'update';
+      return 'service';
+    }
+
+    function getStatus(t: Tool): { label: string; cls: string } {
+      const key = getStatusKey(t);
+      if (key === 'service') return { label: 'Service', cls: 'bg-gray-800 text-gray-400' };
+      if (key === 'current') return { label: '✓ Current', cls: 'bg-green-900/30 text-green-400' };
+      if (key === 'update') return { label: '↑ Update', cls: 'bg-amber-900/30 text-amber-400' };
+      return { label: '—', cls: 'bg-gray-800 text-gray-400' };
+    }
+
+    function getFilteredTools(): Tool[] {
+      if (activeFilter === 'all') return tools;
+      return tools.filter(t => getStatusKey(t) === activeFilter);
+    }
+
+    function setFilter(filter: string) {
+      activeFilter = filter;
+      renderTable();
+      highlightActiveFilter();
+    }
+
+    function highlightActiveFilter() {
+      const map: Record<string, string> = { all: 'filter-all', current: 'filter-current', update: 'filter-outdated', service: 'filter-services' };
+      Object.entries(map).forEach(([key, id]) => {
+        const el = document.getElementById(id)!;
+        if (key === activeFilter) {
+          el.classList.remove('border-gray-800');
+          el.classList.add('border-2');
+          if (key === 'all') el.classList.add('border-cyan-500');
+          else if (key === 'current') el.classList.add('border-green-500');
+          else if (key === 'update') el.classList.add('border-amber-500');
+          else el.classList.add('border-purple-500');
+        } else {
+          el.classList.remove('border-2', 'border-cyan-500', 'border-green-500', 'border-amber-500', 'border-purple-500');
+          el.classList.add('border-gray-800');
+        }
+      });
+      document.querySelectorAll('.filter-pill').forEach(pill => {
+        const f = (pill as HTMLElement).dataset.filter;
+        if (f === activeFilter) {
+          const colorMap: Record<string, string> = {
+            all: 'filter-pill px-3 py-1 rounded-full text-xs font-medium bg-cyan-900/30 border border-cyan-500 text-cyan-400',
+            current: 'filter-pill px-3 py-1 rounded-full text-xs font-medium bg-green-900/30 border border-green-500 text-green-400',
+            update: 'filter-pill px-3 py-1 rounded-full text-xs font-medium bg-amber-900/30 border border-amber-500 text-amber-400',
+            service: 'filter-pill px-3 py-1 rounded-full text-xs font-medium bg-purple-900/30 border border-purple-500 text-purple-400',
+          };
+          pill.className = colorMap[f!] || colorMap.all;
+        } else {
+          pill.className = 'filter-pill px-3 py-1 rounded-full text-xs font-medium bg-gray-800 border border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors';
+        }
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('toolset-table')!;
+      const filtered = getFilteredTools();
+      if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No tools match this filter.</td></tr>'; return; }
+
+      tbody.innerHTML = filtered.map(t => {
+        const s = getStatus(t);
+        const nameHtml = t.website_url ? `<a href="${t.website_url}" target="_blank" class="text-cyan-400 hover:underline">${t.name}</a>` : `<span class="text-white">${t.name}</span>`;
+        return `<tr class="hover:bg-gray-900/50">
+          <td class="px-4 py-3 text-sm font-medium">${nameHtml}</td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs bg-gray-800 text-gray-300">${t.category}</span></td>
+          <td class="px-4 py-3 text-xs text-gray-400">${t.workspace}</td>
+          <td class="px-4 py-3 text-xs font-mono text-gray-300">${t.installed_version || '-'}</td>
+          <td class="px-4 py-3 text-xs font-mono text-gray-300">${t.latest_version || '-'}</td>
+          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs ${s.cls}">${s.label}</span></td>
+          <td class="px-4 py-3 text-xs text-gray-500 max-w-[200px] truncate" title="${t.notes}">${t.notes || ''}</td>
+          <td class="px-4 py-3 text-center">
+            <button class="edit-btn text-gray-400 hover:text-cyan-400 transition-colors p-1" data-id="${t.id}" title="Edit">✏️</button>
+            <button class="del-btn text-gray-400 hover:text-red-400 transition-colors p-1 ml-1" data-id="${t.id}" title="Delete">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('');
+
+      tbody.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => openEdit(Number((btn as HTMLElement).dataset.id))));
+      tbody.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', () => deleteTool(Number((btn as HTMLElement).dataset.id))));
+    }
+
+    function renderStats() {
+      const total = tools.length;
+      const outdated = tools.filter(t => getStatusKey(t) === 'update').length;
+      const current = tools.filter(t => getStatusKey(t) === 'current').length;
+      const services = tools.filter(t => getStatusKey(t) === 'service').length;
+      document.getElementById('stat-total')!.textContent = String(total);
+      document.getElementById('stat-current')!.textContent = String(current);
+      document.getElementById('stat-outdated')!.textContent = String(outdated);
+      document.getElementById('stat-categories')!.textContent = String(services);
+    }
+
+    async function loadTools() {
+      const res = await fetch('/api/toolset');
+      const data = await res.json();
+      tools = data.tools || [];
+      renderTable();
+      renderStats();
+    }
+
+    function showToast(msg: string) {
+      const el = document.getElementById('toast')!;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
+    const modal = document.getElementById('modal')!;
+    const form = document.getElementById('tool-form') as HTMLFormElement;
+
+    function openModal(title: string) {
+      document.getElementById('modal-title')!.textContent = title;
+      modal.classList.remove('hidden');
+    }
+    function closeModal() { modal.classList.add('hidden'); form.reset(); (document.getElementById('form-id') as HTMLInputElement).value = ''; }
+
+    document.getElementById('add-btn')!.addEventListener('click', () => { closeModal(); openModal('Add Tool'); });
+    document.getElementById('modal-cancel')!.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    function openEdit(id: number) {
+      const t = tools.find(x => x.id === id);
+      if (!t) return;
+      (document.getElementById('form-id') as HTMLInputElement).value = String(t.id);
+      (document.getElementById('form-name') as HTMLInputElement).value = t.name;
+      (document.getElementById('form-category') as HTMLSelectElement).value = t.category;
+      (document.getElementById('form-workspace') as HTMLSelectElement).value = t.workspace;
+      (document.getElementById('form-installed') as HTMLInputElement).value = t.installed_version;
+      (document.getElementById('form-latest') as HTMLInputElement).value = t.latest_version;
+      (document.getElementById('form-release-date') as HTMLInputElement).value = t.release_date;
+      (document.getElementById('form-target') as HTMLInputElement).value = t.target_upgrade;
+      (document.getElementById('form-breaking') as HTMLInputElement).value = t.breaking_changes;
+      (document.getElementById('form-url') as HTMLInputElement).value = t.website_url;
+      (document.getElementById('form-notes') as HTMLInputElement).value = t.notes;
+      openModal('Edit Tool');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = (document.getElementById('form-id') as HTMLInputElement).value;
+      const body: any = {
+        name: (document.getElementById('form-name') as HTMLInputElement).value,
+        category: (document.getElementById('form-category') as HTMLSelectElement).value,
+        workspace: (document.getElementById('form-workspace') as HTMLSelectElement).value,
+        installed_version: (document.getElementById('form-installed') as HTMLInputElement).value,
+        latest_version: (document.getElementById('form-latest') as HTMLInputElement).value,
+        release_date: (document.getElementById('form-release-date') as HTMLInputElement).value,
+        target_upgrade: (document.getElementById('form-target') as HTMLInputElement).value,
+        breaking_changes: (document.getElementById('form-breaking') as HTMLInputElement).value,
+        website_url: (document.getElementById('form-url') as HTMLInputElement).value,
+        notes: (document.getElementById('form-notes') as HTMLInputElement).value,
+      };
+
+      if (id) body.id = Number(id);
+      const method = id ? 'PUT' : 'POST';
+      const res = await fetch('/api/toolset', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) {
+        showToast(id ? '✅ Tool updated' : '✅ Tool added');
+        closeModal();
+        await loadTools();
+      } else {
+        const err = await res.json();
+        showToast(`❌ ${err.error}`);
+      }
+    });
+
+    async function deleteTool(id: number) {
+      if (!confirm('Delete this tool from the tracker?')) return;
+      const res = await fetch(`/api/toolset?id=${id}`, { method: 'DELETE' });
+      if (res.ok) { showToast('🗑️ Tool removed'); await loadTools(); }
+    }
+
+    loadTools();
+
+    // Filter click handlers — stats bar
+    document.getElementById('filter-all')!.addEventListener('click', () => setFilter('all'));
+    document.getElementById('filter-current')!.addEventListener('click', () => setFilter('current'));
+    document.getElementById('filter-outdated')!.addEventListener('click', () => setFilter('update'));
+    document.getElementById('filter-services')!.addEventListener('click', () => setFilter('service'));
+
+    // Filter click handlers — pills
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => setFilter((pill as HTMLElement).dataset.filter || 'all'));
+    });
+  </script>
+</Layout>
