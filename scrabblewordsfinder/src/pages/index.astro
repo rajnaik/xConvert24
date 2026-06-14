@@ -390,8 +390,11 @@ import '../styles/global.css';
     hiddenTiles.value = val;
     hiddenTiles.dispatchEvent(new Event('input'));
     // Sync tile rack → Word Solver (bidirectional)
+    // Only overwrite text solver if it doesn't have MORE than 7 chars (user typed in tiles directly)
     const textSolverEl = document.getElementById('text-solver') as HTMLInputElement;
-    if (textSolverEl) textSolverEl.value = val;
+    if (textSolverEl && textSolverEl.value.length <= 7) {
+      textSolverEl.value = val;
+    }
   }
 
   tileBoxes.forEach((box, idx) => {
@@ -1270,11 +1273,33 @@ import '../styles/global.css';
   // ── Clear buttons ───────────────────────────────────────────────────────
   document.getElementById('clear-text-solver')!.addEventListener('click', (e) => {
     e.preventDefault();
+    // Full state reset — clears everything including probability and panels
     textSolver.value = '';
     hiddenTiles.value = '';
     tileBoxes.forEach(box => { box.value = ''; });
     document.getElementById('results')!.innerHTML = '<div class="text-center py-8 text-gray-500 text-sm italic">Enter at least 2 tiles</div>';
     document.getElementById('copy-solver')!.classList.add('opacity-30');
+    // Reset probability panel
+    const bagInput = document.getElementById('tiles-in-bag') as HTMLInputElement;
+    const playedInput = document.getElementById('tiles-played') as HTMLInputElement;
+    const rackCount = document.getElementById('prob-your-rack');
+    if (bagInput) bagInput.value = '100';
+    if (playedInput) playedInput.value = '0';
+    if (rackCount) rackCount.textContent = '0';
+    // Reset rack leave panel
+    const rackLeavePanel = document.getElementById('rack-leave-panel');
+    if (rackLeavePanel) rackLeavePanel.innerHTML = '<div class="text-xs text-gray-500 italic">Find words first, then click one to analyze your leave</div>';
+    // Reset best opening panel
+    const bestOpeningPanel = document.getElementById('best-opening-panel');
+    if (bestOpeningPanel) bestOpeningPanel.innerHTML = '<div class="text-xs text-gray-500 italic">Enter your tiles above ↑ to see your best opening plays</div>';
+    // Reset tile score highlights
+    highlightTiles('');
+    // Reset high-scoring panel
+    const highScoringPanel = document.getElementById('high-scoring-panel');
+    if (highScoringPanel) { highScoringPanel.classList.add('hidden'); highScoringPanel.innerHTML = ''; }
+    // Reset draw chances
+    const drawChances = document.getElementById('prob-draw-chances');
+    if (drawChances) drawChances.innerHTML = '<div class="text-xs text-gray-500 italic">Enter your rack letters to see draw probabilities</div>';
   });
 
   // ── Copy & Paste buttons ────────────────────────────────────────────────
