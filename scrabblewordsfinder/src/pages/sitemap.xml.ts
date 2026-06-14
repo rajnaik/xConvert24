@@ -61,6 +61,10 @@ const pages = [
   { url: '/blog/printable-three-letter-list', priority: '0.6', changefreq: 'monthly' },
   // Blog - Words Starting With (A-Z)
   ...Array.from({ length: 26 }, (_, i) => ({ url: `/blog/words-starting-with-${String.fromCharCode(97 + i)}`, priority: '0.5', changefreq: 'monthly' as const })),
+  // Blog - Words Ending With (vowels + X, Z)
+  ...['a', 'e', 'i', 'o', 'u', 'x', 'z'].map(l => ({ url: `/blog/words-ending-with-${l}`, priority: '0.5', changefreq: 'monthly' as const })),
+  // Blog - Words Containing (Q, X, J)
+  ...['q', 'x', 'j'].map(l => ({ url: `/blog/words-containing-${l}`, priority: '0.5', changefreq: 'monthly' as const })),
 ];
 
 export const GET: APIRoute = () => {
