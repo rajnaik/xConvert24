@@ -210,9 +210,15 @@ import '../styles/global.css';
             <span aria-hidden="true">👑</span> Memory Workbench
           </h2>
           <div class="flex items-center gap-2">
+            <button id="fetch-meanings-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-900/20 transition-colors" title="Fetch meanings for all words" aria-label="Fetch meanings for all words">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            </button>
             <button id="flashcard-mode-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-900/20 transition-colors" title="Flash Cards Mode" aria-label="Flash Cards Mode">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
             </button>
+            <a href="/workbench-data" class="p-1.5 rounded-lg text-gray-400 hover:text-purple-400 hover:bg-purple-900/20 transition-colors" title="View all data" aria-label="View all data">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2 2 3 8 3s8-1 8-3V7M4 7c0 2 2 3 8 3s8-1 8-3M4 7c0-2 2-3 8-3s8 1 8 3M4 12c0 2 2 3 8 3s8-1 8-3"/></svg>
+            </a>
             <button id="download-saved-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 transition-colors opacity-30" title="Download memory workbench" aria-label="Download memory workbench">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
             </button>
@@ -511,20 +517,40 @@ import '../styles/global.css';
         document.getElementById('import-highscoring-btn')?.addEventListener('click', () => {
           const words = highScoringPanel.querySelectorAll('[data-achieve-word]');
           let imported = 0;
+          const importedWords: string[] = [];
+          const wordsNeedingMeaning: string[] = [];
           const existing = getAchievedWords();
           words.forEach(el => {
             const word = (el as HTMLElement).dataset.achieveWord;
-            if (word && !existing.includes(word)) {
+            if (!word) return;
+            if (!existing.includes(word)) {
               const achievements = getAchievements();
-              achievements.unshift({ word, meaning: '', category: 'high-scoring' });
+              achievements.unshift({ word, meaning: '', category: 'high-scoring', dateAdded: new Date().toISOString() });
               saveAchievements(achievements);
+              importedWords.push(word);
               imported++;
+            } else {
+              const achievements = getAchievements();
+              const entry = achievements.find(a => a.word === word && !a.meaning);
+              if (entry) wordsNeedingMeaning.push(word);
             }
           });
           const btn = document.getElementById('import-highscoring-btn')!;
-          btn.textContent = `✅ ${imported} imported`;
-          setTimeout(() => { btn.textContent = '📥 Import'; }, 2000);
+          btn.textContent = imported > 0 ? `✅ ${imported} imported` : `✅ fetching…`;
+          setTimeout(() => { btn.textContent = '📥 Import'; }, 3000);
           renderSavedWords();
+          // Fetch meanings in background for newly imported + existing without meaning
+          const allToFetch = [...importedWords, ...wordsNeedingMeaning];
+          allToFetch.forEach((word, i) => {
+            setTimeout(() => {
+              fetchMeaning(word).then(meaning => {
+                if (!meaning) return;
+                const updated = getAchievements();
+                const entry = updated.find(a => a.word === word && !a.meaning);
+                if (entry) { entry.meaning = meaning; saveAchievements(updated); renderSavedWords(); }
+              });
+            }, i * 150);
+          });
         });
       }
     } catch {
@@ -534,6 +560,10 @@ import '../styles/global.css';
   }
 
   loadDictionary();
+
+  // ── SWF Dictionary (pre-scraped meanings) ───────────────────────────────
+  let swfDict: Record<string, string> = {};
+  fetch('/data/swfdict.json').then(r => r.ok ? r.json() : {}).then(d => { swfDict = d || {}; }).catch(() => {});
 
   function wordScore(word: string): number {
     return word.split('').reduce((sum, ch) => sum + (scores[ch.toUpperCase()] || 0), 0);
@@ -607,13 +637,13 @@ import '../styles/global.css';
 
   // ── Memory Workbench / Achievements ──────────────────────────────────────────
   const ACHIEVEMENTS_KEY = 'scbAchievements';
-  interface Achievement { word: string; meaning: string; category?: string; }
+  interface Achievement { word: string; meaning: string; category?: string; dateAdded?: string; }
 
   function getAchievements(): Achievement[] {
     try {
       const data = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY) || '[]');
       if (data.length > 0 && typeof data[0] === 'string') {
-        const migrated = data.map((w: string) => ({ word: w, meaning: '', category: 'manual' })).reverse();
+        const migrated = data.map((w: string) => ({ word: w, meaning: '', category: 'manual', dateAdded: '' })).reverse();
         localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(migrated));
         return migrated;
       }
@@ -659,15 +689,19 @@ import '../styles/global.css';
   }
 
   async function fetchMeaning(word: string): Promise<string> {
+    // Check local swfdict first (instant, no network)
+    const key = word.toLowerCase();
+    if (swfDict[key]) return swfDict[key];
+    // Fall back to live API
     try {
-      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-      if (!res.ok) return '';
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${key}`);
+      if (!res.ok) return 'Scrabble-legal word (no standard definition available)';
       const data = await res.json();
       const meaning = data[0]?.meanings?.[0];
       const def = meaning?.definitions?.[0]?.definition || '';
       const pos = meaning?.partOfSpeech || '';
-      return pos ? `(${pos}) ${def}` : def;
-    } catch { return ''; }
+      return pos ? `(${pos}) ${def}` : def || 'Scrabble-legal word (no standard definition available)';
+    } catch { return 'Scrabble-legal word (no standard definition available)'; }
   }
 
   function toggleAchievement(word: string, el: HTMLElement) {
@@ -679,7 +713,7 @@ import '../styles/global.css';
       const tiara = el.querySelector('.achievement-tiara');
       if (tiara) tiara.remove();
     } else {
-      achievements.unshift({ word, meaning: '', category: 'manual' });
+      achievements.unshift({ word, meaning: '', category: 'manual', dateAdded: new Date().toISOString() });
       el.classList.add('ring-2', 'ring-emerald-500');
       if (!el.querySelector('.achievement-tiara')) {
         const tiara = document.createElement('span');
@@ -755,7 +789,7 @@ import '../styles/global.css';
     // Category tabs
     const cats = getCategories();
     const catTabs = cats.length > 1 ? `<div class="flex flex-wrap gap-1 mb-3">${[{ name: 'all', count: allAchievements.length }, ...cats].map(c => 
-      `<button class="cat-tab px-2 py-0.5 rounded text-xs ${activeCategory === c.name ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-purple-300'} transition-colors" data-cat="${c.name}">${c.name} (${c.count})</button>`
+      `<span class="inline-flex items-center"><button class="cat-tab px-2 py-0.5 ${c.name !== 'all' ? 'rounded-l' : 'rounded'} text-xs ${activeCategory === c.name ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-purple-300'} transition-colors" data-cat="${c.name}">${c.name} (${c.count})</button>${c.name !== 'all' ? `<button class="cat-delete-btn px-1 py-0.5 rounded-r text-xs bg-gray-800 text-purple-400 hover:text-red-400 hover:bg-red-900/30 transition-colors" data-del-cat="${c.name}" title="Delete all ${c.name} words">✕</button>` : ''}</span>`
     ).join('')}</div>` : '';
 
     if (!achievements.length) {
@@ -819,6 +853,30 @@ import '../styles/global.css';
         renderSavedWords();
       });
     });
+    container.querySelectorAll('.cat-delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cat = (btn as HTMLElement).dataset.delCat;
+        if (!cat) return;
+        const achs = getAchievements();
+        const count = achs.filter(a => (a.category || 'manual') === cat).length;
+        const withNotes = achs.filter(a => (a.category || 'manual') === cat && a.meaning).length;
+        const noteWarning = withNotes > 0 ? `\n\n⚠️ ${withNotes} of these words have saved meanings/notes that will be permanently lost.` : '';
+        if (!confirm(`Delete all ${count} words in "${cat}"?${noteWarning}\n\nThis cannot be undone.`)) return;
+        const removed = achs.filter(a => (a.category || 'manual') === cat);
+        const kept = achs.filter(a => (a.category || 'manual') !== cat);
+        saveAchievements(kept);
+        // Remove crowns/rings from deleted words
+        removed.forEach(r => {
+          document.querySelectorAll(`[data-achieve-word="${r.word}"]`).forEach(el => {
+            el.classList.remove('ring-2', 'ring-emerald-500');
+            el.querySelector('.achievement-tiara')?.remove();
+          });
+        });
+        if (activeCategory === cat) activeCategory = 'all';
+        savedWordsPage = 0;
+        renderSavedWords();
+      });
+    });
   }
 
   // ── Import section buttons ──────────────────────────────────────────────
@@ -830,19 +888,52 @@ import '../styles/global.css';
       if (!container) return;
       const words = container.querySelectorAll('[data-achieve-word]');
       let imported = 0;
+      const importedWords: string[] = [];
+      const wordsNeedingMeaning: string[] = [];
       const existing = getAchievedWords();
       words.forEach(el => {
         const word = (el as HTMLElement).dataset.achieveWord;
-        if (word && !existing.includes(word)) {
+        if (!word) return;
+        if (!existing.includes(word)) {
           const achievements = getAchievements();
-          achievements.unshift({ word, meaning: '', category });
+          achievements.unshift({ word, meaning: '', category, dateAdded: new Date().toISOString() });
           saveAchievements(achievements);
+          importedWords.push(word);
           imported++;
+        } else {
+          // Already exists — check if missing meaning
+          const achievements = getAchievements();
+          const entry = achievements.find(a => a.word === word && !a.meaning);
+          if (entry) wordsNeedingMeaning.push(word);
         }
       });
-      (btn as HTMLElement).textContent = `✅ ${imported}`;
-      setTimeout(() => { (btn as HTMLElement).textContent = '📥'; }, 2000);
+      (btn as HTMLElement).textContent = imported > 0 ? `✅ ${imported}` : `✅ fetching…`;
+      setTimeout(() => { (btn as HTMLElement).textContent = '📥 Import'; }, 3000);
+      // Prompt for rare letters tabs
+      if (category === 'rare-letters') {
+        const activeTab = document.querySelector('.rare-tab.bg-purple-900\\/30')?.textContent || '';
+        const allTabs = ['Q', 'Z', 'X', 'J'].filter(t => t !== activeTab);
+        if (allTabs.length > 0) {
+          const prompt = document.createElement('p');
+          prompt.className = 'text-xs text-purple-300 mt-2 animate-pulse';
+          prompt.textContent = `💡 Click ${allTabs.join(', ')} tabs above to import those words too!`;
+          (btn as HTMLElement).parentElement?.appendChild(prompt);
+          setTimeout(() => prompt.remove(), 5000);
+        }
+      }
       renderSavedWords();
+      // Fetch meanings in background for newly imported + existing without meaning
+      const allToFetch = [...importedWords, ...wordsNeedingMeaning];
+      allToFetch.forEach((word, i) => {
+        setTimeout(() => {
+          fetchMeaning(word).then(meaning => {
+            if (!meaning) return;
+            const updated = getAchievements();
+            const entry = updated.find(a => a.word === word && !a.meaning);
+            if (entry) { entry.meaning = meaning; saveAchievements(updated); renderSavedWords(); }
+          });
+        }, i * 150);
+      });
     });
   });
 
@@ -859,6 +950,39 @@ import '../styles/global.css';
     flashCardIdx = 0;
     flashCardRevealed = false;
     renderFlashCard(filtered);
+  });
+
+  // Fetch All Meanings button — fills in missing definitions for all saved words
+  document.getElementById('fetch-meanings-btn')!.addEventListener('click', () => {
+    const all = getAchievements();
+    const missing = all.filter(a => !a.meaning);
+    if (!missing.length) {
+      const btn = document.getElementById('fetch-meanings-btn')!;
+      btn.title = 'All words have meanings!';
+      btn.classList.add('text-green-400');
+      setTimeout(() => { btn.classList.remove('text-green-400'); btn.title = 'Fetch meanings for all words'; }, 2000);
+      return;
+    }
+    const btn = document.getElementById('fetch-meanings-btn')!;
+    btn.classList.add('animate-pulse', 'text-green-400');
+    btn.title = `Fetching ${missing.length} meanings…`;
+    let fetched = 0;
+    missing.forEach((entry, i) => {
+      setTimeout(() => {
+        fetchMeaning(entry.word).then(meaning => {
+          fetched++;
+          if (meaning) {
+            const updated = getAchievements();
+            const match = updated.find(a => a.word === entry.word && !a.meaning);
+            if (match) { match.meaning = meaning; saveAchievements(updated); renderSavedWords(); }
+          }
+          if (fetched >= missing.length) {
+            btn.classList.remove('animate-pulse', 'text-green-400');
+            btn.title = 'Fetch meanings for all words';
+          }
+        });
+      }, i * 300);
+    });
   });
 
   function renderFlashCard(cards: Achievement[]) {

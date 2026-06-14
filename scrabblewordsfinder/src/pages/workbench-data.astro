@@ -1,0 +1,148 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Memory Workbench Data — ScrabbleWordsFinder" description="View, edit, and manage all your saved words in the Memory Workbench. Delete or edit notes on any word in your collection." showSectionLinks={false}>
+  <div class="max-w-4xl mx-auto px-6 pt-4 pb-6">
+    <a href="/" class="text-sm text-blue-400 hover:underline mb-6 inline-block">← Back to Solver</a>
+
+    <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">🗄️ Memory Workbench Data</h1>
+    <p class="text-sm text-gray-400 mb-6">All your saved words in one place. Edit notes or delete words.</p>
+
+    <!-- Category filter -->
+    <div id="data-cat-tabs" class="flex flex-wrap gap-2 mb-4"></div>
+
+    <!-- Stats -->
+    <div id="data-stats" class="flex items-center gap-4 mb-4 text-xs text-gray-500"></div>
+
+    <!-- Table -->
+    <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-4">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="border-b border-gray-800">
+            <tr>
+              <th class="px-3 py-2 text-left text-gray-400 text-xs font-medium">Word</th>
+              <th class="px-3 py-2 text-left text-gray-400 text-xs font-medium">Pts</th>
+              <th class="px-3 py-2 text-left text-gray-400 text-xs font-medium">Category</th>
+              <th class="px-3 py-2 text-left text-gray-400 text-xs font-medium">Date Added</th>
+              <th class="px-3 py-2 text-left text-gray-400 text-xs font-medium">Meaning / Note</th>
+              <th class="px-3 py-2 text-right text-gray-400 text-xs font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="data-body" class="divide-y divide-gray-800/50"></tbody>
+        </table>
+      </div>
+      <div id="data-empty" class="hidden text-center py-8">
+        <p class="text-gray-500 text-sm">No words saved yet. <a href="/" class="text-blue-400 hover:underline">Go solve some words →</a></p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const ACHIEVEMENTS_KEY = 'scbAchievements';
+  const scores: Record<string, number> = { A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10 };
+  function wordScore(w: string): number { return w.split('').reduce((s, c) => s + (scores[c.toUpperCase()] || 0), 0); }
+
+  interface Achievement { word: string; meaning: string; category?: string; dateAdded?: string; }
+
+  function getAll(): Achievement[] {
+    try {
+      const data = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY) || '[]');
+      return data.map((a: any) => ({ ...a, category: a.category || 'manual' }));
+    } catch { return []; }
+  }
+
+  function saveAll(data: Achievement[]) {
+    localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(data));
+  }
+
+  let activeFilter = 'all';
+
+  function render() {
+    const all = getAll();
+    const filtered = activeFilter === 'all' ? all : all.filter(a => a.category === activeFilter);
+
+    // Category tabs
+    const cats: Record<string, number> = {};
+    all.forEach(a => { const c = a.category || 'manual'; cats[c] = (cats[c] || 0) + 1; });
+    const tabsEl = document.getElementById('data-cat-tabs')!;
+    tabsEl.innerHTML = [{ name: 'all', count: all.length }, ...Object.entries(cats).map(([name, count]) => ({ name, count }))].map(c =>
+      `<button class="data-cat-btn px-3 py-1 rounded-lg text-xs ${activeFilter === c.name ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-purple-300'} transition-colors" data-cat="${c.name}">${c.name} (${c.count})</button>`
+    ).join('');
+
+    // Stats
+    const statsEl = document.getElementById('data-stats')!;
+    const totalPts = filtered.reduce((s, a) => s + wordScore(a.word), 0);
+    statsEl.innerHTML = `<span>${filtered.length} words</span><span>•</span><span>${totalPts} total pts</span>`;
+
+    // Table
+    const body = document.getElementById('data-body')!;
+    const empty = document.getElementById('data-empty')!;
+
+    if (!filtered.length) {
+      body.innerHTML = '';
+      empty.classList.remove('hidden');
+    } else {
+      empty.classList.add('hidden');
+      body.innerHTML = filtered.map((a, i) => {
+        const globalIdx = all.indexOf(a);
+        return `<tr class="${i % 2 === 0 ? '' : 'bg-gray-900/30'}" data-idx="${globalIdx}">
+          <td class="px-3 py-2 font-mono font-bold text-white uppercase">${a.word}</td>
+          <td class="px-3 py-2 text-blue-400 font-semibold">${wordScore(a.word)}</td>
+          <td class="px-3 py-2 text-gray-500 text-xs">${a.category || 'manual'}</td>
+          <td class="px-3 py-2 text-gray-500 text-xs">${a.dateAdded ? new Date(a.dateAdded).toLocaleDateString() : '—'}</td>
+          <td class="px-3 py-2 text-xs">
+            <span class="note-text text-gray-400">${a.meaning || '—'}</span>
+            <textarea class="note-input hidden w-full px-2 py-1 rounded bg-gray-800 border border-gray-700 text-xs text-gray-200 resize-y" rows="5">${(a.meaning || '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+          </td>
+          <td class="px-3 py-2 text-right">
+            <button class="edit-btn text-xs text-purple-400 hover:text-purple-300 mr-2" data-idx="${globalIdx}">✏️</button>
+            <button class="delete-btn text-xs text-red-400 hover:text-red-300" data-idx="${globalIdx}">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Bind tabs
+    tabsEl.querySelectorAll('.data-cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => { activeFilter = (btn as HTMLElement).dataset.cat || 'all'; render(); });
+    });
+
+    // Bind edit
+    body.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('tr')!;
+        const noteText = row.querySelector('.note-text') as HTMLElement;
+        const noteInput = row.querySelector('.note-input') as HTMLTextAreaElement;
+        if (noteInput.classList.contains('hidden')) {
+          noteText.classList.add('hidden');
+          noteInput.classList.remove('hidden');
+          noteInput.focus();
+          (btn as HTMLElement).textContent = '💾';
+        } else {
+          const idx = parseInt((btn as HTMLElement).dataset.idx!);
+          const all = getAll();
+          all[idx].meaning = noteInput.value.trim();
+          saveAll(all);
+          render();
+        }
+      });
+    });
+
+    // Bind delete
+    body.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt((btn as HTMLElement).dataset.idx!);
+        const all = getAll();
+        all.splice(idx, 1);
+        saveAll(all);
+        render();
+      });
+    });
+  }
+
+  render();
+</script>
