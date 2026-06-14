@@ -110,7 +110,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
           <a href="/" class="shrink-0">
             <img id="site-logo-mobile" src="/logo-options/option-3.svg" alt="ScrabbleWordsFinder" class="h-14 w-14 rounded-lg" />
           </a>
-          <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs pt-1">
+          <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-xs pt-1">
             <a href="/blog" class="text-gray-400 hover:text-blue-400 transition-colors">📝 Blog</a>
             <a href="/guide" class="text-gray-400 hover:text-blue-400 transition-colors">📘 Guide</a>
             <a href="/about" class="text-gray-400 hover:text-blue-400 transition-colors">ℹ️ About</a>
@@ -162,29 +162,54 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
     <script is:inline>
     (function() {
       var toggle = document.getElementById('theme-toggle');
-      if (!toggle) return;
+      var toggleMobile = document.getElementById('theme-toggle-mobile');
+      if (!toggle && !toggleMobile) return;
       var theme = localStorage.getItem('swf-theme') || 'dark';
+
+      // Light mode overrides
+      var lightCSS = document.createElement('style');
+      lightCSS.id = 'light-mode-css';
+      lightCSS.textContent = `
+        body.light-mode { background: #f5f3ef !important; color: #1e293b !important; }
+        body.light-mode .bg-gray-950 { background: #f5f3ef !important; }
+        body.light-mode .bg-gray-900\\/50, body.light-mode .bg-gray-900 { background: #ffffff !important; }
+        body.light-mode .bg-gray-800 { background: #f1ede8 !important; }
+        body.light-mode .bg-gray-800\\/40 { background: rgba(241,237,232,0.4) !important; }
+        body.light-mode .border-gray-800, body.light-mode .border-gray-700 { border-color: #d6cfc7 !important; }
+        body.light-mode .border-purple-800\\/50 { border-color: rgba(147,112,219,0.3) !important; }
+        body.light-mode .text-gray-100, body.light-mode .text-white { color: #1e293b !important; }
+        body.light-mode .text-gray-300 { color: #4a5568 !important; }
+        body.light-mode .text-gray-400 { color: #6b7280 !important; }
+        body.light-mode .text-gray-500 { color: #9ca3af !important; }
+        body.light-mode .text-blue-300 { color: #2563eb !important; }
+        body.light-mode .text-blue-400 { color: #2563eb !important; }
+        body.light-mode .text-purple-300 { color: #7c3aed !important; }
+        body.light-mode input, body.light-mode select, body.light-mode textarea { background: #fff !important; color: #1e293b !important; border-color: #d6cfc7 !important; }
+        body.light-mode .rounded-xl { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+      `;
+      document.head.appendChild(lightCSS);
+
       function applyTheme(t) {
         if (t === 'light') {
           document.documentElement.classList.remove('dark');
-          document.body.style.background = '#f8fafc';
-          document.body.style.color = '#1e293b';
-          toggle.textContent = '🌙';
-          toggle.title = 'Switch to dark mode';
+          document.body.classList.add('light-mode');
+          if (toggle) { toggle.textContent = '🌙'; toggle.title = 'Switch to dark mode'; }
+          if (toggleMobile) { toggleMobile.textContent = '🌙'; toggleMobile.title = 'Switch to dark mode'; }
         } else {
           document.documentElement.classList.add('dark');
-          document.body.style.background = '';
-          document.body.style.color = '';
-          toggle.textContent = '☀️';
-          toggle.title = 'Switch to light mode';
+          document.body.classList.remove('light-mode');
+          if (toggle) { toggle.textContent = '☀️'; toggle.title = 'Switch to light mode'; }
+          if (toggleMobile) { toggleMobile.textContent = '☀️'; toggleMobile.title = 'Switch to light mode'; }
         }
       }
       applyTheme(theme);
-      toggle.addEventListener('click', function() {
+      function doToggle() {
         theme = theme === 'dark' ? 'light' : 'dark';
         localStorage.setItem('swf-theme', theme);
         applyTheme(theme);
-      });
+      }
+      if (toggle) toggle.addEventListener('click', doToggle);
+      if (toggleMobile) toggleMobile.addEventListener('click', doToggle);
     })();
     </script>
 
