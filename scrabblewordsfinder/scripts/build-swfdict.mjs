@@ -30,31 +30,56 @@ function wordScore(w) { return w.split('').reduce((s, c) => s + (scores[c.toUppe
 function collectWords() {
   const set = new Set();
 
-  // Two-letter words (all)
+  // Two-letter words (all ~127)
   WORDS.filter(w => w.length === 2).forEach(w => set.add(w.toLowerCase()));
 
-  // Three-letter words (top 30 by score)
-  WORDS.filter(w => w.length === 3)
+  // Three-letter words (ALL — they're common and most have definitions)
+  WORDS.filter(w => w.length === 3).forEach(w => set.add(w.toLowerCase()));
+
+  // Four-letter words (top 100 by score)
+  WORDS.filter(w => w.length === 4)
     .sort((a, b) => wordScore(b) - wordScore(a))
-    .slice(0, 30)
+    .slice(0, 100)
     .forEach(w => set.add(w.toLowerCase()));
 
-  // Q without U
+  // Five-letter words (top 80 by score)
+  WORDS.filter(w => w.length === 5)
+    .sort((a, b) => wordScore(b) - wordScore(a))
+    .slice(0, 80)
+    .forEach(w => set.add(w.toLowerCase()));
+
+  // Six-letter words (top 50 by score)
+  WORDS.filter(w => w.length === 6)
+    .sort((a, b) => wordScore(b) - wordScore(a))
+    .slice(0, 50)
+    .forEach(w => set.add(w.toLowerCase()));
+
+  // Seven-letter words (top 50 — bingo words)
+  WORDS.filter(w => w.length === 7)
+    .sort((a, b) => wordScore(b) - wordScore(a))
+    .slice(0, 50)
+    .forEach(w => set.add(w.toLowerCase()));
+
+  // Q without U (all)
   WORDS.filter(w => w.includes('q') && !w.includes('u'))
     .forEach(w => set.add(w.toLowerCase()));
 
-  // Rare letters: top 40 per letter (q, z, x, j)
+  // Rare letters: top 60 per letter (q, z, x, j)
   for (const letter of ['q', 'z', 'x', 'j']) {
     WORDS.filter(w => w.includes(letter))
       .sort((a, b) => wordScore(b) - wordScore(a))
-      .slice(0, 40)
+      .slice(0, 60)
       .forEach(w => set.add(w.toLowerCase()));
   }
 
-  // Also add top 50 high-scoring words overall (common in High-Scoring panel)
-  WORDS.sort((a, b) => wordScore(b) - wordScore(a))
-    .slice(0, 50)
+  // Top 100 high-scoring words overall
+  [...WORDS].sort((a, b) => wordScore(b) - wordScore(a))
+    .slice(0, 100)
     .forEach(w => set.add(w.toLowerCase()));
+
+  // Common everyday words players often encounter (SATINE stems, common bingos)
+  const commonWords = ['satine','retina','retain','trains','strain','nastier','antsier','retains','stainer','erasion','atonies','senator','treason'];
+  commonWords.forEach(w => set.add(w.toLowerCase()));
 
   return [...set].sort();
 }
