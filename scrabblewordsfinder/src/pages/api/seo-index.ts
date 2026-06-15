@@ -56,6 +56,8 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (force_status) {
     // Force update status (used by "New Updates" button)
+    // If marking as indexed and no first_indexed provided, auto-set to today
+    const effectiveFirstIndexed = (status === 'indexed' && !first_indexed) ? new Date().toISOString().split('T')[0] : (first_indexed || null);
     await db.prepare(`
       INSERT INTO seo_index (url, status, last_crawled, first_indexed, notes, updated_at)
       VALUES (?, ?, ?, ?, ?, datetime('now'))
@@ -65,7 +67,7 @@ export const POST: APIRoute = async ({ request }) => {
         first_indexed = COALESCE(excluded.first_indexed, seo_index.first_indexed),
         notes = CASE WHEN excluded.notes = '' THEN seo_index.notes ELSE excluded.notes END,
         updated_at = datetime('now')
-    `).bind(pageUrl, status || 'indexed', last_crawled || null, first_indexed || null, notes || '').run();
+    `).bind(pageUrl, status || 'indexed', last_crawled || null, effectiveFirstIndexed, notes || '').run();
   } else {
     // Soft upsert — don't overwrite existing status (used by Sync Sitemap)
     await db.prepare(`
