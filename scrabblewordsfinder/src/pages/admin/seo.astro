@@ -78,6 +78,7 @@ import '../../styles/global.css';
           <tr>
             <th class="px-4 py-3 text-left text-gray-400 font-medium">URL</th>
             <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">Status</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium w-20">Priority</th>
             <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">Last Crawled</th>
             <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">First Indexed</th>
             <th class="px-4 py-3 text-left text-gray-400 font-medium">Notes</th>
@@ -85,7 +86,7 @@ import '../../styles/global.css';
           </tr>
         </thead>
         <tbody id="seo-table-body" class="divide-y divide-gray-800">
-          <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">Loading...</td></tr>
+          <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -206,15 +207,30 @@ import '../../styles/global.css';
       document.getElementById('count-total').textContent = grandTotal;
 
       if (!data.entries || data.entries.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">No entries yet. Click "+ Add Page" to start tracking.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">No entries yet. Click "+ Add Page" to start tracking.</td></tr>';
         return;
+      }
+
+      var priLabels = {'1.0':'Homepage','0.8':'Blog Index','0.7':'Category Hub','0.6':'Blog Post','0.5':'Secondary','0.4':'Utility','0.3':'Legal'};
+      function getPriority(url) {
+        if (url === '/') return '1.0';
+        if (url === '/blog/' || url === '/blog') return '0.8';
+        if (/^\/blog\/(beginner-guides|two-letter-words|three-letter-words|strategy|tournament|bingos|high-scoring|letter-guides|dictionaries)\/?$/.test(url)) return '0.7';
+        if (/^\/blog\//.test(url)) return '0.6';
+        if (/^\/(guide|faq|achievements|releases|tech-stack)\/?$/.test(url)) return '0.5';
+        if (/^\/(suggest|contact|settings)\/?$/.test(url)) return '0.4';
+        if (/^\/(privacy|disclaimer|terms)\/?$/.test(url)) return '0.3';
+        return '0.6';
       }
 
       tableBody.innerHTML = data.entries.map(function(e) {
         var colors = statusColors[e.status] || statusColors.error;
+        var pri = getPriority(e.url);
+        var priLabel = priLabels[pri] || '';
         return '<tr class="hover:bg-gray-800/50">' +
           '<td class="px-4 py-3 text-gray-200 font-mono text-xs">' + escHtml(e.url) + '</td>' +
           '<td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs font-medium border ' + colors + '">' + e.status + '</span></td>' +
+          '<td class="px-4 py-3 text-xs"><span class="text-purple-400 font-medium">' + pri + '</span> <span class="inline-flex items-center justify-center w-4 h-4 rounded-full border border-purple-500/50 text-purple-400 text-[9px] cursor-help" title="' + priLabel + '">?</span></td>' +
           '<td class="px-4 py-3 text-gray-400 text-xs">' + (e.last_crawled || '—') + '</td>' +
           '<td class="px-4 py-3 text-gray-400 text-xs">' + (e.first_indexed || '—') + '</td>' +
           '<td class="px-4 py-3 text-gray-500 text-xs">' + escHtml(e.notes) + '</td>' +
