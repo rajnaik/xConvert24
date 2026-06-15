@@ -8,6 +8,7 @@ Features built on SWF that should be replicated on xConvert24.
 |---|---------|-----------------|--------|
 | 1 | **Banner Rotation** | `.kiro/packages/banners/` | 2h |
 | 2 | **Telemetry** | `.kiro/packages/telemetry/` | 30min |
+| 3 | **SEO Index Tracker** | `.kiro/packages/seo-index/` | 45min |
 
 ## Need Packaging First
 
@@ -68,4 +69,3 @@ Example: `pushFeature swf xconvert telemetry`
 | 27 | **Telemetry history (DB-backed)** | `telemetry` table + API history endpoint | 30min | Stores response time history |
 | 29 | **Click Analysis Bubble Chart** | `src/pages/admin/clicks-analysis.astro` | 1h | Visual bubble chart of clicks by element/page/country/device/browser with rich tooltips |
 | 28 | **Testing environments page** | `admin/environments.astro` | 15min | Shows dev/staging/live URLs + status |
-| 30 | **SEO Index Tracker** | `migrations/0018_seo_index_table.sql`, `api/seo-index.ts`, `admin/seo.astro`, `admin/index.astro` (tile) | 45min | Track Google indexing status, Sync Sitemap, bulk paste updates from Search Console, clickable filter stats on dashboard |

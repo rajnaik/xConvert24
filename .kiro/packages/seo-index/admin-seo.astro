@@ -1,0 +1,389 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="SEO Index — Admin" description="Track Google indexing status for all pages" showHeader={false}>
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/seo" class="text-blue-400 font-medium">SEO</a>
+      <a href="/admin/telemetry" class="hover:text-blue-400 transition-colors">Telemetry</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">📈 SEO Index Tracker</h1>
+        <p class="text-sm text-gray-400 mt-1">Track which pages Google has indexed from Search Console</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="add-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">+ Add Page</button>
+        <button id="new-updates-btn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition-colors">New Updates</button>
+        <button id="sync-sitemap-btn" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-500 transition-colors">Sync Sitemap.xml</button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      <div class="p-3 rounded-xl border border-green-500/30 bg-green-950/10 text-center">
+        <p id="count-indexed" class="text-xl font-bold text-green-400">-</p>
+        <p class="text-xs text-gray-400">Indexed</p>
+      </div>
+      <div class="p-3 rounded-xl border border-amber-500/30 bg-amber-950/10 text-center">
+        <p id="count-discovered" class="text-xl font-bold text-amber-400">-</p>
+        <p class="text-xs text-gray-400">Discovered</p>
+      </div>
+      <div class="p-3 rounded-xl border border-red-500/30 bg-red-950/10 text-center">
+        <p id="count-not_indexed" class="text-xl font-bold text-red-400">-</p>
+        <p class="text-xs text-gray-400">Not Indexed</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-500/30 bg-gray-800/40 text-center">
+        <p id="count-excluded" class="text-xl font-bold text-gray-400">-</p>
+        <p class="text-xs text-gray-400">Excluded</p>
+      </div>
+      <div class="p-3 rounded-xl border border-purple-500/30 bg-purple-950/10 text-center">
+        <p id="count-total" class="text-xl font-bold text-purple-400">-</p>
+        <p class="text-xs text-gray-400">Total</p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-3 mb-4">
+      <select id="filter-status" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+        <option value="">All statuses</option>
+        <option value="indexed">Indexed</option>
+        <option value="discovered">Discovered</option>
+        <option value="not_indexed">Not Indexed</option>
+        <option value="excluded">Excluded</option>
+        <option value="error">Error</option>
+      </select>
+      <input id="filter-search" type="text" placeholder="Search URL..." class="h-9 px-3 w-64 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+      <button id="refresh-btn" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 hover:text-blue-400 transition-colors">↻ Refresh</button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-800/60">
+          <tr>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">URL</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">Status</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">Last Crawled</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">First Indexed</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Notes</th>
+            <th class="px-4 py-3 text-center text-gray-400 font-medium w-20">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="seo-table-body" class="divide-y divide-gray-800">
+          <tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="seo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
+    <div class="bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl w-full max-w-md mx-4">
+      <h3 id="modal-title" class="text-lg font-semibold text-white mb-4">Add Page</h3>
+      <form id="seo-form" class="space-y-4">
+        <input type="hidden" id="form-id" />
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">URL Path (e.g. /about/)</label>
+          <input id="form-url" type="text" required class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" placeholder="/blog/my-post/" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Status</label>
+          <select id="form-status" class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+            <option value="indexed">Indexed</option>
+            <option value="discovered">Discovered</option>
+            <option value="not_indexed">Not Indexed</option>
+            <option value="excluded">Excluded</option>
+            <option value="error">Error</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">Last Crawled</label>
+            <input id="form-crawled" type="date" class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">First Indexed</label>
+            <input id="form-indexed" type="date" class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
+          <input id="form-notes" type="text" class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" placeholder="Optional notes..." />
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="submit" class="flex-1 h-10 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-500 transition-colors text-sm">Save</button>
+          <button type="button" id="modal-cancel" class="flex-1 h-10 bg-gray-700 text-gray-200 font-medium rounded-lg hover:bg-gray-600 transition-colors text-sm">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- New Updates Modal -->
+  <div id="updates-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
+    <div class="bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl w-full max-w-3xl mx-4">
+      <h3 class="text-lg font-semibold text-white mb-2">Paste Search Console Updates</h3>
+      <p class="text-xs text-gray-400 mb-3">Paste URLs from Google Search Console. Select the status category these URLs belong to.</p>
+      <div class="mb-3">
+        <label class="block text-xs font-medium text-gray-400 mb-1">Status Category</label>
+        <select id="updates-status" class="h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 w-full sm:w-48">
+          <option value="indexed">Indexed</option>
+          <option value="discovered">Discovered</option>
+          <option value="not_indexed">Not Indexed</option>
+          <option value="excluded">Excluded</option>
+          <option value="error">Error</option>
+        </select>
+      </div>
+      <textarea id="updates-text" rows="15" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Paste Search Console data here...&#10;&#10;Example:&#10;https://www.scrabblewordsfinder.com/about/ Jun 12, 2026&#10;https://www.scrabblewordsfinder.com/blog/ N/A"></textarea>
+      <div class="flex items-center justify-between mt-4">
+        <p id="updates-preview" class="text-xs text-gray-500"></p>
+        <div class="flex gap-3">
+          <button id="updates-cancel" type="button" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 font-medium text-sm hover:bg-gray-600 transition-colors">Cancel</button>
+          <button id="updates-submit" type="button" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-500 transition-colors">Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    var tableBody = document.getElementById('seo-table-body');
+    var modal = document.getElementById('seo-modal');
+    var form = document.getElementById('seo-form');
+    var filterStatus = document.getElementById('filter-status');
+    var filterSearch = document.getElementById('filter-search');
+
+    var statusColors = {
+      indexed: 'text-green-400 bg-green-900/30 border-green-700',
+      discovered: 'text-amber-400 bg-amber-900/30 border-amber-700',
+      not_indexed: 'text-red-400 bg-red-900/30 border-red-700',
+      excluded: 'text-gray-400 bg-gray-800 border-gray-700',
+      error: 'text-red-500 bg-red-900/40 border-red-600'
+    };
+
+    function escHtml(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    async function loadData() {
+      var params = new URLSearchParams();
+      if (filterStatus.value) params.set('status', filterStatus.value);
+      if (filterSearch.value) params.set('search', filterSearch.value);
+
+      var res = await fetch('/api/seo-index?' + params.toString());
+      var data = await res.json();
+
+      var counts = { indexed: 0, discovered: 0, not_indexed: 0, excluded: 0, error: 0 };
+      (data.summary || []).forEach(function(s) { counts[s.status] = s.count; });
+      document.getElementById('count-indexed').textContent = counts.indexed;
+      document.getElementById('count-discovered').textContent = counts.discovered;
+      document.getElementById('count-not_indexed').textContent = counts.not_indexed;
+      document.getElementById('count-excluded').textContent = counts.excluded;
+      document.getElementById('count-total').textContent = data.total;
+
+      if (!data.entries || data.entries.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500 italic">No entries yet. Click "+ Add Page" to start tracking.</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = data.entries.map(function(e) {
+        var colors = statusColors[e.status] || statusColors.error;
+        return '<tr class="hover:bg-gray-800/50">' +
+          '<td class="px-4 py-3 text-gray-200 font-mono text-xs">' + escHtml(e.url) + '</td>' +
+          '<td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs font-medium border ' + colors + '">' + e.status + '</span></td>' +
+          '<td class="px-4 py-3 text-gray-400 text-xs">' + (e.last_crawled || '—') + '</td>' +
+          '<td class="px-4 py-3 text-gray-400 text-xs">' + (e.first_indexed || '—') + '</td>' +
+          '<td class="px-4 py-3 text-gray-500 text-xs">' + escHtml(e.notes) + '</td>' +
+          '<td class="px-4 py-3 text-center">' +
+            '<button class="edit-btn text-blue-400 hover:text-blue-300 text-xs mr-2" data-id="' + e.id + '" data-url="' + escHtml(e.url) + '" data-status="' + e.status + '" data-crawled="' + (e.last_crawled || '') + '" data-indexed="' + (e.first_indexed || '') + '" data-notes="' + escHtml(e.notes || '') + '">Edit</button>' +
+            '<button class="del-btn text-red-400 hover:text-red-300 text-xs" data-id="' + e.id + '">✕</button>' +
+          '</td></tr>';
+      }).join('');
+
+      document.querySelectorAll('.edit-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { openEdit(btn.dataset); });
+      });
+      document.querySelectorAll('.del-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { deleteEntry(btn.dataset.id); });
+      });
+    }
+
+    function openModal(isEdit) {
+      document.getElementById('modal-title').textContent = isEdit ? 'Edit Entry' : 'Add Page';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      form.reset();
+      document.getElementById('form-id').value = '';
+      document.getElementById('form-url').readOnly = false;
+    }
+
+    function openEdit(data) {
+      document.getElementById('form-id').value = data.id;
+      document.getElementById('form-url').value = data.url;
+      document.getElementById('form-status').value = data.status;
+      document.getElementById('form-crawled').value = data.crawled || '';
+      document.getElementById('form-indexed').value = data.indexed || '';
+      document.getElementById('form-notes').value = data.notes || '';
+      document.getElementById('form-url').readOnly = true;
+      openModal(true);
+    }
+
+    async function deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
+      await fetch('/api/seo-index?id=' + id, { method: 'DELETE' });
+      loadData();
+    }
+
+    document.getElementById('add-btn').addEventListener('click', function() {
+      document.getElementById('form-url').readOnly = false;
+      openModal(false);
+    });
+    document.getElementById('modal-cancel').addEventListener('click', closeModal);
+    document.getElementById('refresh-btn').addEventListener('click', loadData);
+    filterStatus.addEventListener('change', loadData);
+    var searchTimer;
+    filterSearch.addEventListener('input', function() { clearTimeout(searchTimer); searchTimer = setTimeout(loadData, 300); });
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var id = document.getElementById('form-id').value;
+      var payload = {
+        url: document.getElementById('form-url').value.trim(),
+        status: document.getElementById('form-status').value,
+        last_crawled: document.getElementById('form-crawled').value || null,
+        first_indexed: document.getElementById('form-indexed').value || null,
+        notes: document.getElementById('form-notes').value.trim()
+      };
+      if (id) {
+        payload.id = id;
+        await fetch('/api/seo-index', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } else {
+        await fetch('/api/seo-index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      }
+      closeModal();
+      loadData();
+    });
+
+    // New Updates button
+    var updatesModal = document.getElementById('updates-modal');
+    document.getElementById('new-updates-btn').addEventListener('click', function() {
+      updatesModal.classList.remove('hidden');
+      updatesModal.classList.add('flex');
+      document.getElementById('updates-text').value = '';
+      document.getElementById('updates-preview').textContent = '';
+    });
+    document.getElementById('updates-cancel').addEventListener('click', function() {
+      updatesModal.classList.add('hidden');
+      updatesModal.classList.remove('flex');
+    });
+    document.getElementById('updates-text').addEventListener('input', function() {
+      var lines = this.value.split('\n').filter(function(l) { return l.includes('scrabblewordsfinder.com'); });
+      document.getElementById('updates-preview').textContent = lines.length + ' URLs detected';
+    });
+    document.getElementById('updates-submit').addEventListener('click', async function() {
+      var btn = this;
+      var text = document.getElementById('updates-text').value;
+      var selectedStatus = document.getElementById('updates-status').value;
+      var lines = text.split('\n');
+      var updates = [];
+
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        var urlMatch = line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*?)(?=(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|N\/A|$))/i) || line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*)/);
+        if (!urlMatch) continue;
+        var path = urlMatch[1] || '/';
+
+        var dateMatch = line.match(/(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})/i) || line.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4})/i);
+        var crawlDate = null;
+        if (dateMatch) {
+          var d = new Date(dateMatch[1].replace(',', ''));
+          if (!isNaN(d.getTime())) crawlDate = d.toISOString().split('T')[0];
+        }
+
+        updates.push({ url: path, status: selectedStatus, last_crawled: crawlDate, notes: 'Updated from Search Console ' + new Date().toISOString().slice(0,16).replace('T',' '), force_status: true });
+      }
+
+      if (updates.length === 0) {
+        document.getElementById('updates-preview').textContent = 'No valid URLs found!';
+        return;
+      }
+
+      btn.textContent = 'Updating ' + updates.length + '...';
+      btn.disabled = true;
+
+      for (var j = 0; j < updates.length; j++) {
+        await fetch('/api/seo-index/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates[j])
+        });
+      }
+
+      btn.textContent = 'Updated ' + updates.length + ' ✓';
+      setTimeout(function() {
+        btn.textContent = 'Update';
+        btn.disabled = false;
+        updatesModal.classList.add('hidden');
+        updatesModal.classList.remove('flex');
+        loadData();
+      }, 1500);
+    });
+
+    // Sync Sitemap.xml button
+    document.getElementById('sync-sitemap-btn').addEventListener('click', async function() {
+      var btn = this;
+      btn.textContent = 'Syncing...';
+      btn.disabled = true;
+      try {
+        var res = await fetch('/sitemap.xml');
+        var text = await res.text();
+        var parser = new DOMParser();
+        var xml = parser.parseFromString(text, 'text/xml');
+        var locs = xml.querySelectorAll('url > loc');
+        var baseUrl = 'https://www.scrabblewordsfinder.com';
+        var count = 0;
+        for (var i = 0; i < locs.length; i++) {
+          var fullUrl = locs[i].textContent.trim();
+          var path = fullUrl.replace(baseUrl, '') || '/';
+          await fetch('/api/seo-index/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: path, status: 'discovered', notes: 'Synced from sitemap.xml ' + new Date().toISOString().slice(0,16).replace('T',' ') })
+          });
+          count++;
+        }
+        btn.textContent = 'Synced ' + count + ' URLs ✓';
+        setTimeout(function() { btn.textContent = 'Sync Sitemap.xml'; btn.disabled = false; }, 2000);
+        loadData();
+      } catch (err) {
+        btn.textContent = 'Sync Failed ✕';
+        setTimeout(function() { btn.textContent = 'Sync Sitemap.xml'; btn.disabled = false; }, 2000);
+      }
+    });
+
+    // Read URL params for pre-filtering
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('status')) {
+      filterStatus.value = urlParams.get('status');
+    }
+
+    // Initial load
+    loadData();
+  })();
+  </script>
+</Layout>
