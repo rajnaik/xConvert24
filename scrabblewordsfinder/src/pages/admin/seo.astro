@@ -35,26 +35,26 @@ import '../../styles/global.css';
 
     <!-- Summary cards -->
     <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-      <div class="p-3 rounded-xl border border-green-500/30 bg-green-950/10 text-center">
+      <button data-filter="indexed" class="filter-card p-3 rounded-xl border border-green-500/30 bg-green-950/10 text-center cursor-pointer hover:border-green-400 transition-colors">
         <p id="count-indexed" class="text-xl font-bold text-green-400">-</p>
         <p class="text-xs text-gray-400">Indexed</p>
-      </div>
-      <div class="p-3 rounded-xl border border-amber-500/30 bg-amber-950/10 text-center">
+      </button>
+      <button data-filter="discovered" class="filter-card p-3 rounded-xl border border-amber-500/30 bg-amber-950/10 text-center cursor-pointer hover:border-amber-400 transition-colors">
         <p id="count-discovered" class="text-xl font-bold text-amber-400">-</p>
         <p class="text-xs text-gray-400">Discovered</p>
-      </div>
-      <div class="p-3 rounded-xl border border-red-500/30 bg-red-950/10 text-center">
+      </button>
+      <button data-filter="not_indexed" class="filter-card p-3 rounded-xl border border-red-500/30 bg-red-950/10 text-center cursor-pointer hover:border-red-400 transition-colors">
         <p id="count-not_indexed" class="text-xl font-bold text-red-400">-</p>
         <p class="text-xs text-gray-400">Not Indexed</p>
-      </div>
-      <div class="p-3 rounded-xl border border-gray-500/30 bg-gray-800/40 text-center">
+      </button>
+      <button data-filter="excluded" class="filter-card p-3 rounded-xl border border-gray-500/30 bg-gray-800/40 text-center cursor-pointer hover:border-gray-400 transition-colors">
         <p id="count-excluded" class="text-xl font-bold text-gray-400">-</p>
         <p class="text-xs text-gray-400">Excluded</p>
-      </div>
-      <div class="p-3 rounded-xl border border-purple-500/30 bg-purple-950/10 text-center">
+      </button>
+      <button data-filter="" class="filter-card p-3 rounded-xl border border-purple-500/30 bg-purple-950/10 text-center cursor-pointer hover:border-purple-400 transition-colors">
         <p id="count-total" class="text-xl font-bold text-purple-400">-</p>
         <p class="text-xs text-gray-400">Total</p>
-      </div>
+      </button>
     </div>
 
     <!-- Filters -->
@@ -271,6 +271,14 @@ import '../../styles/global.css';
     filterStatus.addEventListener('change', loadData);
     var searchTimer;
     filterSearch.addEventListener('input', function() { clearTimeout(searchTimer); searchTimer = setTimeout(loadData, 300); });
+
+    // Summary card click = filter
+    document.querySelectorAll('.filter-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        filterStatus.value = card.dataset.filter;
+        loadData();
+      });
+    });
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
