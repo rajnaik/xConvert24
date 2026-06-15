@@ -26,6 +26,7 @@ import '../../styles/global.css';
       </div>
       <div class="flex gap-2">
         <button id="add-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">+ Add Page</button>
+        <button id="new-updates-btn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition-colors">New Updates</button>
         <button id="sync-sitemap-btn" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-500 transition-colors">Sync Sitemap.xml</button>
       </div>
     </div>
@@ -127,6 +128,22 @@ import '../../styles/global.css';
           <button type="button" id="modal-cancel" class="flex-1 h-10 bg-gray-700 text-gray-200 font-medium rounded-lg hover:bg-gray-600 transition-colors text-sm">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- New Updates Modal -->
+  <div id="updates-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
+    <div class="bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl w-full max-w-3xl mx-4">
+      <h3 class="text-lg font-semibold text-white mb-2">Paste Search Console Updates</h3>
+      <p class="text-xs text-gray-400 mb-4">Paste the text from Google Search Console. Each line with a URL (https://www.scrabblewordsfinder.com/...) will be extracted. Include status keywords like "indexed", "discovered", "not indexed" and crawl dates if available.</p>
+      <textarea id="updates-text" rows="15" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 font-mono resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Paste Search Console data here...&#10;&#10;Example:&#10;https://www.scrabblewordsfinder.com/about/ 12 Jun 2026&#10;https://www.scrabblewordsfinder.com/blog/ N/A"></textarea>
+      <div class="flex items-center justify-between mt-4">
+        <p id="updates-preview" class="text-xs text-gray-500"></p>
+        <div class="flex gap-3">
+          <button id="updates-cancel" type="button" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 font-medium text-sm hover:bg-gray-600 transition-colors">Cancel</button>
+          <button id="updates-submit" type="button" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium text-sm hover:bg-emerald-500 transition-colors">Update</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -250,6 +267,77 @@ import '../../styles/global.css';
       }
       closeModal();
       loadData();
+    });
+
+    // New Updates button
+    var updatesModal = document.getElementById('updates-modal');
+    document.getElementById('new-updates-btn').addEventListener('click', function() {
+      updatesModal.classList.remove('hidden');
+      updatesModal.classList.add('flex');
+      document.getElementById('updates-text').value = '';
+      document.getElementById('updates-preview').textContent = '';
+    });
+    document.getElementById('updates-cancel').addEventListener('click', function() {
+      updatesModal.classList.add('hidden');
+      updatesModal.classList.remove('flex');
+    });
+    document.getElementById('updates-text').addEventListener('input', function() {
+      var lines = this.value.split('\n').filter(function(l) { return l.includes('scrabblewordsfinder.com'); });
+      document.getElementById('updates-preview').textContent = lines.length + ' URLs detected';
+    });
+    document.getElementById('updates-submit').addEventListener('click', async function() {
+      var btn = this;
+      var text = document.getElementById('updates-text').value;
+      var lines = text.split('\n');
+      var updates = [];
+
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        var urlMatch = line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*)/);
+        if (!urlMatch) continue;
+        var path = urlMatch[1] || '/';
+        if (!path.endsWith('/') && !path.includes('.')) path += '/';
+
+        var status = 'indexed';
+        var context = (lines.slice(Math.max(0, i-3), i+1).join(' ')).toLowerCase();
+        if (context.includes('not indexed') || context.includes('not_indexed')) status = 'not_indexed';
+        else if (context.includes('discovered') && !context.includes('indexed page')) status = 'discovered';
+        else if (context.includes('excluded')) status = 'excluded';
+
+        var dateMatch = line.match(/(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})/i);
+        var crawlDate = null;
+        if (dateMatch) {
+          var d = new Date(dateMatch[1]);
+          if (!isNaN(d.getTime())) crawlDate = d.toISOString().split('T')[0];
+        }
+
+        updates.push({ url: path, status: status, last_crawled: crawlDate });
+      }
+
+      if (updates.length === 0) {
+        document.getElementById('updates-preview').textContent = 'No valid URLs found!';
+        return;
+      }
+
+      btn.textContent = 'Updating ' + updates.length + '...';
+      btn.disabled = true;
+
+      for (var j = 0; j < updates.length; j++) {
+        await fetch('/api/seo-index/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates[j])
+        });
+      }
+
+      btn.textContent = 'Updated ' + updates.length + ' ✓';
+      setTimeout(function() {
+        btn.textContent = 'Update';
+        btn.disabled = false;
+        updatesModal.classList.add('hidden');
+        updatesModal.classList.remove('flex');
+        loadData();
+      }, 1500);
     });
 
     // Sync Sitemap.xml button
