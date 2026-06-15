@@ -28,6 +28,7 @@ import '../../styles/global.css';
         <button id="add-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">+ Add Page</button>
         <button id="new-updates-btn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition-colors">New Updates</button>
         <button id="sync-sitemap-btn" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-500 transition-colors">Sync Sitemap.xml</button>
+        <button id="nuke-btn" class="px-4 py-2 rounded-lg bg-red-700 text-white text-sm font-medium hover:bg-red-600 transition-colors">☢️ Nuke</button>
       </div>
     </div>
 
@@ -342,6 +343,19 @@ import '../../styles/global.css';
         updatesModal.classList.remove('flex');
         loadData();
       }, 1500);
+    });
+
+    // Nuke button — double confirmation then DELETE ALL
+    document.getElementById('nuke-btn').addEventListener('click', async function() {
+      if (!confirm('⚠️ This will DELETE ALL records from the SEO Index Tracker. Are you sure?')) return;
+      if (!confirm('☢️ FINAL WARNING: This action cannot be undone. All indexing data will be permanently lost. Proceed?')) return;
+      var btn = this;
+      btn.textContent = 'Nuking...';
+      btn.disabled = true;
+      await fetch('/api/seo-index?nuke=true', { method: 'DELETE' });
+      btn.textContent = '☢️ Nuked ✓';
+      setTimeout(function() { btn.textContent = '☢️ Nuke'; btn.disabled = false; }, 2000);
+      loadData();
     });
 
     // Sync Sitemap.xml button

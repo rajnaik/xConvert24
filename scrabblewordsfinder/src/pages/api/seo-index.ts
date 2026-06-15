@@ -105,13 +105,21 @@ export const PUT: APIRoute = async ({ request }) => {
   });
 };
 
-// DELETE: Remove an entry by id
+// DELETE: Remove an entry by id, or nuke all with ?nuke=true
 export const DELETE: APIRoute = async ({ request }) => {
   const db = getDB();
   if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const url = new URL(request.url);
+  const nuke = url.searchParams.get('nuke');
   const id = url.searchParams.get('id');
+
+  if (nuke === 'true') {
+    await db.prepare('DELETE FROM seo_index').run();
+    return new Response(JSON.stringify({ success: true, nuked: true }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   if (!id) {
     return new Response(JSON.stringify({ error: 'id param required' }), { status: 400 });
