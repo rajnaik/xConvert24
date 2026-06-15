@@ -39,13 +39,16 @@ const staticPages = [
   { url: '/blog/dictionaries', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
 
-// Generate blog entries from discovered files
-const blogPages = blogSlugs.map(slug => ({
-  url: `/blog/${slug}`,
-  priority: '0.6',
-  changefreq: 'monthly' as const,
-  lastmod: BUILD_DATE,
-}));
+// Generate blog entries from discovered files (excluding category landing pages already in staticPages)
+const staticSlugs = new Set(staticPages.filter(p => p.url.startsWith('/blog/')).map(p => p.url.replace('/blog/', '')));
+const blogPages = blogSlugs
+  .filter(slug => !staticSlugs.has(slug))
+  .map(slug => ({
+    url: `/blog/${slug}`,
+    priority: '0.6',
+    changefreq: 'monthly' as const,
+    lastmod: BUILD_DATE,
+  }));
 
 const allPages = [...staticPages, ...blogPages];
 
