@@ -31,6 +31,7 @@ import '../../styles/global.css';
         <button id="nuke-btn" class="px-4 py-2 rounded-lg bg-red-700 text-white text-sm font-medium hover:bg-red-600 transition-colors">☢️ Nuke</button>
         <button id="analyse-sitemap-btn" class="px-4 py-2 rounded-lg bg-cyan-700 text-white text-sm font-medium hover:bg-cyan-600 transition-colors">🔍 Analyse Sitemap</button>
       </div>
+      <p id="last-sync-text" class="text-[10px] text-gray-500 mt-1 text-right"></p>
     </div>
 
     <!-- Summary cards -->
@@ -509,6 +510,7 @@ import '../../styles/global.css';
         var syncTime = new Date().toISOString().slice(0,16).replace('T',' ');
         localStorage.setItem('seo-last-sync', syncTime);
         btn.title = 'Last synced: ' + syncTime;
+        document.getElementById('last-sync-text').textContent = 'Last sitemap sync: ' + syncTime;
         setTimeout(function() { btn.textContent = 'Sync Sitemap.xml'; btn.disabled = false; }, 2000);
         loadData();
       } catch (err) {
@@ -517,9 +519,12 @@ import '../../styles/global.css';
       }
     });
 
-    // Load last sync time tooltip
+    // Load last sync time tooltip + text
     var lastSync = localStorage.getItem('seo-last-sync');
-    if (lastSync) document.getElementById('sync-sitemap-btn').title = 'Last synced: ' + lastSync;
+    if (lastSync) {
+      document.getElementById('sync-sitemap-btn').title = 'Last synced: ' + lastSync;
+      document.getElementById('last-sync-text').textContent = 'Last sitemap sync: ' + lastSync;
+    }
 
     // Read URL params for pre-filtering
     var urlParams = new URLSearchParams(window.location.search);
