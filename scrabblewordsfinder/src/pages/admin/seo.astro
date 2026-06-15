@@ -293,7 +293,7 @@ import '../../styles/global.css';
 
       for (var i = 0; i < lines.length; i++) {
         var line = lines[i].trim();
-        var urlMatch = line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*)/);
+        var urlMatch = line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*?)(?=(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|N\/A|$))/i) || line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*)/);
         if (!urlMatch) continue;
         var path = urlMatch[1] || '/';
 
@@ -310,7 +310,7 @@ import '../../styles/global.css';
           if (!isNaN(d.getTime())) crawlDate = d.toISOString().split('T')[0];
         }
 
-        updates.push({ url: path, status: status, last_crawled: crawlDate });
+        updates.push({ url: path, status: status, last_crawled: crawlDate, notes: 'Updated from Search Console' });
       }
 
       if (updates.length === 0) {
