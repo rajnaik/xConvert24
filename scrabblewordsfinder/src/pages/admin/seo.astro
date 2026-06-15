@@ -296,7 +296,6 @@ import '../../styles/global.css';
         var urlMatch = line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*)/);
         if (!urlMatch) continue;
         var path = urlMatch[1] || '/';
-        if (!path.endsWith('/') && !path.includes('.')) path += '/';
 
         var status = 'indexed';
         var context = (lines.slice(Math.max(0, i-3), i+1).join(' ')).toLowerCase();
@@ -304,10 +303,10 @@ import '../../styles/global.css';
         else if (context.includes('discovered') && !context.includes('indexed page')) status = 'discovered';
         else if (context.includes('excluded')) status = 'excluded';
 
-        var dateMatch = line.match(/(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})/i);
+        var dateMatch = line.match(/(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})/i) || line.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4})/i);
         var crawlDate = null;
         if (dateMatch) {
-          var d = new Date(dateMatch[1]);
+          var d = new Date(dateMatch[1].replace(',', ''));
           if (!isNaN(d.getTime())) crawlDate = d.toISOString().split('T')[0];
         }
 
