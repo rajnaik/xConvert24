@@ -8,6 +8,14 @@ function isLocalDev(url: URL): boolean {
 }
 
 export const onRequest = defineMiddleware(async ({ url, request, redirect }, next) => {
+  // Enforce trailing slash with 301 (not 307) for SEO consistency
+  if (url.pathname !== '/' && !url.pathname.endsWith('/') && !url.pathname.includes('.') && !url.pathname.startsWith('/api/')) {
+    return new Response(null, {
+      status: 301,
+      headers: { 'Location': url.pathname + '/' + url.search }
+    });
+  }
+
   // Only protect /admin routes
   if (!url.pathname.startsWith('/admin')) {
     return next();
