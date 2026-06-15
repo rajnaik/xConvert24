@@ -331,23 +331,25 @@ import '../../styles/global.css';
       updatesModal.classList.remove('flex');
     });
     document.getElementById('updates-text').addEventListener('input', function() {
-      var lines = this.value.split('\n').filter(function(l) { return l.includes('scrabblewordsfinder.com'); });
-      document.getElementById('updates-preview').textContent = lines.length + ' URLs detected';
+      var chunks = this.value.split(/(?=https?:\/\/www\.scrabblewordsfinder\.com)/).filter(function(c) { return c.includes('scrabblewordsfinder.com'); });
+      document.getElementById('updates-preview').textContent = chunks.length + ' URLs detected';
     });
     document.getElementById('updates-submit').addEventListener('click', async function() {
       var btn = this;
       var text = document.getElementById('updates-text').value;
       var selectedStatus = document.getElementById('updates-status').value;
-      var lines = text.split('\n');
       var updates = [];
 
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        var urlMatch = line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*?)(?=(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|N\/A|$))/i) || line.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*)/);
+      // Split by URL pattern — handles both newline-separated and concatenated text
+      var chunks = text.split(/(?=https?:\/\/www\.scrabblewordsfinder\.com)/);
+
+      for (var i = 0; i < chunks.length; i++) {
+        var chunk = chunks[i].trim();
+        var urlMatch = chunk.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*?)(?=(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|N\/A|$))/i) || chunk.match(/https?:\/\/www\.scrabblewordsfinder\.com([^\s]*)/);
         if (!urlMatch) continue;
         var path = urlMatch[1] || '/';
 
-        var dateMatch = line.match(/(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})/i) || line.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4})/i);
+        var dateMatch = chunk.match(/(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})/i) || chunk.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4})/i);
         var crawlDate = null;
         if (dateMatch) {
           var d = new Date(dateMatch[1].replace(',', '') + ' 12:00:00');
