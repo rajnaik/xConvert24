@@ -83,6 +83,21 @@ import '../styles/global.css';
         </div>
       </div>
 
+      <!-- Panel 3: Memory Workbench -->
+      <div class="rounded-xl border border-amber-800/50 bg-gray-900/50 p-6 lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>👑</span> Memory Workbench</h2>
+          <div class="flex items-center gap-2">
+            <span id="mw-count" class="text-xs text-gray-400">0 words</span>
+            <a href="/" class="text-xs text-blue-400 hover:underline">← Solver</a>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">Words you've collected from the solver, Word of the Day, and quizzes.</p>
+        <div id="mw-list" class="max-h-[300px] overflow-y-auto">
+          <p id="mw-empty" class="text-sm text-gray-500 text-center py-4 italic">No saved words yet. Use the solver or Word of the Day to collect words.</p>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -250,6 +265,26 @@ import '../styles/global.css';
       fetch('/api/achievements/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ achievement_text: 'Word Quiz', a_data: JSON.stringify({ score: score, total: 10, timeUsed: totalTime, timerLimit: limit, splits: quizState.splits, timedOut: timedOut, date: new Date().toISOString() }) }) }).catch(function(){});
       document.getElementById('quiz-timer').classList.remove('text-red-400');
     }
+
+    // ── Memory Workbench Panel ──
+    function renderWorkbench() {
+      var saved = JSON.parse(localStorage.getItem('swf_saved_words') || '[]');
+      var container = document.getElementById('mw-list');
+      var countEl = document.getElementById('mw-count');
+      countEl.textContent = saved.length + ' words';
+      if (saved.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4 italic">No saved words yet. Use the solver or Word of the Day to collect words.</p>';
+        return;
+      }
+      container.innerHTML = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">' +
+        saved.map(function(w) {
+          return '<div class="p-2 rounded-lg bg-gray-800 border border-gray-700">' +
+            '<p class="text-sm font-bold text-white uppercase">' + (w.word || '') + '</p>' +
+            '<p class="text-[10px] text-gray-500 truncate">' + (w.meaning || w.category || '') + '</p>' +
+          '</div>';
+        }).join('') + '</div>';
+    }
+    renderWorkbench();
   })();
   </script>
 </Layout>
