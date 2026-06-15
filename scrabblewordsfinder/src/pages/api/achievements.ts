@@ -1,66 +1,35 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
+const getDB = () => (env as any).DB;
+
+// GET /api/achievements — list all achievements
+export const GET: APIRoute = async () => {
+  const db = getDB();
+  if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
+
+  const result = await db.prepare('SELECT * FROM achievements ORDER BY date_created DESC LIMIT 50').all();
+
+  return new Response(JSON.stringify({ achievements: result.results }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+
+// POST /api/achievements — save a new achievement (quiz result)
 export const POST: APIRoute = async ({ request }) => {
-  try {
-    const { user_id, achievement_id, encouragement_words, score, word } = await request.json();
-    if (!user_id || !achievement_id) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
-    }
+  const db = getDB();
+  if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
-    const db = (env as any).DB;
-    if (!db) {
-      return new Response(JSON.stringify({ error: 'Database not available' }), { status: 500 });
-    }
+  const body = await request.json() as any;
+  const { achievement_text, a_data } = body;
 
-    await db.prepare(
-      'INSERT INTO user_achievements (user_id, achievement_id, encouragement_words, score, word) VALUES (?, ?, ?, ?, ?)'
-    ).bind(user_id, achievement_id, encouragement_words || '', score || 0, word || '').run();
+  if (!achievement_text) return new Response(JSON.stringify({ error: 'achievement_text required' }), { status: 400 });
 
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Server error' }), { status: 500 });
-  }
-};
+  const result = await db.prepare(
+    'INSERT INTO achievements (achievement_text, a_data) VALUES (?, ?)'
+  ).bind(achievement_text, a_data || '').run();
 
-export const GET: APIRoute = async ({ url }) => {
-  try {
-    const db = (env as any).DB;
-    if (!db) {
-      return new Response(JSON.stringify({ error: 'Database not available' }), { status: 500 });
-    }
-
-    const userId = url.searchParams.get('user_id');
-    let results;
-    if (userId) {
-      results = await db.prepare('SELECT * FROM user_achievements WHERE user_id = ? ORDER BY created_at DESC LIMIT 50').bind(userId).all();
-    } else {
-      results = await db.prepare('SELECT * FROM user_achievements ORDER BY created_at DESC LIMIT 50').all();
-    }
-
-    return new Response(JSON.stringify({ achievements: results.results }), { status: 200 });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Server error' }), { status: 500 });
-  }
-};
-
-export const PUT: APIRoute = async ({ request }) => {
-  try {
-    const { id, encouragement_words } = await request.json();
-    if (!id) {
-      return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400 });
-    }
-
-    const db = (env as any).DB;
-    if (!db) {
-      return new Response(JSON.stringify({ error: 'Database not available' }), { status: 500 });
-    }
-
-    await db.prepare('UPDATE user_achievements SET encouragement_words = ? WHERE id = ?')
-      .bind(encouragement_words || '', id).run();
-
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Server error' }), { status: 500 });
-  }
+  return new Response(JSON.stringify({ success: true, a_id: result.meta?.last_row_id }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
 };
