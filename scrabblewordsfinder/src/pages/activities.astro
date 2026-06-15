@@ -276,13 +276,47 @@ import '../styles/global.css';
         container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4 italic">No saved words yet. Use the solver or Word of the Day to collect words.</p>';
         return;
       }
-      container.innerHTML = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">' +
-        saved.map(function(w) {
-          return '<div class="p-2 rounded-lg bg-gray-800 border border-gray-700">' +
-            '<p class="text-sm font-bold text-white uppercase">' + (w.word || '') + '</p>' +
-            '<p class="text-[10px] text-gray-500 truncate">' + (w.meaning || w.category || '') + '</p>' +
-          '</div>';
-        }).join('') + '</div>';
+
+      // Group by category
+      var cats = {};
+      saved.forEach(function(w) { var c = w.category || 'manual'; if (!cats[c]) cats[c] = []; cats[c].push(w); });
+      var catNames = Object.keys(cats).sort();
+
+      var html = '<div class="flex flex-wrap gap-2 mb-3">';
+      html += '<button class="mw-cat-btn px-2 py-1 rounded text-xs font-medium border border-purple-500/50 bg-purple-900/30 text-purple-300" data-cat="all">All (' + saved.length + ')</button>';
+      catNames.forEach(function(c) {
+        html += '<button class="mw-cat-btn px-2 py-1 rounded text-xs font-medium border border-gray-700 bg-gray-800 text-gray-400 hover:border-purple-500/50 hover:text-purple-300 transition-colors" data-cat="' + c + '">' + c + ' (' + cats[c].length + ')</button>';
+      });
+      html += '</div>';
+
+      html += '<div id="mw-words-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">';
+      saved.forEach(function(w) {
+        html += '<div class="mw-word-card p-2 rounded-lg bg-gray-800 border border-gray-700" data-cat="' + (w.category || 'manual') + '">' +
+          '<p class="text-sm font-bold text-white uppercase">' + (w.word || '') + '</p>' +
+          '<p class="text-[10px] text-gray-500 truncate">' + (w.meaning || '') + '</p>' +
+          '<p class="text-[9px] text-purple-400/60">' + (w.category || 'manual') + '</p>' +
+        '</div>';
+      });
+      html += '</div>';
+
+      container.innerHTML = html;
+
+      // Category filter buttons
+      container.querySelectorAll('.mw-cat-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var cat = btn.dataset.cat;
+          container.querySelectorAll('.mw-cat-btn').forEach(function(b) {
+            b.classList.remove('border-purple-500/50', 'bg-purple-900/30', 'text-purple-300');
+            b.classList.add('border-gray-700', 'bg-gray-800', 'text-gray-400');
+          });
+          btn.classList.add('border-purple-500/50', 'bg-purple-900/30', 'text-purple-300');
+          btn.classList.remove('border-gray-700', 'bg-gray-800', 'text-gray-400');
+          container.querySelectorAll('.mw-word-card').forEach(function(card) {
+            if (cat === 'all' || card.dataset.cat === cat) card.style.display = '';
+            else card.style.display = 'none';
+          });
+        });
+      });
     }
     renderWorkbench();
   })();
