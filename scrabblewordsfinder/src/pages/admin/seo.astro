@@ -378,37 +378,59 @@ import '../../styles/global.css';
         var urls = xml.querySelectorAll('url');
         var total = urls.length;
         var freqs = {};
+        var freqUrls = {};
         var priorities = {};
+        var priUrls = {};
         var lastmods = [];
+        var baseUrl = 'https://www.scrabblewordsfinder.com';
 
         for (var i = 0; i < urls.length; i++) {
+          var loc = urls[i].querySelector('loc');
           var freq = urls[i].querySelector('changefreq');
           var pri = urls[i].querySelector('priority');
           var lm = urls[i].querySelector('lastmod');
+          var path = loc ? loc.textContent.replace(baseUrl, '') : '';
           var f = freq ? freq.textContent : 'unset';
           var p = pri ? pri.textContent : 'unset';
           freqs[f] = (freqs[f] || 0) + 1;
+          if (!freqUrls[f]) freqUrls[f] = [];
+          freqUrls[f].push(path);
           priorities[p] = (priorities[p] || 0) + 1;
+          if (!priUrls[p]) priUrls[p] = [];
+          priUrls[p].push(path);
           if (lm && lm.textContent) lastmods.push(lm.textContent);
         }
 
         lastmods.sort();
         var oldest = lastmods[0] || 'N/A';
         var newest = lastmods[lastmods.length - 1] || 'N/A';
+        var idCounter = 0;
 
-        var html = '<div class="space-y-4">';
+        var html = '<div class="space-y-4 max-h-[70vh] overflow-y-auto">';
         html += '<div class="text-center"><p class="text-3xl font-bold text-cyan-400">' + total + '</p><p class="text-xs text-gray-400">Total URLs in Sitemap</p></div>';
         html += '<div class="grid grid-cols-2 gap-3 text-center"><div class="p-2 rounded-lg bg-gray-800"><p class="text-sm font-bold text-green-400">' + oldest + '</p><p class="text-[10px] text-gray-500">Oldest lastmod</p></div><div class="p-2 rounded-lg bg-gray-800"><p class="text-sm font-bold text-blue-400">' + newest + '</p><p class="text-[10px] text-gray-500">Newest lastmod</p></div></div>';
-        html += '<div><p class="text-xs font-semibold text-gray-300 mb-2">By Change Frequency</p><div class="grid grid-cols-3 gap-2">';
+
+        // By Change Frequency with expandable URL lists
+        html += '<div><p class="text-xs font-semibold text-gray-300 mb-2">By Change Frequency</p>';
         Object.keys(freqs).sort().forEach(function(k) {
-          html += '<div class="p-2 rounded-lg bg-gray-800 text-center"><p class="text-sm font-bold text-amber-400">' + freqs[k] + '</p><p class="text-[10px] text-gray-500">' + k + '</p></div>';
+          var id = 'freq-' + (idCounter++);
+          html += '<div class="mb-2"><button onclick="document.getElementById(\'' + id + '\').classList.toggle(\'hidden\')" class="w-full p-2 rounded-lg bg-gray-800 text-left flex items-center justify-between hover:bg-gray-700 transition-colors"><span class="text-xs text-gray-300"><span class="text-amber-400 font-bold">' + freqs[k] + '</span> — ' + k + '</span><span class="text-gray-500 text-xs">▼</span></button>';
+          html += '<div id="' + id + '" class="hidden mt-1 ml-2 max-h-40 overflow-y-auto border-l-2 border-amber-500/30 pl-2">';
+          freqUrls[k].forEach(function(u) { html += '<p class="text-[11px] text-gray-400 py-0.5 font-mono">' + u + '</p>'; });
+          html += '</div></div>';
         });
-        html += '</div></div>';
-        html += '<div><p class="text-xs font-semibold text-gray-300 mb-2">By Priority</p><div class="grid grid-cols-4 gap-2">';
+        html += '</div>';
+
+        // By Priority with expandable URL lists
+        html += '<div><p class="text-xs font-semibold text-gray-300 mb-2">By Priority</p>';
         Object.keys(priorities).sort().reverse().forEach(function(k) {
-          html += '<div class="p-2 rounded-lg bg-gray-800 text-center"><p class="text-sm font-bold text-purple-400">' + priorities[k] + '</p><p class="text-[10px] text-gray-500">' + k + '</p></div>';
+          var id = 'pri-' + (idCounter++);
+          html += '<div class="mb-2"><button onclick="document.getElementById(\'' + id + '\').classList.toggle(\'hidden\')" class="w-full p-2 rounded-lg bg-gray-800 text-left flex items-center justify-between hover:bg-gray-700 transition-colors"><span class="text-xs text-gray-300"><span class="text-purple-400 font-bold">' + priorities[k] + '</span> — priority ' + k + '</span><span class="text-gray-500 text-xs">▼</span></button>';
+          html += '<div id="' + id + '" class="hidden mt-1 ml-2 max-h-40 overflow-y-auto border-l-2 border-purple-500/30 pl-2">';
+          priUrls[k].forEach(function(u) { html += '<p class="text-[11px] text-gray-400 py-0.5 font-mono">' + u + '</p>'; });
+          html += '</div></div>';
         });
-        html += '</div></div>';
+        html += '</div>';
         html += '</div>';
 
         var modal = document.getElementById('analyse-modal');
