@@ -1,9 +1,12 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
+
+const getDB = () => (env as any).DB;
 
 // GET: List all SEO index entries (optional ?status=indexed filter)
-export const GET: APIRoute = async ({ request, locals }) => {
-  const env = locals.runtime?.env;
-  if (!env?.DB) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
+export const GET: APIRoute = async ({ request }) => {
+  const db = getDB();
+  if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const url = new URL(request.url);
   const status = url.searchParams.get('status');
@@ -27,8 +30,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
   }
   query += ' ORDER BY updated_at DESC';
 
-  const result = await env.DB.prepare(query).bind(...params).all();
-  const countResult = await env.DB.prepare('SELECT status, COUNT(*) as count FROM seo_index GROUP BY status').all();
+  const result = await db.prepare(query).bind(...params).all();
+  const countResult = await db.prepare('SELECT status, COUNT(*) as count FROM seo_index GROUP BY status').all();
 
   return new Response(JSON.stringify({
     entries: result.results,
@@ -40,9 +43,9 @@ export const GET: APIRoute = async ({ request, locals }) => {
 };
 
 // POST: Add or update an SEO index entry
-export const POST: APIRoute = async ({ request, locals }) => {
-  const env = locals.runtime?.env;
-  if (!env?.DB) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
+export const POST: APIRoute = async ({ request }) => {
+  const db = getDB();
+  if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const body = await request.json() as any;
   const { url: pageUrl, status, last_crawled, first_indexed, notes } = body;
@@ -51,7 +54,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify({ error: 'url is required' }), { status: 400 });
   }
 
-  await env.DB.prepare(`
+  await db.prepare(`
     INSERT INTO seo_index (url, status, last_crawled, first_indexed, notes, updated_at)
     VALUES (?, ?, ?, ?, ?, datetime('now'))
     ON CONFLICT(url) DO UPDATE SET
@@ -74,9 +77,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 };
 
 // PUT: Update an existing entry by id
-export const PUT: APIRoute = async ({ request, locals }) => {
-  const env = locals.runtime?.env;
-  if (!env?.DB) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
+export const PUT: APIRoute = async ({ request }) => {
+  const db = getDB();
+  if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const body = await request.json() as any;
   const { id, status, last_crawled, notes } = body;
@@ -85,7 +88,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify({ error: 'id is required' }), { status: 400 });
   }
 
-  await env.DB.prepare(`
+  await db.prepare(`
     UPDATE seo_index SET status = ?, last_crawled = ?, notes = ?, updated_at = datetime('now') WHERE id = ?
   `).bind(status || 'indexed', last_crawled || null, notes || '', id).run();
 
@@ -95,9 +98,9 @@ export const PUT: APIRoute = async ({ request, locals }) => {
 };
 
 // DELETE: Remove an entry by id
-export const DELETE: APIRoute = async ({ request, locals }) => {
-  const env = locals.runtime?.env;
-  if (!env?.DB) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
+export const DELETE: APIRoute = async ({ request }) => {
+  const db = getDB();
+  if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const url = new URL(request.url);
   const id = url.searchParams.get('id');
@@ -106,7 +109,7 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify({ error: 'id param required' }), { status: 400 });
   }
 
-  await env.DB.prepare('DELETE FROM seo_index WHERE id = ?').bind(id).run();
+  await db.prepare('DELETE FROM seo_index WHERE id = ?').bind(id).run();
   return new Response(JSON.stringify({ success: true }), {
     headers: { 'Content-Type': 'application/json' },
   });
