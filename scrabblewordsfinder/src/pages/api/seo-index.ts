@@ -48,28 +48,36 @@ export const POST: APIRoute = async ({ request }) => {
   if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const body = await request.json() as any;
-  const { url: pageUrl, status, last_crawled, first_indexed, notes } = body;
+  const { url: pageUrl, status, last_crawled, first_indexed, notes, force_status } = body;
 
   if (!pageUrl) {
     return new Response(JSON.stringify({ error: 'url is required' }), { status: 400 });
   }
 
-  await db.prepare(`
-    INSERT INTO seo_index (url, status, last_crawled, first_indexed, notes, updated_at)
-    VALUES (?, ?, ?, ?, ?, datetime('now'))
-    ON CONFLICT(url) DO UPDATE SET
-      status = excluded.status,
-      last_crawled = COALESCE(excluded.last_crawled, seo_index.last_crawled),
-      first_indexed = COALESCE(excluded.first_indexed, seo_index.first_indexed),
-      notes = COALESCE(excluded.notes, seo_index.notes),
-      updated_at = datetime('now')
-  `).bind(
-    pageUrl,
-    status || 'indexed',
-    last_crawled || null,
-    first_indexed || null,
-    notes || ''
-  ).run();
+  if (force_status) {
+    // Force update status (used by "New Updates" button)
+    await db.prepare(`
+      INSERT INTO seo_index (url, status, last_crawled, first_indexed, notes, updated_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(url) DO UPDATE SET
+        status = excluded.status,
+        last_crawled = COALESCE(excluded.last_crawled, seo_index.last_crawled),
+        first_indexed = COALESCE(excluded.first_indexed, seo_index.first_indexed),
+        notes = CASE WHEN excluded.notes = '' THEN seo_index.notes ELSE excluded.notes END,
+        updated_at = datetime('now')
+    `).bind(pageUrl, status || 'indexed', last_crawled || null, first_indexed || null, notes || '').run();
+  } else {
+    // Soft upsert — don't overwrite existing status (used by Sync Sitemap)
+    await db.prepare(`
+      INSERT INTO seo_index (url, status, last_crawled, first_indexed, notes, updated_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(url) DO UPDATE SET
+        last_crawled = COALESCE(excluded.last_crawled, seo_index.last_crawled),
+        first_indexed = COALESCE(excluded.first_indexed, seo_index.first_indexed),
+        notes = CASE WHEN excluded.notes = '' THEN seo_index.notes ELSE excluded.notes END,
+        updated_at = datetime('now')
+    `).bind(pageUrl, status || 'discovered', last_crawled || null, first_indexed || null, notes || '').run();
+  }
 
   return new Response(JSON.stringify({ success: true, url: pageUrl }), {
     headers: { 'Content-Type': 'application/json' },
