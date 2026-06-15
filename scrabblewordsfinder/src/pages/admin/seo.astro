@@ -24,7 +24,10 @@ import '../../styles/global.css';
         <h1 class="text-2xl font-bold text-white flex items-center gap-2">📈 SEO Index Tracker</h1>
         <p class="text-sm text-gray-400 mt-1">Track which pages Google has indexed from Search Console</p>
       </div>
-      <button id="add-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">+ Add Page</button>
+      <div class="flex gap-2">
+        <button id="add-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">+ Add Page</button>
+        <button id="sync-sitemap-btn" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-500 transition-colors">Sync Sitemap.xml</button>
+      </div>
     </div>
 
     <!-- Summary cards -->
@@ -249,6 +252,39 @@ import '../../styles/global.css';
       loadData();
     });
 
+    // Sync Sitemap.xml button
+    document.getElementById('sync-sitemap-btn').addEventListener('click', async function() {
+      var btn = this;
+      btn.textContent = 'Syncing...';
+      btn.disabled = true;
+      try {
+        var res = await fetch('/sitemap.xml');
+        var text = await res.text();
+        var parser = new DOMParser();
+        var xml = parser.parseFromString(text, 'text/xml');
+        var locs = xml.querySelectorAll('url > loc');
+        var baseUrl = 'https://www.scrabblewordsfinder.com';
+        var count = 0;
+        for (var i = 0; i < locs.length; i++) {
+          var fullUrl = locs[i].textContent.trim();
+          var path = fullUrl.replace(baseUrl, '') || '/';
+          await fetch('/api/seo-index/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: path, status: 'discovered', notes: 'Synced from sitemap.xml' })
+          });
+          count++;
+        }
+        btn.textContent = 'Synced ' + count + ' URLs ✓';
+        setTimeout(function() { btn.textContent = 'Sync Sitemap.xml'; btn.disabled = false; }, 2000);
+        loadData();
+      } catch (err) {
+        btn.textContent = 'Sync Failed ✕';
+        setTimeout(function() { btn.textContent = 'Sync Sitemap.xml'; btn.disabled = false; }, 2000);
+      }
+    });
+
+    // Initial load
     loadData();
   })();
   </script>
