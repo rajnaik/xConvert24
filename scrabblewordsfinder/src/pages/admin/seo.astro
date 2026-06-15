@@ -377,10 +377,12 @@ import '../../styles/global.css';
 
       btn.textContent = 'Updated ' + updates.length + ' ✓';
 
-      // Log the raw input for potential re-run later
-      var updateLog = JSON.parse(localStorage.getItem('seo-update-log') || '[]');
-      updateLog.push({ timestamp: new Date().toISOString(), status: selectedStatus, count: updates.length, raw: text });
-      localStorage.setItem('seo-update-log', JSON.stringify(updateLog));
+      // Log the raw input to DB for potential re-run later
+      await fetch('/api/seo-index/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _log: true, status: selectedStatus, url_count: updates.length, raw_text: text })
+      });
 
       setTimeout(function() {
         btn.textContent = 'Update';

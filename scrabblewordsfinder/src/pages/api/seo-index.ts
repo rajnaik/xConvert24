@@ -42,12 +42,23 @@ export const GET: APIRoute = async ({ request }) => {
   });
 };
 
-// POST: Add or update an SEO index entry
+// POST: Add or update an SEO index entry (or log an update submission)
 export const POST: APIRoute = async ({ request }) => {
   const db = getDB();
   if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const body = await request.json() as any;
+
+  // Log submission to seo_update_log table
+  if (body._log) {
+    await db.prepare(
+      `INSERT INTO seo_update_log (status, url_count, raw_text) VALUES (?, ?, ?)`
+    ).bind(body.status || '', body.url_count || 0, body.raw_text || '').run();
+    return new Response(JSON.stringify({ success: true, logged: true }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const { url: pageUrl, status, last_crawled, first_indexed, notes, force_status } = body;
 
   if (!pageUrl) {
