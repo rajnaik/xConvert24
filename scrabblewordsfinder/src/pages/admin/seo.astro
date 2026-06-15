@@ -350,8 +350,8 @@ import '../../styles/global.css';
         var dateMatch = line.match(/(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})/i) || line.match(/((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},?\s+\d{4})/i);
         var crawlDate = null;
         if (dateMatch) {
-          var d = new Date(dateMatch[1].replace(',', ''));
-          if (!isNaN(d.getTime())) crawlDate = d.toISOString().split('T')[0];
+          var d = new Date(dateMatch[1].replace(',', '') + ' 12:00:00');
+          if (!isNaN(d.getTime())) crawlDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
         }
 
         updates.push({ url: path, status: selectedStatus, last_crawled: crawlDate, notes: 'Updated from Search Console ' + new Date().toISOString().slice(0,16).replace('T',' '), force_status: true });
