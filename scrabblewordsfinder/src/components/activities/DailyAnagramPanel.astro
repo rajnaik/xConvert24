@@ -1,0 +1,300 @@
+      <!-- Panel 5: Daily Anagram Puzzle -->
+      <div class="rounded-xl border border-rose-800/50 bg-gray-900/50 p-6 lg:col-span-2">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🔤</span> Daily Anagram</h2>
+          <span id="anagram-streak" class="hidden px-2 py-0.5 rounded-full bg-rose-900/30 border border-rose-500/30 text-xs text-rose-300 font-mono">🔥 0</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-4">Unscramble today's word in 5 guesses or fewer. Same puzzle for everyone!</p>
+
+        <div id="anagram-loading" class="text-center py-6"><p class="text-xs text-gray-500">Loading today's anagram...</p></div>
+
+        <div id="anagram-content" class="hidden">
+          <!-- Scrambled letters display -->
+          <div id="anagram-tiles" class="flex gap-1.5 justify-center mb-4 flex-wrap"></div>
+
+          <!-- Hint -->
+          <div class="text-center mb-4">
+            <button id="anagram-hint-btn" class="text-xs text-gray-500 hover:text-rose-400 transition-colors">💡 Show hint</button>
+            <p id="anagram-hint-text" class="hidden text-xs text-rose-300 italic mt-1"></p>
+          </div>
+
+          <!-- Guess history grid (Wordle-style) -->
+          <div id="anagram-guesses" class="space-y-2 mb-4 max-w-sm mx-auto"></div>
+
+          <!-- Input row -->
+          <div id="anagram-input-row" class="flex gap-2 max-w-sm mx-auto mb-4">
+            <input id="anagram-input" type="text" maxlength="15" placeholder="Your guess..." class="flex-1 h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white uppercase tracking-wider font-mono placeholder-gray-500 focus:outline-none focus:border-rose-500" autocomplete="off" />
+            <button id="anagram-submit" class="h-10 px-4 rounded-lg bg-rose-600 text-white font-semibold text-sm hover:bg-rose-500 transition-colors">Guess</button>
+          </div>
+
+          <!-- Attempts remaining -->
+          <p id="anagram-remaining" class="text-center text-xs text-gray-500 mb-3"></p>
+
+          <!-- Result (shown after game ends) -->
+          <div id="anagram-result" class="hidden text-center py-4">
+            <p id="anagram-result-emoji" class="text-4xl mb-2">🎉</p>
+            <p id="anagram-result-text" class="text-lg font-bold text-white mb-1"></p>
+            <p id="anagram-result-word" class="text-sm text-rose-400 font-mono tracking-wider mb-2"></p>
+            <p id="anagram-result-stats" class="text-xs text-gray-400 mb-4"></p>
+            <div class="flex gap-3 justify-center flex-wrap">
+              <button id="anagram-share-btn" class="px-4 py-2 rounded-lg bg-rose-600/30 border border-rose-500/50 text-sm text-rose-300 hover:bg-rose-600/50 transition-colors">📋 Share</button>
+              <button id="anagram-add-btn" class="px-4 py-2 rounded-lg bg-purple-600/30 border border-purple-500/50 text-sm text-purple-300 hover:bg-purple-600/50 transition-colors">+ WordBench</button>
+            </div>
+          </div>
+
+          <!-- Countdown to next puzzle -->
+          <div class="pt-3 border-t border-gray-800 mt-3">
+            <p class="text-xs text-center text-gray-500">
+              <span id="anagram-countdown" class="text-rose-400 font-mono"></span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+<script is:inline>
+(function() {
+  // ── Daily Anagram Puzzle ──
+  (function loadDailyAnagram() {
+    var uid = localStorage.getItem('swf-uid') || '';
+    var ANAGRAM_STATE_KEY = 'swf-anagram-' + new Date().toISOString().split('T')[0];
+    var anagramState = { scrambled: '', hint: '', wordLength: 0, guesses: [], gameOver: false, solved: false, answer: '' };
+
+    // Load streak
+    var streakData = JSON.parse(localStorage.getItem('swf-anagram-streak') || '{"count":0,"lastDate":""}');
+    if (streakData.count > 0) {
+      var streakEl = document.getElementById('anagram-streak');
+      streakEl.textContent = '🔥 ' + streakData.count;
+      streakEl.classList.remove('hidden');
+    }
+
+    // Restore local state if exists
+    var localState = localStorage.getItem(ANAGRAM_STATE_KEY);
+    if (localState) {
+      try { anagramState = JSON.parse(localState); } catch(e) {}
+    }
+
+    fetch('/api/daily-anagram/' + (uid ? '?user_id=' + encodeURIComponent(uid) : ''))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          document.getElementById('anagram-loading').innerHTML = '<p class="text-xs text-gray-400">No puzzle available today. Check back tomorrow!</p>';
+          return;
+        }
+
+        document.getElementById('anagram-loading').classList.add('hidden');
+        document.getElementById('anagram-content').classList.remove('hidden');
+
+        anagramState.scrambled = data.scrambled;
+        anagramState.hint = data.hint;
+        anagramState.wordLength = data.word_length;
+
+        // If server says user already played, restore
+        if (data.userResult) {
+          var ur = data.userResult;
+          anagramState.guesses = JSON.parse(ur.guesses || '[]');
+          anagramState.solved = ur.solved === 1;
+          anagramState.gameOver = ur.solved === 1 || anagramState.guesses.length >= 5;
+          if (data.answer) anagramState.answer = data.answer;
+        }
+
+        renderAnagramTiles();
+        renderAnagramGuesses();
+        updateAnagramRemaining();
+
+        if (anagramState.gameOver || anagramState.solved) {
+          showAnagramResult(data.answer || anagramState.answer);
+        }
+
+        // Hint button
+        document.getElementById('anagram-hint-btn').addEventListener('click', function() {
+          document.getElementById('anagram-hint-text').textContent = anagramState.hint;
+          document.getElementById('anagram-hint-text').classList.remove('hidden');
+          this.classList.add('hidden');
+        });
+
+        // Stats display
+        if (data.stats && data.stats.players > 0) {
+          var pct = data.stats.solvers ? Math.round((data.stats.solvers / data.stats.players) * 100) : 0;
+          var statsText = data.stats.players + ' played · ' + pct + '% solved';
+          var remEl = document.getElementById('anagram-remaining');
+          if (remEl.textContent) remEl.textContent += ' · ' + statsText;
+        }
+      }).catch(function() {
+        document.getElementById('anagram-loading').innerHTML = '<p class="text-xs text-red-400">Failed to load puzzle</p>';
+      });
+
+    function renderAnagramTiles() {
+      var tiles = anagramState.scrambled.split('').map(function(letter) {
+        return '<div class="w-11 h-14 rounded-lg flex flex-col items-center justify-center select-none" style="background:linear-gradient(145deg,#f0d0d0,#e8b8b8);box-shadow:inset 0 2px 0 rgba(255,255,255,0.4),inset 0 -3px 0 rgba(0,0,0,0.08),0 4px 8px rgba(0,0,0,0.2);border:2px solid #c88888;">' +
+          '<span class="text-lg font-black text-gray-800">' + letter + '</span>' +
+        '</div>';
+      }).join('');
+      document.getElementById('anagram-tiles').innerHTML = tiles;
+    }
+
+    function renderAnagramGuesses() {
+      var container = document.getElementById('anagram-guesses');
+      if (anagramState.guesses.length === 0) { container.innerHTML = ''; return; }
+
+      container.innerHTML = anagramState.guesses.map(function(g) {
+        var cells = g.guess.split('').map(function(letter, i) {
+          var fb = g.feedback[i] || 'gray';
+          var bgClass = fb === 'green' ? 'bg-green-600 border-green-500' :
+                        fb === 'yellow' ? 'bg-amber-600 border-amber-500' :
+                        'bg-gray-700 border-gray-600';
+          return '<div class="w-9 h-9 rounded flex items-center justify-center text-sm font-bold text-white border ' + bgClass + '">' + letter + '</div>';
+        }).join('');
+        return '<div class="flex gap-1 justify-center">' + cells + '</div>';
+      }).join('');
+    }
+
+    function updateAnagramRemaining() {
+      var remaining = 5 - anagramState.guesses.length;
+      var el = document.getElementById('anagram-remaining');
+      if (anagramState.gameOver || anagramState.solved) {
+        el.textContent = '';
+      } else {
+        el.textContent = remaining + ' guess' + (remaining === 1 ? '' : 'es') + ' remaining';
+      }
+    }
+
+    function showAnagramResult(answer) {
+      document.getElementById('anagram-input-row').classList.add('hidden');
+      document.getElementById('anagram-result').classList.remove('hidden');
+
+      var emoji, text;
+      if (anagramState.solved) {
+        var attempts = anagramState.guesses.length;
+        emoji = attempts === 1 ? '🏆' : attempts <= 3 ? '🎉' : '✅';
+        text = attempts === 1 ? 'Genius! First try!' : 'Solved in ' + attempts + '/5 guesses!';
+        // Update streak
+        var today = new Date().toISOString().split('T')[0];
+        if (streakData.lastDate !== today) {
+          var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+          if (streakData.lastDate === yesterday) { streakData.count++; }
+          else { streakData.count = 1; }
+          streakData.lastDate = today;
+          localStorage.setItem('swf-anagram-streak', JSON.stringify(streakData));
+          var streakEl = document.getElementById('anagram-streak');
+          streakEl.textContent = '🔥 ' + streakData.count;
+          streakEl.classList.remove('hidden');
+        }
+      } else {
+        emoji = '😔';
+        text = 'Not this time!';
+      }
+
+      document.getElementById('anagram-result-emoji').textContent = emoji;
+      document.getElementById('anagram-result-text').textContent = text;
+      document.getElementById('anagram-result-word').textContent = answer || '???';
+      document.getElementById('anagram-result-stats').textContent = anagramState.guesses.length + '/5 attempts used';
+    }
+
+    // Submit guess
+    function submitGuess() {
+      var input = document.getElementById('anagram-input');
+      var guess = input.value.trim().toUpperCase();
+      if (!guess || guess.length !== anagramState.wordLength) {
+        input.style.borderColor = '#ef4444';
+        setTimeout(function() { input.style.borderColor = ''; }, 500);
+        return;
+      }
+      if (anagramState.gameOver || anagramState.solved) return;
+
+      input.disabled = true;
+      document.getElementById('anagram-submit').disabled = true;
+
+      fetch('/api/daily-anagram/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: uid, guess: guess })
+      }).then(function(r) { return r.json(); })
+      .then(function(data) {
+        input.disabled = false;
+        document.getElementById('anagram-submit').disabled = false;
+        input.value = '';
+
+        if (data.already_solved) {
+          anagramState.solved = true;
+          anagramState.gameOver = true;
+          anagramState.answer = data.answer;
+          showAnagramResult(data.answer);
+          return;
+        }
+
+        anagramState.guesses = data.guesses || anagramState.guesses;
+        anagramState.solved = data.correct;
+        anagramState.gameOver = data.correct || data.game_over;
+        if (data.answer) anagramState.answer = data.answer;
+
+        localStorage.setItem(ANAGRAM_STATE_KEY, JSON.stringify(anagramState));
+        renderAnagramGuesses();
+        updateAnagramRemaining();
+
+        if (anagramState.gameOver || anagramState.solved) {
+          showAnagramResult(data.answer);
+        } else {
+          input.focus();
+        }
+      }).catch(function() {
+        input.disabled = false;
+        document.getElementById('anagram-submit').disabled = false;
+      });
+    }
+
+    document.getElementById('anagram-submit').addEventListener('click', submitGuess);
+    document.getElementById('anagram-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') submitGuess();
+    });
+
+    // Share button
+    document.getElementById('anagram-share-btn').addEventListener('click', function() {
+      var today = new Date().toISOString().split('T')[0];
+      var emojis = anagramState.guesses.map(function(g) {
+        return g.feedback.map(function(f) {
+          return f === 'green' ? '🟩' : f === 'yellow' ? '🟨' : '⬛';
+        }).join('');
+      }).join('\n');
+      var text = '🔤 SWF Daily Anagram ' + today + '\n' +
+        (anagramState.solved ? anagramState.guesses.length + '/5' : 'X/5') + '\n\n' +
+        emojis + '\n\nhttps://www.scrabblewordsfinder.com/activities/';
+      navigator.clipboard.writeText(text).then(function() {
+        document.getElementById('anagram-share-btn').textContent = '✓ Copied!';
+        setTimeout(function() { document.getElementById('anagram-share-btn').textContent = '📋 Share'; }, 2000);
+      });
+    });
+
+    // Add to WordBench
+    document.getElementById('anagram-add-btn').addEventListener('click', function() {
+      var word = anagramState.answer;
+      if (!word) return;
+      var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+      if (saved.find(function(s) { return s.word === word; })) { this.textContent = 'Already saved ✓'; return; }
+      saved.push({ word: word, score: 0, category: 'anagram', meaning: anagramState.hint || '', dateAdded: new Date().toISOString() });
+      localStorage.setItem('scbAchievements', JSON.stringify(saved));
+      this.textContent = 'Added ✓';
+      setTimeout(function() { document.getElementById('anagram-add-btn').textContent = '+ WordBench'; }, 2000);
+    });
+
+    // Countdown
+    (function anagramCountdown() {
+      var el = document.getElementById('anagram-countdown');
+      function update() {
+        var now = new Date();
+        var tomorrow = new Date(now);
+        tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+        tomorrow.setUTCHours(0, 0, 0, 0);
+        var diff = tomorrow - now;
+        if (diff <= 0) { el.textContent = 'New puzzle!'; return; }
+        var h = Math.floor(diff / 3600000);
+        var m = Math.floor((diff % 3600000) / 60000);
+        var s = Math.floor((diff % 60000) / 1000);
+        el.textContent = 'Next puzzle in ' + h + 'h ' + (m < 10 ? '0' : '') + m + 'm ' + (s < 10 ? '0' : '') + s + 's';
+      }
+      update();
+      setInterval(update, 1000);
+    })();
+  })();
+
+})();
+</script>

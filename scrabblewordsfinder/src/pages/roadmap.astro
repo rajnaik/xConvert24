@@ -1,0 +1,107 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+<Layout title="Roadmap — ScrabbleWordsFinder Features" description="See what's live, what's coming next, and what we're planning for ScrabbleWordsFinder. Free features for Scrabble players — no sign-up." keywords="scrabble tools roadmap, word game features, scrabble word finder updates, new features">
+
+  <main class="mx-auto max-w-4xl px-4 sm:px-6 pb-20 pt-4">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-2">🗺️ Roadmap</h1>
+    <p class="text-sm text-gray-400 mb-8">Everything we've built and what's coming next. All features are free — no sign-up required.</p>
+
+    <!-- Progress summary -->
+    <div id="roadmap-summary" class="grid grid-cols-3 gap-3 mb-8">
+      <div class="rounded-xl border border-green-800/50 bg-green-900/10 p-4 text-center">
+        <p id="count-live" class="text-2xl font-bold text-green-400">—</p>
+        <p class="text-xs text-gray-400">Live</p>
+      </div>
+      <div class="rounded-xl border border-amber-800/50 bg-amber-900/10 p-4 text-center">
+        <p id="count-planned" class="text-2xl font-bold text-amber-400">—</p>
+        <p class="text-xs text-gray-400">Planned</p>
+      </div>
+      <div class="rounded-xl border border-blue-800/50 bg-blue-900/10 p-4 text-center">
+        <p id="count-wip" class="text-2xl font-bold text-blue-400">—</p>
+        <p class="text-xs text-gray-400">In Progress</p>
+      </div>
+    </div>
+
+    <!-- Category filter -->
+    <div id="category-filters" class="flex flex-wrap gap-2 mb-6"></div>
+
+    <!-- Features list -->
+    <div id="roadmap-list" class="space-y-3">
+      <p class="text-sm text-gray-500 text-center py-8">Loading roadmap...</p>
+    </div>
+
+    <!-- Suggest CTA -->
+    <div class="mt-12 p-5 bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-800/50 rounded-xl text-center">
+      <p class="text-sm text-gray-300 mb-3">Have a feature idea? We'd love to hear it!</p>
+      <a href="/suggest/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-500 transition-colors">💡 Suggest a Feature</a>
+    </div>
+  </main>
+
+  <script is:inline>
+  (function() {
+    var CACHE_KEY = 'swf-roadmap-cache';
+    var CACHE_TTL = 5 * 60 * 1000;
+
+    function getCache() {
+      try { var c = JSON.parse(localStorage.getItem(CACHE_KEY)); if (c && Date.now() - c.ts < CACHE_TTL) return c.data; } catch(e) {}
+      return null;
+    }
+    function setCache(data) { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: data })); }
+
+    var activeCategory = 'all';
+
+    function render(features) {
+      var live = features.filter(function(f) { return f.progress === 'live'; }).length;
+      var planned = features.filter(function(f) { return f.progress === 'planned'; }).length;
+      var wip = features.filter(function(f) { return f.progress === 'in-progress'; }).length;
+      document.getElementById('count-live').textContent = live;
+      document.getElementById('count-planned').textContent = planned;
+      document.getElementById('count-wip').textContent = wip;
+
+      var cats = {};
+      features.forEach(function(f) { cats[f.category] = (cats[f.category] || 0) + 1; });
+      var filterHtml = '<button class="cat-btn px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (activeCategory === 'all' ? 'border-amber-500 bg-amber-900/30 text-amber-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-amber-500') + '" data-cat="all">All (' + features.length + ')</button>';
+      Object.keys(cats).sort().forEach(function(c) {
+        var active = activeCategory === c;
+        filterHtml += '<button class="cat-btn px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (active ? 'border-amber-500 bg-amber-900/30 text-amber-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-amber-500') + '" data-cat="' + c + '">' + c + ' (' + cats[c] + ')</button>';
+      });
+      document.getElementById('category-filters').innerHTML = filterHtml;
+      document.querySelectorAll('.cat-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { activeCategory = this.dataset.cat; render(features); });
+      });
+
+      var filtered = activeCategory === 'all' ? features : features.filter(function(f) { return f.category === activeCategory; });
+
+      var html = filtered.map(function(f) {
+        var progressColor = f.progress === 'live' ? 'bg-green-500' : f.progress === 'in-progress' ? 'bg-blue-500' : 'bg-amber-500';
+        var progressLabel = f.progress === 'live' ? '✅ Live' : f.progress === 'in-progress' ? '🔨 Building' : '📋 Planned';
+        var borderColor = f.progress === 'live' ? 'border-green-800/50' : f.progress === 'in-progress' ? 'border-blue-800/50' : 'border-gray-700';
+        return '<div class="rounded-xl border ' + borderColor + ' bg-gray-900/50 p-4 flex items-start gap-4">' +
+          '<span class="text-2xl shrink-0">' + f.icon + '</span>' +
+          '<div class="flex-1 min-w-0">' +
+            '<div class="flex items-center gap-2 mb-1 flex-wrap">' +
+              '<h3 class="text-sm font-semibold text-white">' + f.name + '</h3>' +
+              '<span class="px-2 py-0.5 rounded-full text-[10px] font-medium ' + progressColor + ' text-white">' + progressLabel + '</span>' +
+            '</div>' +
+            '<p class="text-xs text-gray-400 leading-relaxed">' + f.description + '</p>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      document.getElementById('roadmap-list').innerHTML = html || '<p class="text-sm text-gray-500 text-center py-8">No features in this category.</p>';
+    }
+
+    var cached = getCache();
+    if (cached) render(cached);
+
+    fetch('/api/roadmap-features/').then(function(r) { return r.json(); }).then(function(data) {
+      var features = data.features || [];
+      setCache(features);
+      render(features);
+    }).catch(function() {
+      if (!cached) document.getElementById('roadmap-list').innerHTML = '<p class="text-sm text-red-400 text-center py-8">Failed to load roadmap.</p>';
+    });
+  })();
+  </script>
+</Layout>

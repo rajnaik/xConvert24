@@ -6,7 +6,7 @@
 export async function isBlogPublished(slug: string): Promise<boolean> {
   try {
     const { env } = await import('cloudflare:workers');
-    const db = (env as any).BLOGS_DB;
+    const db = (env as any).BUGS_DB;
     if (!db) return true; // If no DB (local dev), allow all
 
     const result = await db.prepare(
@@ -27,7 +27,7 @@ export async function isBlogPublished(slug: string): Promise<boolean> {
 export async function getPublishedSlugs(): Promise<string[]> {
   try {
     const { env } = await import('cloudflare:workers');
-    const db = (env as any).BLOGS_DB;
+    const db = (env as any).BUGS_DB;
     if (!db) return [];
 
     const { results } = await db.prepare(
@@ -46,7 +46,7 @@ export async function getPublishedSlugs(): Promise<string[]> {
 export async function getPublishedCount(): Promise<number> {
   try {
     const { env } = await import('cloudflare:workers');
-    const db = (env as any).BLOGS_DB;
+    const db = (env as any).BUGS_DB;
     if (!db) return 0;
 
     const row = await db.prepare(

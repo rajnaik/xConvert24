@@ -1,0 +1,275 @@
+---
+import '../../styles/global.css';
+---
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Media — xSoft Playground</title>
+  <style>
+    .folder-card { cursor: pointer; transition: all 0.15s; }
+    .folder-card:hover { border-color: #fbbf24; }
+    .folder-card.drag-over { border-color: #22c55e; background: rgba(34,197,94,0.1); transform: scale(1.05); }
+    .file-card { transition: all 0.15s; }
+    .file-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.3); }
+    .file-card.dragging { opacity: 0.5; transform: scale(0.95); }
+    .file-card[draggable="true"] { cursor: grab; }
+    .file-card[draggable="true"]:active { cursor: grabbing; }
+    .clipboard-indicator { position: fixed; bottom: 1rem; right: 1rem; z-index: 50; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <header class="border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+    <h1 class="text-lg font-bold text-white">📝 xSoft Playground</h1>
+    <nav class="flex items-center gap-4 text-sm">
+      <a href="/" class="text-gray-400 hover:text-white transition-colors">Notes</a>
+      <a href="/media/" class="text-amber-400 font-medium">Media</a>
+    </nav>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2 text-sm" id="breadcrumb">
+        <span class="text-amber-400">📁 Root</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <button id="paste-btn" class="hidden px-3 py-1.5 rounded-lg bg-green-600/30 border border-green-500/50 text-xs text-green-300 hover:bg-green-600/50 transition-colors">📋 Paste here</button>
+        <button id="new-folder-btn" class="px-3 py-1.5 rounded-lg bg-blue-600/30 border border-blue-500/50 text-xs text-blue-300 hover:bg-blue-600/50 transition-colors">+ Folder</button>
+        <span class="text-xs text-gray-500" id="files-count"></span>
+      </div>
+    </div>
+
+    <div id="drop-zone" class="mb-6 rounded-xl border-2 border-dashed border-gray-700 bg-gray-900/30 p-6 text-center hover:border-amber-500/50 transition-colors cursor-pointer">
+      <p class="text-sm text-gray-400 mb-1">📎 Drop files here or click to upload</p>
+      <p class="text-xs text-gray-600">Max 750KB · Drag files onto folders to move</p>
+      <input type="file" id="file-input" class="hidden" multiple />
+    </div>
+
+    <div id="upload-progress" class="hidden mb-4 p-3 rounded-lg bg-amber-900/20 border border-amber-500/30 text-sm text-amber-300"></div>
+    <div id="folders-row" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-6"></div>
+    <div id="files-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+    <div id="clipboard-indicator" class="clipboard-indicator hidden">
+      <div class="px-3 py-2 rounded-lg bg-blue-900/80 border border-blue-500/50 text-xs text-blue-300 flex items-center gap-2">
+        <span id="clip-icon">📋</span>
+        <span id="clip-text">1 file copied</span>
+        <button id="clip-clear" class="ml-2 text-gray-400 hover:text-white">✕</button>
+      </div>
+    </div>
+  </main>
+
+  <script is:inline>
+  (function() {
+    var currentFolder = null;
+    var clipboard = { files: [], mode: null };
+    var selectedFiles = new Set();
+    var dropZone = document.getElementById('drop-zone');
+    var fileInput = document.getElementById('file-input');
+
+    function loadContent() { loadFolders(); loadFiles(); }
+
+    function loadFolders() {
+      var url = '/api/folders/' + (currentFolder ? '?parent_id=' + currentFolder : '');
+      fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+        var folders = data.folders || [];
+        var html = folders.map(function(f) {
+          return '<div class="folder-card rounded-lg border border-gray-700 bg-gray-900/50 p-3 text-center group relative" data-folder-id="' + f.id + '" data-folder-name="' + f.name + '">' +
+            '<div class="text-2xl mb-1">📁</div>' +
+            '<p class="text-xs text-gray-300 truncate">' + f.name + '</p>' +
+            '<div class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 flex gap-0.5">' +
+              '<button class="rename-folder-btn w-5 h-5 rounded text-[10px] text-blue-400 hover:bg-blue-900/30" data-id="' + f.id + '" data-name="' + f.name + '">✏️</button>' +
+              '<button class="delete-folder-btn w-5 h-5 rounded text-[10px] text-red-400 hover:bg-red-900/30" data-id="' + f.id + '">🗑️</button>' +
+            '</div></div>';
+        }).join('');
+        document.getElementById('folders-row').innerHTML = html;
+
+        document.querySelectorAll('.folder-card').forEach(function(card) {
+          card.addEventListener('click', function(e) {
+            if (e.target.closest('.rename-folder-btn') || e.target.closest('.delete-folder-btn')) return;
+            openFolder(this.dataset.folderId, this.dataset.folderName);
+          });
+          card.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('drag-over'); });
+          card.addEventListener('dragleave', function() { this.classList.remove('drag-over'); });
+          card.addEventListener('drop', function(e) {
+            e.preventDefault(); this.classList.remove('drag-over');
+            var fileId = e.dataTransfer.getData('text/file-id');
+            var folderId = parseInt(this.dataset.folderId);
+            if (fileId) { moveFile(parseInt(fileId), folderId); }
+            if (selectedFiles.size > 0) {
+              selectedFiles.forEach(function(id) { moveFile(id, folderId); });
+              selectedFiles.clear();
+            }
+          });
+        });
+        document.querySelectorAll('.rename-folder-btn').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var newName = prompt('Rename:', this.dataset.name);
+            if (newName && newName.trim()) fetch('/api/folders/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: parseInt(this.dataset.id), name: newName.trim() }) }).then(loadContent);
+          });
+        });
+        document.querySelectorAll('.delete-folder-btn').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!confirm('Delete folder? Files move to root.')) return;
+            fetch('/api/folders/?id=' + this.dataset.id, { method: 'DELETE' }).then(loadContent);
+          });
+        });
+      });
+    }
+
+    function loadFiles() {
+      fetch('/api/media/').then(function(r) { return r.json(); }).then(function(data) {
+        var allFiles = data.files || [];
+        var files = allFiles.filter(function(f) {
+          if (currentFolder === null) return !f.folder_id;
+          return f.folder_id == currentFolder;
+        });
+        document.getElementById('files-count').textContent = files.length + ' file' + (files.length !== 1 ? 's' : '');
+
+        var html = files.map(function(f) {
+          var date = new Date(f.uploaded_at);
+          var dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+          var sizeStr = f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : (f.size / 1024).toFixed(1) + ' KB';
+          var isImage = f.content_type && f.content_type.startsWith('image/');
+          var preview = isImage ? '<img src="/api/media/?id=' + f.id + '" class="w-full h-32 object-cover rounded-lg mb-2 pointer-events-none" loading="lazy" />' : '<div class="w-full h-32 rounded-lg bg-gray-800 flex items-center justify-center mb-2 pointer-events-none"><span class="text-3xl">📄</span></div>';
+          return '<div class="file-card rounded-xl border border-gray-800 bg-gray-900/50 p-4 group hover:border-amber-500/30" draggable="true" data-file-id="' + f.id + '">' +
+            preview +
+            '<p class="text-sm font-medium text-white truncate pointer-events-none">' + f.filename + '</p>' +
+            '<p class="text-xs text-gray-500 pointer-events-none">' + sizeStr + ' · ' + dateStr + '</p>' +
+            '<div class="flex gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">' +
+              '<a href="/api/media/?id=' + f.id + '" target="_blank" class="px-2 py-1 text-xs text-blue-400 hover:bg-blue-900/20 rounded">Open ↗</a>' +
+              '<button class="cut-btn px-2 py-1 text-xs text-amber-400 hover:bg-amber-900/20 rounded" data-id="' + f.id + '" title="Cut (Ctrl+X)">✂️</button>' +
+              '<button class="copy-btn px-2 py-1 text-xs text-green-400 hover:bg-green-900/20 rounded" data-id="' + f.id + '" title="Copy (Ctrl+C)">📋</button>' +
+              '<button class="delete-file-btn px-2 py-1 text-xs text-red-400 hover:bg-red-900/20 rounded" data-id="' + f.id + '">🗑️</button>' +
+            '</div></div>';
+        }).join('');
+        document.getElementById('files-grid').innerHTML = html || '<p class="text-sm text-gray-500 text-center py-8 col-span-full">No files here. Upload or paste files.</p>';
+
+        document.querySelectorAll('.file-card[draggable]').forEach(function(card) {
+          card.addEventListener('dragstart', function(e) {
+            e.dataTransfer.setData('text/file-id', this.dataset.fileId);
+            this.classList.add('dragging');
+          });
+          card.addEventListener('dragend', function() { this.classList.remove('dragging'); });
+          card.addEventListener('click', function(e) {
+            if (e.target.closest('a') || e.target.closest('button')) return;
+            var id = parseInt(this.dataset.fileId);
+            if (e.shiftKey || e.ctrlKey || e.metaKey) {
+              if (selectedFiles.has(id)) { selectedFiles.delete(id); this.classList.remove('selected'); }
+              else { selectedFiles.add(id); this.classList.add('selected'); }
+            } else {
+              selectedFiles.clear();
+              document.querySelectorAll('.file-card.selected').forEach(function(c) { c.classList.remove('selected'); });
+              selectedFiles.add(id); this.classList.add('selected');
+            }
+          });
+        });
+
+        document.querySelectorAll('.cut-btn').forEach(function(btn) {
+          btn.addEventListener('click', function(e) { e.stopPropagation(); clipAction('cut', [parseInt(this.dataset.id)]); });
+        });
+        document.querySelectorAll('.copy-btn').forEach(function(btn) {
+          btn.addEventListener('click', function(e) { e.stopPropagation(); clipAction('copy', [parseInt(this.dataset.id)]); });
+        });
+        document.querySelectorAll('.delete-file-btn').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (!confirm('Delete?')) return;
+            fetch('/api/media/?id=' + this.dataset.id, { method: 'DELETE' }).then(loadContent);
+          });
+        });
+      });
+    }
+
+    function moveFile(fileId, folderId) {
+      fetch('/api/media/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: fileId, folder_id: folderId }) }).then(loadContent);
+    }
+
+    function clipAction(mode, ids) {
+      clipboard = { files: ids, mode: mode };
+      document.getElementById('clip-icon').textContent = mode === 'cut' ? '✂️' : '📋';
+      document.getElementById('clip-text').textContent = ids.length + ' file' + (ids.length > 1 ? 's' : '') + ' ' + (mode === 'cut' ? 'cut' : 'copied');
+      document.getElementById('clipboard-indicator').classList.remove('hidden');
+      document.getElementById('paste-btn').classList.remove('hidden');
+    }
+
+    function clearClip() {
+      clipboard = { files: [], mode: null };
+      document.getElementById('clipboard-indicator').classList.add('hidden');
+      document.getElementById('paste-btn').classList.add('hidden');
+    }
+
+    function pasteFiles() {
+      if (!clipboard.files.length) return;
+      var target = currentFolder ? parseInt(currentFolder) : null;
+      Promise.all(clipboard.files.map(function(id) {
+        return fetch('/api/media/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, folder_id: target }) });
+      })).then(function() { clearClip(); loadContent(); });
+    }
+
+    document.getElementById('paste-btn').addEventListener('click', pasteFiles);
+    document.getElementById('clip-clear').addEventListener('click', clearClip);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+      if ((e.ctrlKey || e.metaKey) && e.key === 'x' && selectedFiles.size > 0) { e.preventDefault(); clipAction('cut', Array.from(selectedFiles)); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedFiles.size > 0) { e.preventDefault(); clipAction('copy', Array.from(selectedFiles)); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboard.files.length > 0) { e.preventDefault(); pasteFiles(); }
+      if (e.key === 'Delete' && selectedFiles.size > 0) {
+        if (!confirm('Delete ' + selectedFiles.size + ' file(s)?')) return;
+        Promise.all(Array.from(selectedFiles).map(function(id) { return fetch('/api/media/?id=' + id, { method: 'DELETE' }); }))
+          .then(function() { selectedFiles.clear(); loadContent(); });
+      }
+      if (e.key === 'Escape') { selectedFiles.clear(); document.querySelectorAll('.file-card.selected').forEach(function(c) { c.classList.remove('selected'); }); clearClip(); }
+    });
+
+    function openFolder(id, name) {
+      currentFolder = id; selectedFiles.clear();
+      var bc = document.getElementById('breadcrumb');
+      bc.innerHTML = '<span class="text-gray-400 cursor-pointer hover:text-amber-400" id="bc-root">📁 Root</span><span class="text-gray-600 mx-1">›</span><span class="text-amber-400">📁 ' + name + '</span>';
+      document.getElementById('bc-root').addEventListener('click', function() { currentFolder = null; selectedFiles.clear(); document.getElementById('breadcrumb').innerHTML = '<span class="text-amber-400">📁 Root</span>'; loadContent(); });
+      loadContent();
+    }
+
+    document.getElementById('new-folder-btn').addEventListener('click', function() {
+      var name = prompt('New folder name:');
+      if (!name || !name.trim()) return;
+      fetch('/api/folders/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim(), parent_id: currentFolder }) }).then(loadContent);
+    });
+
+    function uploadFiles(files) {
+      var progress = document.getElementById('upload-progress');
+      progress.classList.remove('hidden');
+      progress.textContent = 'Uploading ' + files.length + ' file(s)...';
+      progress.className = 'mb-4 p-3 rounded-lg bg-amber-900/20 border border-amber-500/30 text-sm text-amber-300';
+      Promise.all(Array.from(files).map(function(file) {
+        var form = new FormData(); form.append('file', file);
+        if (currentFolder) form.append('folder_id', String(currentFolder));
+        return fetch('/api/media/', { method: 'POST', body: form }).then(function(r) { return r.json(); });
+      })).then(function(results) {
+        var failed = results.filter(function(r) { return r.error; });
+        if (failed.length) { progress.textContent = '⚠️ ' + failed[0].error; progress.className = 'mb-4 p-3 rounded-lg bg-red-900/20 border border-red-500/30 text-sm text-red-300'; }
+        else { progress.textContent = '✅ ' + results.length + ' uploaded!'; }
+        setTimeout(function() { progress.classList.add('hidden'); }, 4000);
+        loadContent();
+      }).catch(function() { progress.textContent = '❌ Upload failed.'; progress.className = 'mb-4 p-3 rounded-lg bg-red-900/20 border border-red-500/30 text-sm text-red-300'; });
+    }
+
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+    fileInput.addEventListener('change', function(e) { if (e.target.files.length > 0) uploadFiles(e.target.files); });
+    dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.style.borderColor = '#f59e0b'; });
+    dropZone.addEventListener('dragleave', function() { dropZone.style.borderColor = ''; });
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault(); dropZone.style.borderColor = '';
+      if (e.dataTransfer.getData('text/file-id')) return;
+      if (e.dataTransfer.files.length > 0) uploadFiles(e.dataTransfer.files);
+    });
+
+    loadContent();
+  })();
+  </script>
+</body>
+</html>

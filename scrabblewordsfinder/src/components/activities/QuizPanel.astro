@@ -1,0 +1,321 @@
+      <!-- Panel 2: Word Quiz -->
+      <div class="rounded-xl border border-blue-800/50 bg-gray-900/50 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🧠</span> Word Quiz</h2>
+          <a id="quiz-history-btn" href="/wordbench-practice/" class="hidden px-2 py-1 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs text-purple-300 hover:bg-purple-600/40 transition-colors flex items-center gap-1">
+            <span>🏅</span><span id="quiz-history-count">0</span>
+          </a>
+        </div>
+
+        <!-- Quiz Setup -->
+        <div id="quiz-setup">
+          <p class="text-sm text-gray-300 mb-4">Test your vocabulary! Match words to their correct meanings before the timer runs out.</p>
+          <div class="mb-4">
+            <label class="block text-xs text-gray-400 mb-1">How many words?</label>
+            <div id="quiz-count-picker" class="grid grid-cols-4 gap-2">
+              <button class="quiz-count-btn px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 text-sm text-gray-300 hover:border-blue-500 hover:bg-blue-900/20 transition-colors" data-count="3">3</button>
+              <button class="quiz-count-btn px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 text-sm text-gray-300 hover:border-blue-500 hover:bg-blue-900/20 transition-colors" data-count="5">5</button>
+              <button class="quiz-count-btn px-3 py-2 rounded-lg border border-blue-500 bg-blue-900/30 text-sm text-blue-300 font-semibold" data-count="7">7</button>
+              <button class="quiz-count-btn px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 text-sm text-gray-300 hover:border-blue-500 hover:bg-blue-900/20 transition-colors" data-count="10">10</button>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs text-gray-400 mb-1">Timer Duration</label>
+            <select id="quiz-timer-select" class="h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 w-full">
+              <option value="30">30 seconds (Expert)</option>
+              <option value="45">45 seconds (Hard)</option>
+              <option value="60">60 seconds (Medium)</option>
+              <option value="75">75 seconds (Easy)</option>
+              <option value="90" selected>90 seconds (Relaxed)</option>
+              <option value="105">105 seconds (Casual)</option>
+              <option value="120">120 seconds (Beginner)</option>
+            </select>
+          </div>
+          <button id="quiz-start-btn" class="w-full h-12 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-500 transition-colors">▶ Start Quiz</button>
+          <label id="quiz-from-workbench-label" class="hidden flex items-center gap-2 mt-3 cursor-pointer select-none">
+            <input type="checkbox" id="quiz-from-workbench" class="w-4 h-4 rounded border-gray-600 bg-gray-800 text-blue-500 focus:ring-blue-500/30 focus:ring-offset-0" />
+            <span class="text-xs text-gray-400">Use words from my Memory WordBench</span>
+          </label>
+        </div>
+
+        <!-- Quiz In Progress -->
+        <div id="quiz-active" class="hidden relative">
+          <div class="flex items-center justify-between mb-4">
+            <span id="quiz-progress" class="text-xs text-gray-400">Question 1/10</span>
+            <span id="quiz-timer" class="text-lg font-mono font-bold text-amber-400">90s</span>
+          </div>
+          <div class="mb-4">
+            <p id="quiz-current-word" class="text-2xl font-black text-white text-center tracking-wider mb-4">—</p>
+            <div id="quiz-options" class="grid grid-cols-1 gap-2"></div>
+          </div>
+          <!-- Encouragement Modal Overlay -->
+          <div id="quiz-modal" class="hidden absolute inset-0 z-10 flex items-center justify-center bg-gray-950/80 backdrop-blur-sm rounded-xl">
+            <div id="quiz-modal-box" class="w-[90%] max-w-xs rounded-2xl border-2 p-6 text-center shadow-2xl transform transition-all scale-95 opacity-0">
+              <p id="quiz-modal-emoji" class="text-4xl mb-2">🎯</p>
+              <p id="quiz-modal-text" class="text-sm font-medium mb-4">Nice work!</p>
+              <button id="quiz-modal-ok" class="w-full h-10 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-500 transition-colors">OK →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz Complete -->
+        <div id="quiz-complete" class="hidden text-center py-4">
+          <p id="quiz-result-emoji" class="text-4xl mb-2">🏆</p>
+          <p id="quiz-result-text" class="text-lg font-bold text-white mb-2"></p>
+          <p id="quiz-result-details" class="text-sm text-gray-400 mb-4"></p>
+          <div id="quiz-splits" class="text-xs text-gray-500 mb-4"></div>
+          <div class="flex gap-3 justify-center">
+            <button id="quiz-retry-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">Play Again</button>
+            <a href="/quiz-history/" class="px-4 py-2 rounded-lg bg-purple-600/30 border border-purple-500/50 text-sm text-purple-300 hover:bg-purple-600/50 transition-colors">📊 Quiz History</a>
+          </div>
+        </div>
+      </div>
+
+<script is:inline>
+(function() {
+  // ── Word Quiz ──
+  var quizState = { questions: [], fakes: [], current: 0, total: 7, splits: [], startTime: 0, timerDuration: 90, timerId: null, correct: 0 };
+
+  // Word count picker
+  document.querySelectorAll('.quiz-count-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.quiz-count-btn').forEach(function(b) {
+        b.classList.remove('border-blue-500', 'bg-blue-900/30', 'text-blue-300', 'font-semibold');
+        b.classList.add('border-gray-700', 'bg-gray-800', 'text-gray-300');
+      });
+      btn.classList.add('border-blue-500', 'bg-blue-900/30', 'text-blue-300', 'font-semibold');
+      btn.classList.remove('border-gray-700', 'bg-gray-800', 'text-gray-300');
+      quizState.total = parseInt(btn.dataset.count);
+    });
+  });
+
+  document.getElementById('quiz-start-btn').addEventListener('click', startQuiz);
+  document.getElementById('quiz-modal-ok').addEventListener('click', advanceQuiz);
+  document.getElementById('quiz-retry-btn').addEventListener('click', function() {
+    document.getElementById('quiz-setup').classList.remove('hidden');
+    document.getElementById('quiz-complete').classList.add('hidden');
+  });
+
+  var encourageCorrect = [
+    "🔥 On fire! {score}/{total} correct in {time}s",
+    "💪 Nailed it! {score}/{total} — keep going!",
+    "⚡ Sharp mind! {score} right so far in {time}s",
+    "🎯 Bullseye! {score}/{total} correct!",
+    "✨ Brilliant! {score} down, {remaining} to go",
+    "🧠 Big brain move! {score}/{total} in {time}s",
+    "👏 Crushed it! {score} correct so far"
+  ];
+
+  var encourageWrong = [
+    "💪 Still in it! {score}/{total} correct — plenty of time to score high!",
+    "🎯 Keep pushing! {score}/{total} right, {remaining} left to go",
+    "⏱️ No worries — {remaining} questions left, you've got this!",
+    "📚 Learning moment! {score}/{total} so far — finish strong!",
+    "🚀 Don't stop now! {remaining} more chances to shine",
+    "🔁 Shake it off! {score} correct, still time to recover"
+  ];
+
+  function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function formatMsg(template, data) {
+    return template.replace(/\{(\w+)\}/g, function(_, key) { return data[key] !== undefined ? data[key] : ''; });
+  }
+
+  async function startQuiz() {
+    document.getElementById('quiz-setup').classList.add('hidden');
+    document.getElementById('quiz-active').classList.remove('hidden');
+    document.getElementById('quiz-complete').classList.add('hidden');
+    quizState.timerDuration = parseInt(document.getElementById('quiz-timer-select').value);
+    quizState.current = 0; quizState.splits = []; quizState.correct = 0;
+
+    var useWorkbench = document.getElementById('quiz-from-workbench') && document.getElementById('quiz-from-workbench').checked;
+
+    if (useWorkbench) {
+      // Use words from Memory WordBench
+      var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+      var meaningful = saved.filter(function(w) {
+        if (!w.meaning || !w.meaning.trim()) return false;
+        var m = w.meaning.toLowerCase();
+        if (m.indexOf('scrabble-legal word') !== -1) return false;
+        if (m.indexOf('no standard definition') !== -1) return false;
+        return true;
+      });
+      // Shuffle and pick N
+      for (var i = meaningful.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = meaningful[i]; meaningful[i] = meaningful[j]; meaningful[j] = tmp;
+      }
+      var picked = meaningful.slice(0, quizState.total);
+      if (picked.length < quizState.total) picked = meaningful.slice(0, meaningful.length);
+      quizState.questions = picked.map(function(w) { return { word: w.word, meaning: w.meaning }; });
+      // Generate fake meanings from the rest of the saved words
+      var allMeanings = meaningful.map(function(w) { return w.meaning; });
+      quizState.fakes = allMeanings.sort(function() { return Math.random() - 0.5; });
+    } else {
+      // Fetch from API
+      try {
+        var res = await fetch('/api/word-quiz/?count=' + quizState.total);
+        var data = await res.json();
+        quizState.questions = data.questions;
+        quizState.fakes = data.fakeMeanings;
+      } catch(e) { alert('Failed to load quiz.'); return; }
+    }
+
+    quizState.startTime = Date.now();
+    localStorage.setItem('swf-quiz-start', String(quizState.startTime));
+    startTimer(); showQuestion();
+  }
+
+  function startTimer() {
+    var remaining = quizState.timerDuration;
+    var timerEl = document.getElementById('quiz-timer');
+    timerEl.textContent = remaining + 's';
+    timerEl.classList.remove('text-red-400');
+    quizState.timerId = setInterval(function() {
+      remaining--;
+      timerEl.textContent = remaining + 's';
+      if (remaining <= 10) timerEl.classList.add('text-red-400');
+      if (remaining <= 0) { clearInterval(quizState.timerId); endQuiz(true); }
+    }, 1000);
+  }
+
+  function showQuestion() {
+    var q = quizState.questions[quizState.current];
+    document.getElementById('quiz-progress').textContent = 'Question ' + (quizState.current + 1) + '/' + quizState.total;
+    document.getElementById('quiz-current-word').textContent = q.word;
+    document.getElementById('quiz-modal').classList.add('hidden');
+
+    var options = [{ text: q.meaning, correct: true }];
+    var usedFakes = new Set();
+    while (options.length < 4) {
+      var idx = Math.floor(Math.random() * quizState.fakes.length);
+      if (!usedFakes.has(idx) && quizState.fakes[idx] !== q.meaning) { options.push({ text: quizState.fakes[idx], correct: false }); usedFakes.add(idx); }
+    }
+    options.sort(function() { return Math.random() - 0.5; });
+
+    var container = document.getElementById('quiz-options');
+    container.innerHTML = options.map(function(opt) {
+      return '<button class="quiz-opt p-3 text-left rounded-lg border border-gray-700 bg-gray-800 text-sm text-gray-300 hover:border-blue-500 hover:bg-blue-900/20 transition-colors" data-correct="' + opt.correct + '">' + opt.text + '</button>';
+    }).join('');
+
+    container.querySelectorAll('.quiz-opt').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        // Disable all options
+        container.querySelectorAll('.quiz-opt').forEach(function(b) { b.disabled = true; b.style.pointerEvents = 'none'; });
+
+        var isCorrect = btn.dataset.correct === 'true';
+        var elapsed = ((Date.now() - quizState.startTime) / 1000).toFixed(1);
+        var remaining = quizState.total - quizState.current - 1;
+        var correctAnswer = quizState.questions[quizState.current].meaning;
+        var questionWord = quizState.questions[quizState.current].word;
+
+        if (isCorrect) {
+          quizState.correct++;
+          btn.classList.add('border-green-500', 'bg-green-900/30', 'text-green-200');
+          var msg = formatMsg(pickRandom(encourageCorrect), { score: quizState.correct, total: quizState.total, time: elapsed, remaining: remaining });
+          showModal(msg, 'green', correctAnswer, questionWord);
+        } else {
+          btn.classList.add('border-red-500', 'bg-red-900/30', 'text-red-200');
+          // Show correct answer
+          container.querySelectorAll('.quiz-opt').forEach(function(b) { if (b.dataset.correct === 'true') b.classList.add('border-green-500', 'bg-green-900/30'); });
+          var msg = formatMsg(pickRandom(encourageWrong), { score: quizState.correct, total: quizState.total, time: elapsed, remaining: remaining });
+          showModal(msg, 'amber', correctAnswer, questionWord);
+        }
+      });
+    });
+  }
+
+  function showModal(msg, color, correctAnswer, questionWord) {
+    var modal = document.getElementById('quiz-modal');
+    var box = document.getElementById('quiz-modal-box');
+    var emoji = document.getElementById('quiz-modal-emoji');
+    var text = document.getElementById('quiz-modal-text');
+    var okBtn = document.getElementById('quiz-modal-ok');
+
+    // Set content — green for correct, red for wrong
+    if (color === 'green') {
+      emoji.textContent = '✅';
+      box.className = 'w-[90%] max-w-xs rounded-2xl border-2 border-green-500 bg-green-950/80 p-6 text-center shadow-2xl shadow-green-900/30 transform transition-all';
+      text.className = 'text-sm font-medium mb-2 text-green-200';
+      okBtn.className = 'w-full h-10 rounded-lg bg-green-600 text-white font-semibold text-sm hover:bg-green-500 transition-colors';
+    } else {
+      emoji.textContent = '❌';
+      box.className = 'w-[90%] max-w-xs rounded-2xl border-2 border-red-500 bg-red-950/80 p-6 text-center shadow-2xl shadow-red-900/30 transform transition-all';
+      text.className = 'text-sm font-medium mb-2 text-red-200';
+      okBtn.className = 'w-full h-10 rounded-lg bg-red-600 text-white font-semibold text-sm hover:bg-red-500 transition-colors';
+    }
+    text.textContent = msg;
+
+    // Show the word + correct answer
+    var answerEl = document.getElementById('quiz-modal-answer');
+    if (!answerEl) {
+      answerEl = document.createElement('div');
+      answerEl.id = 'quiz-modal-answer';
+      text.parentNode.insertBefore(answerEl, okBtn);
+    }
+    answerEl.className = 'mb-4 px-2';
+    answerEl.innerHTML = '<p class="text-sm font-mono font-bold text-white tracking-wider mb-1">' + (questionWord || '') + '</p><p class="text-xs text-green-400 italic leading-relaxed">✓ ' + (correctAnswer || '') + '</p>';
+
+    okBtn.textContent = quizState.current === quizState.total - 1 ? '🏁 See Results' : 'OK →';
+
+    // Show modal with animation
+    modal.classList.remove('hidden');
+    box.style.transform = 'scale(0.95)';
+    box.style.opacity = '0';
+    requestAnimationFrame(function() {
+      box.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
+      box.style.transform = 'scale(1)';
+      box.style.opacity = '1';
+    });
+  }
+
+  function hideModal() {
+    var modal = document.getElementById('quiz-modal');
+    var box = document.getElementById('quiz-modal-box');
+    box.style.transform = 'scale(0.95)';
+    box.style.opacity = '0';
+    setTimeout(function() { modal.classList.add('hidden'); }, 150);
+  }
+
+  function advanceQuiz() {
+    hideModal();
+    var split = ((Date.now() - quizState.startTime) / 1000).toFixed(1);
+    quizState.splits.push(split);
+    localStorage.setItem('swf-quiz-splits', JSON.stringify(quizState.splits));
+    quizState.current++;
+    if (quizState.current >= quizState.total) endQuiz(false); else showQuestion();
+  }
+
+  function endQuiz(timedOut) {
+    clearInterval(quizState.timerId);
+    document.getElementById('quiz-active').classList.add('hidden');
+    document.getElementById('quiz-complete').classList.remove('hidden');
+    var totalTime = ((Date.now() - quizState.startTime) / 1000).toFixed(1);
+    var score = quizState.correct, total = quizState.total, limit = quizState.timerDuration;
+    var emoji = '🏆', text = '';
+    if (timedOut) { emoji = '⏰'; text = "Time's Up! " + score + '/' + total; }
+    else if (score === total) { emoji = '🏆'; text = 'Perfect Score! ' + score + '/' + total + ' in ' + totalTime + 's'; }
+    else if (totalTime < limit * 0.5) { emoji = '🔥'; text = 'Blazing Fast! ' + score + '/' + total + ' in ' + totalTime + 's'; }
+    else if (totalTime < limit * 0.75) { emoji = '⚡'; text = 'Quick Thinker! ' + score + '/' + total + ' in ' + totalTime + 's'; }
+    else { emoji = '✅'; text = 'Completed! ' + score + '/' + total + ' in ' + totalTime + 's'; }
+    document.getElementById('quiz-result-emoji').textContent = emoji;
+    document.getElementById('quiz-result-text').textContent = text;
+    var details = 'Timer: ' + limit + 's · Correct: ' + score + '/' + total + ' · Time: ' + totalTime + 's';
+    if (!timedOut && parseFloat(totalTime) < limit) {
+      var margin = limit - parseFloat(totalTime);
+      if (margin > 60) details += ' 🔥 Destroyed by ' + margin.toFixed(0) + 's!';
+      else if (margin > 30) details += ' ⚡ Beat by ' + margin.toFixed(0) + 's!';
+      else if (margin > 10) details += ' ✨ ' + margin.toFixed(0) + 's spare';
+    }
+    document.getElementById('quiz-result-details').textContent = details;
+    document.getElementById('quiz-splits').textContent = 'Splits: ' + quizState.splits.join(', ') + 's';
+    // Save to achievements
+    fetch('/api/achievements/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ achievement_text: 'Word Quiz', a_data: JSON.stringify({ score: score, total: total, timeUsed: totalTime, timerLimit: limit, splits: quizState.splits, timedOut: timedOut, date: new Date().toISOString() }) }) }).catch(function(){});
+    // Save quiz score to DB with user ID
+    var uid = localStorage.getItem('swf-uid') || '';
+    fetch('/api/quiz-scores/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: uid, score: score, total: total, time_used: parseFloat(totalTime), timer_limit: limit, timed_out: timedOut ? 1 : 0 }) }).catch(function(){});
+    document.getElementById('quiz-timer').classList.remove('text-red-400');
+  }
+
+})();
+</script>

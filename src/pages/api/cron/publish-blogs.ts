@@ -9,9 +9,9 @@ import { env } from 'cloudflare:workers';
  */
 
 export const GET: APIRoute = async ({ request }) => {
-  const db = (env as any).BLOGS_DB;
+  const db = (env as any).BUGS_DB;
   if (!db) {
-    return new Response(JSON.stringify({ error: 'BLOGS_DB not configured' }), {
+    return new Response(JSON.stringify({ error: 'BUGS_DB not configured' }), {
       status: 500, headers: { 'Content-Type': 'application/json' },
     });
   }
