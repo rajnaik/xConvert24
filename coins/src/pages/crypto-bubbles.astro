@@ -352,11 +352,13 @@ import Layout from '../layouts/Layout.astro';
   async function loadCoins() {
     try {
       var res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h,24h,7d,30d');
-      if (!res.ok) throw new Error('API error');
+      if (res.status === 429) { loading.textContent = 'Rate limited by CoinGecko. Retrying in 30s...'; loading.style.display = 'flex'; setTimeout(loadCoins, 30000); return; }
+      if (!res.ok) throw new Error('API error: ' + res.status);
       coins = await res.json();
-      loading.classList.add('hidden');
+      if (!Array.isArray(coins) || !coins.length) throw new Error('No data');
+      loading.style.display = 'none';
       renderBubbles();
-    } catch (e) { loading.textContent = 'Failed to load data. Try refreshing.'; }
+    } catch (e) { loading.textContent = 'Error: ' + e.message + '. Retrying in 10s...'; loading.style.display = 'flex'; setTimeout(loadCoins, 10000); }
   }
 
   // Period & count buttons
