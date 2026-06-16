@@ -1,0 +1,234 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="WordBench Practice History — ScrabbleWordsFinder" description="View your Memory WordBench practice sessions. Track which words you've reviewed and when." keywords="scrabble practice history, word practice, vocabulary review log">
+
+<main class="mx-auto max-w-4xl px-4 sm:px-6 py-12">
+  <a href="/" class="text-sm text-blue-400 hover:underline mb-6 inline-block">← Back to Solver</a>
+
+  <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">📚 WordBench Practice</h1>
+  <p class="text-sm text-gray-400 mb-8">Words you've reviewed during auto-play sessions.</p>
+
+  <div id="wp-loading" class="text-center py-8">
+    <p class="text-sm text-gray-500">Loading practice history...</p>
+  </div>
+
+  <div id="wp-content" class="hidden">
+    <div id="wp-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"></div>
+
+    <!-- Calendar (shown when 3+ days of data) -->
+    <div id="wp-calendar" class="hidden mb-6 rounded-xl border border-purple-800/50 bg-gray-900/50 p-4">
+      <div class="flex items-center justify-between mb-3">
+        <button id="cal-prev" class="px-2 py-1 rounded bg-gray-800 text-gray-400 hover:text-white text-xs">◀</button>
+        <span id="cal-month" class="text-sm font-semibold text-white"></span>
+        <button id="cal-next" class="px-2 py-1 rounded bg-gray-800 text-gray-400 hover:text-white text-xs">▶</button>
+      </div>
+      <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-gray-500 mb-1">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
+      <p id="cal-info" class="text-[10px] text-gray-500 mt-2 text-center">Click a highlighted date to filter</p>
+    </div>
+
+    <!-- Table -->
+    <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
+      <div class="flex items-center justify-between mb-3">
+        <span id="wp-filter-label" class="text-xs text-gray-400">All records</span>
+        <button id="wp-clear-filter" class="hidden text-[10px] text-purple-400 hover:underline">Clear filter</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+          <thead class="bg-gray-800">
+            <tr>
+              <th class="px-3 py-2 text-left text-gray-300">#</th>
+              <th class="px-3 py-2 text-left text-gray-300">Word</th>
+              <th class="px-3 py-2 text-left text-gray-300">Meaning</th>
+              <th class="px-3 py-2 text-left text-gray-300">Date & Time</th>
+            </tr>
+          </thead>
+          <tbody id="wp-body" class="divide-y divide-gray-800"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="wp-empty" class="hidden">
+    <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-8 text-center">
+      <span class="text-5xl block mb-4">📚</span>
+      <h2 class="text-lg font-semibold text-white mb-3">No Practice Sessions Yet</h2>
+      <p class="text-gray-400 mb-6">Use the auto-play feature on your Memory WordBench to start practicing words.</p>
+      <a href="/" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-purple-500 text-white font-semibold hover:bg-purple-400 transition-colors">
+        🃏 Go to Solver →
+      </a>
+    </div>
+  </div>
+</main>
+</Layout>
+
+<script>
+  let allRecords: any[] = [];
+  let filteredDate: string | null = null;
+  let calMonth: number;
+  let calYear: number;
+
+  async function loadPractice() {
+    const uid = localStorage.getItem('swf-uid') || '';
+    const loading = document.getElementById('wp-loading')!;
+    const content = document.getElementById('wp-content')!;
+    const empty = document.getElementById('wp-empty')!;
+
+    if (!uid) { loading.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+
+    try {
+      const res = await fetch(`/api/wordbench-practice/?user_id=${encodeURIComponent(uid)}`);
+      if (!res.ok) throw new Error('Failed');
+      const { records } = await res.json();
+      loading.classList.add('hidden');
+
+      if (!records || records.length === 0) { empty.classList.remove('hidden'); return; }
+
+      allRecords = records;
+      const now = new Date();
+      calMonth = now.getMonth();
+      calYear = now.getFullYear();
+
+      renderStats(records);
+      renderTable(records);
+
+      // Show calendar if 3+ practice days
+      const days = new Set(records.map((r: any) => r.created_at?.split(' ')[0]));
+      if (days.size >= 3) {
+        document.getElementById('wp-calendar')!.classList.remove('hidden');
+        renderCalendar();
+      }
+
+      content.classList.remove('hidden');
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  function renderStats(records: any[]) {
+    const uniqueWords = new Set(records.map((r: any) => r.word)).size;
+    const totalReviews = records.length;
+    const days = new Set(records.map((r: any) => r.created_at?.split(' ')[0]));
+    // Estimate total time: each word viewed ~5s avg per the speed setting
+    const totalMinutes = Math.round((totalReviews * 5) / 60);
+
+    document.getElementById('wp-stats')!.innerHTML = `
+      <div class="rounded-xl bg-gray-900/50 border border-purple-800/50 p-4 text-center">
+        <p class="text-2xl font-bold text-purple-400">${totalReviews}</p>
+        <p class="text-xs text-gray-500">Words Reviewed</p>
+      </div>
+      <div class="rounded-xl bg-gray-900/50 border border-blue-800/50 p-4 text-center">
+        <p class="text-2xl font-bold text-blue-400">${uniqueWords}</p>
+        <p class="text-xs text-gray-500">Unique Words</p>
+      </div>
+      <div class="rounded-xl bg-gray-900/50 border border-green-800/50 p-4 text-center">
+        <p class="text-2xl font-bold text-green-400">${days.size}</p>
+        <p class="text-xs text-gray-500">Practice Days</p>
+      </div>
+      <div class="rounded-xl bg-gray-900/50 border border-amber-800/50 p-4 text-center">
+        <p class="text-2xl font-bold text-amber-400">~${totalMinutes}m</p>
+        <p class="text-xs text-gray-500">Total Time</p>
+      </div>`;
+  }
+
+  function renderTable(records: any[]) {
+    const body = document.getElementById('wp-body')!;
+    const label = document.getElementById('wp-filter-label')!;
+    const clearBtn = document.getElementById('wp-clear-filter')!;
+
+    if (filteredDate) {
+      label.textContent = `Showing: ${filteredDate}`;
+      clearBtn.classList.remove('hidden');
+    } else {
+      label.textContent = `All records (${records.length})`;
+      clearBtn.classList.add('hidden');
+    }
+
+    body.innerHTML = records.slice(0, 100).map((r: any, i: number) => {
+      const date = r.created_at ? new Date(r.created_at + 'Z').toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+      const meaning = r.meaning || '';
+      const meaningTrunc = meaning.length > 60 ? meaning.slice(0, 60) + '…' : meaning;
+      const rowBg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
+      return `<tr class="${rowBg}">
+        <td class="px-3 py-2 text-gray-500 text-xs">${i + 1}</td>
+        <td class="px-3 py-2 font-mono font-bold text-white uppercase tracking-wider text-xs">${r.word}</td>
+        <td class="px-3 py-2 text-gray-400 text-xs italic">${meaningTrunc}</td>
+        <td class="px-3 py-2 text-gray-500 text-xs">${date}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderCalendar() {
+    const grid = document.getElementById('cal-grid')!;
+    const monthLabel = document.getElementById('cal-month')!;
+
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    monthLabel.textContent = `${months[calMonth]} ${calYear}`;
+
+    // Get practice dates for this month
+    const practiceDates = new Set<string>();
+    allRecords.forEach((r: any) => {
+      const d = r.created_at?.split(' ')[0];
+      if (d) {
+        const [y, m] = d.split('-').map(Number);
+        if (y === calYear && m - 1 === calMonth) practiceDates.add(d);
+      }
+    });
+
+    const firstDay = new Date(calYear, calMonth, 1);
+    const lastDay = new Date(calYear, calMonth + 1, 0);
+    const startDow = (firstDay.getDay() + 6) % 7; // Monday = 0
+
+    let html = '';
+    for (let i = 0; i < startDow; i++) html += '<div></div>';
+
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const hasPractice = practiceDates.has(dateStr);
+      const isFiltered = filteredDate === dateStr;
+      const cls = hasPractice
+        ? (isFiltered ? 'bg-purple-600 text-white font-bold' : 'bg-purple-900/50 text-purple-300 hover:bg-purple-600/50 cursor-pointer')
+        : 'text-gray-600';
+      html += `<div class="w-full aspect-square flex items-center justify-center rounded text-[10px] ${cls}" ${hasPractice ? `data-date="${dateStr}"` : ''}>${d}</div>`;
+    }
+
+    grid.innerHTML = html;
+
+    grid.querySelectorAll('[data-date]').forEach(el => {
+      el.addEventListener('click', () => {
+        const date = (el as HTMLElement).dataset.date!;
+        filteredDate = date;
+        const filtered = allRecords.filter((r: any) => r.created_at?.startsWith(date));
+        renderTable(filtered);
+        renderCalendar();
+      });
+    });
+  }
+
+  document.getElementById('wp-clear-filter')!.addEventListener('click', () => {
+    filteredDate = null;
+    renderTable(allRecords);
+    renderCalendar();
+  });
+
+  document.getElementById('cal-prev')!.addEventListener('click', () => {
+    calMonth--;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+  });
+
+  document.getElementById('cal-next')!.addEventListener('click', () => {
+    calMonth++;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  });
+
+  loadPractice();
+</script>

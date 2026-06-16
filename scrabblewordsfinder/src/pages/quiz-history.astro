@@ -1,0 +1,156 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Quiz History — ScrabbleWordsFinder" description="View your Word Quiz scores, accuracy stats, and performance history. Track your vocabulary improvement over time." keywords="scrabble quiz history, word quiz scores, vocabulary quiz results">
+
+<main class="mx-auto max-w-4xl px-4 sm:px-6 py-12">
+  <a href="/activities/" class="text-sm text-blue-400 hover:underline mb-6 inline-block">← Back to Activities</a>
+
+  <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">📊 Quiz History</h1>
+  <p class="text-sm text-gray-400 mb-8">Your Word Quiz performance over time.</p>
+
+  <!-- Loading -->
+  <div id="qh-loading" class="text-center py-8">
+    <p class="text-sm text-gray-500">Loading quiz history...</p>
+  </div>
+
+  <!-- Stats + Table -->
+  <div id="qh-content" class="hidden">
+    <div id="qh-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"></div>
+    <div class="rounded-xl border border-blue-800/50 bg-gray-900/50 p-6">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+          <thead class="bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left text-gray-300">#</th>
+              <th class="px-4 py-3 text-left text-gray-300">Score</th>
+              <th class="px-4 py-3 text-left text-gray-300">Time Used</th>
+              <th class="px-4 py-3 text-left text-gray-300">Timer</th>
+              <th class="px-4 py-3 text-left text-gray-300">Result</th>
+              <th class="px-4 py-3 text-left text-gray-300">Date</th>
+            </tr>
+          </thead>
+          <tbody id="qh-body" class="divide-y divide-gray-800"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty -->
+  <div id="qh-empty" class="hidden">
+    <div class="rounded-xl border border-blue-800/50 bg-gray-900/50 p-8 text-center">
+      <span class="text-5xl block mb-4">📊</span>
+      <h2 class="text-lg font-semibold text-white mb-3">No Quiz History Yet</h2>
+      <p class="text-gray-400 mb-6">Play your first Word Quiz to start tracking your scores.</p>
+      <a href="/activities/" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors">
+        🧠 Play Word Quiz →
+      </a>
+    </div>
+  </div>
+</main>
+</Layout>
+
+<script>
+  async function loadHistory() {
+    const uid = localStorage.getItem('swf-uid') || '';
+    const loading = document.getElementById('qh-loading')!;
+    const content = document.getElementById('qh-content')!;
+    const empty = document.getElementById('qh-empty')!;
+
+    if (!uid) { loading.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+
+    try {
+      const res = await fetch(`/api/quiz-scores/?user_id=${encodeURIComponent(uid)}`);
+      if (!res.ok) throw new Error('Failed');
+      const { scores } = await res.json();
+      loading.classList.add('hidden');
+
+      if (!scores || scores.length === 0) { empty.classList.remove('hidden'); return; }
+
+      // Stats
+      const totalGames = scores.length;
+      const totalCorrect = scores.reduce((s: number, q: any) => s + q.score, 0);
+      const totalQuestions = scores.reduce((s: number, q: any) => s + q.total, 0);
+      const perfectGames = scores.filter((q: any) => q.score === q.total).length;
+      const avgAccuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+      const bestTime = scores.filter((q: any) => !q.timed_out && q.score === q.total).reduce((best: number, q: any) => {
+        return q.time_used < best ? q.time_used : best;
+      }, 9999);
+
+      // Calculate more stats
+      const fastestGame = scores.filter((q: any) => !q.timed_out).reduce((min: number, q: any) => q.time_used < min ? q.time_used : min, 9999);
+      const slowestGame = scores.filter((q: any) => !q.timed_out).reduce((max: number, q: any) => q.time_used > max ? q.time_used : max, 0);
+      const avgTime = scores.filter((q: any) => !q.timed_out).reduce((sum: number, q: any) => sum + q.time_used, 0) / (scores.filter((q: any) => !q.timed_out).length || 1);
+      const timedOutCount = scores.filter((q: any) => q.timed_out === 1).length;
+      const streak = (() => { let s = 0; for (const q of scores) { if (q.score === q.total) s++; else break; } return s; })();
+
+      document.getElementById('qh-stats')!.innerHTML = `
+        <div class="rounded-xl bg-gray-900/50 border border-blue-800/50 p-4 text-center">
+          <p class="text-2xl font-bold text-blue-400">${totalGames}</p>
+          <p class="text-xs text-gray-500">Quizzes Played</p>
+        </div>
+        <div class="rounded-xl bg-gray-900/50 border border-green-800/50 p-4 text-center">
+          <p class="text-2xl font-bold text-green-400">${avgAccuracy}%</p>
+          <p class="text-xs text-gray-500">Accuracy</p>
+        </div>
+        <div class="rounded-xl bg-gray-900/50 border border-purple-800/50 p-4 text-center">
+          <p class="text-2xl font-bold text-purple-400">${perfectGames}</p>
+          <p class="text-xs text-gray-500">Perfect Scores</p>
+        </div>
+        <div class="rounded-xl bg-gray-900/50 border border-amber-800/50 p-4 text-center">
+          <p class="text-2xl font-bold text-amber-400">${fastestGame < 9999 ? fastestGame + 's' : '—'}</p>
+          <p class="text-xs text-gray-500">Fastest Time</p>
+        </div>
+        <div class="rounded-xl bg-gray-900/50 border border-red-800/50 p-4 text-center">
+          <p class="text-2xl font-bold text-red-400">${slowestGame > 0 ? slowestGame.toFixed(1) + 's' : '—'}</p>
+          <p class="text-xs text-gray-500">Slowest Time</p>
+        </div>
+        <div class="rounded-xl bg-gray-900/50 border border-cyan-800/50 p-4 text-center">
+          <p class="text-2xl font-bold text-cyan-400">${avgTime.toFixed(1)}s</p>
+          <p class="text-xs text-gray-500">Avg Time</p>
+        </div>
+        <div class="rounded-xl bg-gray-900/50 border border-orange-800/50 p-4 text-center">
+          <p class="text-2xl font-bold text-orange-400">${timedOutCount}</p>
+          <p class="text-xs text-gray-500">Timed Out</p>
+        </div>
+        <div class="rounded-xl bg-gray-900/50 border border-emerald-800/50 p-4 text-center">
+          <p class="text-2xl font-bold text-emerald-400">${streak}</p>
+          <p class="text-xs text-gray-500">Current Streak</p>
+        </div>`;
+
+      // Table
+      const body = document.getElementById('qh-body')!;
+      body.innerHTML = scores.map((q: any, i: number) => {
+        const pct = q.total > 0 ? Math.round((q.score / q.total) * 100) : 0;
+        const isPerfect = q.score === q.total;
+        const timedOut = q.timed_out === 1;
+        let result = '';
+        if (timedOut) result = '<span class="text-red-400 font-medium">⏰ Timed Out</span>';
+        else if (isPerfect) result = '<span class="text-green-400 font-medium">🏆 Perfect!</span>';
+        else if (pct >= 80) result = '<span class="text-green-300 font-medium">⚡ Great</span>';
+        else if (pct >= 50) result = '<span class="text-amber-300 font-medium">✅ Good</span>';
+        else result = '<span class="text-gray-400 font-medium">📚 Keep Going</span>';
+        const date = q.created_at ? new Date(q.created_at + 'Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+        const rowBg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
+        return `<tr class="${rowBg}">
+          <td class="px-4 py-3 text-gray-500">${i + 1}</td>
+          <td class="px-4 py-3 font-bold ${isPerfect ? 'text-green-400' : 'text-blue-400'}">${q.score}/${q.total}</td>
+          <td class="px-4 py-3 text-gray-300">${q.time_used}s</td>
+          <td class="px-4 py-3 text-gray-500">${q.timer_limit}s</td>
+          <td class="px-4 py-3">${result}</td>
+          <td class="px-4 py-3 text-gray-500 text-xs">${date}</td>
+        </tr>`;
+      }).join('');
+
+      content.classList.remove('hidden');
+    } catch {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+    }
+  }
+
+  loadHistory();
+</script>

@@ -1,0 +1,123 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Your Data — ScrabbleWordsFinder" description="View all data stored in your browser's localStorage for ScrabbleWordsFinder." keywords="scrabble data, local storage, profile data">
+
+<main class="mx-auto max-w-4xl px-4 sm:px-6 py-12">
+  <a href="/settings/" class="text-sm text-blue-400 hover:underline mb-6 inline-block">← Back to Settings</a>
+
+  <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">👁️ Your Local Data</h1>
+  <p class="text-sm text-gray-400 mb-6">All items stored in your browser's localStorage for this site.</p>
+
+  <div id="data-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"></div>
+
+  <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+        <thead class="bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left text-gray-300">Key</th>
+            <th class="px-4 py-3 text-left text-gray-300">Type</th>
+            <th class="px-4 py-3 text-left text-gray-300">Size</th>
+            <th class="px-4 py-3 text-left text-gray-300">Value (preview)</th>
+          </tr>
+        </thead>
+        <tbody id="data-body" class="divide-y divide-gray-800"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Expanded view modal -->
+  <div id="expand-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="expand-title" class="text-sm font-bold text-white font-mono"></h3>
+        <button id="expand-close" class="text-gray-400 hover:text-white text-lg">✕</button>
+      </div>
+      <pre id="expand-content" class="text-xs text-gray-300 bg-gray-800 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all"></pre>
+    </div>
+  </div>
+</main>
+</Layout>
+
+<script>
+  function loadData() {
+    const keys = Object.keys(localStorage).sort();
+    const totalSize = keys.reduce((s, k) => s + (localStorage.getItem(k) || '').length, 0);
+    const swfKeys = keys.filter(k => k.startsWith('swf') || k.startsWith('scb') || k === 'cookieConsent');
+
+    // Stats
+    document.getElementById('data-stats')!.innerHTML = `
+      <div class="rounded-lg bg-gray-800 p-3 text-center">
+        <p class="text-xl font-bold text-purple-400">${keys.length}</p>
+        <p class="text-[10px] text-gray-500">Total Keys</p>
+      </div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center">
+        <p class="text-xl font-bold text-blue-400">${swfKeys.length}</p>
+        <p class="text-[10px] text-gray-500">SWF Keys</p>
+      </div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center">
+        <p class="text-xl font-bold text-green-400">${(totalSize / 1024).toFixed(1)}KB</p>
+        <p class="text-[10px] text-gray-500">Total Size</p>
+      </div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center">
+        <p class="text-xl font-bold text-amber-400">${localStorage.getItem('swf-uid')?.slice(0, 8) || '—'}…</p>
+        <p class="text-[10px] text-gray-500">User ID</p>
+      </div>`;
+
+    // Table
+    const body = document.getElementById('data-body')!;
+    body.innerHTML = keys.map((key, i) => {
+      const val = localStorage.getItem(key) || '';
+      const size = val.length;
+      let type = 'string';
+      let preview = val.slice(0, 80);
+      try {
+        const parsed = JSON.parse(val);
+        if (Array.isArray(parsed)) { type = `array[${parsed.length}]`; preview = `[${parsed.length} items]`; }
+        else if (typeof parsed === 'object') { type = 'object'; preview = JSON.stringify(parsed).slice(0, 80); }
+        else if (typeof parsed === 'number') { type = 'number'; preview = String(parsed); }
+        else if (typeof parsed === 'boolean') { type = 'boolean'; preview = String(parsed); }
+      } catch {}
+
+      const sizeStr = size > 1024 ? (size / 1024).toFixed(1) + 'KB' : size + 'B';
+      const rowBg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
+      const isSwf = key.startsWith('swf') || key.startsWith('scb') || key === 'cookieConsent';
+
+      return `<tr class="${rowBg} cursor-pointer hover:bg-purple-900/20 transition-colors" data-key="${key}">
+        <td class="px-4 py-2 font-mono text-xs ${isSwf ? 'text-purple-300' : 'text-gray-400'}">${key}</td>
+        <td class="px-4 py-2 text-xs text-gray-500">${type}</td>
+        <td class="px-4 py-2 text-xs text-gray-500">${sizeStr}</td>
+        <td class="px-4 py-2 text-xs text-gray-400 truncate max-w-[300px]">${preview}${val.length > 80 ? '…' : ''}</td>
+      </tr>`;
+    }).join('');
+
+    // Click to expand
+    body.querySelectorAll('tr[data-key]').forEach(row => {
+      row.addEventListener('click', () => {
+        const key = (row as HTMLElement).dataset.key!;
+        const val = localStorage.getItem(key) || '';
+        document.getElementById('expand-title')!.textContent = key;
+        let formatted = val;
+        try { formatted = JSON.stringify(JSON.parse(val), null, 2); } catch {}
+        document.getElementById('expand-content')!.textContent = formatted;
+        document.getElementById('expand-modal')!.classList.remove('hidden');
+      });
+    });
+  }
+
+  // Modal close
+  document.getElementById('expand-close')!.addEventListener('click', () => {
+    document.getElementById('expand-modal')!.classList.add('hidden');
+  });
+  document.getElementById('expand-modal')!.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('expand-modal')) {
+      document.getElementById('expand-modal')!.classList.add('hidden');
+    }
+  });
+
+  loadData();
+</script>

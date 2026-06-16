@@ -1,0 +1,59 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+<Layout title="Admin — Word of the Day" description="Admin view of all Word of the Day entries" showHeader={false}>
+<meta name="robots" content="noindex, nofollow" slot="head" />
+<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+  <a href="/admin" class="text-sm text-blue-400 hover:underline">← Admin</a>
+  <span class="text-sm text-gray-400">📖 Word of the Day</span>
+</nav>
+<main class="max-w-5xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-bold text-white mb-2">📖 Word of the Day — Admin</h1>
+  <p class="text-sm text-gray-400 mb-6">All words in rotation queue.</p>
+  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"></div>
+  <div id="loading" class="text-center py-8"><p class="text-sm text-gray-500">Loading...</p></div>
+  <div id="table-wrap" class="hidden rounded-xl border border-purple-800/50 bg-gray-900/50 p-4 overflow-x-auto">
+    <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+      <thead class="bg-gray-800">
+        <tr>
+          <th class="px-3 py-2 text-left text-gray-300">ID</th>
+          <th class="px-3 py-2 text-left text-gray-300">Word</th>
+          <th class="px-3 py-2 text-left text-gray-300">Meaning</th>
+          <th class="px-3 py-2 text-left text-gray-300">Date Assigned</th>
+        </tr>
+      </thead>
+      <tbody id="tbody" class="divide-y divide-gray-800"></tbody>
+    </table>
+  </div>
+</main>
+</Layout>
+<script>
+  async function load() {
+    const res = await fetch('/api/wotd/?all=true');
+    const { words } = await res.json();
+    document.getElementById('loading')!.classList.add('hidden');
+    if (!words?.length) return;
+
+    const assigned = words.filter((w: any) => w.date).length;
+    const withMeaning = words.filter((w: any) => w.meaning).length;
+    document.getElementById('stats')!.innerHTML = `
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-xl font-bold text-purple-400">${words.length}</p><p class="text-[10px] text-gray-500">Total</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-xl font-bold text-green-400">${assigned}</p><p class="text-[10px] text-gray-500">Assigned</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-xl font-bold text-gray-400">${words.length - assigned}</p><p class="text-[10px] text-gray-500">Queued</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-xl font-bold text-blue-400">${withMeaning}</p><p class="text-[10px] text-gray-500">With Meaning</p></div>`;
+
+    document.getElementById('tbody')!.innerHTML = words.slice(0, 200).map((w: any, i: number) => {
+      const bg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
+      const meaning = (w.meaning || '').slice(0, 50);
+      return `<tr class="${bg}">
+        <td class="px-3 py-2 text-gray-500 text-xs">${w.id}</td>
+        <td class="px-3 py-2 font-mono font-bold text-white uppercase text-xs">${w.word}</td>
+        <td class="px-3 py-2 text-gray-400 text-xs italic">${meaning || '—'}</td>
+        <td class="px-3 py-2 text-xs ${w.date ? 'text-green-400' : 'text-gray-600'}">${w.date || 'queued'}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('table-wrap')!.classList.remove('hidden');
+  }
+  load();
+</script>

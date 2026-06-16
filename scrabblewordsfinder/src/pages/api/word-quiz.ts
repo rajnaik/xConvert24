@@ -3,16 +3,22 @@ import { env } from 'cloudflare:workers';
 
 const getDB = () => (env as any).DB;
 
-// GET /api/word-quiz — get 10 random quiz words with meanings
-export const GET: APIRoute = async () => {
+// GET /api/word-quiz — get N random quiz words with meanings (default 10, min 3, max 10)
+export const GET: APIRoute = async ({ request }) => {
   const db = getDB();
   if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
-  // Get 10 random words for the quiz
-  const result = await db.prepare('SELECT id, word, meaning FROM word_quiz ORDER BY RANDOM() LIMIT 10').all();
+  const url = new URL(request.url);
+  let count = parseInt(url.searchParams.get('count') || '10');
+  if (isNaN(count) || count < 3) count = 3;
+  if (count > 10) count = 10;
 
-  // Get 30 extra meanings for fake options (3 per question)
-  const fakes = await db.prepare('SELECT meaning FROM word_quiz ORDER BY RANDOM() LIMIT 30').all();
+  // Get N random words for the quiz
+  const result = await db.prepare('SELECT id, word, meaning FROM word_quiz ORDER BY RANDOM() LIMIT ?').bind(count).all();
+
+  // Get 3x fake meanings for options
+  const fakeCount = count * 3;
+  const fakes = await db.prepare('SELECT meaning FROM word_quiz ORDER BY RANDOM() LIMIT ?').bind(fakeCount).all();
 
   return new Response(JSON.stringify({
     questions: result.results,

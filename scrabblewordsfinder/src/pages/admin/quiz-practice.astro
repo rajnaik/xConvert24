@@ -1,0 +1,150 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+<Layout title="Admin — Quiz & Practice" description="Admin view of quiz scores and practice sessions" showHeader={false}>
+<meta name="robots" content="noindex, nofollow" slot="head" />
+<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+  <a href="/admin" class="text-sm text-blue-400 hover:underline">← Admin</a>
+  <span class="text-sm text-gray-400">🧠 Quiz & Practice</span>
+</nav>
+<main class="max-w-6xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-bold text-white mb-2">🧠 Word Quiz & Practice — Admin</h1>
+  <p class="text-sm text-gray-400 mb-6">All quiz scores and WordBench practice data grouped by user.</p>
+
+  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-8"></div>
+
+  <!-- Tabs -->
+  <div class="flex gap-2 mb-4">
+    <button id="tab-quiz" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium">Quiz Scores</button>
+    <button id="tab-practice" class="px-4 py-2 rounded-lg bg-gray-800 text-gray-400 text-sm font-medium hover:text-white transition-colors">Practice Sessions</button>
+  </div>
+
+  <div id="loading" class="text-center py-8"><p class="text-sm text-gray-500">Loading...</p></div>
+
+  <!-- Quiz Table -->
+  <div id="quiz-section" class="hidden rounded-xl border border-blue-800/50 bg-gray-900/50 p-4 overflow-x-auto">
+    <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+      <thead class="bg-gray-800">
+        <tr>
+          <th class="px-3 py-2 text-left text-gray-300">User</th>
+          <th class="px-3 py-2 text-left text-gray-300">Score</th>
+          <th class="px-3 py-2 text-left text-gray-300">Time</th>
+          <th class="px-3 py-2 text-left text-gray-300">Timer</th>
+          <th class="px-3 py-2 text-left text-gray-300">Result</th>
+          <th class="px-3 py-2 text-left text-gray-300">Date</th>
+        </tr>
+      </thead>
+      <tbody id="quiz-body" class="divide-y divide-gray-800"></tbody>
+    </table>
+  </div>
+
+  <!-- Practice Table -->
+  <div id="practice-section" class="hidden rounded-xl border border-green-800/50 bg-gray-900/50 p-4 overflow-x-auto">
+    <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+      <thead class="bg-gray-800">
+        <tr>
+          <th class="px-3 py-2 text-left text-gray-300">User</th>
+          <th class="px-3 py-2 text-left text-gray-300">Word</th>
+          <th class="px-3 py-2 text-left text-gray-300">Meaning</th>
+          <th class="px-3 py-2 text-left text-gray-300">Date</th>
+        </tr>
+      </thead>
+      <tbody id="practice-body" class="divide-y divide-gray-800"></tbody>
+    </table>
+  </div>
+</main>
+</Layout>
+<script>
+  let quizData: any[] = [];
+  let practiceData: any[] = [];
+
+  async function load() {
+    const [qRes, pRes] = await Promise.all([
+      fetch('/api/quiz-scores/'),
+      fetch('/api/wordbench-practice/?user_id=__all__')
+    ]);
+    const qData = await qRes.json();
+    const pData = await pRes.json();
+    quizData = qData.scores || [];
+    practiceData = pData.records || [];
+
+    document.getElementById('loading')!.classList.add('hidden');
+
+    // Stats
+    const quizUsers = new Set(quizData.map((q: any) => q.user_id));
+    const practiceUsers = new Set(practiceData.map((p: any) => p.user_id));
+    const allUsers = new Set([...quizUsers, ...practiceUsers]);
+    const perfectGames = quizData.filter((q: any) => q.score === q.total).length;
+    const totalCorrect = quizData.reduce((s: number, q: any) => s + q.score, 0);
+    const totalQs = quizData.reduce((s: number, q: any) => s + q.total, 0);
+    const accuracy = totalQs > 0 ? Math.round((totalCorrect / totalQs) * 100) : 0;
+    const uniquePracticeWords = new Set(practiceData.map((p: any) => p.word)).size;
+    const avgQuizTime = quizData.length > 0 ? (quizData.reduce((s: number, q: any) => s + (q.time_used || 0), 0) / quizData.length).toFixed(1) : '0';
+    const timedOut = quizData.filter((q: any) => q.timed_out).length;
+
+    document.getElementById('stats')!.innerHTML = `
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-lg font-bold text-blue-400">${quizData.length}</p><p class="text-[10px] text-gray-500">Quizzes</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-lg font-bold text-green-400">${practiceData.length}</p><p class="text-[10px] text-gray-500">Practice</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-lg font-bold text-amber-400">${allUsers.size}</p><p class="text-[10px] text-gray-500">Users</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-lg font-bold text-purple-400">${perfectGames}</p><p class="text-[10px] text-gray-500">Perfect</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-lg font-bold text-cyan-400">${accuracy}%</p><p class="text-[10px] text-gray-500">Accuracy</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-lg font-bold text-emerald-400">${uniquePracticeWords}</p><p class="text-[10px] text-gray-500">Unique Words</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-lg font-bold text-orange-400">${avgQuizTime}s</p><p class="text-[10px] text-gray-500">Avg Time</p></div>
+      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-lg font-bold text-red-400">${timedOut}</p><p class="text-[10px] text-gray-500">Timed Out</p></div>`;
+
+    renderQuiz();
+    document.getElementById('quiz-section')!.classList.remove('hidden');
+  }
+
+  function renderQuiz() {
+    document.getElementById('quiz-body')!.innerHTML = quizData.map((q: any, i: number) => {
+      const bg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
+      const isPerfect = q.score === q.total;
+      const timedOut = q.timed_out === 1;
+      let result = timedOut ? '<span class="text-red-400">⏰</span>' : (isPerfect ? '<span class="text-green-400">🏆</span>' : '<span class="text-amber-300">✅</span>');
+      const date = q.created_at ? new Date(q.created_at + 'Z').toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+      const uid = (q.user_id || '').slice(0, 8);
+      return `<tr class="${bg}">
+        <td class="px-3 py-2 text-xs text-purple-300 font-mono">${uid}…</td>
+        <td class="px-3 py-2 font-bold ${isPerfect ? 'text-green-400' : 'text-blue-400'} text-xs">${q.score}/${q.total}</td>
+        <td class="px-3 py-2 text-gray-300 text-xs">${q.time_used}s</td>
+        <td class="px-3 py-2 text-gray-500 text-xs">${q.timer_limit}s</td>
+        <td class="px-3 py-2 text-xs">${result}</td>
+        <td class="px-3 py-2 text-gray-500 text-xs">${date}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderPractice() {
+    document.getElementById('practice-body')!.innerHTML = practiceData.map((p: any, i: number) => {
+      const bg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
+      const date = p.created_at ? new Date(p.created_at + 'Z').toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+      const uid = (p.user_id || '').slice(0, 8);
+      const meaning = (p.meaning || '').slice(0, 40);
+      return `<tr class="${bg}">
+        <td class="px-3 py-2 text-xs text-purple-300 font-mono">${uid}…</td>
+        <td class="px-3 py-2 font-mono font-bold text-white uppercase text-xs">${p.word}</td>
+        <td class="px-3 py-2 text-gray-400 text-xs italic">${meaning || '—'}</td>
+        <td class="px-3 py-2 text-gray-500 text-xs">${date}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Tab switching
+  document.getElementById('tab-quiz')!.addEventListener('click', () => {
+    document.getElementById('tab-quiz')!.className = 'px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium';
+    document.getElementById('tab-practice')!.className = 'px-4 py-2 rounded-lg bg-gray-800 text-gray-400 text-sm font-medium hover:text-white transition-colors';
+    document.getElementById('quiz-section')!.classList.remove('hidden');
+    document.getElementById('practice-section')!.classList.add('hidden');
+  });
+  document.getElementById('tab-practice')!.addEventListener('click', () => {
+    document.getElementById('tab-practice')!.className = 'px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium';
+    document.getElementById('tab-quiz')!.className = 'px-4 py-2 rounded-lg bg-gray-800 text-gray-400 text-sm font-medium hover:text-white transition-colors';
+    document.getElementById('practice-section')!.classList.remove('hidden');
+    document.getElementById('quiz-section')!.classList.add('hidden');
+    renderPractice();
+  });
+
+  load();
+</script>
