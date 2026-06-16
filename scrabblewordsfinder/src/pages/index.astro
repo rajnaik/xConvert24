@@ -429,6 +429,13 @@ import '../styles/global.css';
 </Layout>
 
 <script>
+  import { ACHIEVEMENTS_KEY, type Achievement, LETTER_SCORES, wordScore as _wordScore, escapeHtml, getAchievements, getAchievedWords, getCategories, getOrCreateUid, saveAchievements as _saveAchievements, fetchMeaning as _fetchMeaning, isRealMeaning } from '../lib/wordbench';
+
+  // Re-export with local wrappers that inject dependencies
+  function wordScore(word: string): number { return _wordScore(word); }
+  function saveAchievements(achievements: Achievement[]) { _saveAchievements(achievements, currentDict); }
+  async function fetchMeaning(word: string): Promise<string> { return _fetchMeaning(word, swfDict); }
+
   // ── Tile Rack (Read-Only Visual Display) ─────────────────────────────────
   // One-way sync: Word Solver text input → visual rack tiles
   const rackTiles = document.querySelectorAll('.rack-tile') as NodeListOf<HTMLElement>;
@@ -640,9 +647,7 @@ import '../styles/global.css';
   let swfDict: Record<string, string> = {};
   fetch('/data/swfdict.json').then(r => r.ok ? r.json() : {}).then(d => { swfDict = d || {}; }).catch(() => {});
 
-  function wordScore(word: string): number {
-    return word.split('').reduce((sum, ch) => sum + (scores[ch.toUpperCase()] || 0), 0);
-  }
+  // wordScore imported from ../lib/wordbench
 
   function canMake(word: string, tiles: string): boolean {
     const available = tiles.toUpperCase().split('');
@@ -710,74 +715,10 @@ import '../styles/global.css';
     });
   }
 
-  // ── Memory WordBench / Achievements ──────────────────────────────────────────
-  const ACHIEVEMENTS_KEY = 'scbAchievements';
-  interface Achievement { word: string; meaning: string; category?: string; dateAdded?: string; }
-
-  function getAchievements(): Achievement[] {
-    try {
-      const data = JSON.parse(localStorage.getItem(ACHIEVEMENTS_KEY) || '[]');
-      if (data.length > 0 && typeof data[0] === 'string') {
-        const migrated = data.map((w: string) => ({ word: w, meaning: '', category: 'manual', dateAdded: '' })).reverse();
-        localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(migrated));
-        return migrated;
-      }
-      // Migrate entries without category
-      let needsMigration = false;
-      const migrated = data.map((a: any) => {
-        if (!a.category) { needsMigration = true; return { ...a, category: 'manual' }; }
-        return a;
-      });
-      if (needsMigration) localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(migrated));
-      return migrated;
-    } catch { return []; }
-  }
-
-  function getAchievedWords(): string[] { return getAchievements().map(a => a.word); }
-  function getCategories(): { name: string; count: number }[] {
-    const all = getAchievements();
-    const cats: Record<string, number> = {};
-    all.forEach(a => { const c = a.category || 'manual'; cats[c] = (cats[c] || 0) + 1; });
-    return Object.entries(cats).map(([name, count]) => ({ name, count }));
-  }
+  // ── Memory WordBench / Achievements (imported from ../lib/wordbench) ──────
   let activeCategory = 'all';
 
-  function saveAchievements(achievements: Achievement[]) {
-    localStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(achievements));
-    // Sync to server in background
-    const uid = getOrCreateUid();
-    fetch('/api/scrabble-sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, achievements, dictionary: currentDict }),
-    }).catch(() => {});
-  }
-
-  // ── UID Management ──────────────────────────────────────────────────────
-  function getOrCreateUid(): string {
-    let uid = localStorage.getItem('swf-uid');
-    if (!uid) {
-      uid = crypto.randomUUID();
-      localStorage.setItem('swf-uid', uid);
-    }
-    return uid;
-  }
-
-  async function fetchMeaning(word: string): Promise<string> {
-    // Check local swfdict first (instant, no network)
-    const key = word.toLowerCase();
-    if (swfDict[key]) return swfDict[key];
-    // Fall back to live API
-    try {
-      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${key}`);
-      if (!res.ok) return 'Scrabble-legal word (no standard definition available)';
-      const data = await res.json();
-      const meaning = data[0]?.meanings?.[0];
-      const def = meaning?.definitions?.[0]?.definition || '';
-      const pos = meaning?.partOfSpeech || '';
-      return pos ? `(${pos}) ${def}` : def || 'Scrabble-legal word (no standard definition available)';
-    } catch { return 'Scrabble-legal word (no standard definition available)'; }
-  }
+  // ── UID + saveAchievements + fetchMeaning (imported from ../lib/wordbench) ──
 
   function toggleAchievement(word: string, el: HTMLElement) {
     let achievements = getAchievements();
@@ -1142,15 +1083,7 @@ import '../styles/global.css';
   let mwbTimerInterval: any = null;
   let mwbTimerStart = 0;
 
-  function isRealMeaning(meaning: string): boolean {
-    if (!meaning || !meaning.trim()) return false;
-    const m = meaning.toLowerCase();
-    if (m === 'no meaning saved') return false;
-    if (m.includes('scrabble-legal word')) return false;
-    if (m.includes('no standard definition')) return false;
-    const templates = ['a type of plant found in tropical regions','to move swiftly in a specified direction','a container used for storage','relating to the process of growth','a sound made by striking two objects','to arrange in a particular order','a feeling of deep satisfaction','the outer covering of a seed','to reduce in size or quantity','a tool used for cutting','relating to water or moisture','a method of preparation','to express disapproval strongly','the quality of being bright','a passage between rooms or buildings','to combine separate elements','relating to the earth or soil','a measurement of distance','to make a continuous low sound','a type of fabric or textile'];
-    return !templates.includes(m);
-  }
+  // isRealMeaning imported from ../lib/wordbench
 
   function startMwbAutoPlay() {
     let cards = getAchievements();
@@ -1359,8 +1292,7 @@ import '../styles/global.css';
     }
   })();
 
-  // ── Helpers ─────────────────────────────────────────────────────────────
-  function escapeHtml(s: string): string { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  // ── Helpers (imported from ../lib/wordbench) ────────────────────────────
 
   // ── Sticky Filter Preferences (localStorage) ─────────────────────────────
   const PREFS_KEY = 'scbFilterPrefs';
