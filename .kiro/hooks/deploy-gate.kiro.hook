@@ -1,0 +1,13 @@
+{
+  "name": "Deploy Gate",
+  "version": "1.0.0",
+  "description": "Prevents accidental live deployments. Fires before any shell command containing 'wrangler deploy' or 'npm run deploy' (without :staging). Requires explicit Ship It or Full Throttle approval.",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [".*wrangler deploy(?!.*staging).*", ".*npm run deploy(?!:staging).*"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "DEPLOY GATE: You are about to run a LIVE deployment command. Check if the user said 'Ship It' or 'Full Throttle' in this conversation. If YES, proceed with the deployment. If NO, STOP and ask the user for explicit approval before deploying to production. Never deploy to live without approval."
+  }
+}

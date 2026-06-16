@@ -1,0 +1,208 @@
+---
+import BlogLayout from '../../../layouts/BlogLayout.astro';
+import '../../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const { month } = Astro.params;
+
+// Validate format
+if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+  return Astro.redirect('/blog/wotd/');
+}
+
+const [year, mon] = month.split('-');
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthName = monthNames[parseInt(mon) - 1];
+if (!monthName) return Astro.redirect('/blog/wotd/');
+
+const db = (env as any).DB;
+const startDate = `${year}-${mon}-01`;
+const endDate = `${year}-${mon}-31`;
+
+const result = await db.prepare(
+  'SELECT id, word, date, meaning, fun_fact FROM word_of_the_day WHERE date >= ? AND date <= ? ORDER BY date ASC'
+).bind(startDate, endDate).all();
+
+const allWords = result.results || [];
+if (allWords.length === 0) return Astro.redirect('/blog/wotd/');
+
+// Today's date for revealing logic
+const today = new Date().toISOString().split('T')[0];
+
+// Admin bypass: if logged in (has session cookie), show all words
+const isAdmin = Astro.request.headers.get('cookie')?.includes('swf_admin_session') || false;
+
+const SCORES: Record<string, number> = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+
+// Split into revealed vs locked (admins see everything as revealed)
+const revealed = isAdmin ? allWords : allWords.filter((w: any) => w.date <= today);
+const locked = isAdmin ? [] : allWords.filter((w: any) => w.date > today);
+
+// Stats (only from revealed words)
+const avgLength = revealed.length > 0 ? Math.round(revealed.reduce((s: number, w: any) => s + w.word.length, 0) / revealed.length * 10) / 10 : 0;
+const withMeaning = revealed.filter((w: any) => w.meaning && w.meaning.trim());
+const scoredWords = revealed.map((w: any) => ({ ...w, score: w.word.split('').reduce((s: number, c: string) => s + (SCORES[c] || 0), 0) }));
+const top5 = [...scoredWords].sort((a: any, b: any) => b.score - a.score).slice(0, 5);
+
+const title = `Word of the Day — ${monthName} ${year}`;
+const description = `Words of the Day from ${monthName} ${year} on ScrabbleWordsFinder. ${revealed.length} words revealed so far — new words unlock daily.`;
+
+// Prev/Next month links
+const prevMonth = new Date(parseInt(year), parseInt(mon) - 2, 1);
+const nextMonth = new Date(parseInt(year), parseInt(mon), 1);
+const prevSlug = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, '0')}`;
+const nextSlug = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+---
+
+<BlogLayout title={`${title} — ScrabbleWordsFinder`} description={description} keywords={`word of the day ${monthName.toLowerCase()} ${year}, scrabble vocabulary, daily word, wotd`}>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": title,
+    "description": description,
+    "datePublished": `${year}-${mon}-01`,
+    "dateModified": today,
+    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": `https://www.scrabblewordsfinder.com/blog/wotd/${month}/` }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": `What is the Word of the Day for ${monthName} ${year}?`, "acceptedAnswer": { "@type": "Answer", "text": `ScrabbleWordsFinder features ${allWords.length} words in ${monthName} ${year}. Words are revealed daily — ${revealed.length} shown so far.` } },
+      { "@type": "Question", "name": "Why are some words locked?", "acceptedAnswer": { "@type": "Answer", "text": "Words unlock on their assigned date. Future words are hidden to keep the daily surprise. Check back each day to see the new word revealed!" } },
+      { "@type": "Question", "name": "Can I use these words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! Every Word of the Day is a valid Scrabble word in the SOWPODS dictionary used internationally." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4 py-12">
+    <article class="prose prose-invert prose-gray max-w-none">
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <a href="/blog/wotd/" class="hover:text-blue-400 transition-colors">Word of the Day</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">{monthName} {year}</span>
+      </nav>
+
+      <h1 class="text-3xl font-bold text-white mb-4">{title}</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime={`${year}-${mon}-01`}>{monthName} {year}</time>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <span>{revealed.length}/{allWords.length} words revealed</span>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <a href="/activities/" class="inline-flex items-center gap-1 text-blue-400 hover:underline">🎯 Activities</a>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-300 mb-8">
+        Every day in {monthName} {year}, a new vocabulary-building word is revealed. {locked.length > 0 ? `${locked.length} words are still locked — check back daily!` : 'All words for this month have been revealed.'}
+      </p>
+
+      {/* Stats strip */}
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">{revealed.length}</p><p class="text-xs text-gray-400">Revealed</p></div>
+          <div><p class="text-xl font-bold text-gray-600">{locked.length}</p><p class="text-xs text-gray-400">Locked</p></div>
+          <div><p class="text-xl font-bold text-amber-400">{avgLength || '—'}</p><p class="text-xs text-gray-400">Avg Length</p></div>
+          <div><p class="text-xl font-bold text-amber-400">{top5[0]?.score || '—'}</p><p class="text-xs text-gray-400">Top Score</p></div>
+        </div>
+      </div>
+
+      {/* Top scoring */}
+      {top5.length > 0 && (
+        <>
+          <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Top Scoring Words</h2>
+          <div class="not-prose my-6 grid grid-cols-1 gap-3">
+            {top5.map((w: any) => (
+              <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+                <div class="flex items-center justify-between">
+                  <span class="text-lg font-black text-white tracking-wider">{w.word}</span>
+                  <span class="text-amber-400 font-bold">{w.score} pts</span>
+                </div>
+                {w.meaning && <p class="text-xs text-gray-400 mt-1 italic">{w.meaning}</p>}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Word table */}
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Daily Words — {monthName} {year}</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+          <thead class="bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-300">Day</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-300">Word</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-300">Score</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-300">Meaning</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800">
+            {revealed.map((w: any, i: number) => {
+              const dayNum = parseInt(w.date.split('-')[2]);
+              const sc = w.word.split('').reduce((s: number, c: string) => s + (SCORES[c] || 0), 0);
+              return (
+                <tr class={i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/50'}>
+                  <td class="px-4 py-3 font-mono text-xs text-gray-500">{dayNum}</td>
+                  <td class="px-4 py-3 font-bold text-white tracking-wider">{w.word}</td>
+                  <td class="px-4 py-3 text-amber-400 font-mono text-sm">{sc}</td>
+                  <td class="px-4 py-3 text-sm text-gray-400 italic">{w.meaning || '—'}</td>
+                </tr>
+              );
+            })}
+            {locked.map((w: any, i: number) => {
+              const dayNum = parseInt(w.date.split('-')[2]);
+              return (
+                <tr class={(revealed.length + i) % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/50'}>
+                  <td class="px-4 py-3 font-mono text-xs text-gray-500">{dayNum}</td>
+                  <td class="px-4 py-3 text-gray-600 italic">Coming soon...</td>
+                  <td class="px-4 py-3 text-gray-700">—</td>
+                  <td class="px-4 py-3 text-xs text-gray-600 italic">—</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Tips */}
+      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">How to Use These Words</h2>
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Practice with the Solver:</span> Enter any revealed word to see scoring combinations and board positions.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Save to WordBench:</span> Add words to your Memory WordBench for flashcard practice.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Check back daily:</span> Locked words reveal on their assigned date — bookmark this page!</p>
+        </div>
+      </div>
+
+      {/* Prev/Next navigation */}
+      <div class="not-prose mt-10 flex items-center justify-between">
+        <a href={`/blog/wotd/${prevSlug}/`} class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Previous month</a>
+        <a href="/blog/wotd/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">All months</a>
+        <a href={`/blog/wotd/${nextSlug}/`} class="text-sm text-gray-400 hover:text-blue-400 transition-colors">Next month →</a>
+      </div>
+
+      {/* CTA */}
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-300 font-medium">📖 See today's Word of the Day live</p>
+          <a href="/activities/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Activities →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      </div>
+    </article>
+  </div>
+</BlogLayout>

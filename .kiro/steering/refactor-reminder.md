@@ -51,11 +51,11 @@ After every major feature delivery (or once per session if multiple features are
 
 | # | Item | Workspace | Priority | Status |
 |---|------|-----------|----------|--------|
-| 1 | Extract shared header into component (Layout + BlogLayout duplicate) | SWF | Medium | Open |
-| 2 | Upgrade Playwright 1.52 → 1.60 | SWF | Low | Open |
-| 3 | Extract `activities.astro` inline JS (200+ lines) into `src/lib/activities.ts` | SWF | Medium | Open |
+| 1 | Extract shared header into component (Layout + BlogLayout duplicate) | SWF | Medium | ✅ Component created (16Jun2026), swap pending |
+| 2 | Upgrade Playwright 1.52 → 1.60 | SWF | Low | ✅ Done (16Jun2026) |
+| 3 | Extract `activities.astro` inline JS (200+ lines) into `src/lib/activities.ts` | SWF | Medium | ✅ Done (refactored to 5 components, 15Jun2026) |
 | 4 | Extract localStorage key constants (swf-uid, scbAchievements, etc.) | SWF | Low | Open |
-| 5 | Add LIMIT to all SELECT queries that could grow unbounded | All | Medium | Open |
+| 5 | Add LIMIT to all SELECT queries that could grow unbounded | All | Medium | ✅ Done (16Jun2026) |
 | 6 | Migrate pg file storage from D1 base64 to R2 when enabled | PG | Low | Blocked (R2 not enabled) |
 | 7 | Add error boundaries to all admin pages (try/catch around fetch) | All | Low | Open |
 

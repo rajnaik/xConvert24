@@ -3,7 +3,7 @@ import { env } from 'cloudflare:workers';
 
 export const GET: APIRoute = async () => {
   const db = (env as any).DB;
-  const { results } = await db.prepare('SELECT uid, achievements, updated_at FROM scrabble_sync ORDER BY updated_at DESC').all();
+  const { results } = await db.prepare('SELECT uid, achievements, updated_at FROM scrabble_sync ORDER BY updated_at DESC LIMIT 500').all();
 
   const users: any[] = [];
   let totalWords = 0;

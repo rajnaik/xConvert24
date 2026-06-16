@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ request }) => {
   if (conditions.length > 0) {
     query += ' WHERE ' + conditions.join(' AND ');
   }
-  query += ' ORDER BY updated_at DESC';
+  query += ' ORDER BY updated_at DESC LIMIT 1000';
 
   const result = await db.prepare(query).bind(...params).all();
   const countResult = await db.prepare('SELECT status, COUNT(*) as count FROM seo_index GROUP BY status').all();

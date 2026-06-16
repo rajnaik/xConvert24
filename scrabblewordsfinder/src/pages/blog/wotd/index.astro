@@ -1,0 +1,102 @@
+---
+import BlogLayout from '../../../layouts/BlogLayout.astro';
+import '../../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const db = (env as any).DB;
+const today = new Date().toISOString().split('T')[0];
+
+// Get all months that have words (revealed)
+const result = await db.prepare(
+  "SELECT DISTINCT substr(date, 1, 7) as month FROM word_of_the_day WHERE date <= ? ORDER BY month DESC"
+).bind(today).all();
+
+const months = (result.results || []).map((r: any) => r.month);
+
+// Future months (locked preview)
+const futureResult = await db.prepare(
+  "SELECT DISTINCT substr(date, 1, 7) as month FROM word_of_the_day WHERE date > ? ORDER BY month ASC LIMIT 6"
+).bind(today).all();
+const futureMonths = (futureResult.results || []).map((r: any) => r.month);
+
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function formatMonth(m: string) {
+  const [y, mo] = m.split('-');
+  return `${monthNames[parseInt(mo) - 1]} ${y}`;
+}
+
+// Group by year
+const byYear: Record<string, string[]> = {};
+months.forEach((m: string) => {
+  const y = m.split('-')[0];
+  if (!byYear[y]) byYear[y] = [];
+  byYear[y].push(m);
+});
+---
+
+<BlogLayout title="Word of the Day Archive — ScrabbleWordsFinder" description="Browse all Words of the Day by month. New words revealed daily — explore past months or peek at what's coming." keywords="word of the day archive, scrabble word of the day, daily word history, wotd monthly">
+
+  <div class="max-w-3xl mx-auto px-4 py-12">
+    <article class="prose prose-invert prose-gray max-w-none">
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-blue-400 transition-colors">&larr; Blog</a>
+        <span class="mx-1">&rsaquo;</span>
+        <span class="text-gray-300">Word of the Day</span>
+      </nav>
+
+      <h1 class="text-3xl font-bold text-white mb-4">📖 Word of the Day Archive</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <span>{months.length} months with revealed words</span>
+        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+        <span>27 years of daily words</span>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-300 mb-8">
+        Every day, a new Scrabble word is revealed. Browse past months to review words you missed, or peek ahead to see what's coming (locked until their reveal date).
+      </p>
+
+      {/* Current & recent months */}
+      {Object.keys(byYear).sort((a, b) => parseInt(b) - parseInt(a)).map((year) => (
+        <div class="mb-8">
+          <h2 class="text-xl font-light text-blue-400 mt-6 mb-4 border-l-4 border-blue-400 pl-4">{year}</h2>
+          <div class="not-prose grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {byYear[year].map((m: string) => (
+              <a href={`/blog/wotd/${m}/`} class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors text-center">
+                <p class="text-sm font-semibold text-white">{formatMonth(m)}</p>
+                <p class="text-xs text-gray-500 mt-1">&#10003; Revealed</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Upcoming */}
+      {futureMonths.length > 0 && (
+        <div class="mb-8">
+          <h2 class="text-xl font-light text-gray-500 mt-10 mb-4 border-l-4 border-gray-700 pl-4">Coming Soon</h2>
+          <div class="not-prose grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {futureMonths.map((m: string) => (
+              <a href={`/blog/wotd/${m}/`} class="p-4 rounded-xl border border-gray-700 bg-gray-900/30 hover:border-gray-600 transition-colors text-center">
+                <p class="text-sm font-semibold text-gray-400">{formatMonth(m)}</p>
+                <p class="text-xs text-gray-600 mt-1">&#128274; Words unlocking daily</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-300 font-medium">📖 See today's Word of the Day</p>
+          <a href="/activities/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Activities &rarr;</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">&larr; Back to all articles</a>
+      </div>
+    </article>
+  </div>
+</BlogLayout>
