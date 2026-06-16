@@ -1,13 +1,14 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const GET: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const GET: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const { results } = await db.prepare('SELECT * FROM trackerFieldMap ORDER BY id').all();
   return new Response(JSON.stringify({ fields: results }), { headers: { 'Content-Type': 'application/json' } });
 };
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const POST: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const body = await request.json();
   const { fieldname, lookupid } = body;
 
@@ -17,8 +18,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   return new Response(JSON.stringify({ success: true, id: result.meta.last_row_id }), { headers: { 'Content-Type': 'application/json' } });
 };
 
-export const PUT: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const PUT: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const body = await request.json();
   const { id, fieldname, lookupid } = body;
 
@@ -28,8 +29,8 @@ export const PUT: APIRoute = async ({ request, locals }) => {
   return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
 };
 
-export const DELETE: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const DELETE: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const url = new URL(request.url);
   const id = url.searchParams.get('id');
 

@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const POST: APIRoute = async ({ request }) => {
+  const db = env.DB;
 
   const { results: coins } = await db.prepare('SELECT coinid, coinname, dexscreenerurl FROM coins WHERE enabled = ? AND dexscreenerurl != ?').bind('yes', '').all();
 
@@ -17,7 +18,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const pairAddressRaw = urlParts[urlParts.length - 1];
 
     try {
-      // Get correct-case pair address from DexScreener API
       const dexRes = await fetch(`https://api.dexscreener.com/latest/dex/pairs/${chain}/${pairAddressRaw}`);
       if (!dexRes.ok) { results.push({ coinid: (coin as any).coinid, coinname: (coin as any).coinname, status: 'error', error: 'DexScreener ' + dexRes.status }); continue; }
 
@@ -25,9 +25,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
       const pair = dexData.pair || dexData.pairs?.[0];
       if (!pair) { results.push({ coinid: (coin as any).coinid, coinname: (coin as any).coinname, status: 'error', error: 'No pair' }); continue; }
 
-      const pairAddress = pair.pairAddress; // Correctly cased
+      const pairAddress = pair.pairAddress;
 
-      // Fetch hourly candles from GeckoTerminal
       const hourlyRes = await fetch(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${pairAddress}/ohlcv/hour?aggregate=1&limit=1000`);
       let hourlyCount = 0;
 
@@ -42,7 +41,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
         hourlyCount = candles.length;
       }
 
-      // Fetch daily candles
       const dailyRes = await fetch(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${pairAddress}/ohlcv/day?aggregate=1&limit=1000`);
       let dailyCount = 0;
 
@@ -75,8 +73,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   });
 };
 
-export const GET: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const GET: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const url = new URL(request.url);
   const coinid = url.searchParams.get('coinid');
   const interval = url.searchParams.get('interval') || 'hour';

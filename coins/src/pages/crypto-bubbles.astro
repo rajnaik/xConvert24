@@ -1,0 +1,529 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Crypto Bubbles — Interactive D3 Market Visualization" description="Free interactive crypto market visualization. Bubble size = market cap, color = price change. Instant live data, no sign-up." keywords="crypto bubbles, cryptocurrency visualization, bitcoin bubble, market cap visual, crypto market overview, altcoin bubbles, d3 visualization">
+  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"WebPage","name":"Crypto Bubbles — Interactive D3 Market Visualization","url":"https://xcrypto24.com/crypto-bubbles","description":"Free interactive crypto market visualization. Bubble size = market cap, color = price change. Instant live data, no sign-up."})} />
+  <div class="-mx-4 lg:-mx-8">
+    <div class="px-4 lg:px-8 mb-4">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🫧</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Crypto Bubbles — Free Live Market Cap Visualisation</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400 text-sm">Bubble size = market cap • Color = price change gradient • Drag bubbles • Click for details</p>
+    </div>
+
+    <!-- Controls row -->
+    <div class="flex flex-wrap items-center gap-3 mb-3 px-4 lg:px-8">
+      <!-- Period -->
+      <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <button data-period="1h" class="period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors text-gray-500 dark:text-gray-400">1H</button>
+        <button data-period="24h" class="period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm">24H</button>
+        <button data-period="7d" class="period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors text-gray-500 dark:text-gray-400">7D</button>
+        <button data-period="30d" class="period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors text-gray-500 dark:text-gray-400">30D</button>
+      </div>
+      <!-- Count -->
+      <div class="flex items-center gap-1">
+        <span class="text-xs text-gray-400">Show:</span>
+        <button data-count="25" class="count-btn px-2 py-1 rounded text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">25</button>
+        <button data-count="50" class="count-btn px-2 py-1 rounded text-xs font-medium bg-amber-500 text-white">50</button>
+        <button data-count="100" class="count-btn px-2 py-1 rounded text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">100</button>
+      </div>
+      <!-- Auto-refresh -->
+      <div class="flex items-center gap-1 ml-auto">
+        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <select id="refresh-interval" class="px-2 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-xs text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-amber-500">
+          <option value="10">10s</option>
+          <option value="30">30s</option>
+          <option value="60">1m</option>
+          <option value="180">3m</option>
+          <option value="300">5m</option>
+          <option value="600">10m</option>
+          <option value="900">15m</option>
+          <option value="1800">30m</option>
+          <option value="3600">1h</option>
+        </select>
+        <span id="refresh-countdown" class="text-xs text-gray-400 min-w-[36px]"></span>
+      </div>
+    </div>
+
+    <!-- D3 Bubble Container -->
+    <div id="bubble-container" class="relative bg-gray-950 rounded-2xl border border-gray-800 overflow-hidden mx-4 lg:mx-8" style="height: calc(100vh - 280px); min-height: 500px;">
+      <div id="loading-msg" class="absolute inset-0 flex items-center justify-center text-gray-500 italic text-sm">Loading coins…</div>
+      <svg id="bubble-svg" class="w-full h-full"></svg>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="fixed pointer-events-none z-50 hidden bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 shadow-2xl max-w-[240px]" style="backdrop-filter: blur(8px);">
+      <div id="tt-content"></div>
+    </div>
+
+    <!-- Legend + credit -->
+    <div class="flex flex-wrap items-center justify-center gap-4 mt-4 px-4 text-xs text-gray-500 dark:text-gray-400">
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:rgb(22,163,74)"></span> Strong gain</div>
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:rgb(100,130,78)"></span> Moderate gain</div>
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:#374151"></span> Flat</div>
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:rgb(170,60,55)"></span> Moderate loss</div>
+      <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full" style="background:rgb(220,38,38)"></span> Strong loss</div>
+    </div>
+    <p class="mt-2 mb-6 text-xs text-gray-400 text-center px-4">Data by <a href="https://www.coingecko.com" target="_blank" rel="noopener" class="text-amber-600 dark:text-amber-400 hover:underline">CoinGecko</a> • Powered by D3.js</p>
+
+    <!-- Report a bug · Suggest a feature -->
+<div class="mt-6 flex items-center justify-center gap-4 flex-wrap">
+  <a href="/report-bug?tool=Crypto+Bubbles" class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:underline font-medium">
+    <span aria-hidden="true">🐛</span> Report a bug
+  </a>
+  <span class="text-gray-300 dark:text-gray-600">|</span>
+  <a href="/suggest?title=Crypto+Bubbles" class="inline-flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium">
+    <span aria-hidden="true">💡</span> Suggest a new feature for this tool →
+  </a>
+</div>
+
+    <!-- My Watchlists -->
+    <div class="px-4 lg:px-8 mt-6">
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            My Watchlists
+          </h2>
+          <button id="create-list-btn" class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            New List
+          </button>
+        </div>
+        <div id="watchlists-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <p id="no-lists-msg" class="text-xs text-gray-400 dark:text-gray-500 text-center py-4 col-span-full">No watchlists yet. Create one to track your favourite coins.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Coin Modal -->
+    <div id="add-coin-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Add Coin to List</h3>
+          <button id="modal-close" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">List</label>
+            <select id="modal-list-select" class="w-full h-9 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Search Coin</label>
+            <div class="flex gap-2">
+              <input id="modal-coin-search" type="text" placeholder="e.g. bitcoin, ETH, solana..." class="flex-1 h-9 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500"/>
+              <button id="modal-search-btn" class="px-3 h-9 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors">Search</button>
+            </div>
+          </div>
+          <div id="modal-search-results" class="max-h-40 overflow-y-auto space-y-1"></div>
+          <div id="modal-warning" class="hidden p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-700 dark:text-amber-400"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create List Modal -->
+    <div id="create-list-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
+      <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl w-full max-w-sm mx-4">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-4">Create New Watchlist</h3>
+        <input id="new-list-name" type="text" placeholder="e.g. My DeFi Portfolio, Blue Chips..." class="w-full h-10 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 mb-3"/>
+        <div class="flex gap-2">
+          <button id="create-list-confirm" class="flex-1 h-9 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors">Create</button>
+          <button id="create-list-cancel" class="flex-1 h-9 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-lg transition-colors">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+
+<script is:inline>
+(function() {
+  var coins = [];
+  var activePeriod = '24h';
+  var showCount = 50;
+  var simulation = null;
+  var refreshTimer = null;
+  var countdownTimer = null;
+  var secondsLeft = 0;
+
+  var container = document.getElementById('bubble-container');
+  var svg = d3.select('#bubble-svg');
+  var loading = document.getElementById('loading-msg');
+  var tooltip = document.getElementById('tooltip');
+  var ttContent = document.getElementById('tt-content');
+  var refreshSelect = document.getElementById('refresh-interval');
+  var countdownEl = document.getElementById('refresh-countdown');
+
+  // ── Auto-refresh ─────────────────────────────────────────────────────────
+  var REFRESH_KEY = 'xconvert24-crypto-refresh';
+  var savedInterval = localStorage.getItem(REFRESH_KEY) || '0'; // default off
+  refreshSelect.value = savedInterval;
+
+  refreshSelect.addEventListener('change', function() {
+    localStorage.setItem(REFRESH_KEY, refreshSelect.value);
+    startRefreshTimer();
+  });
+
+  function startRefreshTimer() {
+    if (refreshTimer) clearInterval(refreshTimer);
+    if (countdownTimer) clearInterval(countdownTimer);
+    var intervalSec = parseInt(refreshSelect.value);
+    secondsLeft = intervalSec;
+    updateCountdown();
+    countdownTimer = setInterval(function() {
+      secondsLeft--;
+      if (secondsLeft <= 0) { secondsLeft = intervalSec; loadCoins(); }
+      updateCountdown();
+    }, 1000);
+  }
+
+  function updateCountdown() {
+    if (secondsLeft >= 60) countdownEl.textContent = Math.floor(secondsLeft / 60) + 'm ' + (secondsLeft % 60) + 's';
+    else countdownEl.textContent = secondsLeft + 's';
+  }
+
+  // ── Color gradient (20% more intense) ────────────────────────────────────
+  function getChangeKey(period) {
+    var map = { '1h': 'price_change_percentage_1h_in_currency', '24h': 'price_change_percentage_24h_in_currency', '7d': 'price_change_percentage_7d_in_currency', '30d': 'price_change_percentage_30d_in_currency' };
+    return map[period] || map['24h'];
+  }
+
+  function getColor(change) {
+    if (change == null || Math.abs(change) < 0.1) return '#374151';
+    var clamped = Math.max(-20, Math.min(20, change));
+    var t = (clamped + 20) / 40;
+    // Boosted green +50%, red +20%: red(255,30,30) → gray(55,65,81) → green(0,255,40)
+    var r, g, b;
+    if (t <= 0.5) {
+      var s = t * 2;
+      r = Math.round(255 + (55 - 255) * s);
+      g = Math.round(30 + (65 - 30) * s);
+      b = Math.round(30 + (81 - 30) * s);
+    } else {
+      var s = (t - 0.5) * 2;
+      r = Math.round(55 + (0 - 55) * s);
+      g = Math.round(65 + (255 - 65) * s);
+      b = Math.round(81 + (40 - 81) * s);
+    }
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  function formatPrice(p) {
+    if (p >= 1000) return '$' + (p / 1000).toFixed(1) + 'k';
+    if (p >= 1) return '$' + p.toFixed(2);
+    if (p >= 0.01) return '$' + p.toFixed(4);
+    return '$' + p.toFixed(6);
+  }
+
+  function formatCap(cap) {
+    if (cap >= 1e12) return '$' + (cap / 1e12).toFixed(2) + 'T';
+    if (cap >= 1e9) return '$' + (cap / 1e9).toFixed(2) + 'B';
+    return '$' + (cap / 1e6).toFixed(0) + 'M';
+  }
+
+  // ── Render bubbles ───────────────────────────────────────────────────────
+  function renderBubbles() {
+    if (!coins.length) return;
+    var width = container.clientWidth;
+    var height = container.clientHeight;
+    var key = getChangeKey(activePeriod);
+    var subset = coins.slice(0, showCount);
+    var maxCap = subset[0] ? subset[0].market_cap : 1;
+
+    // ── Adaptive bubble sizing: balance count vs size ────────────────────
+    // Target ~65% fill of viewport area. Scale radii so total circle area
+    // fits nicely regardless of how many bubbles are shown.
+    var viewportArea = width * height;
+    var targetFill = 0.65; // 65% coverage target (like Crypto Bubbles)
+    var availableArea = viewportArea * targetFill;
+
+    // Compute raw sqrt(marketcap) weights for each coin
+    var rawWeights = subset.map(function(coin) { return Math.sqrt(coin.market_cap / maxCap); });
+    var totalWeight = rawWeights.reduce(function(sum, w) { return sum + w * w; }, 0); // sum of w² since area ∝ r²
+
+    // Scale factor: total area of all circles = availableArea
+    // π * Σ(r²) = availableArea → r_i = w_i * scaleFactor
+    // π * scaleFactor² * Σ(w²) = availableArea
+    var scaleFactor = Math.sqrt(availableArea / (Math.PI * totalWeight));
+
+    // Clamp individual radii to sensible bounds
+    var absMin = Math.max(18, Math.min(width, height) * 0.03); // never smaller than 18px
+    var absMax = Math.min(width, height) * 0.38; // never bigger than 38% of shortest dimension
+
+    // Coins with artificially reduced bubble size (-25%)
+    var reducedSizeIds = ['bitcoin', 'ripple', 'tether'];
+
+    var nodes = subset.map(function(coin, i) {
+      var r = rawWeights[i] * scaleFactor;
+      r = Math.max(absMin, Math.min(absMax, r));
+      // Reduce BTC, XRP, USDT bubbles by 25%
+      if (reducedSizeIds.indexOf(coin.id) !== -1) r *= 0.75;
+      var change = coin[key] || 0;
+      return { id: coin.id, name: coin.name, symbol: coin.symbol.toUpperCase(), image: coin.image, price: coin.current_price, change: change, marketCap: coin.market_cap, r: r, color: getColor(change), x: width / 2 + (Math.random() - 0.5) * width * 0.5, y: height / 2 + (Math.random() - 0.5) * height * 0.5 };
+    });
+
+    svg.selectAll('*').remove();
+    var defs = svg.append('defs');
+    var filter = defs.append('filter').attr('id', 'glow');
+    filter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'coloredBlur');
+    var feMerge = filter.append('feMerge');
+    feMerge.append('feMergeNode').attr('in', 'coloredBlur');
+    feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+    var shineGrad = defs.append('radialGradient').attr('id', 'bubble-shine').attr('cx', '35%').attr('cy', '35%');
+    shineGrad.append('stop').attr('offset', '0%').attr('stop-color', 'white').attr('stop-opacity', 0.4);
+    shineGrad.append('stop').attr('offset', '100%').attr('stop-color', 'white').attr('stop-opacity', 0);
+
+    var bubbleGroups = svg.selectAll('g.bubble').data(nodes, function(d) { return d.id; }).enter().append('g').attr('class', 'bubble').style('cursor', 'pointer')
+      .on('mouseover', function(event, d) { d3.select(this).select('circle.main').transition().duration(200).attr('r', d.r * 1.08).style('filter', 'url(#glow)'); showTooltip(event, d); })
+      .on('mousemove', function(event) { moveTooltip(event); })
+      .on('mouseout', function(event, d) { d3.select(this).select('circle.main').transition().duration(200).attr('r', d.r).style('filter', 'none'); hideTooltip(); })
+      .call(d3.drag().on('start', dragStarted).on('drag', dragged).on('end', dragEnded));
+
+    bubbleGroups.append('circle').attr('class', 'main').attr('r', 0).attr('fill', function(d) { return d.color; })
+      .attr('stroke', function(d) { return d.change > 0 ? 'rgba(74,222,128,0.3)' : d.change < -0.5 ? 'rgba(248,113,113,0.3)' : 'rgba(107,114,128,0.3)'; })
+      .attr('stroke-width', 1.5).style('opacity', 0.92)
+      .transition().duration(800).ease(d3.easeElasticOut.amplitude(1).period(0.5)).attr('r', function(d) { return d.r; });
+
+    bubbleGroups.append('circle').attr('r', function(d) { return d.r; }).attr('fill', 'url(#bubble-shine)').style('opacity', 0.25).style('pointer-events', 'none');
+
+    bubbleGroups.each(function(d) {
+      var g = d3.select(this);
+      var imgSize = Math.max(20, d.r * 0.5);
+      if (d.r > 20) g.append('image').attr('href', d.image).attr('width', imgSize).attr('height', imgSize).attr('x', -imgSize / 2).attr('y', -imgSize / 2).style('pointer-events', 'none');
+    });
+
+    // External labels
+    var labels = svg.selectAll('g.label').data(nodes, function(d) { return d.id; }).enter().append('g').attr('class', 'label').style('pointer-events', 'none');
+    labels.each(function(d) {
+      var g = d3.select(this);
+      var sign = d.change >= 0 ? '+' : '';
+      var labelText = d.symbol + ' ' + sign + d.change.toFixed(1) + '%';
+      var fontSize = Math.max(9, Math.min(14, d.r * 0.13));
+      g.append('rect').attr('rx', 4).attr('ry', 4).attr('fill', '#111827').attr('stroke', d.change >= 0 ? 'rgba(74,222,128,0.5)' : d.change < -0.5 ? 'rgba(248,113,113,0.5)' : 'rgba(107,114,128,0.4)').attr('stroke-width', 1).attr('class', 'label-bg');
+      g.append('text').text(labelText).attr('text-anchor', 'middle').attr('dominant-baseline', 'central').attr('font-size', fontSize + 'px').attr('font-weight', '600').attr('fill', 'white').attr('class', 'label-text');
+      g.append('line').attr('stroke', 'rgba(156,163,175,0.3)').attr('stroke-width', 1).attr('stroke-dasharray', '2,2').attr('class', 'label-arrow');
+    });
+
+    if (simulation) simulation.stop();
+    simulation = d3.forceSimulation(nodes)
+      .force('charge', d3.forceManyBody().strength(function(d) { return -d.r * 0.8; }))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(function(d) { return d.r + 2; }).strength(0.9).iterations(3))
+      .force('x', d3.forceX(width / 2).strength(0.03))
+      .force('y', d3.forceY(height / 2).strength(0.03))
+      .alphaDecay(0.02).velocityDecay(0.3)
+      .on('tick', function() {
+        bubbleGroups.attr('transform', function(d) { d.x = Math.max(d.r, Math.min(width - d.r, d.x)); d.y = Math.max(d.r, Math.min(height - d.r, d.y)); return 'translate(' + d.x + ',' + d.y + ')'; });
+        labels.each(function(d, i) {
+          var g = d3.select(this);
+          var angle = (i * 137.5 * Math.PI / 180);
+          var lx = d.x + Math.cos(angle) * (d.r + 16);
+          var ly = d.y + Math.sin(angle) * (d.r + 16);
+          lx = Math.max(45, Math.min(width - 45, lx));
+          ly = Math.max(14, Math.min(height - 14, ly));
+          var text = g.select('.label-text');
+          var bbox; try { bbox = text.node().getBBox(); } catch(e) { bbox = {width: 50, height: 14}; }
+          var pad = 4;
+          text.attr('x', lx).attr('y', ly);
+          g.select('.label-bg').attr('x', lx - bbox.width / 2 - pad).attr('y', ly - bbox.height / 2 - pad).attr('width', bbox.width + pad * 2).attr('height', bbox.height + pad * 2);
+          g.select('.label-arrow').attr('x1', d.x + Math.cos(angle) * d.r).attr('y1', d.y + Math.sin(angle) * d.r).attr('x2', lx - Math.cos(angle) * (bbox.width / 2 + pad + 2)).attr('y2', ly - Math.sin(angle) * (bbox.height / 2 + pad + 2));
+        });
+      });
+
+    function dragStarted(event, d) { if (!event.active) simulation.alphaTarget(0.1).restart(); d.fx = d.x; d.fy = d.y; }
+    function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
+    function dragEnded(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+  }
+
+  function showTooltip(event, d) {
+    var sign = d.change >= 0 ? '+' : '';
+    var changeColor = d.change >= 0 ? '#4ade80' : '#f87171';
+    ttContent.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><img src="' + d.image + '" width="24" height="24" style="border-radius:50%"/><div><div style="color:white;font-weight:700;font-size:13px;">' + d.name + '</div><div style="color:#9ca3af;font-size:11px;">' + d.symbol + '</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:11px;"><span style="color:#9ca3af;">Price</span><span style="color:white;font-weight:600;">' + formatPrice(d.price) + '</span><span style="color:#9ca3af;">' + activePeriod + ' Change</span><span style="color:' + changeColor + ';font-weight:600;">' + sign + d.change.toFixed(2) + '%</span><span style="color:#9ca3af;">Market Cap</span><span style="color:white;font-weight:600;">' + formatCap(d.marketCap) + '</span></div>';
+    tooltip.classList.remove('hidden');
+    moveTooltip(event);
+  }
+  function moveTooltip(event) { var x = event.clientX + 15; var y = event.clientY + 15; if (x + 250 > window.innerWidth) x = event.clientX - 255; if (y + 120 > window.innerHeight) y = event.clientY - 125; tooltip.style.left = x + 'px'; tooltip.style.top = y + 'px'; }
+  function hideTooltip() { tooltip.classList.add('hidden'); }
+
+  async function loadCoins() {
+    try {
+      var res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=1h,24h,7d,30d');
+      if (!res.ok) throw new Error('API error');
+      coins = await res.json();
+      loading.classList.add('hidden');
+      renderBubbles();
+    } catch (e) { loading.textContent = 'Failed to load data. Try refreshing.'; }
+  }
+
+  // Period & count buttons
+  document.querySelectorAll('.period-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      activePeriod = btn.dataset.period;
+      document.querySelectorAll('.period-btn').forEach(function(b) { var a = b.dataset.period === activePeriod; b.className = 'period-btn px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ' + (a ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'); });
+      renderBubbles();
+    });
+  });
+  document.querySelectorAll('.count-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      showCount = parseInt(btn.dataset.count);
+      document.querySelectorAll('.count-btn').forEach(function(b) { var a = parseInt(b.dataset.count) === showCount; b.className = 'count-btn px-2 py-1 rounded text-xs font-medium ' + (a ? 'bg-amber-500 text-white' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'); });
+      renderBubbles();
+    });
+  });
+
+  var resizeTimeout;
+  window.addEventListener('resize', function() { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(renderBubbles, 200); });
+
+  // ── Watchlists (localStorage) ────────────────────────────────────────────
+  var LISTS_KEY = 'xconvert24-crypto-watchlists';
+  function getLists() { try { return JSON.parse(localStorage.getItem(LISTS_KEY) || '[]'); } catch { return []; } }
+  function saveLists(lists) { localStorage.setItem(LISTS_KEY, JSON.stringify(lists)); }
+
+  function renderLists() {
+    var lists = getLists();
+    var containerEl = document.getElementById('watchlists-container');
+    var noListsMsg = document.getElementById('no-lists-msg');
+    if (!lists.length) { noListsMsg.style.display = 'block'; containerEl.querySelectorAll('.wl-panel').forEach(function(e) { e.remove(); }); return; }
+    noListsMsg.style.display = 'none';
+    containerEl.querySelectorAll('.wl-panel').forEach(function(e) { e.remove(); });
+
+    lists.forEach(function(list, idx) {
+      var panel = document.createElement('div');
+      panel.className = 'wl-panel bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 aspect-square flex flex-col';
+      var coinsHtml = list.coins.length ? '<div class="flex-1 overflow-y-auto space-y-1">' + list.coins.map(function(c, ci) {
+        return '<div class="flex items-center gap-2 py-1 border-b border-gray-100 dark:border-gray-700 last:border-0"><img src="' + (c.image || '') + '" width="16" height="16" class="rounded-full shrink-0"/><span class="text-xs font-medium text-gray-900 dark:text-white flex-1 truncate">' + c.name + ' <span class="text-gray-400">(' + c.symbol + ')</span></span><button class="wl-remove-coin text-red-400 hover:text-red-500 text-xs shrink-0" data-list="' + idx + '" data-coin="' + ci + '">✕</button></div>';
+      }).join('') + '</div>' : '<div class="flex-1 flex items-center justify-center"><p class="text-xs text-gray-400">No coins yet</p></div>';
+
+      panel.innerHTML = '<div class="flex items-center justify-between mb-2 shrink-0"><span class="text-xs font-bold text-gray-900 dark:text-white truncate">' + escapeHtml(list.name) + '</span><span class="text-xs text-gray-400 shrink-0 ml-1">' + list.coins.length + '</span></div>' + coinsHtml + '<div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 shrink-0"><button class="wl-add-coin inline-flex items-center gap-1 text-green-500 hover:text-green-600 text-xs font-semibold" data-list="' + idx + '"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>Add</button><button class="wl-delete text-red-400 hover:text-red-500 text-xs" data-list="' + idx + '">Delete</button></div>';
+      containerEl.appendChild(panel);
+    });
+
+    // Bind events
+    containerEl.querySelectorAll('.wl-add-coin').forEach(function(btn) {
+      btn.addEventListener('click', function() { openAddCoinModal(parseInt(btn.dataset.list)); });
+    });
+    containerEl.querySelectorAll('.wl-delete').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (confirm('Delete this watchlist?')) { var lists = getLists(); lists.splice(parseInt(btn.dataset.list), 1); saveLists(lists); renderLists(); }
+      });
+    });
+    containerEl.querySelectorAll('.wl-remove-coin').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var lists = getLists(); lists[parseInt(btn.dataset.list)].coins.splice(parseInt(btn.dataset.coin), 1); saveLists(lists); renderLists();
+      });
+    });
+  }
+
+  function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // Create list modal
+  var createModal = document.getElementById('create-list-modal');
+  var newListInput = document.getElementById('new-list-name');
+  document.getElementById('create-list-btn').addEventListener('click', function() { createModal.classList.remove('hidden'); createModal.classList.add('flex'); newListInput.value = ''; newListInput.focus(); });
+  document.getElementById('create-list-cancel').addEventListener('click', function() { createModal.classList.add('hidden'); createModal.classList.remove('flex'); });
+  document.getElementById('create-list-confirm').addEventListener('click', function() {
+    var name = newListInput.value.trim();
+    if (!name) return;
+    var lists = getLists();
+    lists.push({ name: name, coins: [] });
+    saveLists(lists);
+    createModal.classList.add('hidden'); createModal.classList.remove('flex');
+    renderLists();
+  });
+
+  // Add coin modal
+  var addModal = document.getElementById('add-coin-modal');
+  var modalListSelect = document.getElementById('modal-list-select');
+  var modalCoinSearch = document.getElementById('modal-coin-search');
+  var modalSearchResults = document.getElementById('modal-search-results');
+  var modalWarning = document.getElementById('modal-warning');
+  var activeListIdx = 0;
+
+  function openAddCoinModal(listIdx) {
+    activeListIdx = listIdx;
+    var lists = getLists();
+    modalListSelect.innerHTML = lists.map(function(l, i) { return '<option value="' + i + '"' + (i === listIdx ? ' selected' : '') + '>' + escapeHtml(l.name) + '</option>'; }).join('');
+    modalCoinSearch.value = '';
+    modalSearchResults.innerHTML = '';
+    modalWarning.classList.add('hidden');
+    addModal.classList.remove('hidden'); addModal.classList.add('flex');
+    modalCoinSearch.focus();
+  }
+
+  document.getElementById('modal-close').addEventListener('click', function() { addModal.classList.add('hidden'); addModal.classList.remove('flex'); });
+
+  document.getElementById('modal-search-btn').addEventListener('click', searchCoin);
+  modalCoinSearch.addEventListener('keydown', function(e) { if (e.key === 'Enter') searchCoin(); });
+
+  function searchCoin() {
+    var query = modalCoinSearch.value.trim().toLowerCase();
+    if (!query) return;
+    modalSearchResults.innerHTML = '<div class="text-xs text-gray-400 text-center py-2">Searching...</div>';
+
+    // Search from already loaded coins first, then fallback to API
+    var matches = coins.filter(function(c) {
+      return c.name.toLowerCase().includes(query) || c.symbol.toLowerCase().includes(query) || c.id.toLowerCase().includes(query);
+    }).slice(0, 10);
+
+    if (matches.length) {
+      renderSearchResults(matches);
+    } else {
+      fetch('https://api.coingecko.com/api/v3/search?query=' + encodeURIComponent(query))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var apiCoins = (data.coins || []).slice(0, 10).map(function(c) { return { id: c.id, name: c.name, symbol: c.symbol.toUpperCase(), image: c.large || c.thumb || '' }; });
+          renderSearchResults(apiCoins);
+        }).catch(function() { modalSearchResults.innerHTML = '<div class="text-xs text-red-400 text-center py-2">Search failed</div>'; });
+    }
+  }
+
+  function renderSearchResults(results) {
+    if (!results.length) { modalSearchResults.innerHTML = '<div class="text-xs text-gray-400 text-center py-2">No coins found</div>'; return; }
+    modalSearchResults.innerHTML = results.map(function(c) {
+      return '<button class="coin-result flex items-center gap-2 w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left" data-id="' + c.id + '" data-name="' + escapeHtml(c.name) + '" data-symbol="' + (c.symbol || '').toUpperCase() + '" data-image="' + (c.image || '') + '"><img src="' + (c.image || '') + '" width="20" height="20" class="rounded-full"/><span class="text-xs font-medium text-gray-900 dark:text-white">' + escapeHtml(c.name) + '</span><span class="text-xs text-gray-400">' + (c.symbol || '').toUpperCase() + '</span></button>';
+    }).join('');
+
+    modalSearchResults.querySelectorAll('.coin-result').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var listIdx = parseInt(modalListSelect.value);
+        var lists = getLists();
+        var list = lists[listIdx];
+        if (!list) return;
+
+        // Check for duplicate
+        var coinId = btn.dataset.id;
+        if (list.coins.some(function(c) { return c.id === coinId; })) {
+          modalWarning.textContent = btn.dataset.name + ' is already in this list.';
+          modalWarning.classList.remove('hidden');
+          return;
+        }
+
+        list.coins.push({ id: coinId, name: btn.dataset.name, symbol: btn.dataset.symbol, image: btn.dataset.image });
+        saveLists(lists);
+
+        // Polite suggestion at 7 coins
+        if (list.coins.length === 7) {
+          modalWarning.textContent = '💡 Tip: Keeping your watchlist short (5-7 coins) helps you stay focused on what you\'re actively trading. But you can add as many as you like!';
+          modalWarning.classList.remove('hidden');
+        } else {
+          modalWarning.classList.add('hidden');
+        }
+
+        modalSearchResults.innerHTML = '<div class="text-xs text-green-500 text-center py-2">✓ ' + escapeHtml(btn.dataset.name) + ' added to ' + escapeHtml(list.name) + '</div>';
+        renderLists();
+      });
+    });
+  }
+
+  // Init
+  loadCoins();
+  startRefreshTimer();
+  renderLists();
+})();
+</script>

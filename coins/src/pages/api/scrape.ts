@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const POST: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const body = await request.json();
   const { coinid, dexscreenerurl } = body;
 
@@ -28,10 +29,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Extract fields
     const icon_url = pair.info?.imageUrl || '';
-    // Update coin icon_url
     if (icon_url) {
       await db.prepare('UPDATE coins SET icon_url = ? WHERE coinid = ?').bind(icon_url, coinid).run();
-    }    const fdv = pair.fdv ? '$' + Number(pair.fdv).toLocaleString() : '';
+    }
+    const fdv = pair.fdv ? '$' + Number(pair.fdv).toLocaleString() : '';
     const liquidity = pair.liquidity?.usd ? '$' + Number(pair.liquidity.usd).toLocaleString() : '';
     const mktcap = pair.marketCap ? '$' + Number(pair.marketCap).toLocaleString() : '';
     const price_5m = pair.priceChange?.m5 != null ? pair.priceChange.m5 + '%' : '';
@@ -46,7 +47,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Volume
     const volume = pair.volume?.h24 ? '$' + Number(pair.volume.h24).toLocaleString() : '';
-    // DexScreener doesn't split buy/sell volume in the API, estimate 50/50 split as placeholder
     const totalVol = pair.volume?.h24 || 0;
     const buyRatio = Number(buys) / (Number(buys) + Number(sells) || 1);
     const buy_vol = totalVol ? '$' + Math.round(totalVol * buyRatio).toLocaleString() : '';
@@ -69,7 +69,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
           if (rugData.topHolders?.[0]) top_holder_pct = rugData.topHolders[0].pct?.toFixed(1) + '%';
           if (rugData.insiderNetworks?.length > 0) traders = rugData.insiderNetworks.length + ' bundle(s)';
           else traders = 'No bundles';
-          // Buyers/Sellers not in API — leave empty
           buyers = '';
           sellers_count = '';
         }

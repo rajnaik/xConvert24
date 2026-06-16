@@ -1,0 +1,126 @@
+---
+interface Props {
+  current: string;
+}
+const { current } = Astro.props;
+
+const crossLinks: Record<string, string[]> = {
+  'what-is-bitcoin': ['how-bitcoin-mining-works', 'bitcoin-wallets-explained', 'understanding-cryptocurrency-basics'],
+  'how-bitcoin-mining-works': ['what-is-bitcoin', 'bitcoin-halving-explained', 'how-bitcoin-transactions-work'],
+  'bitcoin-wallets-explained': ['bitcoin-security-best-practices', 'what-is-bitcoin', 'hot-vs-cold-wallet'],
+  'bitcoin-vs-ethereum': ['what-are-altcoins', 'solana-vs-ethereum', 'what-is-bitcoin'],
+  'how-bitcoin-transactions-work': ['bitcoin-wallets-explained', 'how-bitcoin-mining-works', 'bitcoin-security-best-practices'],
+  'bitcoin-security-best-practices': ['bitcoin-wallets-explained', 'crypto-scams-avoid', 'private-keys-seed-phrases'],
+  'bitcoin-myths-debunked': ['what-is-bitcoin', 'bitcoin-security-best-practices', 'understanding-bitcoin-supply'],
+  'bitcoin-halving-explained': ['understanding-bitcoin-supply', 'what-drives-bitcoin-price', 'how-bitcoin-mining-works'],
+  'bitcoin-vs-gold': ['understanding-bitcoin-supply', 'what-drives-bitcoin-price', 'what-is-bitcoin'],
+  'understanding-bitcoin-supply': ['bitcoin-halving-explained', 'bitcoin-vs-gold', 'what-drives-bitcoin-price'],
+  'what-drives-bitcoin-price': ['bitcoin-halving-explained', 'bitcoin-vs-gold', 'understanding-bitcoin-supply'],
+  'understanding-cryptocurrency-basics': ['what-is-bitcoin', 'what-is-blockchain', 'buy-first-cryptocurrency'],
+  'what-is-blockchain': ['understanding-cryptocurrency-basics', 'what-is-defi', 'how-bitcoin-transactions-work'],
+  'what-are-altcoins': ['solana-vs-ethereum', 'bitcoin-vs-ethereum', 'top-layer-1-blockchains'],
+  'solana-vs-ethereum': ['what-are-altcoins', 'bitcoin-vs-ethereum', 'top-layer-1-blockchains'],
+  'what-is-defi': ['how-liquidity-pools-work', 'what-is-blockchain', 'dollar-cost-averaging'],
+  'how-liquidity-pools-work': ['what-is-defi', 'dollar-cost-averaging', 'research-new-crypto-projects'],
+  'dollar-cost-averaging': ['what-drives-bitcoin-price', 'crypto-risk-management', 'how-liquidity-pools-work'],
+  'crypto-scams-avoid': ['red-flags-new-tokens', 'bitcoin-security-best-practices', 'private-keys-seed-phrases'],
+  'red-flags-new-tokens': ['crypto-scams-avoid', 'research-new-crypto-projects', 'what-are-altcoins'],
+  'research-new-crypto-projects': ['red-flags-new-tokens', 'crypto-scams-avoid', 'what-are-altcoins'],
+  'buy-first-cryptocurrency': ['what-is-crypto-wallet', 'store-crypto-safely', 'understanding-cryptocurrency-basics'],
+  'store-crypto-safely': ['hot-vs-cold-wallet', 'private-keys-seed-phrases', 'bitcoin-security-best-practices'],
+  'what-is-crypto-wallet': ['hot-vs-cold-wallet', 'store-crypto-safely', 'buy-first-cryptocurrency'],
+  'hot-vs-cold-wallet': ['what-is-crypto-wallet', 'store-crypto-safely', 'bitcoin-wallets-explained'],
+  'private-keys-seed-phrases': ['store-crypto-safely', 'bitcoin-security-best-practices', 'crypto-scams-avoid'],
+  'top-layer-1-blockchains': ['solana-vs-ethereum', 'what-is-avalanche', 'what-are-altcoins'],
+  'what-is-avalanche': ['top-layer-1-blockchains', 'solana-vs-ethereum', 'what-is-chainlink'],
+  'what-is-chainlink': ['what-is-avalanche', 'utility-vs-governance-tokens', 'what-is-defi'],
+  'utility-vs-governance-tokens': ['what-is-chainlink', 'what-are-altcoins', 'what-is-defi'],
+  'crypto-risk-management': ['dollar-cost-averaging', 'crypto-scams-avoid', 'what-drives-bitcoin-price'],
+  'crypto-staking-explained': ['what-is-defi', 'yield-farming-guide', 'crypto-portfolio-strategy'],
+  'what-is-dao': ['smart-contracts-explained', 'what-is-defi', 'crypto-staking-explained'],
+  'yield-farming-guide': ['how-liquidity-pools-work', 'crypto-staking-explained', 'what-is-defi'],
+  'smart-contracts-explained': ['what-is-blockchain', 'what-is-dao', 'what-is-defi'],
+  'technical-analysis-basics': ['support-resistance-levels', 'crypto-market-cycles', 'crypto-portfolio-strategy'],
+  'support-resistance-levels': ['technical-analysis-basics', 'crypto-market-cycles', 'crypto-portfolio-strategy'],
+  'crypto-portfolio-strategy': ['dollar-cost-averaging', 'crypto-risk-management', 'crypto-market-cycles'],
+  'crypto-market-cycles': ['biggest-bitcoin-crashes', 'technical-analysis-basics', 'what-drives-bitcoin-price'],
+  'history-of-bitcoin': ['biggest-bitcoin-crashes', 'what-is-bitcoin', 'bitcoin-halving-explained'],
+  'biggest-bitcoin-crashes': ['history-of-bitcoin', 'crypto-market-cycles', 'what-drives-bitcoin-price'],
+  'crypto-investing-vs-trading': ['crypto-portfolio-strategy', 'crypto-risk-management', 'dollar-cost-averaging'],
+  'crypto-psychology': ['common-crypto-mistakes', 'crypto-market-cycles', 'crypto-investing-vs-trading'],
+  'common-crypto-mistakes': ['crypto-psychology', 'crypto-scams-avoid', 'buy-first-cryptocurrency'],
+  'institutional-bitcoin-adoption': ['bitcoin-future-decade', 'what-drives-bitcoin-price', 'history-of-bitcoin'],
+  'bitcoin-future-decade': ['institutional-bitcoin-adoption', 'bitcoin-halving-explained', 'understanding-bitcoin-supply'],
+  'understanding-polkadot': ['top-layer-1-blockchains', 'solana-vs-ethereum', 'what-are-altcoins'],
+  'what-are-nfts': ['smart-contracts-explained', 'evolution-of-web3', 'what-is-blockchain'],
+  'evolution-of-web3': ['what-are-nfts', 'what-is-dao', 'smart-contracts-explained'],
+  'defi-risks-rewards': ['yield-farming-guide', 'crypto-staking-explained', 'how-liquidity-pools-work'],
+};
+
+const titles: Record<string, string> = {
+  'what-is-bitcoin': 'What Is Bitcoin?',
+  'how-bitcoin-mining-works': 'How Bitcoin Mining Works',
+  'bitcoin-wallets-explained': 'Bitcoin Wallets Explained',
+  'bitcoin-vs-ethereum': 'Bitcoin vs Ethereum',
+  'how-bitcoin-transactions-work': 'How Bitcoin Transactions Work',
+  'bitcoin-security-best-practices': 'Bitcoin Security Best Practices',
+  'bitcoin-myths-debunked': 'Bitcoin Myths Debunked',
+  'bitcoin-halving-explained': 'Bitcoin Halving Explained',
+  'bitcoin-vs-gold': 'Bitcoin vs Gold',
+  'understanding-bitcoin-supply': 'Bitcoin\'s 21M Supply',
+  'what-drives-bitcoin-price': 'What Drives Bitcoin Price',
+  'understanding-cryptocurrency-basics': 'Cryptocurrency Basics',
+  'what-is-blockchain': 'What Is Blockchain?',
+  'what-are-altcoins': 'What Are Altcoins?',
+  'solana-vs-ethereum': 'Solana vs Ethereum',
+  'what-is-defi': 'What Is DeFi?',
+  'how-liquidity-pools-work': 'Liquidity Pools Explained',
+  'dollar-cost-averaging': 'Dollar-Cost Averaging',
+  'crypto-scams-avoid': 'Crypto Scams to Avoid',
+  'red-flags-new-tokens': 'Red Flags in New Tokens',
+  'research-new-crypto-projects': 'How to DYOR',
+  'buy-first-cryptocurrency': 'Buy Your First Crypto',
+  'store-crypto-safely': 'Store Crypto Safely',
+  'what-is-crypto-wallet': 'What Is a Crypto Wallet?',
+  'hot-vs-cold-wallet': 'Hot vs Cold Wallets',
+  'private-keys-seed-phrases': 'Private Keys & Seed Phrases',
+  'top-layer-1-blockchains': 'Top L1 Blockchains',
+  'what-is-avalanche': 'What Is Avalanche?',
+  'what-is-chainlink': 'What Is Chainlink?',
+  'utility-vs-governance-tokens': 'Utility vs Governance Tokens',
+  'crypto-risk-management': 'Crypto Risk Management',
+  'crypto-staking-explained': 'Understanding Crypto Staking',
+  'what-is-dao': 'What Is a DAO?',
+  'yield-farming-guide': 'What Is Yield Farming?',
+  'smart-contracts-explained': 'How Smart Contracts Work',
+  'technical-analysis-basics': 'Technical Analysis Basics',
+  'support-resistance-levels': 'Support & Resistance Levels',
+  'crypto-portfolio-strategy': 'Long-Term Crypto Portfolio',
+  'crypto-market-cycles': 'Crypto Market Cycles',
+  'history-of-bitcoin': 'History of Bitcoin',
+  'biggest-bitcoin-crashes': 'Biggest Bitcoin Crashes',
+  'crypto-investing-vs-trading': 'Investing vs Trading',
+  'crypto-psychology': 'Crypto Psychology',
+  'common-crypto-mistakes': 'Common Crypto Mistakes',
+  'institutional-bitcoin-adoption': 'Institutional BTC Adoption',
+  'bitcoin-future-decade': 'Bitcoin\'s Next Decade',
+  'understanding-polkadot': 'Polkadot Ecosystem',
+  'what-are-nfts': 'What Are NFTs?',
+  'evolution-of-web3': 'Evolution of Web3',
+  'defi-risks-rewards': 'DeFi Risks & Rewards',
+};
+
+const related = crossLinks[current] || ['what-is-bitcoin', 'understanding-cryptocurrency-basics', 'crypto-scams-avoid'];
+const links = related.filter(slug => slug !== current).slice(0, 3);
+---
+<div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid #27272a;">
+  <h3 style="color:#a1a1aa;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.8rem;">📚 Related Articles</h3>
+  <div style="display:flex;flex-direction:column;gap:0.6rem;">
+    {links.map(slug => (
+      <a href={`/blog/${slug}`} style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0.8rem;border-radius:8px;border:1px solid #27272a;background:#16161f;text-decoration:none;transition:border-color 0.2s;">
+        <span style="color:#8b5cf6;font-size:0.9rem;">→</span>
+        <span style="color:#d4d4d8;font-size:0.85rem;">{titles[slug] || slug}</span>
+      </a>
+    ))}
+  </div>
+</div>

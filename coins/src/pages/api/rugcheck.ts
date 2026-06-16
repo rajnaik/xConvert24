@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const POST: APIRoute = async ({ request }) => {
+  const db = env.DB;
 
   // Get all coins with a CA (contract address)
   const { results: coins } = await db.prepare('SELECT coinid, coinname, ca, dexscreenerurl FROM coins WHERE enabled = ?').bind('yes').all();

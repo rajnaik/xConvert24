@@ -1,0 +1,1188 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Coin Tracker — Real-Time Crypto Prices | xCrypto24" description="Track memecoins and crypto tokens in real-time. Live prices, safety scores, trend detection, and new coin scanning — all free." keywords="memecoin tracker, crypto price tracker, solana tokens, real-time crypto, coin scanner, rug check, dexscreener">
+  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"WebPage","name":"Coin Tracker — Real-Time Crypto Prices | xCrypto24","url":"https://xcrypto24.com/coins","description":"Track memecoins and crypto tokens in real-time. Live prices, safety scores, trend detection, and new coin scanning — all free."})} />
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1 style="display:flex;align-items:center;gap:0.5rem;"><img src="/logo.svg" style="height:40px;width:auto;" alt="xCrypto24" /> Coins</h1>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn btn-add" id="addBtn">+ Add Coin</button>
+      <a href="/crypto-bubbles" class="btn btn-add" style="text-decoration:none;" title="Crypto Bubbles">🫧 Bubbles</a>
+      <button class="btn btn-add" id="scanBtn" style="border-color:#22c55e;">🔎 Scan New Coins</button>
+    </div>
+  </div>
+
+  <!-- New Scan Panel -->
+  <div id="scanPanel" style="display:none;margin:1rem 0;background:linear-gradient(180deg,#1e1e2e 0%,#16161f 100%);border:1px solid #3f3f5a;border-radius:8px;padding:1rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+      <h3 style="font-size:0.95rem;color:#e2e8f0;margin:0;">🔎 Scan New Coins</h3>
+      <div style="display:flex;gap:0.8rem;align-items:center;">
+        <span style="color:#64748b;font-size:0.7rem;">Auto:</span>
+        <select id="scanAutoRefresh" style="padding:0.2rem 0.3rem;font-size:0.8rem;background:#0a0a0f;border:1px solid #3f3f5a;border-radius:3px;color:#e2e8f0;">
+          <option value="0">Off</option>
+          <option value="3">3s</option>
+          <option value="5">5s</option>
+          <option value="10">10s</option>
+          <option value="15">15s</option>
+          <option value="30">30s</option>
+          <option value="60">60s</option>
+          <option value="120">2m</option>
+          <option value="180">3m</option>
+          <option value="300">5m</option>
+          <option value="600">10m</option>
+          <option value="900">15m</option>
+        </select>
+        <span id="pinScanPanel" style="cursor:pointer;font-size:1rem;" title="Pin panel open">🔓</span>
+        <span id="closeScanPanel" style="cursor:pointer;color:#94a3b8;font-size:1.2rem;">&times;</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.8rem;">
+      <span style="color:#94a3b8;font-size:0.8rem;">Age:</span>
+      <button class="btn scan-age-btn" data-age="5m" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:4px;">5m</button>
+      <button class="btn scan-age-btn" data-age="1h" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:4px;">1h</button>
+      <button class="btn scan-age-btn" data-age="6h" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:4px;">6h</button>
+      <button class="btn scan-age-btn" data-age="24h" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:4px;">24h</button>
+      <span style="color:#475569;margin:0 0.3rem;">|</span>
+      <span style="color:#94a3b8;font-size:0.8rem;">Sort:</span>
+      <button class="btn scan-sort-btn" data-sort="asc" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:4px;">▲ Asc</button>
+      <button class="btn scan-sort-btn" data-sort="desc" style="padding:0.3rem 0.6rem;font-size:0.75rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:4px;">▼ Desc</button>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center;position:relative;">
+      <input type="url" id="scanUrl" placeholder="Paste DexScreener list URL" value="https://dexscreener.com/?rankBy=trendingScoreM5&order=desc" style="flex:1;padding:0.6rem;background:#0a0a0f;border:1px solid #3f3f5a;border-radius:4px;color:#e2e8f0;font-size:0.9rem;" autocomplete="off" />
+      <button class="btn" id="scanUrlHistoryBtn" style="padding:0.4rem 0.6rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#94a3b8;font-size:0.8rem;" title="URL History">📋</button>
+      <button class="btn btn-add" id="scanFetchBtn" style="" disabled>Fetch</button>
+      <div id="scanUrlHistory" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:0.3rem;background:#1e293b;border:1px solid #475569;border-radius:6px;padding:0.5rem;z-index:60;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.5);"></div>
+    </div>
+    <div id="scanResults" style="margin-top:0.8rem;"></div>
+  </div>
+
+  <details id="coinActivities" open style="margin:1rem 0;background:linear-gradient(180deg,#1e1e2e 0%,#16161f 100%);border:1px solid #3f3f5a;border-radius:8px;padding:0.8rem 1rem;">
+    <summary style="cursor:pointer;font-weight:600;color:#e2e8f0;font-size:0.95rem;">🧪 Beta Features</summary>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.8rem;align-items:center;">
+      <a href="/admin/analysis" class="btn btn-add" style="text-decoration:none;border-color:#ef4444;">📊 Analysis</a>
+      <a href="/admin/tracker" class="btn btn-add" style="text-decoration:none;border-color:#ef4444;">📡 Tracker</a>
+      <button class="btn btn-add" id="fetchAllBtn" style="background:linear-gradient(180deg,#a78bfa 0%,#7c3aed 100%);display:none;">⚡ Fetch All Coins Data</button>
+      <button class="btn btn-add" id="rugCheckBtn" style="display:none;">🛡️ RugCheck All</button>
+      <button class="btn btn-add" id="updateTrendsBtn" style="display:none;">📈 Update Trends</button>
+      <button class="btn btn-add" id="fetchHistoryBtn" style="display:none;">📜 Fetch History</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:0.5rem;">
+        <span style="color:#94a3b8;font-size:0.8rem;">Update frequency:</span>
+        <select id="trendHours" style="padding:0.4rem;background:#0a0a0f;border:1px solid #3f3f5a;border-radius:4px;color:#e2e8f0;font-size:0.85rem;"><option value="1">1hr</option><option value="2">2hr</option><option value="3">3hr</option><option value="4">4hr</option><option value="5">5hr</option></select>
+      </div>
+    </div>
+  </details>
+
+  <div id="toast" class="toast"></div>
+
+  <div style="display:flex;align-items:center;gap:0.8rem;margin:1rem 0 0.5rem;position:relative;">
+    <button class="btn btn-add" id="updateLatestBtn">🔄 Update Latest</button>
+    <span id="showLogsBtn" style="cursor:pointer;font-size:1rem;" title="View update logs">📋</span>
+    <span id="updateStatus" style="color:#94a3b8;font-size:0.85rem;font-weight:500;cursor:pointer;" title="Click for details"></span>
+    <div id="updateBubble" style="display:none;position:absolute;top:100%;left:0;margin-top:0.5rem;background:#1e293b;border:1px solid #475569;border-radius:8px;padding:0.8rem 1rem;min-width:300px;max-width:500px;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.4);font-size:0.8rem;color:#e2e8f0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <strong style="color:#f59e0b;">Failed Coins</strong>
+        <span id="closeBubble" style="cursor:pointer;color:#94a3b8;font-size:1rem;">&times;</span>
+      </div>
+      <div id="bubbleContent"></div>
+    </div>
+    <!-- Logs Panel -->
+    <div id="logsPanel" style="display:none;position:absolute;top:100%;left:0;right:0;margin-top:0.5rem;background:#1e293b;border:1px solid #475569;border-radius:8px;padding:0.8rem 1rem;max-height:500px;overflow-y:auto;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <strong style="color:#94a3b8;font-size:0.8rem;">📋 Update Logs</strong>
+        <span style="display:flex;gap:0.5rem;align-items:center;">
+          <span id="clearLogsBtn" style="cursor:pointer;color:#ef4444;font-size:0.7rem;padding:0.1rem 0.4rem;border:1px solid #ef4444;border-radius:3px;" title="Delete all logs">🗑 Clear</span>
+          <span id="closeLogsBtn" style="cursor:pointer;color:#94a3b8;font-size:1rem;">&times;</span>
+        </span>
+      </div>
+      <div id="logsContent" style="font-size:0.75rem;"></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div style="margin:0.5rem 0;background:linear-gradient(180deg,#1e1e2e 0%,#16161f 100%);border:1px solid #3f3f5a;border-radius:6px;padding:0.6rem 0.8rem;">
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-bottom:0.5rem;padding-bottom:0.5rem;border-bottom:1px solid #334155;">
+      <span style="color:#94a3b8;font-size:0.75rem;font-weight:600;min-width:55px;">Mkt Cap:</span>
+      <button class="btn mcap-filter" data-filter="all" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);color:#000;border-radius:3px;">All</button>
+      <button class="btn mcap-filter" data-filter="micro" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;$50K</button>
+      <button class="btn mcap-filter" data-filter="mid" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">$50K–$250K</button>
+      <button class="btn mcap-filter" data-filter="high" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">$250K–$1M</button>
+      <button class="btn mcap-filter" data-filter="mega" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">Over $1M</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;margin-bottom:0.5rem;padding-bottom:0.5rem;border-bottom:1px solid #334155;">
+      <span style="color:#94a3b8;font-size:0.75rem;font-weight:600;min-width:55px;">Age:</span>
+      <button class="btn age-filter-btn" data-age="all" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);color:#000;border-radius:3px;">All</button>
+      <button class="btn age-filter-btn" data-age="30m" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;30m</button>
+      <button class="btn age-filter-btn" data-age="1h" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;1h</button>
+      <button class="btn age-filter-btn" data-age="3h" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;3h</button>
+      <button class="btn age-filter-btn" data-age="6h" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;6h</button>
+      <button class="btn age-filter-btn" data-age="12h" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;12h</button>
+      <button class="btn age-filter-btn" data-age="24h" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;24h</button>
+      <button class="btn age-filter-btn" data-age="3d" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;3d</button>
+      <button class="btn age-filter-btn" data-age="1w" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;1w</button>
+      <button class="btn age-filter-btn" data-age="2w" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;2w</button>
+      <button class="btn age-filter-btn" data-age="3w" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;3w</button>
+      <button class="btn age-filter-btn" data-age="1m" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;1m</button>
+      <button class="btn age-filter-btn" data-age="2m" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;2m</button>
+      <button class="btn age-filter-btn" data-age="3m" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;3m</button>
+      <button class="btn age-filter-btn" data-age="6m" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;6m</button>
+      <button class="btn age-filter-btn" data-age="1y" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">&lt;1y</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+      <span style="color:#94a3b8;font-size:0.75rem;font-weight:600;min-width:55px;">Favs:</span>
+      <button class="btn fav-filter-btn" data-fav="all" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);color:#000;border-radius:3px;">All</button>
+      <button class="btn fav-filter-btn" data-fav="yes" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">💜 Only</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid #334155;">
+      <span style="color:#94a3b8;font-size:0.75rem;font-weight:600;min-width:55px;">New:</span>
+      <button class="btn new-filter-btn" data-new="all" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#fbbf24 0%,#d97706 100%);color:#000;border-radius:3px;">All</button>
+      <button class="btn new-filter-btn" data-new="24h" style="padding:0.2rem 0.5rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;border-radius:3px;">🆕 Added &lt;24h</button>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th><a href="#" class="sort-link" data-sort="coinid">ID</a></th>
+          <th><a href="#" class="sort-link" data-sort="coinname">Name</a></th>
+          <th>Media</th>
+          <th style="font-size:1.2rem;">💜</th>
+          <th><a href="#" class="sort-link" data-sort="pair_created_at">Age</a></th>
+          <th>🫧</th>
+          <th><a href="#" class="sort-link" data-sort="price_usd">Price</a></th>
+          <th><a href="#" class="sort-link" data-sort="mktcap">Mkt Cap</a></th>
+          <th><a href="#" class="sort-link" data-sort="price_5m">5m</a></th>
+          <th><a href="#" class="sort-link" data-sort="price_1h">1h</a></th>
+          <th><a href="#" class="sort-link" data-sort="price_6h">6h</a></th>
+          <th><a href="#" class="sort-link" data-sort="price_24h">24h</a></th>
+          <th><a href="#" class="sort-link" data-sort="currentstatus">Status</a></th>
+          <th><a href="#" class="sort-link" data-sort="trend">Trend</a></th>
+          <th><a href="#" class="sort-link" data-sort="safety">Safety</a></th>
+          <th><a href="#" class="sort-link" data-sort="enabled">Enabled</a></th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="coinsTable"></tbody>
+    </table>
+  </div>
+
+  <!-- History Coins Tile — below table -->
+  <div style="margin-top:1rem;background:linear-gradient(180deg,#1e1e2e 0%,#16161f 100%);border:1px solid #3f3f5a;border-radius:8px;padding:0.8rem;">
+    <h3 style="font-size:0.85rem;color:#94a3b8;margin-bottom:0.6rem;">🕘 History</h3>
+    <div id="disabledList" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+  </div>
+
+  <!-- RugCheck Detail Panel -->
+  <div class="modal-overlay" id="rugcheckModal">
+    <div class="modal" style="max-width:700px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h2 id="rugcheckTitle" style="margin:0;">🛡️ Safety Report</h2>
+        <span style="cursor:pointer;font-size:1.3rem;color:#94a3b8;" onclick="document.getElementById('rugcheckModal').classList.remove('active')">&times;</span>
+      </div>
+      <div id="rugcheckContent"></div>
+    </div>
+  </div>
+
+  <!-- Bubble Map Modal -->
+  <div class="modal-overlay" id="bubbleMapModal">
+    <div class="modal" style="max-width:900px;height:80vh;padding:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <h2 id="bubbleMapTitle" style="margin:0;font-size:1rem;">🫧 Bubble Map</h2>
+        <span style="cursor:pointer;font-size:1.3rem;color:#94a3b8;" onclick="document.getElementById('bubbleMapModal').classList.remove('active');document.getElementById('bubbleMapFrame').src='';">&times;</span>
+      </div>
+      <iframe id="bubbleMapFrame" style="width:100%;height:calc(100% - 2rem);border:2px solid #8b5cf6;border-radius:8px;background:#000;" src="" allow="fullscreen"></iframe>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h2 id="modalTitle">Add Coin</h2>
+      <input type="hidden" id="editCoinId" />
+      <input type="hidden" id="fIconUrl" />
+      <input type="hidden" id="fSafety" />      <div class="form-group">
+        <label>Coin Name *</label>
+        <div style="display:flex;gap:0.5rem;">
+          <input type="text" id="fCoinName" placeholder="e.g. MOVE, RENDER, ONDO" style="flex:1;" />
+          <button type="button" class="btn btn-track" id="autofillBtn" style="white-space:nowrap;">🔍 Auto-fill</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>CA (Contract Address)</label>
+        <div style="display:flex;gap:0.5rem;">
+          <input type="text" id="fCA" maxlength="50" placeholder="Contract address" style="flex:1;" />
+          <button type="button" class="btn btn-track" id="autofillCABtn" style="white-space:nowrap;">🔍 Fetch by CA</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>DexScreener URL</label>
+        <input type="url" id="fDexUrl" placeholder="https://dexscreener.com/solana/..." />
+      </div>
+      <div class="form-group">
+        <label>Narrative</label>
+        <input type="text" id="fNarrative" placeholder="e.g. Movement Coin, AI Agent, RWA" />
+      </div>
+      <div class="form-group">
+        <label>Current Status</label>
+        <input type="text" id="fStatus" placeholder="e.g. Consolidating, Pumping, Dead" />
+      </div>
+      <div class="form-group">
+        <label>Trend</label>
+        <select id="fTrend">
+          <option value="">Select...</option>
+          <option value="accumulating">Accumulating</option>
+          <option value="distributing">Distributing</option>
+          <option value="pumping">Pumping</option>
+          <option value="dumping">Dumping</option>
+          <option value="consolidating">Consolidating</option>
+          <option value="dead">Dead</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Expert Comment</label>
+        <textarea id="fComment" placeholder="Your analysis..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Enabled</label>
+        <select id="fEnabled">
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-save" id="saveBtn">Save</button>
+        <button class="btn btn-cancel" id="cancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    // Persist Coin Activities panel state
+    var activitiesPanel = document.getElementById('coinActivities');
+    if (localStorage.getItem('coinActivitiesOpen') === 'false') {
+      activitiesPanel.removeAttribute('open');
+    }
+    activitiesPanel.addEventListener('toggle', function() {
+      localStorage.setItem('coinActivitiesOpen', activitiesPanel.open ? 'true' : 'false');
+    });
+
+    var table = document.getElementById('coinsTable');
+    var modal = document.getElementById('modal');
+    var toast = document.getElementById('toast');
+    var coinsData = [];
+    var sortField = 'coinid';
+    var sortDir = 'desc';
+    var mcapFilter = localStorage.getItem('xcrypto_filter_mcap') || 'all';
+    var ageFilterValue = localStorage.getItem('xcrypto_filter_age') || 'all';
+    var favFilter = localStorage.getItem('xcrypto_filter_fav') || 'all';
+
+    // Age filter milliseconds
+    var ageFilterMs = { '30m': 30*60000, '1h': 3600000, '3h': 3*3600000, '6h': 6*3600000, '12h': 12*3600000, '24h': 24*3600000, '3d': 3*86400000, '1w': 7*86400000, '2w': 14*86400000, '3w': 21*86400000, '1m': 30*86400000, '2m': 60*86400000, '3m': 90*86400000, '6m': 180*86400000, '1y': 365*86400000 };
+
+    // Market Cap filter buttons
+    document.querySelectorAll('.mcap-filter').forEach(function(btn) {
+      if (btn.getAttribute('data-filter') === mcapFilter) { btn.style.background = '#f59e0b'; btn.style.color = '#000'; }
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.mcap-filter').forEach(function(b) { b.style.background = '#334155'; b.style.color = '#e2e8f0'; });
+        this.style.background = '#f59e0b';
+        this.style.color = '#000';
+        mcapFilter = this.getAttribute('data-filter');
+        localStorage.setItem('xcrypto_filter_mcap', mcapFilter);
+        renderTable();
+      });
+    });
+
+    // Age filter buttons
+    document.querySelectorAll('.age-filter-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-age') === ageFilterValue) { btn.style.background = '#f59e0b'; btn.style.color = '#000'; }
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.age-filter-btn').forEach(function(b) { b.style.background = '#334155'; b.style.color = '#e2e8f0'; });
+        this.style.background = '#f59e0b';
+        this.style.color = '#000';
+        ageFilterValue = this.getAttribute('data-age');
+        localStorage.setItem('xcrypto_filter_age', ageFilterValue);
+        renderTable();
+      });
+    });
+
+    // Favourites filter
+    document.querySelectorAll('.fav-filter-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-fav') === favFilter) { btn.style.background = '#f59e0b'; btn.style.color = '#000'; }
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.fav-filter-btn').forEach(function(b) { b.style.background = '#334155'; b.style.color = '#e2e8f0'; });
+        this.style.background = '#f59e0b';
+        this.style.color = '#000';
+        favFilter = this.getAttribute('data-fav');
+        localStorage.setItem('xcrypto_filter_fav', favFilter);
+        renderTable();
+      });
+    });
+
+    // New filter (added to list < 24h)
+    var newFilter = localStorage.getItem('xcrypto_filter_new') || 'all';
+    document.querySelectorAll('.new-filter-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-new') === newFilter) { btn.style.background = '#f59e0b'; btn.style.color = '#000'; }
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.new-filter-btn').forEach(function(b) { b.style.background = '#334155'; b.style.color = '#e2e8f0'; });
+        this.style.background = '#f59e0b';
+        this.style.color = '#000';
+        newFilter = this.getAttribute('data-new');
+        localStorage.setItem('xcrypto_filter_new', newFilter);
+        renderTable();
+      });
+    });
+
+    // Sorting logic
+    function parseNumeric(val) {
+      if (!val || val === '—') return -Infinity;
+      return parseFloat(String(val).replace(/[$,%,]/g, '')) || 0;
+    }
+
+    function sortCoins() {
+      var sorted = coinsData.slice();
+      sorted.sort(function(a, b) {
+        var aVal = a[sortField] || '';
+        var bVal = b[sortField] || '';
+        if (['coinid', 'price_5m', 'price_1h', 'price_6h', 'price_24h', 'mktcap', 'price_usd', 'pair_created_at'].indexOf(sortField) >= 0) {
+          var aNum = parseNumeric(aVal);
+          var bNum = parseNumeric(bVal);
+          return sortDir === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+        if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+      });
+      return sorted;
+    }
+
+    document.querySelectorAll('.sort-link').forEach(function(link) {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        var field = this.getAttribute('data-sort');
+        if (sortField === field) {
+          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortField = field;
+          sortDir = 'asc';
+        }
+        renderTable();
+        document.querySelectorAll('.sort-link').forEach(function(l) { l.style.color = '#94a3b8'; l.textContent = l.textContent.replace(/ [▲▼]/, ''); });
+        this.style.color = '#f59e0b';
+        this.textContent = this.textContent.replace(/ [▲▼]/, '') + (sortDir === 'asc' ? ' ▲' : ' ▼');
+      });
+    });
+
+
+    function getTrendColor(status, trend) {
+      const s = (status || '').toLowerCase();
+      const t = (trend || '').toLowerCase();
+
+      // Tier 1: Critical (dark red) — severe downturn
+      const critical = ['crashing', 'dumping hard'];
+      if (critical.includes(s) || critical.includes(t)) return '#991b1b';
+
+      // Tier 2: Very Negative (red) — significant decline
+      const veryNegative = ['bleeding', 'dumping'];
+      if (veryNegative.includes(s) || veryNegative.includes(t)) return '#dc2626';
+
+      // Tier 3: Negative (orange/amber) — moderate decline
+      const negative = ['falling', 'declining', 'distributing', 'profit taking'];
+      if (negative.includes(s) || negative.includes(t)) return '#f59e0b';
+
+      // Tier 4: Neutral (gray/slate) — sideways movement
+      const neutral = ['stable', 'sideways', 'consolidating'];
+      if (neutral.includes(s) || neutral.includes(t)) return '#64748b';
+
+      // Tier 5: Positive (green) — moderate gain
+      const positive = ['rising', 'gaining', 'creeping up', 'accumulating'];
+      if (positive.includes(s) || positive.includes(t)) return '#22c55e';
+
+      // Tier 6: Very Positive (bright green/emerald) — strong gain
+      const veryPositive = ['mooning', 'pumping hard', 'surging', 'pumping'];
+      if (veryPositive.includes(s) || veryPositive.includes(t)) return '#10b981';
+
+      // Default: neutral gray for unknown values
+      return '#64748b';
+    }    // Drumroll audio
+    var drumAudio = new Audio("/media/drumroll.mp3");
+    var drumLoopInterval = null;
+    function startDrumroll() {
+      drumAudio.currentTime = 0;
+      drumAudio.play();
+      drumLoopInterval = setInterval(function() { if (drumAudio.currentTime >= 4) drumAudio.currentTime = 0; }, 50);
+    }
+    function finishDrumroll() {
+      if (drumLoopInterval) { clearInterval(drumLoopInterval); drumLoopInterval = null; }
+      drumAudio.currentTime = 4;
+      drumAudio.play();
+    }
+    function stopDrumroll() {
+      if (drumLoopInterval) { clearInterval(drumLoopInterval); drumLoopInterval = null; }
+      drumAudio.pause();
+      drumAudio.currentTime = 0;
+    }
+    function showToast(msg, type) {
+      toast.textContent = msg;
+      toast.className = 'toast toast-' + type;
+      toast.style.display = 'block';
+      setTimeout(function() { toast.style.display = 'none'; }, 3000);
+    }
+
+    function renderTable() {
+      var sorted = sortCoins();
+      // Apply market cap filter
+      if (mcapFilter !== 'all') {
+        sorted = sorted.filter(function(c) {
+          var cap = parseNumeric(c.mktcap);
+          if (cap === -Infinity) return false;
+          if (mcapFilter === 'micro') return cap < 50000;
+          if (mcapFilter === 'mid') return cap >= 50000 && cap < 250000;
+          if (mcapFilter === 'high') return cap >= 250000 && cap <= 1000000;
+          if (mcapFilter === 'mega') return cap > 1000000;
+          return true;
+        });
+      }
+      // Apply age filter
+      if (ageFilterValue !== 'all') {
+        var maxAge = ageFilterMs[ageFilterValue] || 0;
+        if (maxAge > 0) {
+          var now = Date.now();
+          sorted = sorted.filter(function(c) {
+            if (!c.pair_created_at || c.pair_created_at === 0) return false;
+            return (now - c.pair_created_at) <= maxAge;
+          });
+        }
+      }
+      // Apply favourites filter
+      if (favFilter === 'yes') {
+        sorted = sorted.filter(function(c) { return favouriteIds.indexOf(c.coinid) >= 0; });
+      }
+      // Apply new filter (added to your list < 24h)
+      if (newFilter === '24h') {
+        var oneDayAgo = new Date(Date.now() - 24 * 3600000).toISOString().replace('T', ' ').slice(0, 19);
+        sorted = sorted.filter(function(c) {
+          return c.datecreated && c.datecreated >= oneDayAgo;
+        });
+      }
+      // Empty state
+      if (sorted.length === 0 && coinsData.length === 0) {
+        table.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:2rem;color:#94a3b8;">No coin data yet. Click <strong style="color:#3b82f6;">🔄 Update Latest</strong> to fetch live data from DexScreener.</td></tr>';
+        return;
+      }
+      if (sorted.length === 0) {
+        table.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:1rem;color:#64748b;">No coins match the current filters.</td></tr>';
+        return;
+      }
+      table.innerHTML = sorted.map(function(c) {
+        function priceColor(val) {
+          if (!val) return '#64748b';
+          var n = parseFloat(val);
+          if (n > 0) return '#22c55e';
+          if (n < 0) return '#ef4444';
+          return '#64748b';
+        }
+        return '<tr>' +
+          '<td>' + c.coinid + '</td>' +
+          '<td>' + (c.dexscreenerurl ? '<a href="' + c.dexscreenerurl + '" target="_blank" style="text-decoration:none;color:#a855f7;display:flex;align-items:center;gap:6px;">' : '') + (c.icon_url ? '<img src="' + c.icon_url + '" style="width:24px;height:24px;border-radius:50%;vertical-align:middle;" />' : '') + '<strong>' + (c.coinname || '\u2014') + '</strong>' + (c.dexscreenerurl ? '</a>' : '') + '</td>' +
+          '<td>' + (function() { if (!c.socials) return '—'; try { var s = JSON.parse(c.socials); var twUrl = s.twitter ? (s.twitter.startsWith('http') ? s.twitter : 'https://x.com/' + s.twitter) : ''; var tgUrl = s.telegram ? (s.telegram.startsWith('http') ? s.telegram : 'https://t.me/' + s.telegram) : ''; var webUrl = s.websites && s.websites[0] ? s.websites[0] : ''; var xIcon = '<svg style="width:16px;height:16px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#8b5cf6"/><path d="M16.5 8.5l-2.8 3.2 3 3.8h-2.2l-1.9-2.5-2.3 2.5H8.5l3-3.3-2.8-3.7h2.2l1.7 2.3 2.1-2.3h1.8z" fill="white"/></svg>'; var tgIcon = '<svg style="width:16px;height:16px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#8b5cf6"/><path d="M17.2 8.2l-1.6 7.5c-.1.5-.4.6-.8.4l-2.3-1.7-1.1 1.1c-.1.1-.2.2-.4.2l.2-2.4 4.4-4c.2-.2 0-.3-.3-.1l-5.4 3.4-2.3-.7c-.5-.2-.5-.5.1-.7l9-3.5c.4-.1.8.1.6.7z" fill="white"/></svg>'; return '<span style="display:flex;gap:4px;align-items:center;">' + (twUrl ? '<a href="' + twUrl + '" target="_blank" style="text-decoration:none;display:flex;" title="X">' + xIcon + '</a>' : '<span style="opacity:0.2;">' + xIcon + '</span>') + (webUrl ? '<a href="' + webUrl + '" target="_blank" style="text-decoration:none;font-size:0.9rem;" title="Website">🌐</a>' : '<span style="opacity:0.2;font-size:0.9rem;">🌐</span>') + (tgUrl ? '<a href="' + tgUrl + '" target="_blank" style="text-decoration:none;display:flex;" title="Telegram">' + tgIcon + '</a>' : '<span style="opacity:0.2;">' + tgIcon + '</span>') + '</span>'; } catch(e) { return '—'; } })() + '</td>' +
+          '<td style="text-align:center;"><span style="cursor:pointer;font-size:1.1rem;" onclick="toggleFavourite(' + c.coinid + ')">' + (favouriteIds.indexOf(c.coinid) >= 0 ? '💜' : '🤍') + '</span></td>' +
+          '<td>' + (function() { var ts = c.pair_created_at; if (!ts || ts === 0) return '<span style="color:#64748b;font-size:0.7rem;cursor:pointer;" onclick="document.getElementById(\'updateLatestBtn\').click()" title="Click to fetch">⟳ fetch</span>'; var diff = Date.now() - ts; var min = Math.floor(diff/60000); var hr = Math.floor(diff/3600000); var day = Math.floor(diff/86400000); var age = min < 60 ? min + 'm' : hr < 24 ? hr + 'h' : day + 'd'; var color = day < 1 ? '#22c55e' : day < 7 ? '#f59e0b' : day < 30 ? '#f97316' : '#ef4444'; return '<span style="display:inline-block;padding:0.15rem 0.5rem;border-radius:3px;font-size:0.75rem;background:' + color + '20;color:' + color + ';border-left:3px solid ' + color + ';">' + age + '</span>'; })() + '</td>' +
+          '<td style="text-align:center;">' + (c.ca ? '<span style="cursor:pointer;font-size:1rem;" onclick="showBubbleMap(\'' + c.ca + '\',\'' + (c.coinname || '').replace(/'/g, "\\'") + '\')" title="Bubble Map">🫧</span>' : '') + '</td>' +
+          '<td style="color:' + getTrendColor(c.currentstatus, c.trend) + ';font-size:0.85rem;font-weight:600;">' + (c.price_usd ? '$' + c.price_usd : '—') + '</td>' +
+          '<td style="color:' + getTrendColor(c.currentstatus, c.trend) + ';font-size:0.85rem;">' + (c.mktcap || '—') + '</td>' +
+          '<td style="color:' + priceColor(c.price_5m) + ';font-size:0.85rem;">' + (c.price_5m || '—') + '</td>' +
+          '<td style="color:' + priceColor(c.price_1h) + ';font-size:0.85rem;">' + (c.price_1h || '—') + '</td>' +
+          '<td style="color:' + priceColor(c.price_6h) + ';font-size:0.85rem;">' + (c.price_6h || '—') + '</td>' +
+          '<td style="color:' + priceColor(c.price_24h) + ';font-size:0.85rem;">' + (c.price_24h || '—') + '</td>' +
+          '<td style="color:' + getTrendColor(c.currentstatus, c.trend) + '"><strong>' + (c.currentstatus || '—') + '</strong></td>' +
+          '<td style="color:' + getTrendColor(c.currentstatus, c.trend) + '">' + (c.trend || '—') + '</td>' +
+          '<td style="cursor:pointer;" onclick="showRugcheck(' + c.coinid + ')" title="Click for details">' + (c.safety || '\u2014') + '</td>' +
+          '<td><span class="badge badge-' + (c.enabled === 'yes' ? 'yes' : 'no') + '" style="cursor:pointer;" onclick="toggleEnabled(' + c.coinid + ',\'' + c.enabled + '\')">' + (c.enabled === 'yes' ? '✅' : '❌') + '</span></td>' +
+          '<td>' +
+            '<button class="btn btn-edit" onclick="editCoin(' + c.coinid + ')">Edit</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function loadCoins() {
+      var res = await fetch('/api/coins');
+      var data = await res.json();
+      coinsData = data.coins;
+      renderTable();
+    }
+
+    function openModal(coin) {
+      document.getElementById('modalTitle').textContent = coin ? 'Edit Coin' : 'Add Coin';
+      document.getElementById('editCoinId').value = coin ? coin.coinid : '';
+      document.getElementById('fCoinName').value = coin ? (coin.coinname || '') : '';
+      document.getElementById('fCA').value = coin ? (coin.ca || '') : '';
+      document.getElementById('fDexUrl').value = coin ? (coin.dexscreenerurl || '') : '';
+      document.getElementById('fNarrative').value = coin ? (coin.narrative || '') : '';
+      document.getElementById('fStatus').value = coin ? (coin.currentstatus || '') : '';
+      document.getElementById('fTrend').value = coin ? (coin.trend || '') : '';
+      document.getElementById('fComment').value = coin ? (coin.expert_comment || '') : '';
+      document.getElementById('fEnabled').value = coin ? (coin.enabled || 'yes') : 'yes';
+      document.getElementById('fIconUrl').value = coin ? (coin.icon_url || '') : '';
+      document.getElementById('fSafety').value = coin ? (coin.safety || '') : '';
+      modal.classList.add('active');
+    }
+
+    window.editCoin = function(id) {
+      var coin = coinsData.find(function(c) { return c.coinid === id; });
+      if (coin) openModal(coin);
+    };
+
+    window.deleteCoin = async function(id) {
+      if (!confirm('Delete this coin?')) return;
+      var res = await fetch('/api/coins?coinid=' + id, { method: 'DELETE' });
+      if (res.ok) { showToast('Coin deleted', 'success'); loadCoins(); }
+      else showToast('Delete failed', 'error');
+    };
+
+    window.trackCoin = function(id) {
+      window.location.href = '/admin/tracker?coinid=' + id;
+    };
+
+    document.getElementById('addBtn').addEventListener('click', function() { openModal(null); });
+    document.getElementById('cancelBtn').addEventListener('click', function() { modal.classList.remove('active'); });
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.classList.remove('active'); });
+
+    document.getElementById('saveBtn').addEventListener('click', async function() {
+      var coinid = document.getElementById('editCoinId').value;
+      var body = {
+        coinid: coinid ? Number(coinid) : undefined,
+        coinname: document.getElementById('fCoinName').value,
+        ca: document.getElementById('fCA').value,
+        dexscreenerurl: document.getElementById('fDexUrl').value,
+        narrative: document.getElementById('fNarrative').value,
+        currentstatus: document.getElementById('fStatus').value,
+        trend: document.getElementById('fTrend').value,
+        expert_comment: document.getElementById('fComment').value,
+        enabled: document.getElementById('fEnabled').value,
+        icon_url: document.getElementById('fIconUrl').value,
+        safety: document.getElementById('fSafety').value || undefined,
+      };
+      if (!body.coinname) { showToast('Coin Name is required', 'error'); return; }
+      var method = coinid ? 'PUT' : 'POST';
+      var res = await fetch('/api/coins', { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) { showToast(coinid ? 'Coin updated' : 'Coin added', 'success'); modal.classList.remove('active'); loadCoins(); }
+      else showToast('Save failed', 'error');
+    });
+
+    // Auto-fill from DexScreener search
+    document.getElementById('autofillBtn').addEventListener('click', async function() {
+      var name = document.getElementById('fCoinName').value.trim();
+      if (!name) { showToast('Enter a coin name first', 'error'); return; }
+      this.disabled = true;
+      this.textContent = '...';
+      try {
+        var coinid = document.getElementById('editCoinId').value || '';
+        var res = await fetch('/api/autofill', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coinname: name, coinid: coinid ? Number(coinid) : undefined }) });
+        if (res.ok) {
+          var data = await res.json();
+          document.getElementById('fCoinName').value = data.coinname || name;
+          document.getElementById('fCA').value = data.ca || '';
+          document.getElementById('fIconUrl').value = data.icon_url || '';
+          document.getElementById('fDexUrl').value = data.dexscreenerurl || '';
+          document.getElementById('fStatus').value = data.currentstatus || '';
+          document.getElementById('fTrend').value = data.trend || '';
+          var comment = data.extra ? 'Price: ' + data.extra.priceUsd + ' | FDV: ' + data.extra.fdv + ' | Liq: ' + data.extra.liquidity + ' | 24h: ' + data.extra.h24Change + ' | Chain: ' + data.extra.chain + ' | DEX: ' + data.extra.dex : '';
+          if (data.safety) comment += ' | Safety: ' + data.safety;
+          if (data.rugcheck) comment += ' | Holders: ' + (data.rugcheck.holders || '?') + ' | Top: ' + (data.rugcheck.topHolderPct || '?') + ' | Bundles: ' + data.rugcheck.bundles;
+          document.getElementById('fComment').value = comment;
+          document.getElementById('fSafety').value = data.safety || '';
+          showToast('Auto-filled' + (data.safety ? ' — ' + data.safety : '') + ' (' + (data.extra ? data.extra.totalResults : 0) + ' results)', 'success');
+          if (coinid) loadCoins();
+        } else {
+          var err = await res.json();
+          showToast(err.error || 'Not found', 'error');
+        }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+      this.disabled = false;
+      this.textContent = '\uD83D\uDD0D Auto-fill';
+    });
+
+    // Auto-fill from CA (Contract Address)
+    document.getElementById('autofillCABtn').addEventListener('click', async function() {
+      var ca = document.getElementById('fCA').value.trim();
+      if (!ca) { showToast('Enter a contract address first', 'error'); return; }
+      this.disabled = true;
+      this.textContent = '⏳...';
+      try {
+        var coinid = document.getElementById('editCoinId').value || '';
+        var res = await fetch('/api/autofill', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ca: ca, coinid: coinid ? Number(coinid) : undefined }) });
+        if (res.ok) {
+          var data = await res.json();
+          document.getElementById('fCoinName').value = data.coinname || '';
+          document.getElementById('fIconUrl').value = data.icon_url || '';
+          document.getElementById('fDexUrl').value = data.dexscreenerurl || '';
+          document.getElementById('fStatus').value = data.currentstatus || '';
+          document.getElementById('fTrend').value = data.trend || '';
+          var comment = 'Price: $' + (data.extra ? data.extra.priceUsd : '') + ' | FDV: ' + (data.extra ? data.extra.fdv : '') + ' | Liq: ' + (data.extra ? data.extra.liquidity : '') + ' | 24h: ' + (data.extra ? data.extra.h24Change : '');
+          if (data.safety) comment += ' | Safety: ' + data.safety;
+          if (data.rugcheck) comment += ' | Holders: ' + (data.rugcheck.holders || '?') + ' | Top: ' + (data.rugcheck.topHolderPct || '?') + ' | Bundles: ' + data.rugcheck.bundles;
+          document.getElementById('fComment').value = comment;
+          document.getElementById('fSafety').value = data.safety || '';
+          showToast('Fetched from CA' + (data.safety ? ' — ' + data.safety : ''), 'success');
+          if (coinid) loadCoins(); // refresh table if safety was updated
+        } else {
+          var err = await res.json();
+          showToast(err.error || 'Not found', 'error');
+        }
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+      this.disabled = false;
+      this.textContent = '\uD83D\uDD0D Fetch by CA';
+    });
+
+    // RugCheck All
+    // Fetch All Coins Data
+    document.getElementById("fetchAllBtn").addEventListener("click", async function() {
+      this.disabled = true;
+      this.textContent = "⏳ Fetching all...";
+      startDrumroll();      try {
+        var res = await fetch("/api/fetch-all", { method: "POST" });
+        if (res.ok) {
+          var data = await res.json();
+          var ok = data.results.filter(function(r) { return r.status === "success"; }).length;
+          var fail = data.results.filter(function(r) { return r.status === "failed"; }).length;
+          finishDrumroll();          showToast("Batch " + data.batchId + ": " + ok + " fetched, " + fail + " failed", ok > 0 ? "success" : "error");
+          loadCoins();
+        } else { stopDrumroll(); showToast("Fetch all failed", "error"); }
+      } catch(e) { stopDrumroll(); showToast("Error: " + e.message, "error"); }
+      this.disabled = false;
+      this.textContent = "⚡ Fetch All Coins Data";
+    });
+    // Update Trends
+    // Fetch History
+    document.getElementById("fetchHistoryBtn").addEventListener("click", async function() {
+      this.disabled = true;
+      this.textContent = "⏳ Loading history...";
+      startDrumroll();
+      try {
+        var res = await fetch("/api/fetch-history", { method: "POST" });
+        if (res.ok) {
+          var data = await res.json();
+          finishDrumroll();
+          var total = data.results.reduce(function(s, r) { return s + (r.hourlyCandles || 0) + (r.dailyCandles || 0); }, 0);
+          showToast("Loaded " + total + " candles for " + data.results.length + " coins", "success");
+        } else { stopDrumroll(); showToast("Fetch history failed", "error"); }
+      } catch(e) { stopDrumroll(); showToast("Error: " + e.message, "error"); }
+      this.disabled = false;
+      this.textContent = "📜 Fetch History";
+    });
+    document.getElementById("updateTrendsBtn").addEventListener("click", async function() {
+      this.disabled = true;
+      this.textContent = "⏳ Updating...";
+      startDrumroll();
+      try {
+        var hours = document.getElementById("trendHours").value;
+        var res = await fetch("/api/update-trends", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({hours: Number(hours)}) });
+        if (res.ok) {
+          var data = await res.json();
+          finishDrumroll();
+          showToast("Trends updated for " + data.results.length + " coins", "success");
+          loadCoins();
+        } else { stopDrumroll(); showToast("Update failed", "error"); }
+      } catch(e) { stopDrumroll(); showToast("Error: " + e.message, "error"); }
+      this.disabled = false;
+      this.textContent = "📈 Update Trends";
+    });
+    // Persist update frequency in localStorage and refresh on change
+    var savedFreq = localStorage.getItem('xcrypto_update_frequency');
+    if (savedFreq) {
+      document.getElementById("trendHours").value = savedFreq;
+    }
+    document.getElementById("trendHours").addEventListener("change", function() {
+      localStorage.setItem('xcrypto_update_frequency', this.value);
+      window.location.reload();
+    });
+    document.getElementById('rugCheckBtn').addEventListener('click', async function() {
+      this.disabled = true;
+      this.textContent = '\uD83D\uDD04 Checking...';
+      try {
+        var res = await fetch('/api/rugcheck', { method: 'POST' });
+        if (res.ok) {
+          var data = await res.json();
+          showToast('RugCheck complete for ' + data.results.length + ' coins', 'success');
+          loadCoins();
+        } else showToast('RugCheck failed', 'error');
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+      this.disabled = false;
+      this.textContent = '\uD83D\uDEE1\uFE0F RugCheck All';
+    });
+
+    // Update Latest — fetches fresh data for all coins and refreshes table
+    // Show last update time from log
+    var updateLog = JSON.parse(localStorage.getItem('updateLatestLog') || '[]');
+    if (updateLog.length > 0) {
+      var last = updateLog[updateLog.length - 1];
+      var lastTime = typeof last === 'string' ? last : last.time;
+      var lastInfo = typeof last === 'object' && last.failed > 0 ? ' (' + last.failed + ' failed ⓘ)' : '';
+      document.getElementById("updateStatus").textContent = "Last updated: " + lastTime + lastInfo;
+      document.getElementById("updateStatus").style.color = (typeof last === 'object' && last.failed > 0) ? "#f59e0b" : "#94a3b8";
+    } else {
+      document.getElementById("updateStatus").textContent = "Never updated";
+      document.getElementById("updateStatus").style.color = "#64748b";
+    }
+
+    var lastFailedResults = [];
+
+    document.getElementById("updateLatestBtn").addEventListener("click", async function() {
+      var btn = this;
+      var status = document.getElementById("updateStatus");
+      var bubble = document.getElementById("updateBubble");
+      bubble.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = "⏳ Updating...";
+      status.style.filter = "blur(3px)";
+      status.style.opacity = "0.5";
+      try {
+        var res = await fetch("/api/fetch-all", { method: "POST" });
+        if (res.ok) {
+          var data = await res.json();
+          var ok = data.results.filter(function(r) { return r.status === "success"; }).length;
+          var failed = data.results.filter(function(r) { return r.status === "failed"; });
+          var fail = failed.length;
+          lastFailedResults = failed;
+          var now = new Date().toLocaleString();
+          // Log to localStorage (with error details)
+          var log = JSON.parse(localStorage.getItem('updateLatestLog') || '[]');
+          var logEntry = { time: now, success: ok, failed: fail, coins: data.results.filter(function(r) { return r.status === 'success'; }).map(function(r) { return r.coinname; }), errors: failed.map(function(r) { return r.coinname + ': ' + (r.error || 'Unknown'); }) };
+          log.push(logEntry);
+          if (log.length > 50) log = log.slice(-50);
+          localStorage.setItem('updateLatestLog', JSON.stringify(log));
+          status.textContent = "Updated " + ok + " coins" + (fail > 0 ? " (" + fail + " failed ⓘ)" : "") + " — " + now;
+          status.style.color = fail > 0 ? "#f59e0b" : "#22c55e";
+          loadCoins();
+          // Also trigger Update Trends
+          var hours = localStorage.getItem('xcrypto_update_frequency') || '1';
+          fetch("/api/update-trends", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({hours: Number(hours)}) }).then(function() { loadCoins(); });
+        } else {
+          status.textContent = "Update failed";
+          status.style.color = "#ef4444";
+        }
+      } catch(e) {
+        status.textContent = "Error: " + e.message;
+        status.style.color = "#ef4444";
+      }
+      btn.disabled = false;
+      btn.textContent = "🔄 Update Latest";
+      status.style.filter = "none";
+      status.style.opacity = "1";
+    });
+
+    // Show bubble with failed details on status click
+    document.getElementById("updateStatus").addEventListener("click", function() {
+      if (lastFailedResults.length === 0) return;
+      var bubble = document.getElementById("updateBubble");
+      var content = document.getElementById("bubbleContent");
+      content.innerHTML = lastFailedResults.map(function(r) {
+        return '<div style="padding:0.3rem 0;border-bottom:1px solid #334155;">' +
+          '<span style="color:#f8fafc;">' + (r.coinname || 'ID ' + r.coinid) + '</span>' +
+          '<span style="color:#ef4444;margin-left:0.5rem;font-size:0.75rem;">' + (r.error || 'Unknown error') + '</span>' +
+        '</div>';
+      }).join('');
+      bubble.style.display = "block";
+    });
+
+    document.getElementById("closeBubble").addEventListener("click", function() {
+      document.getElementById("updateBubble").style.display = "none";
+    });
+
+    // Logs panel with pagination
+    var logsPage = 0;
+    var logsPerPage = 5;
+    function renderLogs() {
+      var logs = JSON.parse(localStorage.getItem('updateLatestLog') || '[]').slice().reverse();
+      var content = document.getElementById("logsContent");
+      var total = logs.length;
+      if (total === 0) { content.innerHTML = '<span style="color:#64748b;">No logs yet</span>'; return; }
+      var totalPages = Math.ceil(total / logsPerPage);
+      if (logsPage >= totalPages) logsPage = totalPages - 1;
+      var start = logsPage * logsPerPage;
+      var pageItems = logs.slice(start, start + logsPerPage);
+      var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;"><span style="color:#64748b;font-size:0.7rem;">Total: <strong style="color:#e2e8f0;">' + total + '</strong> updates</span>';
+      if (total > logsPerPage) {
+        html += '<span style="display:flex;gap:0.4rem;align-items:center;">' +
+          '<button class="btn" style="padding:0.15rem 0.4rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;" onclick="logsPageNav(-1)" ' + (logsPage === 0 ? 'disabled style="opacity:0.4;padding:0.15rem 0.4rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;"' : '') + '>&lt;</button>' +
+          '<span style="color:#94a3b8;font-size:0.8rem;">' + (logsPage + 1) + '/' + totalPages + '</span>' +
+          '<button class="btn" style="padding:0.15rem 0.4rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;" onclick="logsPageNav(1)" ' + (logsPage >= totalPages - 1 ? 'disabled style="opacity:0.4;padding:0.15rem 0.4rem;font-size:0.8rem;background:linear-gradient(180deg,#3f4f63 0%,#1e293b 100%);color:#e2e8f0;"' : '') + '>&gt;</button>' +
+        '</span>';
+      }
+      html += '</div>';
+      html += '<table style="width:100%;font-size:0.7rem;"><tr style="color:#64748b;"><th style="text-align:left;padding:0.2rem;">Time</th><th>OK</th><th>Failed</th><th>Coins</th><th>Errors</th></tr>';
+      html += pageItems.map(function(l) {
+        if (typeof l === 'string') return '<tr><td style="padding:0.2rem;color:#94a3b8;">' + l + '</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+        return '<tr><td style="padding:0.2rem;color:#94a3b8;">' + l.time + '</td><td style="color:#22c55e;">' + (l.success || 0) + '</td><td style="color:#ef4444;">' + (l.failed || 0) + '</td><td style="color:#e2e8f0;font-size:0.8rem;max-width:300px;word-wrap:break-word;white-space:normal;">' + (l.coins ? l.coins.join(', ') : '') + '</td><td style="color:#f59e0b;font-size:0.8rem;max-width:200px;word-wrap:break-word;white-space:normal;">' + (l.errors ? l.errors.join(', ') : '') + '</td></tr>';
+      }).join('');
+      html += '</table>';
+      content.innerHTML = html;
+    }
+    window.logsPageNav = function(dir) { logsPage += dir; renderLogs(); };
+    document.getElementById("showLogsBtn").addEventListener("click", function() {
+      var panel = document.getElementById("logsPanel");
+      if (panel.style.display === "block") { panel.style.display = "none"; return; }
+      logsPage = 0;
+      renderLogs();
+      panel.style.display = "block";
+    });
+    document.getElementById("closeLogsBtn").addEventListener("click", function() {
+      document.getElementById("logsPanel").style.display = "none";
+    });
+    document.getElementById("clearLogsBtn").addEventListener("click", function() {
+      if (!confirm('Delete all update logs?')) return;
+      localStorage.removeItem('updateLatestLog');
+      renderLogs();
+      showToast('Logs cleared', 'success');
+    });
+
+    // Toggle enabled/disabled for a coin
+    window.toggleEnabled = async function(coinid, current) {
+      var newVal = current === 'yes' ? 'no' : 'yes';
+      var res = await fetch('/api/coins', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coinid: coinid, enabled: newVal })
+      });
+      if (res.ok) {
+        showToast(newVal === 'yes' ? 'Coin enabled' : 'Coin disabled', 'success');
+        loadCoins();
+        loadDisabledCoins();
+      } else {
+        showToast('Toggle failed', 'error');
+      }
+    };
+
+    // Disabled Coins section — always visible in side tile
+    async function loadDisabledCoins() {
+      var res = await fetch('/api/coins?all=true');
+      var data = await res.json();
+      var disabled = data.coins.filter(function(c) { return c.enabled === 'no'; });
+      var container = document.getElementById('disabledList');
+      container.innerHTML = disabled.map(function(c) {
+        var socials = '';
+        try { var s = c.socials ? JSON.parse(c.socials) : {}; socials = '<span style="display:flex;gap:2px;font-size:0.6rem;">' + (s.twitter ? '<a href="https://x.com/' + s.twitter + '" target="_blank" style="text-decoration:none;" title="X">𝕏</a>' : '') + (s.websites && s.websites[0] ? '<a href="' + s.websites[0] + '" target="_blank" style="text-decoration:none;" title="Web">🌐</a>' : '') + (s.telegram ? '<a href="https://t.me/' + s.telegram + '" target="_blank" style="text-decoration:none;" title="TG"><svg style="width:14px;height:14px;vertical-align:middle;" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>' : '') + '</span>'; } catch(e) {}
+        return '<div style="display:flex;align-items:center;gap:0.4rem;background:#0f172a;border:1px solid #334155;border-radius:6px;padding:0.4rem 0.6rem;cursor:pointer;" onclick="toggleEnabled(' + c.coinid + ',\'no\')" title="Click to re-enable">' +
+          (c.icon_url ? '<img src="' + c.icon_url + '" style="width:18px;height:18px;border-radius:50%;" />' : '') +
+          '<span style="font-size:0.85rem;color:#94a3b8;">' + (c.coinname || '—') + '</span>' +
+          socials +
+          '<span class="badge badge-yes" style="font-size:0.8rem;padding:0.1rem 0.4rem;">✅</span>' +
+        '</div>';
+      }).join('');
+      if (disabled.length === 0) {
+        container.innerHTML = '<span style="color:#64748b;font-size:0.75rem;text-align:center;">None</span>';
+      }
+    }
+
+    // New Scan panel toggle
+    var scanPinned = localStorage.getItem('xcrypto_scan_pinned') === 'true';
+    if (scanPinned) {
+      document.getElementById('scanPanel').style.display = 'block';
+      document.getElementById('pinScanPanel').textContent = '🔒';
+    }
+    function updateScanBtnColor() {
+      var panel = document.getElementById('scanPanel');
+      var btn = document.getElementById('scanBtn');
+      var visible = panel.style.display === 'block';
+      btn.style.borderColor = visible ? '#4ade80' : '#22c55e';
+      
+    }
+    if (scanPinned) updateScanBtnColor();
+    document.getElementById('scanBtn').addEventListener('click', function() {
+      var panel = document.getElementById('scanPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      updateScanBtnColor();
+    });
+    document.getElementById('closeScanPanel').addEventListener('click', function() {
+      document.getElementById('scanPanel').style.display = 'none';
+      updateScanBtnColor();
+    });
+    document.getElementById('pinScanPanel').addEventListener('click', function() {
+      scanPinned = !scanPinned;
+      localStorage.setItem('xcrypto_scan_pinned', scanPinned ? 'true' : 'false');
+      this.textContent = scanPinned ? '🔒' : '🔓';
+      showToast(scanPinned ? 'Panel locked' : 'Panel unlocked', 'success');
+    });
+
+    // Scan auto-refresh interval
+    var scanAutoInterval = null;
+    var savedAutoRefresh = localStorage.getItem('xcrypto_scan_autorefresh') || '0';
+    document.getElementById('scanAutoRefresh').value = savedAutoRefresh;
+    function startScanAutoRefresh(seconds) {
+      if (scanAutoInterval) clearInterval(scanAutoInterval);
+      scanAutoInterval = null;
+      if (seconds > 0) {
+        scanAutoInterval = setInterval(function() {
+          var fetchBtn = document.getElementById('scanFetchBtn');
+          if (!fetchBtn.disabled) fetchBtn.click();
+        }, seconds * 1000);
+      }
+    }
+    document.getElementById('scanAutoRefresh').addEventListener('change', function() {
+      localStorage.setItem('xcrypto_scan_autorefresh', this.value);
+      startScanAutoRefresh(Number(this.value));
+      showToast(this.value === '0' ? 'Auto-refresh off' : 'Auto-refresh every ' + this.options[this.selectedIndex].text, 'success');
+    });
+    if (Number(savedAutoRefresh) > 0) startScanAutoRefresh(Number(savedAutoRefresh));
+
+    // Scan Age & Sort selection with localStorage
+    function updateScanBtnState() {
+      var hasUrl = document.getElementById('scanUrl').value.trim().length > 0;
+      var hasAge = !!localStorage.getItem('xcrypto_scan_age');
+      var hasSort = !!localStorage.getItem('xcrypto_scan_sort');
+      var btn = document.getElementById('scanFetchBtn');
+      var enabled = hasUrl && hasAge && hasSort;
+      btn.disabled = !enabled;
+      btn.style.opacity = enabled ? '1' : '0.4';
+      btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+    }
+
+    // Restore saved selections
+    var savedAge = localStorage.getItem('xcrypto_scan_age') || '';
+    var savedSort = localStorage.getItem('xcrypto_scan_sort') || '';
+    document.querySelectorAll('.scan-age-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-age') === savedAge) btn.style.background = '#f59e0b';
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.scan-age-btn').forEach(function(b) { b.style.background = '#334155'; });
+        this.style.background = '#f59e0b';
+        localStorage.setItem('xcrypto_scan_age', this.getAttribute('data-age'));
+        updateScanBtnState();
+      });
+    });
+    document.querySelectorAll('.scan-sort-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-sort') === savedSort) btn.style.background = '#3b82f6';
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.scan-sort-btn').forEach(function(b) { b.style.background = '#334155'; });
+        this.style.background = '#3b82f6';
+        localStorage.setItem('xcrypto_scan_sort', this.getAttribute('data-sort'));
+        updateScanBtnState();
+      });
+    });
+    document.getElementById('scanUrl').addEventListener('input', updateScanBtnState);
+    updateScanBtnState();
+
+    // URL History dropdown
+    document.getElementById('scanUrlHistoryBtn').addEventListener('click', function() {
+      var historyDiv = document.getElementById('scanUrlHistory');
+      if (historyDiv.style.display === 'block') { historyDiv.style.display = 'none'; return; }
+      var urls = JSON.parse(localStorage.getItem('xcrypto_scan_urls') || '[]');
+      if (urls.length === 0) {
+        historyDiv.innerHTML = '<span style="color:#64748b;font-size:0.8rem;">No saved URLs yet</span>';
+      } else {
+        historyDiv.innerHTML = urls.map(function(u) {
+          return '<div style="display:flex;align-items:center;gap:0.4rem;padding:0.3rem 0;border-bottom:1px solid #334155;cursor:pointer;" onclick="document.getElementById(\'scanUrl\').value=\'' + u.replace(/'/g, "\\'") + '\';document.getElementById(\'scanUrlHistory\').style.display=\'none\';updateScanBtnState();">' +
+            '<span style="flex:1;color:#e2e8f0;font-size:0.75rem;word-break:break-all;">' + u + '</span>' +
+            '<button class="btn" style="padding:0.1rem 0.3rem;font-size:0.6rem;background:linear-gradient(180deg,#f87171 0%,#dc2626 100%);color:white;" onclick="event.stopPropagation();removeUrlFromHistory(\'' + u.replace(/'/g, "\\'") + '\')">×</button>' +
+          '</div>';
+        }).join('');
+      }
+      historyDiv.style.display = 'block';
+    });
+    window.removeUrlFromHistory = function(urlToRemove) {
+      var urls = JSON.parse(localStorage.getItem('xcrypto_scan_urls') || '[]');
+      urls = urls.filter(function(u) { return u !== urlToRemove; });
+      localStorage.setItem('xcrypto_scan_urls', JSON.stringify(urls));
+      document.getElementById('scanUrlHistoryBtn').click(); // refresh dropdown
+    };
+
+    // Scan Fetch
+    document.getElementById('scanFetchBtn').addEventListener('click', async function() {
+      var url = document.getElementById('scanUrl').value.trim();
+      var results = document.getElementById('scanResults');
+      if (!url) { results.innerHTML = '<span style="color:#ef4444;">Enter a DexScreener URL</span>'; return; }
+      this.disabled = true;
+      this.textContent = '⏳...';
+      results.innerHTML = '';
+      try {
+        var res = await fetch('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: url, age: localStorage.getItem('xcrypto_scan_age') || '24h', sort: localStorage.getItem('xcrypto_scan_sort') || 'desc' }) });
+        var data = await res.json();
+        if (!res.ok || !data.success) {
+          results.innerHTML = '<span style="color:#ef4444;">❌ ' + (data.error || 'Fetch failed') + '</span>';
+        } else {
+          // Save URL to localStorage (unique list)
+          var savedUrls = JSON.parse(localStorage.getItem('xcrypto_scan_urls') || '[]');
+          if (savedUrls.indexOf(url) === -1) {
+            savedUrls.push(url);
+            localStorage.setItem('xcrypto_scan_urls', JSON.stringify(savedUrls));
+          }
+          results.innerHTML = '<div style="font-size:0.8rem;color:#94a3b8;margin-bottom:0.5rem;">Found ' + data.coins.length + ' coins:</div>' +
+            '<div style="display:flex;align-items:center;gap:1rem;padding:0.5rem 0;border-bottom:2px solid #475569;font-size:0.85rem;color:#64748b;font-weight:600;">' +
+              '<span style="min-width:24px;width:24px;flex-shrink:0;">#</span>' +
+              '<span style="min-width:250px;width:250px;flex-shrink:0;">Token</span>' +
+              '<span style="min-width:90px;width:90px;flex-shrink:0;">Price</span>' +
+              '<span style="min-width:95px;width:95px;flex-shrink:0;">Mkt Cap</span>' +
+              '<span style="min-width:90px;width:90px;flex-shrink:0;">Liquidity</span>' +
+              '<span style="min-width:90px;width:90px;flex-shrink:0;">Volume</span>' +
+              '<span style="min-width:60px;width:60px;flex-shrink:0;">5m</span>' +
+              '<span style="min-width:60px;width:60px;flex-shrink:0;">1h</span>' +
+              '<span style="min-width:60px;width:60px;flex-shrink:0;">24h</span>' +
+              '<span style="min-width:80px;width:80px;flex-shrink:0;">B/S</span>' +
+              '<span style="min-width:60px;width:60px;flex-shrink:0;">Age</span>' +
+              '<span style="min-width:85px;width:85px;flex-shrink:0;">DEX</span>' +
+              '<span style="min-width:80px;width:80px;flex-shrink:0;">Action</span>' +
+            '</div>' +
+            data.coins.map(function(c, i) {
+              var changeColor = function(v) { var n = parseFloat(v); return n > 0 ? '#22c55e' : n < 0 ? '#ef4444' : '#64748b'; };
+              return '<div style="display:flex;align-items:center;gap:1rem;padding:0.5rem 0;border-bottom:1px solid #334155;font-size:0.9rem;">' +
+                '<span style="min-width:24px;width:24px;flex-shrink:0;color:#64748b;">' + (i+1) + '</span>' +
+                '<span style="min-width:250px;width:250px;flex-shrink:0;display:flex;align-items:center;gap:4px;">' + '<a href="' + c.dexscreenerurl + '" target="_blank" style="display:flex;align-items:center;gap:4px;text-decoration:none;color:#a855f7;">' + (c.icon_url ? '<img src="' + c.icon_url + '" style="width:18px;height:18px;border-radius:50%;" />' : '') + '<span style="color:#a855f7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><strong>' + c.coinname + '</strong> <span style="color:#64748b;font-size:0.8rem;">(' + c.symbol + ')</span></span></a></span>' +
+                '<span style="min-width:90px;width:90px;flex-shrink:0;color:#f59e0b;">$' + c.priceUsd + '</span>' +
+                '<span style="min-width:95px;width:95px;flex-shrink:0;color:#94a3b8;">' + c.mktcap + '</span>' +
+                '<span style="min-width:90px;width:90px;flex-shrink:0;color:#94a3b8;">' + c.liquidity + '</span>' +
+                '<span style="min-width:90px;width:90px;flex-shrink:0;color:#94a3b8;">' + c.volume24h + '</span>' +
+                '<span style="min-width:60px;width:60px;flex-shrink:0;color:' + changeColor(c.h5m) + ';">' + c.h5m + '</span>' +
+                '<span style="min-width:60px;width:60px;flex-shrink:0;color:' + changeColor(c.h1) + ';">' + c.h1 + '</span>' +
+                '<span style="min-width:60px;width:60px;flex-shrink:0;color:' + changeColor(c.h24Change) + ';">' + c.h24Change + '</span>' +
+                '<span style="min-width:80px;width:80px;flex-shrink:0;color:#64748b;">' + c.buys24h + '/' + c.sells24h + '</span>' +
+                '<span style="min-width:60px;width:60px;flex-shrink:0;color:#64748b;">' + (c.createdAt || '—') + '</span>' +
+                '<span style="min-width:85px;width:85px;flex-shrink:0;color:#475569;font-size:0.8rem;">' + c.dex + '</span>' +
+                '<span style="min-width:80px;width:80px;flex-shrink:0;display:flex;gap:2px;">' +
+                  '<button class="btn btn-add" style="padding:0.15rem 0.4rem;font-size:0.8rem;" onclick="addScannedCoin(\'' + c.coinname.replace(/'/g, "\\'") + '\',\'' + c.ca + '\',\'' + c.dexscreenerurl + '\',\'' + (c.icon_url || '') + '\')" title="Add to tracked coins">+</button>' +
+                '</span>' +
+              '</div>';
+            }).join('');
+        }
+      } catch(e) {
+        results.innerHTML = '<span style="color:#ef4444;">❌ Error: ' + e.message + '</span>';
+      }
+      this.disabled = false;
+      this.textContent = 'Fetch';
+    });
+
+    // Add a scanned coin to DB
+    window.addScannedCoin = async function(coinname, ca, dexscreenerurl, icon_url) {
+      var userId = localStorage.getItem('xcrypto_user_id') || '';
+      var res = await fetch('/api/coins', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coinname: coinname, ca: ca, dexscreenerurl: dexscreenerurl, icon_url: icon_url, user_id: userId, enabled: 'yes' })
+      });
+      if (res.ok) {
+        showToast(coinname + ' added!', 'success');
+        loadCoins();
+      } else {
+        showToast('Failed to add ' + coinname, 'error');
+      }
+    };
+
+    // Show Bubble Map in modal
+    window.showBubbleMap = function(ca, coinname) {
+      document.getElementById('bubbleMapTitle').textContent = '🫧 ' + coinname + ' — Bubble Map';
+      document.getElementById('bubbleMapFrame').src = 'https://app.bubblemaps.io/sol/token/' + ca;
+      document.getElementById('bubbleMapModal').classList.add('active');
+    };
+
+    // Favourites management
+    var favouriteIds = [];
+    async function loadFavourites() {
+      var userId = localStorage.getItem('xcrypto_user_id') || '';
+      var res = await fetch('/api/favourites?user_id=' + encodeURIComponent(userId));
+      if (res.ok) {
+        var data = await res.json();
+        favouriteIds = data.favourites.map(function(f) { return f.coinid; });
+      }
+    }
+    window.toggleFavourite = async function(coinid) {
+      var userId = localStorage.getItem('xcrypto_user_id') || '';
+      var res = await fetch('/api/favourites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coinid: coinid, user_id: userId })
+      });
+      if (res.ok) {
+        var data = await res.json();
+        showToast(data.action === 'added' ? '💜 Added to favourites' : '🤍 Removed from favourites', 'success');
+        await loadFavourites();
+        renderTable();
+      }
+    };
+
+    // Show RugCheck detail modal
+    window.showRugcheck = function(coinid) {
+      var coin = coinsData.find(function(c) { return c.coinid === coinid; });
+      if (!coin || !coin.rugcheck_data) {
+        showToast('No rugcheck data — click Update Latest first', 'error');
+        return;
+      }
+      var data;
+      try { data = JSON.parse(coin.rugcheck_data); } catch(e) { showToast('Invalid rugcheck data', 'error'); return; }
+      var html = '';
+      // Summary
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;margin-bottom:1rem;">';
+      html += '<div style="background:#0f172a;padding:0.6rem;border-radius:6px;text-align:center;"><div style="color:#64748b;font-size:0.7rem;">Score</div><div style="color:#f59e0b;font-size:1.2rem;font-weight:700;">' + (data.score || 0) + '</div></div>';
+      html += '<div style="background:#0f172a;padding:0.6rem;border-radius:6px;text-align:center;"><div style="color:#64748b;font-size:0.7rem;">Holders</div><div style="color:#e2e8f0;font-size:1.2rem;font-weight:700;">' + (data.totalHolders || '?') + '</div></div>';
+      html += '<div style="background:#0f172a;padding:0.6rem;border-radius:6px;text-align:center;"><div style="color:#64748b;font-size:0.7rem;">LP Providers</div><div style="color:#e2e8f0;font-size:1.2rem;font-weight:700;">' + (data.totalLPProviders || '?') + '</div></div>';
+      html += '</div>';
+      // Rugged + Bundles + LP Lock
+      html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">';
+      html += '<span style="padding:0.3rem 0.8rem;border-radius:4px;font-size:0.8rem;background:' + (data.rugged ? '#7f1d1d' : '#065f46') + ';color:' + (data.rugged ? '#fca5a5' : '#6ee7b7') + ';">' + (data.rugged ? '🚨 RUGGED' : '✅ Not Rugged') + '</span>';
+      html += '<span style="padding:0.3rem 0.8rem;border-radius:4px;font-size:0.8rem;background:#1e1b4b;color:#a5b4fc;">Bundles: ' + (data.insiderNetworks || 0) + '</span>';
+      var lpLock = data.markets && data.markets[0] && data.markets[0].lp ? data.markets[0].lp.lpLockedPct : null;
+      html += '<span style="padding:0.3rem 0.8rem;border-radius:4px;font-size:0.8rem;background:#1e293b;color:' + (lpLock > 80 ? '#22c55e' : lpLock > 0 ? '#f59e0b' : '#ef4444') + ';">LP Lock: ' + (lpLock != null ? lpLock.toFixed(1) + '%' : '?') + '</span>';
+      html += '</div>';
+      // Top Holders
+      if (data.topHolders && data.topHolders.length > 0) {
+        html += '<h4 style="color:#94a3b8;font-size:0.8rem;margin:0.8rem 0 0.4rem;">Top Holders</h4>';
+        html += '<div style="font-size:0.75rem;">';
+        data.topHolders.forEach(function(h, i) {
+          var shortAddr = h.address ? h.address.slice(0,6) + '...' + h.address.slice(-4) : '?';
+          html += '<div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid #334155;"><span style="color:#94a3b8;">#' + (i+1) + ' ' + shortAddr + '</span><span style="color:#e2e8f0;font-weight:600;">' + h.pct + '%</span></div>';
+        });
+        html += '</div>';
+      }
+      // Risks
+      if (data.risks && data.risks.length > 0) {
+        html += '<h4 style="color:#94a3b8;font-size:0.8rem;margin:0.8rem 0 0.4rem;">Contract Risks (' + data.risks.length + ')</h4>';
+        html += '<div style="font-size:0.75rem;">';
+        data.risks.forEach(function(r) {
+          var levelColor = r.level === 'critical' ? '#ef4444' : r.level === 'warn' ? '#f59e0b' : '#64748b';
+          html += '<div style="padding:0.3rem 0;border-bottom:1px solid #334155;"><span style="color:' + levelColor + ';font-weight:600;">' + (r.level || '').toUpperCase() + '</span> <span style="color:#e2e8f0;">' + r.name + '</span>' + (r.description ? '<div style="color:#64748b;font-size:0.7rem;margin-top:0.1rem;">' + r.description + '</div>' : '') + '</div>';
+        });
+        html += '</div>';
+      }
+      document.getElementById('rugcheckTitle').textContent = '🛡️ ' + (coin.coinname || 'Coin') + ' — Safety Report';
+      document.getElementById('rugcheckContent').innerHTML = html;
+      document.getElementById('rugcheckModal').classList.add('active');
+    };
+
+    // Basket management (localStorage)
+    function getBasket() {
+      return JSON.parse(localStorage.getItem('xcrypto_basket') || '[]');
+    }
+    function isInBasket(ca) {
+      return getBasket().some(function(item) { return item.ca === ca; });
+    }
+    window.toggleBasket = function(coinname, ca, dexscreenerurl, icon_url) {
+      var basket = getBasket();
+      var idx = basket.findIndex(function(item) { return item.ca === ca; });
+      if (idx >= 0) {
+        basket.splice(idx, 1);
+        showToast(coinname + ' removed from basket', 'success');
+      } else {
+        basket.push({
+          icon_url: icon_url,
+          coinname: coinname,
+          ca: ca,
+          dexscreenerurl: dexscreenerurl,
+          dateAdded: new Date().toISOString(),
+          status: 'watching'
+        });
+        showToast(coinname + ' added to basket 🧺', 'success');
+      }
+      localStorage.setItem('xcrypto_basket', JSON.stringify(basket));
+      // Re-trigger scan results render if visible
+      var fetchBtn = document.getElementById('scanFetchBtn');
+      if (document.getElementById('scanResults').innerHTML.length > 50) {
+        fetchBtn.click();
+      }
+    };
+
+    loadFavourites().then(function() { loadCoins(); });
+    loadDisabledCoins();
+    // Auto-trigger Update Latest on page load
+    setTimeout(function() { document.getElementById('updateLatestBtn').click(); }, 500);
+  </script>
+</Layout>

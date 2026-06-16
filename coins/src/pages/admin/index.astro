@@ -1,0 +1,87 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Admin Dashboard" showHeader={false}>
+  <nav style="background:linear-gradient(180deg,#2a2a3a,#1a1a28);padding:0.8rem 1.5rem;border-bottom:1px solid #3f3f5a;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <a href="/admin" style="color:#c084fc;font-weight:700;text-decoration:none;font-size:1rem;">⚙️ Admin</a>
+      <a href="/admin/emails" style="color:#a1a1aa;text-decoration:none;font-size:0.85rem;">Emails</a>
+      <a href="/admin/clicks" style="color:#a1a1aa;text-decoration:none;font-size:0.85rem;">Clicks</a>
+      <a href="/admin/telemetry" style="color:#a1a1aa;text-decoration:none;font-size:0.85rem;">Telemetry</a>
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <a href="/" style="color:#71717a;text-decoration:none;font-size:0.85rem;">← Site</a>
+      <a href="/api/auth/logout" style="color:#ef4444;text-decoration:none;font-size:0.85rem;">Logout</a>
+    </div>
+  </nav>
+
+  <div style="max-width:900px;margin:2rem auto;padding:0 1rem;">
+    <h1 style="font-size:1.8rem;font-weight:700;color:#fafafa;margin-bottom:1.5rem;">🏠 Dashboard</h1>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;">
+      <a href="/admin/emails" style="padding:1.5rem;border-radius:12px;border:1px solid #3b82f6;background:linear-gradient(180deg,rgba(59,130,246,0.1),rgba(59,130,246,0.03));text-decoration:none;transition:transform 0.2s;">
+        <p style="font-size:1.5rem;margin-bottom:0.5rem;">📧</p>
+        <p style="color:#fafafa;font-weight:600;font-size:1rem;">Emails</p>
+        <p style="color:#a1a1aa;font-size:0.8rem;margin-top:0.3rem;">Contact & suggest submissions</p>
+      </a>
+      <a href="/admin/clicks" style="padding:1.5rem;border-radius:12px;border:1px solid #10b981;background:linear-gradient(180deg,rgba(16,185,129,0.1),rgba(16,185,129,0.03));text-decoration:none;transition:transform 0.2s;">
+        <p style="font-size:1.5rem;margin-bottom:0.5rem;">📊</p>
+        <p style="color:#fafafa;font-weight:600;font-size:1rem;">Clicks</p>
+        <p style="color:#a1a1aa;font-size:0.8rem;margin-top:0.3rem;">Real-time click analytics</p>
+      </a>
+      <a href="/admin/telemetry" style="padding:1.5rem;border-radius:12px;border:1px solid #06b6d4;background:linear-gradient(180deg,rgba(6,182,212,0.1),rgba(6,182,212,0.03));text-decoration:none;transition:transform 0.2s;">
+        <p style="font-size:1.5rem;margin-bottom:0.5rem;">📡</p>
+        <p style="color:#fafafa;font-weight:600;font-size:1rem;">Telemetry</p>
+        <p style="color:#a1a1aa;font-size:0.8rem;margin-top:0.3rem;">Endpoint health monitoring</p>
+      </a>
+      <a href="/admin/analysis" style="padding:1.5rem;border-radius:12px;border:1px solid #ef4444;background:linear-gradient(180deg,rgba(239,68,68,0.1),rgba(239,68,68,0.03));text-decoration:none;transition:transform 0.2s;">
+        <p style="font-size:1.5rem;margin-bottom:0.5rem;">📈</p>
+        <p style="color:#fafafa;font-weight:600;font-size:1rem;">Analysis</p>
+        <p style="color:#a1a1aa;font-size:0.8rem;margin-top:0.3rem;">Coin analysis & tracker</p>
+      </a>
+      <a href="/admin/tracker" style="padding:1.5rem;border-radius:12px;border:1px solid #8b5cf6;background:linear-gradient(180deg,rgba(139,92,246,0.1),rgba(139,92,246,0.03));text-decoration:none;transition:transform 0.2s;">
+        <p style="font-size:1.5rem;margin-bottom:0.5rem;">🔍</p>
+        <p style="color:#fafafa;font-weight:600;font-size:1rem;">Tracker</p>
+        <p style="color:#a1a1aa;font-size:0.8rem;margin-top:0.3rem;">Coin tracker management</p>
+      </a>
+      <a href="/admin/mappings" style="padding:1.5rem;border-radius:12px;border:1px solid #f59e0b;background:linear-gradient(180deg,rgba(245,158,11,0.1),rgba(245,158,11,0.03));text-decoration:none;transition:transform 0.2s;">
+        <p style="font-size:1.5rem;margin-bottom:0.5rem;">🗺️</p>
+        <p style="color:#fafafa;font-weight:600;font-size:1rem;">Mappings</p>
+        <p style="color:#a1a1aa;font-size:0.8rem;margin-top:0.3rem;">Field mapping config</p>
+      </a>
+    </div>
+
+    <div id="quickStats" style="margin-top:2rem;padding:1.5rem;border-radius:12px;border:1px solid #27272a;background:#16161f;">
+      <h2 style="color:#a1a1aa;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:1rem;">Quick Stats</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;text-align:center;">
+        <div>
+          <p id="statClicks" style="font-size:1.5rem;font-weight:700;color:#10b981;">—</p>
+          <p style="color:#71717a;font-size:0.75rem;">Total Clicks</p>
+        </div>
+        <div>
+          <p id="statEmails" style="font-size:1.5rem;font-weight:700;color:#3b82f6;">—</p>
+          <p style="color:#71717a;font-size:0.75rem;">Unread Emails</p>
+        </div>
+        <div>
+          <p id="statCoins" style="font-size:1.5rem;font-weight:700;color:#8b5cf6;">—</p>
+          <p style="color:#71717a;font-size:0.75rem;">Tracked Coins</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (async function() {
+      try {
+        const [clicksRes, emailsRes, coinsRes] = await Promise.all([
+          fetch('/api/clicks?count=true'),
+          fetch('/api/emails?limit=1'),
+          fetch('/api/coins'),
+        ]);
+        if (clicksRes.ok) { const d = await clicksRes.json(); document.getElementById('statClicks').textContent = d.total || '0'; }
+        if (emailsRes.ok) { const d = await emailsRes.json(); document.getElementById('statEmails').textContent = d.stats?.unread || '0'; }
+        if (coinsRes.ok) { const d = await coinsRes.json(); document.getElementById('statCoins').textContent = (d.coins?.length || '0').toString(); }
+      } catch(e) {}
+    })();
+  </script>
+</Layout>

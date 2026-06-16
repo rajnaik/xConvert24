@@ -1,0 +1,129 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Emails — Admin" showHeader={false}>
+  <nav style="background:linear-gradient(180deg,#2a2a3a,#1a1a28);padding:0.8rem 1.5rem;border-bottom:1px solid #3f3f5a;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <a href="/admin" style="color:#a1a1aa;font-weight:700;text-decoration:none;font-size:1rem;">⚙️ Admin</a>
+      <a href="/admin/emails" style="color:#c084fc;text-decoration:none;font-size:0.85rem;">Emails</a>
+      <a href="/admin/clicks" style="color:#a1a1aa;text-decoration:none;font-size:0.85rem;">Clicks</a>
+      <a href="/admin/telemetry" style="color:#a1a1aa;text-decoration:none;font-size:0.85rem;">Telemetry</a>
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <a href="/" style="color:#71717a;text-decoration:none;font-size:0.85rem;">← Site</a>
+      <a href="/api/auth/logout" style="color:#ef4444;text-decoration:none;font-size:0.85rem;">Logout</a>
+    </div>
+  </nav>
+
+  <div style="max-width:1000px;margin:2rem auto;padding:0 1rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <h1 style="font-size:1.5rem;font-weight:700;color:#fafafa;">📧 Emails</h1>
+      <div style="display:flex;gap:0.5rem;">
+        <button onclick="loadEmails('all')" class="btn" style="font-size:0.75rem;">All</button>
+        <button onclick="loadEmails('contact')" class="btn" style="font-size:0.75rem;">Contact</button>
+        <button onclick="loadEmails('suggest')" class="btn" style="font-size:0.75rem;">Suggest</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;">
+      <div style="padding:1rem;border-radius:8px;border:1px solid #3b82f6;background:rgba(59,130,246,0.05);text-align:center;">
+        <p id="totalCount" style="font-size:1.3rem;font-weight:700;color:#3b82f6;">0</p>
+        <p style="color:#71717a;font-size:0.75rem;">Total</p>
+      </div>
+      <div style="padding:1rem;border-radius:8px;border:1px solid #f59e0b;background:rgba(245,158,11,0.05);text-align:center;">
+        <p id="unreadCount" style="font-size:1.3rem;font-weight:700;color:#f59e0b;">0</p>
+        <p style="color:#71717a;font-size:0.75rem;">Unread</p>
+      </div>
+      <div style="padding:1rem;border-radius:8px;border:1px solid #10b981;background:rgba(16,185,129,0.05);text-align:center;">
+        <p id="actionedCount" style="font-size:1.3rem;font-weight:700;color:#10b981;">0</p>
+        <p style="color:#71717a;font-size:0.75rem;">Actioned</p>
+      </div>
+    </div>
+    <div id="emailList" style="display:flex;flex-direction:column;gap:0.8rem;"></div>
+  </div>
+
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h2>Edit Email</h2>
+      <input type="hidden" id="editId" />
+      <div class="form-group"><label>Comment</label><textarea id="editComment" rows="3"></textarea></div>
+      <div class="form-group" style="display:flex;gap:1rem;">
+        <label style="color:#a1a1aa;font-size:0.85rem;"><input type="checkbox" id="editRead" /> Mark as read</label>
+        <label style="color:#a1a1aa;font-size:0.85rem;"><input type="checkbox" id="editActioned" /> Mark as actioned</label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-save" onclick="saveEmail()">Save</button>
+        <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-delete" onclick="deleteEmail()" style="margin-left:auto;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    let currentFilter = 'all';
+    async function loadEmails(filter) {
+      currentFilter = filter;
+      const params = filter !== 'all' ? '?category=' + filter : '';
+      const res = await fetch('/api/emails' + params);
+      if (!res.ok) return;
+      const data = await res.json();
+      document.getElementById('totalCount').textContent = data.stats?.total || '0';
+      document.getElementById('unreadCount').textContent = data.stats?.unread || '0';
+      document.getElementById('actionedCount').textContent = data.stats?.actioned || '0';
+      const list = document.getElementById('emailList');
+      list.innerHTML = (data.emails || []).map(function(e) {
+        return '<div style="padding:1rem;border-radius:8px;border:1px solid ' + (e.read ? '#27272a' : '#3b82f6') + ';background:#16161f;cursor:pointer;" onclick="openEdit(' + e.id + ')">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="font-size:0.75rem;padding:0.1rem 0.5rem;border-radius:4px;background:rgba(139,92,246,0.1);color:#c084fc;">' + e.category + '</span>' +
+          '<span style="font-size:0.7rem;color:#71717a;">' + (e.created_at || '') + '</span></div>' +
+          '<p style="color:#fafafa;font-weight:500;margin-top:0.4rem;font-size:0.9rem;">' + (e.name || 'Anonymous') + ' — ' + (e.subject || 'No subject') + '</p>' +
+          '<p style="color:#a1a1aa;font-size:0.8rem;margin-top:0.3rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (e.message || '') + '</p></div>';
+      }).join('');
+    }
+    var emailsCache = [];
+    async function loadAndCache(filter) {
+      currentFilter = filter;
+      const params = filter !== 'all' ? '?category=' + filter : '';
+      const res = await fetch('/api/emails' + params);
+      if (!res.ok) return;
+      const data = await res.json();
+      emailsCache = data.emails || [];
+      document.getElementById('totalCount').textContent = data.stats?.total || '0';
+      document.getElementById('unreadCount').textContent = data.stats?.unread || '0';
+      document.getElementById('actionedCount').textContent = data.stats?.actioned || '0';
+    }
+    function openEdit(id) {
+      var e = emailsCache.find(function(x) { return x.id === id; });
+      if (!e) { loadEmails(currentFilter); return; }
+      document.getElementById('editId').value = id;
+      document.getElementById('editComment').value = e.comment || '';
+      document.getElementById('editRead').checked = !!e.read;
+      document.getElementById('editActioned').checked = !!e.actioned;
+      document.getElementById('editModal').classList.add('active');
+    }
+    function closeModal() { document.getElementById('editModal').classList.remove('active'); }
+    async function saveEmail() {
+      var id = parseInt(document.getElementById('editId').value);
+      await fetch('/api/emails', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, comment: document.getElementById('editComment').value, read: document.getElementById('editRead').checked ? 1 : 0, actioned: document.getElementById('editActioned').checked ? 1 : 0 }) });
+      closeModal(); loadEmails(currentFilter);
+    }
+    async function deleteEmail() {
+      if (!confirm('Delete this email?')) return;
+      var id = parseInt(document.getElementById('editId').value);
+      await fetch('/api/emails', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id }) });
+      closeModal(); loadEmails(currentFilter);
+    }
+    async function loadEmails(filter) {
+      await loadAndCache(filter);
+      var list = document.getElementById('emailList');
+      list.innerHTML = emailsCache.map(function(e) {
+        return '<div style="padding:1rem;border-radius:8px;border:1px solid ' + (e.read ? '#27272a' : '#3b82f6') + ';background:#16161f;cursor:pointer;" onclick="openEdit(' + e.id + ')">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="font-size:0.75rem;padding:0.1rem 0.5rem;border-radius:4px;background:rgba(139,92,246,0.1);color:#c084fc;">' + e.category + '</span>' +
+          '<span style="font-size:0.7rem;color:#71717a;">' + (e.created_at || '') + '</span></div>' +
+          '<p style="color:#fafafa;font-weight:500;margin-top:0.4rem;font-size:0.9rem;">' + (e.name || 'Anonymous') + ' — ' + (e.subject || 'No subject') + '</p>' +
+          '<p style="color:#a1a1aa;font-size:0.8rem;margin-top:0.3rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (e.message || '') + '</p></div>';
+      }).join('');
+    }
+    loadEmails('all');
+  </script>
+</Layout>

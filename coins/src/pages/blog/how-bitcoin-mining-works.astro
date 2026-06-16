@@ -1,0 +1,150 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
+---
+<Layout title="How Bitcoin Mining Works" description="Understand Bitcoin mining from proof-of-work and hash puzzles to difficulty adjustments, block rewards, mining pools, and the energy debate." keywords="bitcoin mining, proof of work, bitcoin miners, hash rate, mining difficulty, block reward, bitcoin energy, ASIC mining, mining pools">
+  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"How Bitcoin Mining Works","description":"Understand Bitcoin mining from proof-of-work and hash puzzles to difficulty adjustments, block rewards, mining pools, and the energy debate.","datePublished":"2026-06-16","author":{"@type":"Organization","name":"xCrypto24","url":"https://xcrypto24.com"},"publisher":{"@type":"Organization","name":"xCrypto24"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://xcrypto24.com/blog/how-bitcoin-mining-works"}})} />
+  <div style="max-width:800px;margin:2rem auto;padding:0 1rem;">
+    <nav style="font-size:0.85rem;color:#a1a1aa;margin-bottom:1.5rem;">
+      <a href="/blog" style="color:#c084fc;text-decoration:none;">← Blog</a> › <span>Bitcoin</span>
+    </nav>
+    <BlogCrossLinks title="How Bitcoin Mining Works" />
+    <h1 style="font-size:2rem;font-weight:700;color:#fafafa;margin-bottom:0.5rem;">How Bitcoin Mining Works</h1>
+    <div style="font-size:0.85rem;color:#71717a;margin-bottom:2rem;">
+      <time datetime="2026-06-16">June 16, 2026</time> · 7 min read
+    </div>
+    <p style="font-size:1.05rem;color:#d4d4d8;line-height:1.8;margin-bottom:2rem;">Bitcoin mining is the process that secures the network, validates transactions, and introduces new coins into circulation. Miners compete to solve complex mathematical puzzles, and the winner earns the right to add the next block of transactions to the blockchain — along with a reward of freshly minted bitcoin.</p>
+
+    <!-- What Is Proof of Work -->
+    <h2 style="font-size:1.25rem;font-weight:300;color:#c084fc;margin-top:2.5rem;margin-bottom:1rem;border-left:4px solid #8b5cf6;padding-left:1rem;">What Is Proof of Work?</h2>
+    <p style="color:#d4d4d8;line-height:1.8;margin-bottom:1rem;">Proof of Work (PoW) is Bitcoin's consensus mechanism — the system that allows thousands of independent computers to agree on the state of the ledger without trusting each other. It requires miners to expend real computational energy to propose new blocks, making it extremely costly to attack the network.</p>
+
+    <div style="margin:1.5rem 0;padding:1.2rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+      <p style="font-size:0.8rem;font-weight:600;color:#a78bfa;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">💡 The Core Idea</p>
+      <p style="font-size:0.95rem;color:#e4e4e7;">Proof of Work turns electricity into security. To attack Bitcoin, you'd need to outspend <span style="color:white;font-weight:500;">all honest miners combined</span> — a cost measured in billions of dollars annually. This makes Bitcoin the most secure computing network ever created.</p>
+    </div>
+
+    <!-- The Mining Process -->
+    <h2 style="font-size:1.25rem;font-weight:300;color:#c084fc;margin-top:2.5rem;margin-bottom:1rem;border-left:4px solid #8b5cf6;padding-left:1rem;">The Mining Process: Step by Step</h2>
+    <p style="color:#d4d4d8;line-height:1.8;margin-bottom:1rem;">Here's exactly what happens every 10 minutes (on average) on the Bitcoin network:</p>
+
+    <div style="margin:1.5rem 0;padding:1.2rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.08);">
+      <p style="font-size:0.8rem;font-weight:600;color:#a78bfa;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;">🧩 Mining Steps</p>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+          <span style="flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(88,28,135,0.5);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#c084fc;font-weight:700;">1</span>
+          <p style="font-size:0.9rem;color:#d4d4d8;"><span style="color:white;font-weight:500;">Collect transactions:</span> Miners gather pending transactions from the mempool into a candidate block</p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+          <span style="flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(88,28,135,0.5);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#c084fc;font-weight:700;">2</span>
+          <p style="font-size:0.9rem;color:#d4d4d8;"><span style="color:white;font-weight:500;">Build the block header:</span> Combine the transaction data with the previous block's hash, a timestamp, and a random number (nonce)</p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+          <span style="flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(88,28,135,0.5);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#c084fc;font-weight:700;">3</span>
+          <p style="font-size:0.9rem;color:#d4d4d8;"><span style="color:white;font-weight:500;">Hash repeatedly:</span> Run the SHA-256 hash function on the header, changing the nonce each time, billions of times per second</p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+          <span style="flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(88,28,135,0.5);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#c084fc;font-weight:700;">4</span>
+          <p style="font-size:0.9rem;color:#d4d4d8;"><span style="color:white;font-weight:500;">Find a valid hash:</span> The output must be below the current difficulty target (starts with a required number of zeros)</p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+          <span style="flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(88,28,135,0.5);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#c084fc;font-weight:700;">5</span>
+          <p style="font-size:0.9rem;color:#d4d4d8;"><span style="color:white;font-weight:500;">Broadcast the block:</span> The winning miner broadcasts the solution; other nodes verify and accept it</p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+          <span style="flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;background:rgba(88,28,135,0.5);border:1px solid rgba(139,92,246,0.4);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#c084fc;font-weight:700;">6</span>
+          <p style="font-size:0.9rem;color:#d4d4d8;"><span style="color:white;font-weight:500;">Collect the reward:</span> The miner receives the block reward (currently 3.125 BTC) plus all transaction fees</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Difficulty Adjustment -->
+    <h2 style="font-size:1.25rem;font-weight:300;color:#c084fc;margin-top:2.5rem;margin-bottom:1rem;border-left:4px solid #8b5cf6;padding-left:1rem;">Difficulty Adjustment</h2>
+    <p style="color:#d4d4d8;line-height:1.8;margin-bottom:1rem;">Every 2,016 blocks (approximately two weeks), the Bitcoin protocol automatically adjusts the mining difficulty to maintain the target of one block every 10 minutes. If miners are finding blocks too quickly, difficulty increases; if too slowly, it decreases.</p>
+
+    <div style="margin:1.5rem 0;padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.08);">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1.5rem;text-align:center;">
+        <div><p style="font-size:1.25rem;font-weight:700;color:#a78bfa;">~700 EH/s</p><p style="font-size:0.75rem;color:#a1a1aa;">Network Hashrate</p></div>
+        <div><p style="font-size:1.25rem;font-weight:700;color:#a78bfa;">2,016</p><p style="font-size:0.75rem;color:#a1a1aa;">Blocks Per Adjustment</p></div>
+        <div><p style="font-size:1.25rem;font-weight:700;color:#a78bfa;">10 min</p><p style="font-size:0.75rem;color:#a1a1aa;">Target Block Time</p></div>
+        <div><p style="font-size:1.25rem;font-weight:700;color:#a78bfa;">3.125 BTC</p><p style="font-size:0.75rem;color:#a1a1aa;">Current Block Reward</p></div>
+      </div>
+    </div>
+
+    <div style="margin:1.5rem 0;padding:1.2rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+      <p style="font-size:0.8rem;font-weight:600;color:#a78bfa;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">💡 Self-Regulating System</p>
+      <p style="font-size:0.95rem;color:#e4e4e7;">This automatic adjustment keeps Bitcoin's issuance schedule predictable regardless of how much mining power joins or leaves the network. It's a <span style="color:white;font-weight:500;">self-regulating feedback loop</span> that has worked flawlessly since 2009.</p>
+    </div>
+
+    <!-- Block Rewards and Halvings -->
+    <h2 style="font-size:1.25rem;font-weight:300;color:#c084fc;margin-top:2.5rem;margin-bottom:1rem;border-left:4px solid #8b5cf6;padding-left:1rem;">Block Rewards and Halvings</h2>
+    <p style="color:#d4d4d8;line-height:1.8;margin-bottom:1rem;">The block reward is how new bitcoins enter circulation. Starting at 50 BTC per block in 2009, this reward is cut in half every 210,000 blocks (roughly four years). This "halving" event reduces new supply and has historically preceded major price increases.</p>
+
+    <div style="margin:1.5rem 0;display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+        <p style="font-size:0.9rem;color:#e4e4e7;"><span style="color:#a78bfa;font-weight:600;">2009:</span> 50 BTC per block</p>
+      </div>
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+        <p style="font-size:0.9rem;color:#e4e4e7;"><span style="color:#a78bfa;font-weight:600;">2012:</span> 25 BTC per block</p>
+      </div>
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+        <p style="font-size:0.9rem;color:#e4e4e7;"><span style="color:#a78bfa;font-weight:600;">2016:</span> 12.5 BTC per block</p>
+      </div>
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+        <p style="font-size:0.9rem;color:#e4e4e7;"><span style="color:#a78bfa;font-weight:600;">2020:</span> 6.25 BTC per block</p>
+      </div>
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+        <p style="font-size:0.9rem;color:#e4e4e7;"><span style="color:#a78bfa;font-weight:600;">2024:</span> 3.125 BTC per block</p>
+      </div>
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+        <p style="font-size:0.9rem;color:#e4e4e7;"><span style="color:#a78bfa;font-weight:600;">~2028:</span> 1.5625 BTC per block</p>
+      </div>
+    </div>
+
+    <!-- Mining Hardware -->
+    <h2 style="font-size:1.25rem;font-weight:300;color:#c084fc;margin-top:2.5rem;margin-bottom:1rem;border-left:4px solid #8b5cf6;padding-left:1rem;">Mining Hardware: ASICs vs GPUs</h2>
+    <p style="color:#d4d4d8;line-height:1.8;margin-bottom:1rem;">In Bitcoin's early days, anyone could mine with a regular CPU. As competition grew, miners moved to GPUs, then to purpose-built ASIC (Application-Specific Integrated Circuit) machines that are orders of magnitude more efficient at computing SHA-256 hashes.</p>
+
+    <div style="margin:1.5rem 0;display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(239,68,68,0.3);background:rgba(127,29,29,0.1);">
+        <p style="color:#f87171;font-weight:600;font-size:0.9rem;margin-bottom:0.25rem;">GPUs (Not Profitable)</p>
+        <p style="font-size:0.8rem;color:#a1a1aa;">General-purpose graphics cards. Good for other crypto algorithms but cannot compete with ASICs on SHA-256. Used in Bitcoin's early years (2009-2013).</p>
+      </div>
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(34,197,94,0.3);background:rgba(20,83,45,0.1);">
+        <p style="color:#4ade80;font-weight:600;font-size:0.9rem;margin-bottom:0.25rem;">ASICs (Industry Standard)</p>
+        <p style="font-size:0.8rem;color:#a1a1aa;">Custom chips designed solely for SHA-256 hashing. Thousands of times more efficient than GPUs. Modern miners like the Antminer S21 produce ~200 TH/s.</p>
+      </div>
+    </div>
+
+    <!-- Mining Pools and Energy -->
+    <h2 style="font-size:1.25rem;font-weight:300;color:#c084fc;margin-top:2.5rem;margin-bottom:1rem;border-left:4px solid #8b5cf6;padding-left:1rem;">Mining Pools and Energy Use</h2>
+    <p style="color:#d4d4d8;line-height:1.8;margin-bottom:1rem;">Individual miners have a tiny chance of finding a block alone, so most join mining pools — groups that combine their hashpower and split rewards proportionally. The largest pools include Foundry USA, AntPool, and F2Pool.</p>
+
+    <div style="margin:1.5rem 0;padding:1.2rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+      <p style="font-size:0.8rem;font-weight:600;color:#a78bfa;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">💡 The Energy Debate</p>
+      <p style="font-size:0.95rem;color:#e4e4e7;">Bitcoin mining consumes significant electricity (~150 TWh/year), but context matters. Over <span style="color:white;font-weight:500;">50% of mining now uses renewable energy</span>, and miners often consume stranded energy that would otherwise be wasted. Mining also provides a financial incentive to develop renewable energy infrastructure in remote locations.</p>
+    </div>
+
+    <div style="margin:1.5rem 0;display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+        <p style="font-size:0.9rem;color:#e4e4e7;"><span style="color:#a78bfa;font-weight:600;">Pool mining:</span> Predictable, frequent small payouts shared among members</p>
+      </div>
+      <div style="padding:1rem;border-radius:12px;border:1px solid rgba(139,92,246,0.3);background:rgba(88,28,135,0.15);">
+        <p style="font-size:0.9rem;color:#e4e4e7;"><span style="color:#a78bfa;font-weight:600;">Solo mining:</span> Rare, large payouts — like winning the lottery</p>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="margin-top:2.5rem;padding:1.2rem;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(109,40,217,0.05));border:1px solid rgba(139,92,246,0.3);border-radius:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+      <p style="color:#c084fc;font-size:0.9rem;font-weight:500;">🪙 Track Bitcoin and crypto in real-time</p>
+      <a href="/coins" style="padding:0.5rem 1.2rem;background:linear-gradient(180deg,#a78bfa,#7c3aed);color:white;border-radius:6px;text-decoration:none;font-size:0.85rem;font-weight:600;">Open Tracker →</a>
+    </div>
+    <div style="margin-top:2rem;text-align:center;">
+      <a href="/blog" style="color:#71717a;font-size:0.85rem;text-decoration:none;">← Back to all articles</a>
+    </div>
+  </div>
+</Layout>

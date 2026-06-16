@@ -1,0 +1,54 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Clicks — Admin" showHeader={false}>
+  <nav style="background:linear-gradient(180deg,#2a2a3a,#1a1a28);padding:0.8rem 1.5rem;border-bottom:1px solid #3f3f5a;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <a href="/admin" style="color:#a1a1aa;font-weight:700;text-decoration:none;font-size:1rem;">⚙️ Admin</a>
+      <a href="/admin/emails" style="color:#a1a1aa;text-decoration:none;font-size:0.85rem;">Emails</a>
+      <a href="/admin/clicks" style="color:#c084fc;text-decoration:none;font-size:0.85rem;">Clicks</a>
+      <a href="/admin/telemetry" style="color:#a1a1aa;text-decoration:none;font-size:0.85rem;">Telemetry</a>
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <a href="/" style="color:#71717a;text-decoration:none;font-size:0.85rem;">← Site</a>
+      <a href="/api/auth/logout" style="color:#ef4444;text-decoration:none;font-size:0.85rem;">Logout</a>
+    </div>
+  </nav>
+  <div style="max-width:1100px;margin:2rem auto;padding:0 1rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <h1 style="font-size:1.5rem;font-weight:700;color:#fafafa;">📊 Clicks</h1>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <span id="totalClicks" style="color:#10b981;font-weight:700;font-size:1.2rem;">0</span>
+        <span style="color:#71717a;font-size:0.8rem;">total</span>
+        <button class="btn" onclick="loadClicks()" style="margin-left:1rem;font-size:0.75rem;">Refresh</button>
+        <label style="color:#a1a1aa;font-size:0.75rem;margin-left:0.5rem;"><input type="checkbox" id="autoRefresh" checked /> Auto (2s)</label>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Element</th><th>Page</th><th>Device</th><th>Browser</th><th>Country</th><th>Time</th></tr></thead>
+        <tbody id="clicksBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <script is:inline>
+    var autoInterval;
+    async function loadClicks() {
+      try {
+        var res = await fetch('/api/clicks?limit=100');
+        if (!res.ok) return;
+        var data = await res.json();
+        var countRes = await fetch('/api/clicks?count=true');
+        if (countRes.ok) { var cd = await countRes.json(); document.getElementById('totalClicks').textContent = cd.total || '0'; }
+        var tbody = document.getElementById('clicksBody');
+        tbody.innerHTML = (data.clicks || []).map(function(c) {
+          return '<tr><td style="color:#c084fc;font-size:0.8rem;">' + (c.ui_element || '-') + '</td><td style="font-size:0.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;">' + (c.url || '-') + '</td><td style="font-size:0.8rem;">' + (c.device_type || '-') + '</td><td style="font-size:0.8rem;">' + (c.browser || '-') + '</td><td style="font-size:0.8rem;">' + (c.country || '-') + '</td><td style="font-size:0.75rem;color:#71717a;">' + (c.created_at || '-') + '</td></tr>';
+        }).join('');
+      } catch(e) {}
+    }
+    function startAuto() { stopAuto(); autoInterval = setInterval(loadClicks, 2000); }
+    function stopAuto() { if (autoInterval) clearInterval(autoInterval); }
+    document.getElementById('autoRefresh').addEventListener('change', function() { if (this.checked) startAuto(); else stopAuto(); });
+    loadClicks(); startAuto();
+  </script>
+</Layout>

@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const POST: APIRoute = async ({ request }) => {
+  const db = env.DB;
 
   let hours = 1;
   try {
@@ -30,30 +31,25 @@ export const POST: APIRoute = async ({ request, locals }) => {
       const pair = dexData.pair || dexData.pairs?.[0];
       if (!pair) { results.push({ coinid: (coin as any).coinid, coinname: (coin as any).coinname, status: 'failed' }); continue; }
 
-      // Pick the closest time window based on hours selection
-      // DexScreener provides: m5, h1, h6, h24
       let priceChange = 0;
       let timeLabel = '';
       if (hours <= 1) {
         priceChange = pair.priceChange?.h1 || 0;
         timeLabel = '1h';
       } else if (hours <= 3) {
-        // Interpolate between h1 and h6 (use h1 * hours as rough estimate, or just h6 if >= 3)
         priceChange = pair.priceChange?.h6 ? pair.priceChange.h6 * (hours / 6) : pair.priceChange?.h1 * hours || 0;
         timeLabel = hours + 'h (estimated)';
       } else {
-        // 4-5 hours, use h6 as closest
         priceChange = pair.priceChange?.h6 || 0;
         timeLabel = '6h';
       }
 
-      // Also check our own tracker history for more accuracy
       const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
       const { results: oldEntries } = await db.prepare(
         'SELECT mktcap FROM tracker WHERE coinid = ? AND tracked_at <= ? ORDER BY tracked_at DESC LIMIT 1'
       ).bind((coin as any).coinid, cutoffTime).all();
 
-      let mktCapChange = priceChange; // Default to API price change
+      let mktCapChange = priceChange;
       if (oldEntries && oldEntries.length > 0) {
         const oldMktCap = parseFloat(((oldEntries[0] as any).mktcap || '').replace(/[$,]/g, ''));
         const currentMktCap = pair.marketCap || 0;
@@ -63,14 +59,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
         }
       }
 
-      // Determine trend
       let trend = 'consolidating';
       if (mktCapChange >= 15) trend = 'pumping';
       else if (mktCapChange >= 5) trend = 'accumulating';
       else if (mktCapChange <= -15) trend = 'dumping';
       else if (mktCapChange <= -5) trend = 'distributing';
 
-      // Determine status
       let currentstatus = 'Consolidating';
       const h1 = pair.priceChange?.h1 || 0;
       const h24 = pair.priceChange?.h24 || 0;

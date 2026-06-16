@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
-export const GET: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const GET: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const url = new URL(request.url);
   const coinid = url.searchParams.get('coinid');
 
@@ -14,8 +15,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
   return new Response(JSON.stringify({ tracker: results }), { headers: { 'Content-Type': 'application/json' } });
 };
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const POST: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const body = await request.json();
   const { coinid, dexscreenerurl, fdv, liquidity, mktcap, price_5m, price_1h, price_6h, price_24h, txns, volume, traders, holders } = body;
 
@@ -29,8 +30,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   return new Response(JSON.stringify({ success: true, id: result.meta.last_row_id }), { headers: { 'Content-Type': 'application/json' } });
 };
 
-export const DELETE: APIRoute = async ({ request, locals }) => {
-  const db = (locals as any).runtime.env.DB;
+export const DELETE: APIRoute = async ({ request }) => {
+  const db = env.DB;
   const url = new URL(request.url);
   const id = url.searchParams.get('id');
 

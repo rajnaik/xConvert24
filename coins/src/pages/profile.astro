@@ -1,0 +1,106 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Profile — xCrypto24" description="Manage your xCrypto24 profile settings, localStorage data, and user preferences. View and delete stored data at any time." keywords="crypto profile, user settings, localStorage management, data control">
+  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"WebPage","name":"Profile — xCrypto24","url":"https://xcrypto24.com/profile","description":"Manage your xCrypto24 profile settings and stored data."})} />
+  <div style="max-width:700px;margin:2rem auto;padding:0 1rem;">
+    <h1 style="font-size:2rem;font-weight:700;color:#fafafa;margin-bottom:0.5rem;">👤 Profile</h1>
+    <p style="color:#a1a1aa;margin-bottom:2rem;">Your data stored in this browser</p>
+
+    <!-- User ID -->
+    <div style="margin-bottom:1.5rem;padding:1rem;border-radius:12px;border:1px solid #3f3f5a;background:linear-gradient(180deg,#1e1e2e,#16161f);">
+      <label style="display:block;color:#a1a1aa;font-size:0.8rem;margin-bottom:0.4rem;">User ID</label>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <code id="userIdDisplay" style="flex:1;padding:0.5rem 0.7rem;background:#0a0a0f;border:1px solid #3f3f5a;border-radius:4px;color:#c084fc;font-size:0.85rem;word-break:break-all;"></code>
+        <button id="copyBtn" class="btn btn-add" style="padding:0.4rem 0.8rem;font-size:0.8rem;">📋</button>
+      </div>
+    </div>
+
+    <!-- All localStorage data -->
+    <h2 style="font-size:1.1rem;font-weight:300;color:#c084fc;margin-top:2rem;margin-bottom:1rem;border-left:4px solid #8b5cf6;padding-left:1rem;">Stored Data</h2>
+    <div id="storageList" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+
+    <!-- Actions -->
+    <div style="margin-top:2rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
+      <button id="resetBtn" class="btn" style="background:linear-gradient(180deg,#f87171,#dc2626);color:white;padding:0.5rem 1rem;font-size:0.85rem;">🔄 Reset User ID</button>
+      <button id="nukeBtn" class="btn" style="background:linear-gradient(180deg,#ef4444,#991b1b);color:white;padding:0.5rem 1rem;font-size:0.85rem;">💣 Clear ALL Data</button>
+    </div>
+    <p style="color:#71717a;font-size:0.7rem;margin-top:0.5rem;">Reset generates a new User ID. Clear ALL removes everything from localStorage.</p>
+
+    <div style="margin-top:2rem;text-align:center;">
+      <a href="/coins" style="color:#71717a;font-size:0.85rem;text-decoration:none;">← Back to Coins</a>
+    </div>
+  </div>
+
+  <script is:inline>
+    function getUserId() {
+      var uid = localStorage.getItem('xcrypto_user_id');
+      if (!uid) { uid = 'user_' + crypto.randomUUID(); localStorage.setItem('xcrypto_user_id', uid); }
+      return uid;
+    }
+
+    function renderStorage() {
+      var container = document.getElementById('storageList');
+      var keys = [];
+      for (var i = 0; i < localStorage.length; i++) { keys.push(localStorage.key(i)); }
+      keys.sort();
+
+      if (keys.length === 0) {
+        container.innerHTML = '<p style="color:#71717a;font-size:0.85rem;">No data stored</p>';
+        return;
+      }
+
+      container.innerHTML = keys.map(function(key) {
+        var val = localStorage.getItem(key);
+        var preview = val.length > 80 ? val.slice(0, 80) + '...' : val;
+        var size = new Blob([val]).size;
+        var sizeStr = size > 1024 ? (size / 1024).toFixed(1) + ' KB' : size + ' B';
+        return '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0.8rem;border-radius:8px;border:1px solid #3f3f5a;background:#16161f;">' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="display:flex;align-items:center;gap:0.5rem;">' +
+              '<span style="font-size:0.8rem;font-weight:600;color:#c084fc;">' + key + '</span>' +
+              '<span style="font-size:0.65rem;color:#71717a;">(' + sizeStr + ')</span>' +
+            '</div>' +
+            '<p style="font-size:0.7rem;color:#a1a1aa;margin-top:0.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + preview.replace(/</g, '&lt;') + '</p>' +
+          '</div>' +
+          '<button class="btn" style="padding:0.2rem 0.5rem;font-size:0.7rem;background:linear-gradient(180deg,#f87171,#dc2626);color:white;flex-shrink:0;" onclick="deleteKey(\'' + key.replace(/'/g, "\\'") + '\')">🗑</button>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.deleteKey = function(key) {
+      if (!confirm('Delete "' + key + '" from localStorage?')) return;
+      localStorage.removeItem(key);
+      renderStorage();
+    };
+
+    var userId = getUserId();
+    document.getElementById('userIdDisplay').textContent = userId;
+
+    document.getElementById('copyBtn').addEventListener('click', function() {
+      navigator.clipboard.writeText(userId).then(function() {
+        var btn = document.getElementById('copyBtn');
+        btn.textContent = '✅';
+        setTimeout(function() { btn.textContent = '📋'; }, 2000);
+      });
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function() {
+      if (!confirm('Reset User ID? This will unlink you from your existing coins.')) return;
+      localStorage.removeItem('xcrypto_user_id');
+      userId = getUserId();
+      document.getElementById('userIdDisplay').textContent = userId;
+      renderStorage();
+    });
+
+    document.getElementById('nukeBtn').addEventListener('click', function() {
+      if (!confirm('⚠️ This will delete ALL localStorage data (preferences, logs, filters, basket, scan history). Are you sure?')) return;
+      localStorage.clear();
+      userId = getUserId();
+      document.getElementById('userIdDisplay').textContent = userId;
+      renderStorage();
+    });
+
+    renderStorage();
+  </script>
+</Layout>

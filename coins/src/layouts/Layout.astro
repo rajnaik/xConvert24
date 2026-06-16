@@ -1,80 +1,121 @@
 ---
+import CookieConsent from '../components/CookieConsent.astro';
+
 interface Props {
   title: string;
+  description?: string;
+  keywords?: string;
   showHeader?: boolean;
 }
-const { title, showHeader = true } = Astro.props;
+const { title, description, keywords, showHeader = true } = Astro.props;
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#8b5cf6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta property="og:image" content="https://xcrypto24.com/social-card.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://xcrypto24.com/social-card.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Track memecoins, analyze trends, and make informed crypto decisions. Free real-time coin tracking with DexScreener data." />
+  <meta name="description" content={description || "Track memecoins, analyze trends, and make informed crypto decisions. Free real-time coin tracking with DexScreener data."} />
+  {keywords && <meta name="keywords" content={keywords} />}
+  {Astro.url.pathname.startsWith('/admin') && <meta name="robots" content="noindex, nofollow" />}
   <link rel="canonical" href={"https://xcrypto24.com" + Astro.url.pathname} />
   <meta property="og:title" content={title + " | xCrypto24"} />
-  <meta property="og:description" content="Free memecoin tracker with real-time data, rug check safety scores, and technical analysis charts." />
+  <meta property="og:description" content={description || "Free memecoin tracker with real-time data, rug check safety scores, and technical analysis charts."} />
   <meta property="og:url" content={"https://xcrypto24.com" + Astro.url.pathname} />
   <meta property="og:type" content="website" />
   <title>{title} | xCrypto24</title>
   <style is:global>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
-    .container { max-width: 1600px; margin: 0 auto; padding: 1rem; }
-    nav { background: #1e293b; padding: 0.8rem 1.5rem; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #d4d4d8; min-height: 100vh; background-image: radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a0f 70%); }
+    .container { max-width: 100%; margin: 0; padding: 0.5rem 0.5rem; }
+    /* Titanium Nav */
+    nav { background: linear-gradient(180deg, #2a2a3a 0%, #1a1a28 100%); padding: 0.8rem 1.5rem; border-bottom: 1px solid #3f3f5a; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
     .nav-links { display: flex; gap: 1.2rem; align-items: center; }
-    .nav-links a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.15s; }
-    .nav-links a:hover, .nav-links a.active { color: #f59e0b; }
+    .nav-links a { color: #a1a1aa; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: #c084fc; text-shadow: 0 0 8px rgba(192,132,252,0.4); }
     .nav-brand { display: flex; align-items: center; gap: 8px; }
-    .nav-brand a { color: #f8fafc; text-decoration: none; font-size: 1rem; font-weight: 700; }
-    h1 { color: #f8fafc; margin: 1.5rem 0; }
-    h2 { color: #f8fafc; }
+    .nav-brand a { color: #fafafa; text-decoration: none; font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; }
+    h1 { color: #fafafa; margin: 1.5rem 0; font-weight: 700; letter-spacing: -0.5px; }
+    h2 { color: #fafafa; }
+    /* Carbon Fiber Table */
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #334155; }
-    th { background: #1e293b; color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    td { color: #e2e8f0; font-size: 0.9rem; white-space: nowrap; }
-    tr:hover td { background: #1e293b; }
-    .btn { padding: 0.4rem 0.8rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
-    .btn-edit { background: #3b82f6; color: white; }
-    .btn-delete { background: #ef4444; color: white; }
-    .btn-add { background: #10b981; color: white; padding: 0.6rem 1.2rem; font-size: 0.9rem; }
-    .btn-track { background: #8b5cf6; color: white; }
-    .btn:hover { opacity: 0.85; }
+    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #27272a; }
+    th { background: linear-gradient(180deg, #27272a 0%, #1c1c22 100%); color: #a1a1aa; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    td { color: #d4d4d8; font-size: 0.9rem; white-space: nowrap; }
+    tr:hover td { background: rgba(139,92,246,0.05); }
+    /* Carbon Fiber Buttons */
+    .btn { padding: 0.4rem 0.8rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; background-image: url(/carbon-fiber.jpg); background-size: 200px; background-repeat: repeat; color: #ffffff; border: 1px solid #8b5cf6; box-shadow: 0 1px 3px rgba(0,0,0,0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+    .btn-edit { color: #ffffff; border-color: #3b82f6; }
+    .btn-delete { color: #ffffff; border-color: #ef4444; }
+    .btn-add { color: #ffffff; padding: 0.6rem 1.2rem; font-size: 0.9rem; border-color: #8b5cf6; }
+    .btn-track { color: #ffffff; border-color: #8b5cf6; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(139,92,246,0.3); border-color: #a78bfa; }
+    .btn:active { transform: translateY(0); }
     .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-    .badge-yes { background: #065f46; color: #6ee7b7; }
-    .badge-no { background: #7f1d1d; color: #fca5a5; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+    .badge-yes { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+    .badge-no { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    /* Titanium Modals */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; }
     .modal-overlay.active { display: flex; }
-    .modal { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 2rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-    .modal h2 { color: #f8fafc; margin-bottom: 1.5rem; }
+    .modal { background: linear-gradient(180deg, #1e1e2e 0%, #16161f 100%); border: 1px solid #3f3f5a; border-radius: 12px; padding: 2rem; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+    .modal h2 { color: #fafafa; margin-bottom: 1.5rem; }
     .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.3rem; }
-    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.6rem; background: #0f172a; border: 1px solid #475569; border-radius: 4px; color: #e2e8f0; font-size: 0.9rem; }
+    .form-group label { display: block; color: #a1a1aa; font-size: 0.85rem; margin-bottom: 0.3rem; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.6rem; background: #0a0a0f; border: 1px solid #3f3f5a; border-radius: 6px; color: #d4d4d8; font-size: 0.9rem; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #8b5cf6; outline: none; box-shadow: 0 0 0 2px rgba(139,92,246,0.2); }
     .form-group textarea { resize: vertical; min-height: 80px; }
     .modal-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
-    .btn-save { background: #10b981; color: white; padding: 0.6rem 1.5rem; }
-    .btn-cancel { background: #475569; color: white; padding: 0.6rem 1.5rem; }
-    .toast { position: fixed; top: 1rem; right: 1rem; padding: 0.8rem 1.5rem; border-radius: 6px; font-size: 0.9rem; z-index: 200; display: none; }
-    .toast-success { background: #065f46; color: #6ee7b7; }
-    .toast-error { background: #7f1d1d; color: #fca5a5; }
-    footer { border-top: 1px solid #334155; padding: 1.5rem; text-align: center; margin-top: 2rem; }
-    footer a { color: #64748b; text-decoration: none; font-size: 0.8rem; margin: 0 0.8rem; }
-    footer a:hover { color: #f59e0b; }
+    .btn-save { background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); color: white; padding: 0.6rem 1.5rem; }
+    .btn-cancel { background: linear-gradient(180deg, #52525b 0%, #3f3f46 100%); color: white; padding: 0.6rem 1.5rem; }
+    /* Toast */
+    .toast { position: fixed; top: 1rem; right: 1rem; padding: 0.8rem 1.5rem; border-radius: 8px; font-size: 0.9rem; z-index: 200; display: none; backdrop-filter: blur(8px); }
+    .toast-success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+    .toast-error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    /* Footer */
+    footer { border-top: 1px solid #27272a; padding: 1.5rem; text-align: center; margin-top: 2rem; }
+    footer a { color: #52525b; text-decoration: none; font-size: 0.8rem; margin: 0 0.8rem; transition: color 0.2s; }
+    footer a:hover { color: #c084fc; }
+    .sort-link { color: #a1a1aa; text-decoration: none; cursor: pointer; transition: color 0.2s; }
+    .sort-link:hover { color: #c084fc; }
+    /* Light theme */
+    :root.light body { background: #fafafa; color: #1c1c22; background-image: none; }
+    :root.light nav { background: linear-gradient(180deg, #ffffff 0%, #f4f4f5 100%); border-color: #e4e4e7; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    :root.light .nav-links a { color: #71717a; }
+    :root.light .nav-links a:hover { color: #8b5cf6; }
+    :root.light .nav-brand a { color: #0a0a0f; }
+    :root.light h1, :root.light h2 { color: #0a0a0f; }
+    :root.light th { background: linear-gradient(180deg, #f4f4f5 0%, #e4e4e7 100%); color: #52525b; }
+    :root.light td { color: #1c1c22; border-color: #e4e4e7; }
+    :root.light tr:hover td { background: rgba(139,92,246,0.03); }
+    :root.light .modal { background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%); border-color: #e4e4e7; }
+    :root.light .form-group input, :root.light .form-group textarea, :root.light .form-group select { background: #ffffff; border-color: #d4d4d8; color: #1c1c22; }
+    :root.light .toast-success { background: rgba(34,197,94,0.1); color: #15803d; border: 1px solid rgba(34,197,94,0.3); }
+    :root.light .toast-error { background: rgba(239,68,68,0.1); color: #b91c1c; border: 1px solid rgba(239,68,68,0.3); }
+    :root.light footer { border-color: #e4e4e7; }
+    :root.light footer a { color: #a1a1aa; }
   </style>
 </head>
 <body>
   {showHeader && (
     <nav>
       <div class="nav-brand">
-        <span style="font-size:1.4rem;">🪙</span>
-        <a href="/">xCrypto24</a>
+        <a href="/"><img src="/logo.svg" alt="xCrypto24" style="height:96px;width:auto;" /></a>
       </div>
       <div class="nav-links">
-        <a href="/admin/coins">Coins</a>
-        <a href="/admin/tracker">Tracker</a>
+        <a href="/coins">Coins</a>
         <a href="/admin/analysis">Analysis</a>
+        <a href="/blog">📝 Blog</a>
         <a href="/about">About</a>
         <a href="/contact">Contact</a>
+        <a href="/profile" title="Profile" style="font-size:1.2rem;">👤</a>
+        <a href="#" id="themeToggle" title="Toggle theme" style="font-size:1.2rem;cursor:pointer;">🌙</a>
       </div>
     </nav>
   )}
@@ -88,7 +129,46 @@ const { title, showHeader = true } = Astro.props;
     <a href="/disclaimer">Disclaimer</a>
     <a href="/contact">Contact</a>
     <a href="/suggest">Suggest</a>
-    <span style="color:#475569;font-size:0.75rem;margin-left:1rem;">&copy; 2026 xCrypto24.com</span>
+    <br style="margin:0.5rem 0;" />
+    <a href="/releases" style="color:#3f3f5a;font-size:0.7rem;text-decoration:none;">&copy; 2026 xCrypto24.com &middot; v1.0.0 &middot; Jun 16, 2026</a>
   </footer>
+  <CookieConsent />
+  <script is:inline>
+    (function() {
+      var theme = localStorage.getItem('xcrypto_theme') || 'dark';
+      if (theme === 'light') document.documentElement.classList.add('light');
+      var btn = document.getElementById('themeToggle');
+      if (btn) {
+        btn.textContent = theme === 'light' ? '☀️' : '🌙';
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var isLight = document.documentElement.classList.toggle('light');
+          localStorage.setItem('xcrypto_theme', isLight ? 'light' : 'dark');
+          btn.textContent = isLight ? '☀️' : '🌙';
+        });
+      }
+    })();
+  </script>
+  <script is:inline>
+    (function() {
+      if (window.location.pathname.startsWith('/admin')) return;
+      var consent = localStorage.getItem('xcrypto_cookie_consent');
+      if (consent === 'declined') return;
+      var userId = localStorage.getItem('xcrypto_user_id');
+      if (!userId) { userId = crypto.randomUUID(); localStorage.setItem('xcrypto_user_id', userId); }
+      var sessionId = sessionStorage.getItem('xcrypto_session_id');
+      if (!sessionId) { sessionId = crypto.randomUUID(); sessionStorage.setItem('xcrypto_session_id', sessionId); }
+      document.addEventListener('click', function(e) {
+        var el = e.target.closest('a, button, [data-track]');
+        if (!el) return;
+        var label = el.getAttribute('data-track') || el.textContent?.trim().slice(0, 50) || el.tagName;
+        fetch('/api/clicks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+          user_id: userId, ui_element: label, url: window.location.pathname, session_id: sessionId,
+          page_title: document.title, screen_width: screen.width, screen_height: screen.height,
+          viewport_width: window.innerWidth, viewport_height: window.innerHeight, click_x: e.clientX, click_y: e.clientY
+        })}).catch(function(){});
+      });
+    })();
+  </script>
 </body>
 </html>
