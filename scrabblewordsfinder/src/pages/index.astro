@@ -430,6 +430,7 @@ import '../styles/global.css';
 
 <script>
   import { ACHIEVEMENTS_KEY, type Achievement, LETTER_SCORES, wordScore as _wordScore, escapeHtml, getAchievements, getAchievedWords, getCategories, getOrCreateUid, saveAchievements as _saveAchievements, fetchMeaning as _fetchMeaning, isRealMeaning } from '../lib/wordbench';
+  import { logPracticeWord, getAutoPlaySpeed, saveAutoPlaySpeed } from '../lib/practice';
 
   // Re-export with local wrappers that inject dependencies
   function wordScore(word: string): number { return _wordScore(word); }
@@ -1119,7 +1120,7 @@ import '../styles/global.css';
 
   function scheduleMwbNext(cards: Achievement[]) {
     clearTimeout(mwbAutoTimer);
-    const speed = parseInt((document.getElementById('mwb-speed-slider') as HTMLInputElement).value) * 1000 || 5000;
+    const speed = parseInt((document.getElementById('mwb-speed-slider') as HTMLInputElement).value) * 1000 || getAutoPlaySpeed();
     mwbAutoTimer = setTimeout(() => {
       if (!(document.getElementById('mwb-autoplay') as HTMLInputElement).checked) return;
       if (!flashCardMode) return;
@@ -1140,25 +1141,8 @@ import '../styles/global.css';
         scheduleMwbNext(cards);
       } else {
         // Log the word to practice DB
-        const uid = localStorage.getItem('swf-uid') || '';
         const currentCard = cards[flashCardIdx];
-        const currentWord = currentCard?.word || '';
-        // Get latest meaning from localStorage (it may have been fetched since cards array was built)
-        let currentMeaning = currentCard?.meaning || '';
-        if (!currentMeaning) {
-          try {
-            const latest = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
-            const match = latest.find((a: any) => a.word === currentWord);
-            if (match?.meaning) currentMeaning = match.meaning;
-          } catch {}
-        }
-        if (currentWord && uid) {
-          fetch('/api/wordbench-practice/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: uid, word: currentWord, meaning: currentMeaning })
-          }).catch(() => {});
-        }
+        logPracticeWord(currentCard?.word || '', currentCard?.meaning || '');
         // Advance to next card
         flashCardIdx = (flashCardIdx + 1) % cards.length;
         flashCardRevealed = false;
@@ -1203,7 +1187,7 @@ import '../styles/global.css';
   document.getElementById('mwb-speed-slider')!.addEventListener('input', () => {
     const val = (document.getElementById('mwb-speed-slider') as HTMLInputElement).value;
     document.getElementById('mwb-speed-label')!.textContent = val + 's';
-    localStorage.setItem('swf-fc-speed', val);
+    saveAutoPlaySpeed(parseInt(val));
     if ((document.getElementById('mwb-autoplay') as HTMLInputElement).checked && flashCardMode) {
       let cards = getAchievements();
       if (activeCategory !== 'all') cards = cards.filter(a => (a.category || 'manual') === activeCategory);
