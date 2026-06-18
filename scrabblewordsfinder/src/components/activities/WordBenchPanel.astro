@@ -1,17 +1,22 @@
       <!-- Panel 3: Memory WordBench (Flash Cards) -->
       <div class="rounded-xl border border-green-800/50 bg-gray-900/50 p-6">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🃏</span> Memory WordBench</h2>
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🃏</span> Memory WordBench <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="wordbench" title="⭐ Earn star: Auto-play 3+ cards">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="wordbench">✅</span></h2>
           <div class="flex items-center gap-2">
+            <button id="fc-history-btn" class="w-7 h-7 flex items-center justify-center rounded-full border-2 border-purple-500/50 bg-purple-900/20 hover:bg-purple-600/30 hover:border-purple-400 text-purple-300 transition-all" title="Practice History">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
             <button id="fc-start-btn" class="px-3 py-1.5 rounded-lg bg-green-600/30 border border-green-500/50 text-sm text-green-300 hover:bg-green-600/50 transition-colors">▶ Start</button>
             <span id="fc-word-count" class="text-xs text-gray-400">0 words</span>
           </div>
         </div>
         <!-- Category tabs -->
         <div id="fc-cat-filters" class="flex flex-wrap gap-1.5 mb-3"></div>
+        <!-- Import hint (visible until >10 words) -->
+        <div id="fc-import-hint" class="hidden mb-3"></div>
         <div class="flex flex-wrap items-center gap-3 mb-3">
           <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input type="checkbox" id="fc-real-meanings" class="w-3.5 h-3.5 rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500/30 focus:ring-offset-0" checked />
+            <input type="checkbox" id="fc-real-meanings" class="w-3.5 h-3.5 rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500/30 focus:ring-offset-0" />
             <span class="text-xs text-gray-400">Meaningful only</span>
           </label>
           <div id="fc-speed-wrap" class="hidden flex items-center gap-3">
@@ -19,6 +24,9 @@
             <span id="fc-speed-label" class="text-[10px] text-gray-400 font-mono w-6">5s</span>
             <button id="fc-autoplay-btn" class="w-7 h-7 flex items-center justify-center rounded-full border-2 border-purple-500/50 bg-purple-900/20 hover:bg-purple-600/30 hover:border-purple-400 text-purple-300 transition-all" title="Auto-play">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button id="fc-fullscreen-btn" class="w-7 h-7 flex items-center justify-center rounded-full border-2 border-gray-600 bg-gray-800/50 hover:bg-gray-700 hover:border-gray-500 text-gray-400 hover:text-white transition-all" title="Full screen">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>
             </button>
             <span id="fc-timer" class="hidden text-[10px] font-mono text-amber-400">0:00</span>
           </div>
@@ -31,7 +39,7 @@
             <p id="fc-meaning" class="text-sm text-gray-400 italic px-4 hidden">Click to reveal meaning</p>
             <p id="fc-hint" class="text-xs text-gray-600 mt-2">tap to flip</p>
           </div>
-          <div id="fc-empty" class="text-sm text-gray-500 italic">Add words to your Memory WordBench first, then practice here.</div>
+          <div id="fc-empty" class="text-sm text-gray-500 italic hidden"></div>
           <div id="fc-controls" class="hidden flex items-center justify-center gap-4 mt-4">
             <button id="fc-prev" class="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-sm hover:bg-gray-600 transition-colors">← Prev</button>
             <span id="fc-counter" class="text-xs text-gray-500">1 / 10</span>
@@ -45,12 +53,46 @@
             <a href="/wordbench-practice/" class="px-2.5 py-1 text-xs text-gray-400 hover:text-purple-400 hover:bg-purple-900/20 rounded transition-colors">📚 Practice</a>
           </div>
         </div>
+        <!-- Practice History Panel (inline, toggled by history button) -->
+        <div id="fc-history-panel" class="hidden mt-4 rounded-xl border border-purple-800/50 bg-gray-900/80 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-purple-300 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Practice History
+            </h3>
+            <div class="flex items-center gap-2">
+              <a href="/wordbench-practice/" class="text-[10px] text-purple-400 hover:underline">View full →</a>
+              <button id="fc-history-close" class="text-gray-500 hover:text-white text-lg leading-none">&times;</button>
+            </div>
+          </div>
+          <div id="fc-history-loading" class="text-center py-4">
+            <p class="text-xs text-gray-500">Loading...</p>
+          </div>
+          <div id="fc-history-empty" class="hidden text-center py-4">
+            <p class="text-xs text-gray-500">No practice sessions yet. Use auto-play to start!</p>
+          </div>
+          <div id="fc-history-content" class="hidden">
+            <div id="fc-history-stats" class="grid grid-cols-3 gap-2 mb-3"></div>
+            <div class="overflow-x-auto max-h-48 overflow-y-auto">
+              <table class="w-full text-xs border border-gray-700 rounded overflow-hidden">
+                <thead class="bg-gray-800 sticky top-0">
+                  <tr>
+                    <th class="px-2 py-1.5 text-left text-gray-400">Word</th>
+                    <th class="px-2 py-1.5 text-left text-gray-400">Meaning</th>
+                    <th class="px-2 py-1.5 text-left text-gray-400">When</th>
+                  </tr>
+                </thead>
+                <tbody id="fc-history-body" class="divide-y divide-gray-800"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
 
 <script is:inline>
 (function() {
   // ── Memory WordBench ──
-  var fcState = { words: [], current: 0, flipped: false, active: false };
+  var fcState = { words: [], current: 0, flipped: false, active: false, activeCategory: null };
 
   var catColors = {
     'wotd': { border: 'border-purple-500/50', bg: 'bg-purple-900/20', text: 'text-purple-300', label: '📖 Word of the Day' },
@@ -151,20 +193,71 @@
     }
   }
 
-  function startFlashCards(filterCategory) {
-    var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
-    if (saved.length === 0) return;
+  // Reusable filter: returns true if a word has a "real" meaning
+  function hasMeaningfulDef(w) {
+    if (!w.meaning || w.meaning.trim() === '') return false;
+    var m = w.meaning.toLowerCase();
+    if (m === 'no meaning saved') return false;
+    if (m.indexOf('scrabble-legal word') !== -1) return false;
+    if (m.indexOf('no standard definition') !== -1) return false;
+    var generics = [
+      'a type of plant found in tropical regions','to move swiftly in a specified direction',
+      'a container used for storage','relating to the process of growth',
+      'a sound made by striking two objects','to arrange in a particular order',
+      'a feeling of deep satisfaction','the outer covering of a seed',
+      'to reduce in size or quantity','a tool used for cutting',
+      'relating to water or moisture','a method of preparation',
+      'to express disapproval strongly','the quality of being bright',
+      'a passage between rooms or buildings','to combine separate elements',
+      'relating to the earth or soil','a measurement of distance',
+      'to make a continuous low sound','a type of fabric or textile'
+    ];
+    if (generics.indexOf(m) !== -1) return false;
+    return true;
+  }
 
-    // Build category filters
+  function startFlashCards(filterCategory, autoPlay) {
+    var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+    if (saved.length === 0) {
+      var emptyEl = document.getElementById('fc-empty');
+      emptyEl.innerHTML = '<div class="space-y-3 text-center py-2">' +
+        '<p class="text-sm text-gray-300 font-medium">No words saved yet!</p>' +
+        '<p class="text-xs text-gray-400">Import all essential Scrabble word lists in one click:</p>' +
+        '<button id="fc-import-all-btn" class="mt-3 px-4 py-2 rounded-lg bg-purple-600/30 border border-purple-500/50 text-sm text-purple-300 hover:bg-purple-600/50 hover:border-purple-400 transition-colors font-medium">📥 Import All Word Lists</button>' +
+        '<p class="text-[10px] text-gray-500 mt-3">Imports 2-letter, top 3-letter, Q-without-U, high-scoring by length, and rare letter words with categories.</p>' +
+      '</div>';
+      emptyEl.classList.remove('hidden');
+      bindImportAllBtn();
+      return;
+    }
+    // Show import prompt when All category has 10 or fewer words
+    var importHintEl = document.getElementById('fc-import-hint');
+    if (importHintEl) {
+      if (saved.length <= 10) {
+        importHintEl.innerHTML = '<button id="fc-import-all-btn" class="px-3 py-1 rounded-lg bg-purple-600/30 border border-purple-500/50 text-[11px] text-purple-300 hover:bg-purple-600/50 hover:border-purple-400 transition-colors font-medium">📥 Import All Word Lists</button>';
+        importHintEl.classList.remove('hidden');
+        bindImportAllBtn();
+      } else {
+        importHintEl.innerHTML = '';
+        importHintEl.classList.add('hidden');
+      }
+    }
+
+    // Build category filters — counts respect "Meaningful only" checkbox
+    var filterReal = document.getElementById('fc-real-meanings').checked;
+    var pool = filterReal ? saved.filter(hasMeaningfulDef) : saved;
     var cats = {};
-    saved.forEach(function(w) { var c = w.category || 'manual'; if (!cats[c]) cats[c] = 0; cats[c]++; });
+    pool.forEach(function(w) { var c = w.category || 'manual'; if (!cats[c]) cats[c] = 0; cats[c]++; });
     var filtersEl = document.getElementById('fc-cat-filters');
-    if (Object.keys(cats).length > 1) {
+    if (Object.keys(cats).length > 1 || pool.length > 0) {
       filtersEl.classList.remove('hidden');
-      var activeCat = filterCategory || 'all';
+      var activeCat = filterCategory || fcState.activeCategory || 'all';
+      // If stored category no longer exists in data, fall back to 'all'
+      if (activeCat !== 'all' && !cats[activeCat]) activeCat = 'all';
+      fcState.activeCategory = activeCat;
       var html = '<button class="fc-cat-filter px-2 py-0.5 rounded text-[10px] font-medium border transition-colors ' +
         (activeCat === 'all' ? 'border-green-500/50 bg-green-900/30 text-green-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-green-500/50') +
-        '" data-cat="all">All (' + saved.length + ')</button>';
+        '" data-cat="all">All (' + pool.length + ')</button>';
       Object.keys(cats).sort().forEach(function(c) {
         html += '<button class="fc-cat-filter px-2 py-0.5 rounded text-[10px] font-medium border transition-colors ' +
           (activeCat === c ? 'border-green-500/50 bg-green-900/30 text-green-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-green-500/50') +
@@ -173,48 +266,25 @@
       filtersEl.innerHTML = html;
       filtersEl.querySelectorAll('.fc-cat-filter').forEach(function(btn) {
         btn.addEventListener('click', function() {
-          startFlashCards(btn.dataset.cat);
+          startFlashCards(btn.dataset.cat, true);
         });
       });
     }
 
     // Apply category filter
     var words = saved;
-    if (filterCategory && filterCategory !== 'all') {
-      words = saved.filter(function(w) { return (w.category || 'manual') === filterCategory; });
+    var effectiveCat = filterCategory || fcState.activeCategory || 'all';
+    if (effectiveCat && effectiveCat !== 'all') {
+      words = saved.filter(function(w) { return (w.category || 'manual') === effectiveCat; });
     }
 
     // Filter to words with real meanings if checkbox is checked
-    var filterReal = document.getElementById('fc-real-meanings').checked;
     if (filterReal) {
-      words = words.filter(function(w) {
-        if (!w.meaning || w.meaning.trim() === '') return false;
-        var m = w.meaning.toLowerCase();
-        if (m === 'no meaning saved') return false;
-        if (m.indexOf('scrabble-legal word') !== -1) return false;
-        if (m.indexOf('no standard definition') !== -1) return false;
-        if (m === 'a type of plant found in tropical regions') return false;
-        if (m === 'to move swiftly in a specified direction') return false;
-        if (m === 'a container used for storage') return false;
-        if (m === 'relating to the process of growth') return false;
-        if (m === 'a sound made by striking two objects') return false;
-        if (m === 'to arrange in a particular order') return false;
-        if (m === 'a feeling of deep satisfaction') return false;
-        if (m === 'the outer covering of a seed') return false;
-        if (m === 'to reduce in size or quantity') return false;
-        if (m === 'a tool used for cutting') return false;
-        if (m === 'relating to water or moisture') return false;
-        if (m === 'a method of preparation') return false;
-        if (m === 'to express disapproval strongly') return false;
-        if (m === 'the quality of being bright') return false;
-        if (m === 'a passage between rooms or buildings') return false;
-        if (m === 'to combine separate elements') return false;
-        if (m === 'relating to the earth or soil') return false;
-        if (m === 'a measurement of distance') return false;
-        if (m === 'to make a continuous low sound') return false;
-        if (m === 'a type of fabric or textile') return false;
-        return true;
-      });
+      var meaningWords = words.filter(hasMeaningfulDef);
+      // If meaningful filter empties the deck for a specific category, skip the filter
+      if (meaningWords.length > 0) {
+        words = meaningWords;
+      }
     }
 
     if (words.length === 0) {
@@ -236,31 +306,204 @@
     document.getElementById('fc-start-btn').textContent = '🔀 Shuffle';
 
     renderFlashCard();
+
+    // Auto-start playback when triggered from category tab click
+    if (autoPlay) {
+      var checkbox = document.getElementById('fc-autoplay');
+      var apBtn = document.getElementById('fc-autoplay-btn');
+      if (!checkbox.checked) {
+        checkbox.checked = true;
+        document.getElementById('fc-speed-wrap').classList.remove('hidden');
+        apBtn.innerHTML = '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+        fcTimerStart = Date.now();
+        document.getElementById('fc-timer').classList.remove('hidden');
+        fcTimerInterval = setInterval(function() {
+          var elapsed = Math.floor((Date.now() - fcTimerStart) / 1000);
+          var mins = Math.floor(elapsed / 60);
+          var secs = elapsed % 60;
+          document.getElementById('fc-timer').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }, 1000);
+      }
+      autoPlayCardsAdvanced = 0;
+      startAutoPlay();
+    }
   }
 
-  document.getElementById('fc-start-btn').addEventListener('click', startFlashCards);
+  document.getElementById('fc-start-btn').addEventListener('click', function() { startFlashCards(); });
+
+  // ── Import All Word Lists ───────────────────────────────────────────────
+  function bindImportAllBtn() {
+    var btn = document.getElementById('fc-import-all-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      btn.disabled = true;
+      btn.textContent = '⏳ Loading dictionary…';
+      Promise.all([
+        fetch('/data/sowpods-2-7.json').then(function(r) { return r.json(); }),
+        fetch('/data/swfdict.json').then(function(r) { return r.json(); }).catch(function() { return {}; })
+      ])
+        .then(function(results) {
+          var words = results[0];
+          var meanings = results[1];
+          var scores = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+          function wScore(w) { return w.split('').reduce(function(s, c) { return s + (scores[c.toUpperCase()] || 0); }, 0); }
+
+          // Build categorised word lists
+          var twoLetter = words.filter(function(w) { return w.length === 2; }).sort();
+          var threeLetter = words.filter(function(w) { return w.length === 3; })
+            .map(function(w) { return { word: w, score: wScore(w) }; })
+            .sort(function(a, b) { return b.score - a.score; })
+            .slice(0, 30)
+            .map(function(w) { return w.word; });
+          var qNoU = words.filter(function(w) { return w.indexOf('q') !== -1 && w.indexOf('u') === -1; }).sort();
+          var rareQ = words.filter(function(w) { return w.indexOf('q') !== -1; })
+            .map(function(w) { return { word: w, score: wScore(w) }; })
+            .sort(function(a, b) { return b.score - a.score; })
+            .slice(0, 40)
+            .map(function(w) { return w.word; });
+          var rareZ = words.filter(function(w) { return w.indexOf('z') !== -1; })
+            .map(function(w) { return { word: w, score: wScore(w) }; })
+            .sort(function(a, b) { return b.score - a.score; })
+            .slice(0, 40)
+            .map(function(w) { return w.word; });
+          var rareX = words.filter(function(w) { return w.indexOf('x') !== -1; })
+            .map(function(w) { return { word: w, score: wScore(w) }; })
+            .sort(function(a, b) { return b.score - a.score; })
+            .slice(0, 40)
+            .map(function(w) { return w.word; });
+          var rareJ = words.filter(function(w) { return w.indexOf('j') !== -1; })
+            .map(function(w) { return { word: w, score: wScore(w) }; })
+            .sort(function(a, b) { return b.score - a.score; })
+            .slice(0, 40)
+            .map(function(w) { return w.word; });
+
+          // High-Scoring Words by Length (top 5 per length 2-5, matches solver panel)
+          var highScoring = [];
+          [2, 3, 4, 5].forEach(function(len) {
+            words.filter(function(w) { return w.length === len; })
+              .map(function(w) { return { word: w, score: wScore(w) }; })
+              .sort(function(a, b) { return b.score - a.score; })
+              .slice(0, 5)
+              .forEach(function(item) { highScoring.push(item.word); });
+          });
+
+          // Merge rare letters (deduplicate)
+          var rareSet = {};
+          rareQ.concat(rareZ).concat(rareX).concat(rareJ).forEach(function(w) { rareSet[w] = true; });
+          var rareAll = Object.keys(rareSet);
+
+          // Build category map: word → category
+          var toImport = [];
+          var seen = {};
+
+          twoLetter.forEach(function(w) { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'two-letter' }); } });
+          threeLetter.forEach(function(w) { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'three-letter' }); } });
+          qNoU.forEach(function(w) { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'q-without-u' }); } });
+          highScoring.forEach(function(w) { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'high-scoring' }); } });
+          rareAll.forEach(function(w) { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'rare-letters' }); } });
+
+          // Load existing achievements and merge
+          var existing = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+          var existingWords = {};
+          existing.forEach(function(a) { existingWords[a.word] = true; });
+
+          var imported = 0;
+          var now = new Date().toISOString();
+          toImport.forEach(function(item) {
+            if (!existingWords[item.word]) {
+              var def = meanings[item.word.toLowerCase()] || '';
+              existing.unshift({ word: item.word, meaning: def, category: item.category, dateAdded: now });
+              existingWords[item.word] = true;
+              imported++;
+            }
+          });
+
+          localStorage.setItem('scbAchievements', JSON.stringify(existing));
+
+          // Update UI
+          btn.textContent = '✅ Imported ' + imported + ' words!';
+          btn.className = 'mt-3 px-4 py-2 rounded-lg bg-green-600/30 border border-green-500/50 text-sm text-green-300 font-medium';
+          document.getElementById('fc-word-count').textContent = existing.length + ' words';
+
+          // Refresh the panel after short delay
+          setTimeout(function() {
+            refreshWordBench();
+            document.dispatchEvent(new Event('mwb-updated'));
+          }, 1500);
+        })
+        .catch(function(err) {
+          btn.textContent = '❌ Failed — try again';
+          btn.disabled = false;
+          btn.className = 'mt-3 px-4 py-2 rounded-lg bg-red-600/30 border border-red-500/50 text-sm text-red-300 hover:bg-red-600/50 transition-colors font-medium';
+          console.error('[MWB] Import All failed:', err);
+        });
+    });
+  }
 
   // Initialize word count and category tabs on load
-  (function initWordBench() {
+  function refreshWordBench() {
     var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
     document.getElementById('fc-word-count').textContent = saved.length + ' words';
+    // Show import prompt when no words saved
+    if (saved.length === 0) {
+      var emptyEl = document.getElementById('fc-empty');
+      emptyEl.innerHTML = '<div class="space-y-3 text-center py-2">' +
+        '<p class="text-sm text-gray-300 font-medium">No words saved yet!</p>' +
+        '<p class="text-xs text-gray-400">Import all essential Scrabble word lists in one click:</p>' +
+        '<button id="fc-import-all-btn" class="mt-3 px-4 py-2 rounded-lg bg-purple-600/30 border border-purple-500/50 text-sm text-purple-300 hover:bg-purple-600/50 hover:border-purple-400 transition-colors font-medium">📥 Import All Word Lists</button>' +
+        '<p class="text-[10px] text-gray-500 mt-3">Imports 2-letter, top 3-letter, Q-without-U, high-scoring by length, and rare letter words with categories.</p>' +
+      '</div>';
+      emptyEl.classList.remove('hidden');
+      bindImportAllBtn();
+      return;
+    }
+    // Show/hide import hint when All category has 10 or fewer words
+    var importHintEl = document.getElementById('fc-import-hint');
+    if (importHintEl) {
+      if (saved.length <= 10) {
+        importHintEl.innerHTML = '<button id="fc-import-all-btn" class="px-3 py-1 rounded-lg bg-purple-600/30 border border-purple-500/50 text-[11px] text-purple-300 hover:bg-purple-600/50 hover:border-purple-400 transition-colors font-medium">📥 Import All Word Lists</button>';
+        importHintEl.classList.remove('hidden');
+        bindImportAllBtn();
+      } else {
+        importHintEl.innerHTML = '';
+        importHintEl.classList.add('hidden');
+      }
+    }
     // Show category tabs immediately
     if (saved.length > 0) {
+      var filterReal = document.getElementById('fc-real-meanings').checked;
+      var pool = filterReal ? saved.filter(hasMeaningfulDef) : saved;
       var cats = {};
-      saved.forEach(function(w) { var c = w.category || 'manual'; if (!cats[c]) cats[c] = 0; cats[c]++; });
-      if (Object.keys(cats).length > 1) {
+      pool.forEach(function(w) { var c = w.category || 'manual'; if (!cats[c]) cats[c] = 0; cats[c]++; });
+      if (Object.keys(cats).length > 1 || pool.length > 0) {
         var filtersEl = document.getElementById('fc-cat-filters');
-        var html = '<button class="fc-cat-filter px-2 py-0.5 rounded text-[10px] font-medium border border-green-500/50 bg-green-900/30 text-green-300" data-cat="all">All (' + saved.length + ')</button>';
+        // Reset activeCategory to 'all' so Start button shows all words (not a stale filter)
+        fcState.activeCategory = 'all';
+        var html = '<button class="fc-cat-filter px-2 py-0.5 rounded text-[10px] font-medium border border-green-500/50 bg-green-900/30 text-green-300" data-cat="all">All (' + pool.length + ')</button>';
         Object.keys(cats).sort().forEach(function(c) {
           html += '<button class="fc-cat-filter px-2 py-0.5 rounded text-[10px] font-medium border border-gray-700 bg-gray-800 text-gray-400 hover:border-green-500/50" data-cat="' + c + '">' + c + ' (' + cats[c] + ')</button>';
         });
         filtersEl.innerHTML = html;
         filtersEl.querySelectorAll('.fc-cat-filter').forEach(function(btn) {
-          btn.addEventListener('click', function() { startFlashCards(btn.dataset.cat); });
+          btn.addEventListener('click', function() { startFlashCards(btn.dataset.cat, true); });
         });
       }
     }
-  })();
+  }
+  refreshWordBench();
+
+  // Rebuild tabs + reload deck when "Meaningful only" is toggled
+  document.getElementById('fc-real-meanings').addEventListener('change', function() {
+    refreshWordBench();
+    if (fcState.active) { startFlashCards(); }
+  });
+
+  // Auto-refresh MWB when a word is saved from WOTD or elsewhere
+  document.addEventListener('mwb-updated', function() {
+    refreshWordBench();
+    // If flash cards are active, reload the deck to include new word
+    if (fcState.active) { startFlashCards(); }
+  });
 
   // Copy button
   document.getElementById('fc-copy-btn').addEventListener('click', function() {
@@ -357,6 +600,8 @@
     scheduleNext();
   }
 
+  var autoPlayCardsAdvanced = 0;
+
   function scheduleNext() {
     clearTimeout(autoPlayTimer);
     var speed = getAutoPlaySpeed();
@@ -369,10 +614,25 @@
         autoPlayPhase = 'meaning';
         scheduleNext();
       } else {
+        // Log the current word to practice history before advancing
+        var practiced = fcState.words[fcState.current];
+        if (practiced && practiced.word) {
+          var uid = localStorage.getItem('swf-uid') || '';
+          if (uid) {
+            fetch('/api/wordbench-practice/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: uid, word: practiced.word, meaning: practiced.meaning || '' })
+            }).catch(function() {});
+          }
+        }
         // Advance to next card
         fcState.current = (fcState.current + 1) % fcState.words.length;
         renderFlashCard();
         autoPlayPhase = 'word';
+        autoPlayCardsAdvanced++;
+        // Award wordbench star after 3 cards
+        if (autoPlayCardsAdvanced === 3) { window.__awardStar && window.__awardStar('wordbench'); }
         scheduleNext();
       }
     }, speed);
@@ -392,6 +652,22 @@
     var btn = document.getElementById('fc-autoplay-btn');
     btn.innerHTML = '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
   }
+
+  // ── Pause autoplay on mouse hover over card, resume on leave ──
+  var fcCard = document.getElementById('fc-card');
+  var autoPlayPaused = false;
+  fcCard.addEventListener('mouseenter', function() {
+    if (document.getElementById('fc-autoplay').checked && autoPlayTimer) {
+      clearTimeout(autoPlayTimer);
+      autoPlayPaused = true;
+    }
+  });
+  fcCard.addEventListener('mouseleave', function() {
+    if (autoPlayPaused && document.getElementById('fc-autoplay').checked) {
+      autoPlayPaused = false;
+      scheduleNext();
+    }
+  });
 
   document.getElementById('fc-autoplay-btn').addEventListener('click', function() {
     var checkbox = document.getElementById('fc-autoplay');
@@ -429,6 +705,158 @@
       scheduleNext();
     }
   });
+
+  // ── Fullscreen toggle ──
+  document.getElementById('fc-fullscreen-btn').addEventListener('click', function() {
+    var panel = this.closest('.rounded-xl');
+    if (!document.fullscreenElement) {
+      panel.requestFullscreen().then(function() {
+        panel.style.padding = '2rem';
+        panel.style.display = 'flex';
+        panel.style.flexDirection = 'column';
+        panel.style.justifyContent = 'center';
+        panel.style.alignItems = 'center';
+        panel.style.background = '#0f172a';
+        // Fixed card size 700x300, 3x text
+        var card = document.getElementById('fc-card');
+        if (card) {
+          card.style.width = '700px';
+          card.style.maxWidth = '90vw';
+          card.style.height = '300px';
+          card.style.borderRadius = '2rem';
+        }
+        var word = document.getElementById('fc-word');
+        if (word) word.style.fontSize = '5.625rem';
+        var meaning = document.getElementById('fc-meaning');
+        if (meaning) meaning.style.fontSize = '1.5rem';
+        var score = document.getElementById('fc-score');
+        if (score) score.style.fontSize = '1.25rem';
+        var hint = document.getElementById('fc-hint');
+        if (hint) hint.style.fontSize = '0.875rem';
+        var counter = document.getElementById('fc-counter');
+        if (counter) counter.style.fontSize = '1rem';
+      }).catch(function() {});
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  document.addEventListener('fullscreenchange', function() {
+    var panel = document.getElementById('fc-fullscreen-btn').closest('.rounded-xl');
+    var btn = document.getElementById('fc-fullscreen-btn');
+    if (!document.fullscreenElement) {
+      panel.style.padding = '';
+      panel.style.display = '';
+      panel.style.flexDirection = '';
+      panel.style.justifyContent = '';
+      panel.style.alignItems = '';
+      panel.style.background = '';
+      // Reset card size
+      var card = document.getElementById('fc-card');
+      if (card) { card.style.width = ''; card.style.maxWidth = ''; card.style.height = ''; card.style.borderRadius = ''; }
+      var word = document.getElementById('fc-word');
+      if (word) word.style.fontSize = '';
+      var meaning = document.getElementById('fc-meaning');
+      if (meaning) meaning.style.fontSize = '';
+      var score = document.getElementById('fc-score');
+      if (score) score.style.fontSize = '';
+      var hint = document.getElementById('fc-hint');
+      if (hint) hint.style.fontSize = '';
+      var counter = document.getElementById('fc-counter');
+      if (counter) counter.style.fontSize = '';
+      btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>';
+      btn.title = 'Full screen';
+    } else {
+      btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
+      btn.title = 'Exit full screen';
+    }
+  });
+
+  // ── Practice History Panel ──
+  document.getElementById('fc-history-btn').addEventListener('click', function() {
+    var panel = document.getElementById('fc-history-panel');
+    if (!panel.classList.contains('hidden')) {
+      panel.classList.add('hidden');
+      return;
+    }
+    panel.classList.remove('hidden');
+    loadPracticeHistory();
+  });
+
+  document.getElementById('fc-history-close').addEventListener('click', function() {
+    document.getElementById('fc-history-panel').classList.add('hidden');
+  });
+
+  function loadPracticeHistory() {
+    var uid = localStorage.getItem('swf-uid') || '';
+    var loading = document.getElementById('fc-history-loading');
+    var empty = document.getElementById('fc-history-empty');
+    var content = document.getElementById('fc-history-content');
+
+    loading.classList.remove('hidden');
+    empty.classList.add('hidden');
+    content.classList.add('hidden');
+
+    if (!uid) {
+      loading.classList.add('hidden');
+      empty.classList.remove('hidden');
+      return;
+    }
+
+    fetch('/api/wordbench-practice/?user_id=' + encodeURIComponent(uid))
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        loading.classList.add('hidden');
+        var records = data.records || [];
+        if (records.length === 0) { empty.classList.remove('hidden'); return; }
+
+        // Stats
+        var uniqueWords = {};
+        records.forEach(function(r) { uniqueWords[r.word] = true; });
+        var uniqueCount = Object.keys(uniqueWords).length;
+        var days = {};
+        records.forEach(function(r) { if (r.created_at) days[r.created_at.split(' ')[0]] = true; });
+        var dayCount = Object.keys(days).length;
+
+        document.getElementById('fc-history-stats').innerHTML =
+          '<div class="rounded-lg bg-gray-800/80 border border-purple-800/30 p-2 text-center">' +
+            '<p class="text-lg font-bold text-purple-400">' + records.length + '</p>' +
+            '<p class="text-[9px] text-gray-500">Reviews</p>' +
+          '</div>' +
+          '<div class="rounded-lg bg-gray-800/80 border border-blue-800/30 p-2 text-center">' +
+            '<p class="text-lg font-bold text-blue-400">' + uniqueCount + '</p>' +
+            '<p class="text-[9px] text-gray-500">Unique</p>' +
+          '</div>' +
+          '<div class="rounded-lg bg-gray-800/80 border border-green-800/30 p-2 text-center">' +
+            '<p class="text-lg font-bold text-green-400">' + dayCount + '</p>' +
+            '<p class="text-[9px] text-gray-500">Days</p>' +
+          '</div>';
+
+        // Table (show last 50)
+        var rows = records.slice(0, 50).map(function(r, i) {
+          var when = '—';
+          if (r.created_at) {
+            var d = new Date(r.created_at + 'Z');
+            when = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' ' +
+                   d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          }
+          var meaning = r.meaning || '';
+          if (meaning.length > 40) meaning = meaning.slice(0, 40) + '…';
+          var bg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
+          return '<tr class="' + bg + '">' +
+            '<td class="px-2 py-1 font-mono font-bold text-white uppercase tracking-wider">' + r.word + '</td>' +
+            '<td class="px-2 py-1 text-gray-400 italic">' + meaning + '</td>' +
+            '<td class="px-2 py-1 text-gray-500 whitespace-nowrap">' + when + '</td>' +
+          '</tr>';
+        });
+        document.getElementById('fc-history-body').innerHTML = rows.join('');
+        content.classList.remove('hidden');
+      })
+      .catch(function() {
+        loading.classList.add('hidden');
+        empty.classList.remove('hidden');
+      });
+  }
 
 })();
 </script>

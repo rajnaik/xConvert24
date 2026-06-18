@@ -109,6 +109,34 @@ import '../styles/global.css';
     </div>
   </section>
 
+  <!-- Stars & Diamonds -->
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2"><span>💎</span> Stars & Diamonds</h2>
+    <div class="rounded-xl border border-purple-800/50 bg-gradient-to-r from-amber-950/10 to-purple-950/10 p-5">
+      <div id="sd-loading" class="text-center text-sm text-gray-500 py-4">Loading rewards data...</div>
+      <div id="sd-content" class="hidden">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+          <div class="text-center"><p id="sd-total-stars" class="text-xl font-bold text-amber-400">0</p><p class="text-xs text-gray-500">⭐ Stars Earned</p></div>
+          <div class="text-center"><p id="sd-diamonds-redeemed" class="text-xl font-bold text-purple-400">0</p><p class="text-xs text-gray-500">💎 Redeemed</p></div>
+          <div class="text-center"><p id="sd-diamonds-lost" class="text-xl font-bold text-red-400">0</p><p class="text-xs text-gray-500">💔 Lost</p></div>
+          <div class="text-center"><p id="sd-best-streak" class="text-xl font-bold text-amber-400">0</p><p class="text-xs text-gray-500">🔥 Best Streak</p></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="text-center"><p id="sd-current-streak" class="text-lg font-bold text-green-400">0</p><p class="text-xs text-gray-500">Current Streak</p></div>
+          <div class="text-center"><p id="sd-diamond-streak" class="text-lg font-bold text-purple-400">0</p><p class="text-xs text-gray-500">💎 Diamond Streak</p></div>
+        </div>
+        <!-- Near misses + averages -->
+        <div class="mt-4 pt-4 border-t border-gray-800">
+          <div class="grid grid-cols-3 gap-4">
+            <div class="text-center"><p id="sd-near-misses" class="text-lg font-bold text-orange-400">0</p><p class="text-xs text-gray-500">🎯 Near Misses</p><p class="text-[9px] text-gray-600">1 star away</p></div>
+            <div class="text-center"><p id="sd-avg-week" class="text-lg font-bold text-blue-400">—</p><p class="text-xs text-gray-500">⭐/day (week)</p></div>
+            <div class="text-center"><p id="sd-avg-month" class="text-lg font-bold text-blue-400">—</p><p class="text-xs text-gray-500">⭐/day (month)</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Links -->
   <div class="flex flex-wrap gap-3 text-sm">
     <a href="/profile-data/" class="text-gray-400 hover:text-blue-400 transition-colors">👁️ View raw data</a>
@@ -211,6 +239,25 @@ import '../styles/global.css';
           document.getElementById('drc-stat-played').textContent = data.history.length + ' days';
         }
       }).catch(function() {});
+
+    // ─── Stars & Diamonds ───
+    fetch('/api/daily-progress?user_id=' + encodeURIComponent(uid))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        document.getElementById('sd-loading').classList.add('hidden');
+        document.getElementById('sd-content').classList.remove('hidden');
+        var lt = data.lifetime || {};
+        document.getElementById('sd-total-stars').textContent = lt.total_stars || 0;
+        document.getElementById('sd-diamonds-redeemed').textContent = lt.total_diamonds || 0;
+        document.getElementById('sd-best-streak').textContent = lt.best_streak || 0;
+        document.getElementById('sd-current-streak').textContent = lt.current_streak || 0;
+        document.getElementById('sd-diamond-streak').textContent = lt.best_diamond_streak || 0;
+        document.getElementById('sd-diamonds-lost').textContent = lt.diamonds_lost || 0;
+        // Near misses + averages
+        if (lt.near_misses !== undefined) document.getElementById('sd-near-misses').textContent = lt.near_misses;
+        if (lt.avg_stars_week !== undefined) document.getElementById('sd-avg-week').textContent = lt.avg_stars_week;
+        if (lt.avg_stars_month !== undefined) document.getElementById('sd-avg-month').textContent = lt.avg_stars_month;
+      }).catch(function() { document.getElementById('sd-loading').textContent = 'Could not load'; });
   } else {
     document.getElementById('quiz-loading').textContent = 'Play a quiz to see stats';
     document.getElementById('wb-loading').textContent = 'Practice words to see stats';

@@ -1,0 +1,6 @@
+---
+inclusion: manual
+description: "Manual gate for production deploys. The Full Throttle steering command in full-throttle.md enforces that only explicit 'Full Throttle' triggers live deploy. This hook exists as a manual trigger reminder — the real enforcement is in the steering doc."
+---
+
+The user triggered the production deploy gate. Check if 'Full Throttle' was said in this conversation. If yes, proceed with npm run deploy. If no, deny and explain that production deploys require the Full Throttle command.

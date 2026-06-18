@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Aikido Security Scan After SonarQube",
+      "description": "Runs an Aikido security scan after SonarQube code review completes and before the final build. Ensures no SAST vulnerabilities, secrets, or IaC misconfigurations are present. Pipeline order: write → test → code review (SonarQube) → security scan (Aikido) → build → deploy.",
+      "trigger": "PostToolUse",
+      "action": {
+        "type": "agent",
+        "prompt": "A SonarQube scan just completed. Now run an Aikido security scan on all files that were modified in this session. Activate the aikido-security-scan power and use aikido_full_scan. If any critical or high severity issues are found, fix them before proceeding to build. Log the scan results by calling POST /api/security-scans with the scan summary (timestamp, files_scanned, issues_found, severity_breakdown, status). Do NOT proceed to build if critical security issues remain unfixed."
+      },
+      "enabled": false
+    }
+  ]
+}

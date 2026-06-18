@@ -1,7 +1,7 @@
       <!-- Panel 5: Daily Anagram Puzzle -->
       <div class="rounded-xl border border-rose-800/50 bg-gray-900/50 p-6 lg:col-span-2">
         <div class="flex items-center justify-between mb-2">
-          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🔤</span> Daily Anagram</h2>
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🔤</span> Daily Anagram <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="anagram" title="⭐ Earn star: Make 1 guess">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="anagram">✅</span></h2>
           <span id="anagram-streak" class="hidden px-2 py-0.5 rounded-full bg-rose-900/30 border border-rose-500/30 text-xs text-rose-300 font-mono">🔥 0</span>
         </div>
         <p class="text-xs text-gray-500 mb-4">Unscramble today's word in 5 guesses or fewer. Same puzzle for everyone!</p>
@@ -230,6 +230,8 @@
         localStorage.setItem(ANAGRAM_STATE_KEY, JSON.stringify(anagramState));
         renderAnagramGuesses();
         updateAnagramRemaining();
+        // Award anagram star on first guess
+        if (anagramState.guesses.length === 1) { window.__awardStar && window.__awardStar('anagram'); }
 
         if (anagramState.gameOver || anagramState.solved) {
           showAnagramResult(data.answer);

@@ -26,7 +26,7 @@ test.describe('Header — Positive', () => {
 
   test('FAQ link in top nav', async ({ page }) => {
     await page.goto(BASE_URL);
-    const faqLink = page.locator('a[href="/faq"]').first();
+    const faqLink = page.locator('a[href="/faq/"]').first();
     await expect(faqLink).toBeVisible();
   });
 

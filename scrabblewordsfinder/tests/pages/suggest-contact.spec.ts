@@ -38,6 +38,13 @@ test.describe('Suggest Page — Structure', () => {
     await expect(page.locator('text=How we handle suggestions')).toBeAttached();
     await expect(page.locator('text=We read every single suggestion')).toBeAttached();
   });
+
+  test('"Contact us directly" link points to /contact/ with trailing slash', async ({ page }) => {
+    await page.goto('/suggest');
+    const contactLink = page.locator('a:has-text("Contact us directly")');
+    await expect(contactLink).toBeAttached();
+    await expect(contactLink).toHaveAttribute('href', '/contact/');
+  });
 });
 
 test.describe('Suggest Page — URL Prefill', () => {
@@ -163,14 +170,25 @@ test.describe('Contact Page', () => {
 
   test('has links to suggest, guide, privacy, settings', async ({ page }) => {
     await page.goto('/contact');
-    await expect(page.locator('a[href="/suggest"]')).toBeAttached();
-    await expect(page.locator('a[href="/guide"]')).toBeAttached();
-    await expect(page.locator('a[href="/privacy"]')).toBeAttached();
-    await expect(page.locator('a[href="/settings"]')).toBeAttached();
+    await expect(page.locator('a[href="/suggest/"]')).toBeAttached();
+    await expect(page.locator('a[href="/guide/"]')).toBeAttached();
+    await expect(page.locator('a[href="/privacy/"]')).toBeAttached();
+    await expect(page.locator('a[href="/settings/"]')).toBeAttached();
   });
 
   test('has response time information', async ({ page }) => {
     await page.goto('/contact');
     await expect(page.locator('text=48 hours')).toBeAttached();
+  });
+});
+
+test.describe('Suggest Page — Negative', () => {
+  test('"Contact us directly" link does not use bare /contact without trailing slash', async ({ page }) => {
+    await page.goto('/suggest');
+    // The link in the "How we handle suggestions" section must use /contact/ (trailing slash)
+    const contactLink = page.locator('.border.border-purple-800\\/50 a:has-text("Contact us directly")');
+    await expect(contactLink).toBeAttached();
+    const href = await contactLink.getAttribute('href');
+    expect(href).toBe('/contact/');
   });
 });

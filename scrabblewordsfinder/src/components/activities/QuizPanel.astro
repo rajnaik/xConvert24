@@ -1,9 +1,9 @@
       <!-- Panel 2: Word Quiz -->
       <div class="rounded-xl border border-blue-800/50 bg-gray-900/50 p-6">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🧠</span> Word Quiz</h2>
-          <a id="quiz-history-btn" href="/wordbench-practice/" class="hidden px-2 py-1 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs text-purple-300 hover:bg-purple-600/40 transition-colors flex items-center gap-1">
-            <span>🏅</span><span id="quiz-history-count">0</span>
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🧠</span> Word Quiz <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="quiz" title="⭐ Earn star: Complete 1 quiz round">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="quiz">✅</span></h2>
+          <a id="quiz-history-btn" href="/quiz-history/" class="hidden px-2 py-1 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs text-purple-300 hover:bg-purple-600/40 transition-colors flex items-center gap-1">
+            <span>📊</span><span id="quiz-history-count">0</span>
           </a>
         </div>
 
@@ -50,7 +50,8 @@
           </div>
           <!-- Encouragement Modal Overlay -->
           <div id="quiz-modal" class="hidden absolute inset-0 z-10 flex items-center justify-center bg-gray-950/80 backdrop-blur-sm rounded-xl">
-            <div id="quiz-modal-box" class="w-[90%] max-w-xs rounded-2xl border-2 p-6 text-center shadow-2xl transform transition-all scale-95 opacity-0">
+            <div id="quiz-modal-box" class="relative w-[90%] max-w-xs rounded-2xl border-2 p-6 text-center shadow-2xl transform transition-all scale-95 opacity-0">
+              <p id="quiz-modal-timer" class="absolute top-2 right-3 text-4xl font-mono font-bold text-gray-400"></p>
               <p id="quiz-modal-emoji" class="text-4xl mb-2">🎯</p>
               <p id="quiz-modal-text" class="text-sm font-medium mb-4">Nice work!</p>
               <button id="quiz-modal-ok" class="w-full h-10 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-500 transition-colors">OK →</button>
@@ -66,7 +67,30 @@
           <div id="quiz-splits" class="text-xs text-gray-500 mb-4"></div>
           <div class="flex gap-3 justify-center">
             <button id="quiz-retry-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">Play Again</button>
+            <button id="quiz-track-btn" class="px-4 py-2 rounded-lg bg-emerald-600/30 border border-emerald-500/50 text-sm text-emerald-300 hover:bg-emerald-600/50 transition-colors flex items-center gap-1"><span>📈</span> Track</button>
             <a href="/quiz-history/" class="px-4 py-2 rounded-lg bg-purple-600/30 border border-purple-500/50 text-sm text-purple-300 hover:bg-purple-600/50 transition-colors">📊 Quiz History</a>
+          </div>
+
+          <!-- Timeline Tracker Panel -->
+          <div id="quiz-timeline-panel" class="hidden mt-6 text-left">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-semibold text-white flex items-center gap-1"><span>📈</span> Quiz Timeline</h3>
+              <button id="quiz-timeline-close" class="text-xs text-gray-500 hover:text-gray-300 transition-colors">✕ Close</button>
+            </div>
+            <!-- Timeline bar -->
+            <div class="relative mb-4">
+              <div class="flex items-center justify-between text-[10px] text-gray-500 mb-1">
+                <span>0s</span>
+                <span id="quiz-timeline-duration">90s</span>
+              </div>
+              <div id="quiz-timeline-bar" class="relative h-3 w-full rounded-full bg-gray-800 border border-gray-700 overflow-visible">
+                <!-- Green dots will be placed here dynamically -->
+              </div>
+              <!-- Time markers -->
+              <div id="quiz-timeline-markers" class="relative h-4 w-full mt-1"></div>
+            </div>
+            <!-- Per-question details list -->
+            <div id="quiz-timeline-details" class="space-y-2 max-h-48 overflow-y-auto"></div>
           </div>
         </div>
       </div>
@@ -74,7 +98,7 @@
 <script is:inline>
 (function() {
   // ── Word Quiz ──
-  var quizState = { questions: [], fakes: [], current: 0, total: 7, splits: [], startTime: 0, timerDuration: 90, timerId: null, correct: 0 };
+  var quizState = { questions: [], fakes: [], current: 0, total: 7, splits: [], details: [], startTime: 0, lastSplitTime: 0, timerDuration: 90, timerId: null, correct: 0 };
 
   // Word count picker
   document.querySelectorAll('.quiz-count-btn').forEach(function(btn) {
@@ -94,6 +118,7 @@
   document.getElementById('quiz-retry-btn').addEventListener('click', function() {
     document.getElementById('quiz-setup').classList.remove('hidden');
     document.getElementById('quiz-complete').classList.add('hidden');
+    document.getElementById('quiz-timeline-panel').classList.add('hidden');
   });
 
   var encourageCorrect = [
@@ -162,6 +187,8 @@
     }
 
     quizState.startTime = Date.now();
+    quizState.lastSplitTime = Date.now();
+    quizState.details = [];
     localStorage.setItem('swf-quiz-start', String(quizState.startTime));
     startTimer(); showQuestion();
   }
@@ -208,6 +235,11 @@
         var remaining = quizState.total - quizState.current - 1;
         var correctAnswer = quizState.questions[quizState.current].meaning;
         var questionWord = quizState.questions[quizState.current].word;
+        var splitTime = parseFloat(((Date.now() - quizState.lastSplitTime) / 1000).toFixed(1));
+        quizState.lastSplitTime = Date.now();
+
+        // Record per-question detail
+        quizState.details.push({ word: questionWord, meaning: correctAnswer, correct: isCorrect, split_time: splitTime });
 
         if (isCorrect) {
           quizState.correct++;
@@ -231,16 +263,30 @@
     var emoji = document.getElementById('quiz-modal-emoji');
     var text = document.getElementById('quiz-modal-text');
     var okBtn = document.getElementById('quiz-modal-ok');
+    var modalTimer = document.getElementById('quiz-modal-timer');
+
+    // Show live timer in modal — syncs with the main countdown
+    var timerEl = document.getElementById('quiz-timer');
+    if (modalTimer && timerEl) {
+      modalTimer.textContent = '⏱ ' + timerEl.textContent;
+      // Keep it updating while modal is open
+      if (quizState._modalTimerInterval) clearInterval(quizState._modalTimerInterval);
+      quizState._modalTimerInterval = setInterval(function() {
+        if (modal.classList.contains('hidden')) { clearInterval(quizState._modalTimerInterval); return; }
+        modalTimer.textContent = '⏱ ' + timerEl.textContent;
+        if (parseInt(timerEl.textContent) <= 10) { modalTimer.classList.add('text-red-400'); modalTimer.classList.remove('text-gray-400'); }
+      }, 250);
+    }
 
     // Set content — green for correct, red for wrong
     if (color === 'green') {
       emoji.textContent = '✅';
-      box.className = 'w-[90%] max-w-xs rounded-2xl border-2 border-green-500 bg-green-950/80 p-6 text-center shadow-2xl shadow-green-900/30 transform transition-all';
+      box.className = 'relative w-[90%] max-w-xs rounded-2xl border-2 border-green-500 bg-green-950/80 p-6 text-center shadow-2xl shadow-green-900/30 transform transition-all';
       text.className = 'text-sm font-medium mb-2 text-green-200';
       okBtn.className = 'w-full h-10 rounded-lg bg-green-600 text-white font-semibold text-sm hover:bg-green-500 transition-colors';
     } else {
       emoji.textContent = '❌';
-      box.className = 'w-[90%] max-w-xs rounded-2xl border-2 border-red-500 bg-red-950/80 p-6 text-center shadow-2xl shadow-red-900/30 transform transition-all';
+      box.className = 'relative w-[90%] max-w-xs rounded-2xl border-2 border-red-500 bg-red-950/80 p-6 text-center shadow-2xl shadow-red-900/30 transform transition-all';
       text.className = 'text-sm font-medium mb-2 text-red-200';
       okBtn.className = 'w-full h-10 rounded-lg bg-red-600 text-white font-semibold text-sm hover:bg-red-500 transition-colors';
     }
@@ -274,6 +320,9 @@
     var box = document.getElementById('quiz-modal-box');
     box.style.transform = 'scale(0.95)';
     box.style.opacity = '0';
+    if (quizState._modalTimerInterval) { clearInterval(quizState._modalTimerInterval); quizState._modalTimerInterval = null; }
+    var modalTimer = document.getElementById('quiz-modal-timer');
+    if (modalTimer) { modalTimer.classList.remove('text-red-400'); modalTimer.classList.add('text-gray-400'); }
     setTimeout(function() { modal.classList.add('hidden'); }, 150);
   }
 
@@ -313,8 +362,83 @@
     fetch('/api/achievements/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ achievement_text: 'Word Quiz', a_data: JSON.stringify({ score: score, total: total, timeUsed: totalTime, timerLimit: limit, splits: quizState.splits, timedOut: timedOut, date: new Date().toISOString() }) }) }).catch(function(){});
     // Save quiz score to DB with user ID
     var uid = localStorage.getItem('swf-uid') || '';
-    fetch('/api/quiz-scores/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: uid, score: score, total: total, time_used: parseFloat(totalTime), timer_limit: limit, timed_out: timedOut ? 1 : 0 }) }).catch(function(){});
+    fetch('/api/quiz-scores/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: uid, score: score, total: total, time_used: parseFloat(totalTime), timer_limit: limit, timed_out: timedOut ? 1 : 0, details: quizState.details }) }).catch(function(){});
     document.getElementById('quiz-timer').classList.remove('text-red-400');
+    // Award quiz star
+    window.__awardStar && window.__awardStar('quiz');
+    // Hide timeline panel on new quiz end (fresh state)
+    document.getElementById('quiz-timeline-panel').classList.add('hidden');
+  }
+
+  // ── Timeline Tracker ──
+  document.getElementById('quiz-track-btn').addEventListener('click', function() {
+    var panel = document.getElementById('quiz-timeline-panel');
+    if (panel.classList.contains('hidden')) {
+      renderTimeline();
+      panel.classList.remove('hidden');
+    } else {
+      panel.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('quiz-timeline-close').addEventListener('click', function() {
+    document.getElementById('quiz-timeline-panel').classList.add('hidden');
+  });
+
+  function renderTimeline() {
+    var duration = quizState.timerDuration;
+    var splits = quizState.splits; // cumulative seconds when each answer was confirmed
+    var details = quizState.details; // per-question { word, meaning, correct, split_time }
+
+    // Update duration label
+    document.getElementById('quiz-timeline-duration').textContent = duration + 's';
+
+    // Build dots on the bar
+    var bar = document.getElementById('quiz-timeline-bar');
+    // Clear previous dots
+    bar.querySelectorAll('.quiz-dot').forEach(function(d) { d.remove(); });
+
+    for (var i = 0; i < splits.length; i++) {
+      var t = parseFloat(splits[i]);
+      var pct = Math.min((t / duration) * 100, 100);
+      var dot = document.createElement('div');
+      dot.className = 'quiz-dot absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full border-2 shadow-lg cursor-pointer transition-transform hover:scale-150';
+      if (details[i] && details[i].correct) {
+        dot.classList.add('bg-green-400', 'border-green-300', 'shadow-green-500/40');
+      } else {
+        dot.classList.add('bg-red-400', 'border-red-300', 'shadow-red-500/40');
+      }
+      dot.style.left = 'calc(' + pct + '% - 7px)';
+      dot.title = (details[i] ? details[i].word.toUpperCase() : 'Q' + (i+1)) + ' — ' + t + 's';
+      bar.appendChild(dot);
+    }
+
+    // Build time markers under the bar
+    var markers = document.getElementById('quiz-timeline-markers');
+    markers.innerHTML = '';
+    for (var i = 0; i < splits.length; i++) {
+      var t = parseFloat(splits[i]);
+      var pct = Math.min((t / duration) * 100, 100);
+      var marker = document.createElement('span');
+      marker.className = 'absolute text-[9px] text-gray-500 -translate-x-1/2';
+      marker.style.left = pct + '%';
+      marker.textContent = t + 's';
+      markers.appendChild(marker);
+    }
+
+    // Build details list
+    var detailsEl = document.getElementById('quiz-timeline-details');
+    detailsEl.innerHTML = '';
+    for (var i = 0; i < details.length; i++) {
+      var d = details[i];
+      var cumTime = splits[i] ? parseFloat(splits[i]) : '—';
+      var row = document.createElement('div');
+      row.className = 'flex items-center gap-2 px-3 py-2 rounded-lg ' + (d.correct ? 'bg-green-950/30 border border-green-800/30' : 'bg-red-950/30 border border-red-800/30');
+      row.innerHTML = '<span class="text-xs w-5 text-center font-bold ' + (d.correct ? 'text-green-400' : 'text-red-400') + '">' + (d.correct ? '✓' : '✗') + '</span>' +
+        '<span class="text-xs font-mono font-bold text-white tracking-wider flex-shrink-0">' + d.word.toUpperCase() + '</span>' +
+        '<span class="text-[10px] text-gray-500 ml-auto flex-shrink-0">' + d.split_time + 's (at ' + cumTime + 's)</span>';
+      detailsEl.appendChild(row);
+    }
   }
 
 })();

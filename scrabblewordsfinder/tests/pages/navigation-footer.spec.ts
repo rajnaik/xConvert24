@@ -9,23 +9,23 @@ import { test, expect } from '@playwright/test';
 test.describe('Main Navigation', () => {
   test('header has solver link', async ({ page }) => {
     await page.goto('/');
-    const solverLink = page.locator('nav a[href="/"]');
+    const solverLink = page.locator('header a[href="/"]');
     await expect(solverLink).toBeAttached();
   });
 
   test('header has guide link', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('nav a[href="/guide"]')).toBeAttached();
+    await expect(page.locator('header a[href="/guide/"]')).toBeAttached();
   });
 
   test('header has about link', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('nav a[href="/about"]')).toBeAttached();
+    await expect(page.locator('header a[href="/about/"]')).toBeAttached();
   });
 
   test('header has settings link', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('nav a[href="/settings"]')).toBeAttached();
+    await expect(page.locator('header a[href="/settings/"]')).toBeAttached();
   });
 
   test('logo/brand links to home', async ({ page }) => {
@@ -120,7 +120,7 @@ test.describe('Cross-Page Navigation Flow', () => {
 
   test('can navigate from contact to suggest', async ({ page }) => {
     await page.goto('/contact');
-    const suggestLink = page.locator('a[href="/suggest"]').first();
+    const suggestLink = page.locator('a[href="/suggest/"]').first();
     await suggestLink.click();
     await expect(page).toHaveURL(/\/suggest/);
   });
