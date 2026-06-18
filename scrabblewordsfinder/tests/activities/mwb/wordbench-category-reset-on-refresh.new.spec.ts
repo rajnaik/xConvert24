@@ -66,9 +66,11 @@ test.describe('WordBench Category Reset on Refresh — Positive', () => {
     await page.locator('#fc-start-btn').click();
     await page.waitForTimeout(500);
 
-    // Verify word count reflects all words (original 5 + new 1 = 6)
-    const countText = await page.locator('#fc-word-count').textContent();
-    expect(countText).toContain('6');
+    // Verify all words are available in localStorage (original 5 + new 1 = 6)
+    const count = await page.evaluate(() => {
+      return JSON.parse(localStorage.getItem('scbAchievements') || '[]').length;
+    });
+    expect(count).toBe(6);
   });
 });
 

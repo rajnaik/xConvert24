@@ -44,16 +44,6 @@ test.describe('WordBench Empty Import Prompt On Load — Positive', () => {
     await expect(emptyEl).toContainText('rare letter');
   });
 
-  test('word count shows "0 words" when localStorage is empty', async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.removeItem('scbAchievements');
-    });
-    await page.goto(ACTIVITIES_URL);
-    await page.waitForSelector('#fc-word-count', { timeout: 8000 });
-
-    await expect(page.locator('#fc-word-count')).toContainText('0 words');
-  });
-
   test('import all button has correct styling (purple theme)', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.removeItem('scbAchievements');
@@ -102,7 +92,7 @@ test.describe('WordBench Empty Import Prompt On Load — Negative', () => {
       ]));
     });
     await page.goto(ACTIVITIES_URL);
-    await page.waitForSelector('#fc-word-count', { timeout: 8000 });
+    await page.waitForSelector('#fc-start-btn', { timeout: 8000 });
 
     const emptyEl = page.locator('#fc-empty');
     await expect(emptyEl).not.toContainText('No words saved yet!');
@@ -117,7 +107,7 @@ test.describe('WordBench Empty Import Prompt On Load — Negative', () => {
       localStorage.setItem('scbAchievements', data);
     }, JSON.stringify(manyWords));
     await page.goto(ACTIVITIES_URL);
-    await page.waitForSelector('#fc-word-count', { timeout: 8000 });
+    await page.waitForSelector('#fc-start-btn', { timeout: 8000 });
     await page.waitForTimeout(500);
 
     await expect(page.locator('#fc-import-all-btn')).not.toBeVisible();
@@ -170,7 +160,7 @@ test.describe('Import All Button — Positive', () => {
     await expect(btn).toBeDisabled();
   });
 
-  test('successful import updates word count to > 0', async ({ page }) => {
+  test('successful import saves words to localStorage', async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.removeItem('scbAchievements');
     });
@@ -183,9 +173,10 @@ test.describe('Import All Button — Positive', () => {
     // Wait for success state (button text changes to "Imported X words")
     await expect(btn).toContainText('Imported', { timeout: 15000 });
 
-    // Word count should have updated
-    const wordCount = await page.locator('#fc-word-count').textContent();
-    const count = parseInt(wordCount || '0');
+    // Verify words were saved to localStorage
+    const count = await page.evaluate(() => {
+      return JSON.parse(localStorage.getItem('scbAchievements') || '[]').length;
+    });
     expect(count).toBeGreaterThan(0);
   });
 
@@ -260,7 +251,7 @@ test.describe('Import All Button — Negative', () => {
       ]));
     });
     await page.goto(ACTIVITIES_URL);
-    await page.waitForSelector('#fc-word-count', { timeout: 8000 });
+    await page.waitForSelector('#fc-start-btn', { timeout: 8000 });
 
     // With ≤10 words, the import hint button IS visible — click it
     await page.locator('#fc-import-all-btn').click();

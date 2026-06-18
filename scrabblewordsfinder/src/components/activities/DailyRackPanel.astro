@@ -1,6 +1,11 @@
       <!-- Panel 4: Daily Rack Challenge -->
       <div class="rounded-xl border border-amber-800/50 bg-gray-900/50 p-6">
-        <h2 class="text-lg font-semibold text-white mb-2 flex items-center gap-2"><span>🎲</span> Daily Rack Challenge <span class="star-indicator text-sm opacity-40 cursor-help" data-game="rack" title="⭐ Earn star: Submit 1 valid word">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="rack">✅</span></h2>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🎲</span> Daily Rack Challenge <span class="star-indicator text-sm opacity-40 cursor-help" data-game="rack" title="⭐ Earn star: Submit 1 valid word">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="rack">✅</span></h2>
+          <button id="drc-history-btn" class="hidden w-7 h-7 flex items-center justify-center rounded-full border-2 border-amber-500/50 bg-amber-900/20 hover:bg-amber-600/30 hover:border-amber-400 text-amber-300 transition-all" title="Rack History">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </button>
+        </div>
         <p class="text-xs text-gray-500 mb-4">Find the highest-scoring word from today's 7 tiles. Same rack for everyone!</p>
         <div id="drc-loading" class="text-center py-4"><p class="text-xs text-gray-500">Loading today's rack...</p></div>
         <div id="drc-content" class="hidden">
@@ -24,6 +29,28 @@
             <span id="drc-best" class="text-sm font-bold text-amber-400">—</span>
           </div>
         </div>
+        <!-- Rack History Panel (toggled by history button) -->
+        <div id="drc-history-panel" class="hidden mt-4 rounded-xl border border-amber-800/50 bg-gray-900/80 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-amber-300 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Rack History
+            </h3>
+            <button id="drc-history-close" class="text-gray-500 hover:text-white text-lg leading-none">&times;</button>
+          </div>
+          <div id="drc-history-loading" class="text-center py-4">
+            <p class="text-xs text-gray-500">Loading history...</p>
+          </div>
+          <div id="drc-history-empty" class="hidden text-center py-4">
+            <p class="text-xs text-gray-500">No rack history yet. Submit words to build your history!</p>
+          </div>
+          <div id="drc-history-content" class="hidden">
+            <div id="drc-history-stats" class="grid grid-cols-3 gap-2 mb-3"></div>
+            <div class="overflow-x-auto max-h-64 overflow-y-auto">
+              <div id="drc-history-groups"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
 <script is:inline>
@@ -34,6 +61,19 @@
     var scores = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
     var dailyRack = '';
     var userWords = [];
+    var rackHistoryCount = 0;
+
+    // Check rack history count on load to show/hide history button
+    if (uid) {
+      fetch('/api/rack-history/?user_id=' + encodeURIComponent(uid) + '&count=true')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          rackHistoryCount = data.count || 0;
+          if (rackHistoryCount >= 1) {
+            document.getElementById('drc-history-btn').classList.remove('hidden');
+          }
+        }).catch(function() {});
+    }
 
     fetch('/api/daily-rack/' + (uid ? '?user_id=' + encodeURIComponent(uid) : ''))
       .then(function(r) { return r.json(); })
@@ -70,7 +110,8 @@
       if (userWords.length === 0) return;
       document.getElementById('drc-your-words').classList.remove('hidden');
       document.getElementById('drc-your-list').innerHTML = userWords.map(function(w) {
-        return '<span class="px-2 py-0.5 rounded bg-amber-900/30 border border-amber-700/50 text-xs text-amber-300 font-mono uppercase">' + w.word + ' <span class="text-amber-500 font-bold">' + w.score + '</span></span>';
+        var bingoIcon = (w.word && w.word.length === 7) ? ' <span title="Bingo! All 7 tiles used">🎯</span>' : '';
+        return '<span class="px-2 py-0.5 rounded bg-amber-900/30 border border-amber-700/50 text-xs text-amber-300 font-mono uppercase">' + w.word + bingoIcon + ' <span class="text-amber-500 font-bold">' + w.score + '</span></span>';
       }).join('');
     }
 
@@ -88,6 +129,22 @@
       return word.toUpperCase().split('').reduce(function(s, c) { return s + (scores[c] || 0); }, 0);
     }
 
+    // Fetch word meaning from DictionaryAPI (best-effort, non-blocking)
+    function fetchMeaning(word, callback) {
+      fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase())
+        .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function(data) {
+          var meaning = '';
+          if (data && data[0] && data[0].meanings && data[0].meanings[0]) {
+            var defs = data[0].meanings[0].definitions;
+            if (defs && defs[0]) meaning = defs[0].definition || '';
+          }
+          callback(meaning);
+        }).catch(function() { callback(''); });
+    }
+
+
+
     document.getElementById('drc-submit').addEventListener('click', function() {
       var input = document.getElementById('drc-input');
       var word = input.value.trim().toUpperCase();
@@ -103,26 +160,52 @@
         return;
       }
 
+      // Check for duplicate submission
+      var alreadySubmitted = userWords.some(function(w) { return w.word.toUpperCase() === word; });
+      if (alreadySubmitted) {
+        fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-red-900/30 border border-red-500/50 text-red-300';
+        fb.textContent = "❌ You already submitted '" + word + "' today!";
+        fb.classList.remove('hidden');
+        return;
+      }
+
       var wordPts = calcScore(word);
 
-      // Submit to API
-      fetch('/api/daily-rack/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: uid, word: word, score: wordPts })
-      }).then(function() {
-        fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-green-900/30 border border-green-500/50 text-green-300';
-        fb.textContent = '✅ ' + word + ' = ' + wordPts + ' pts!';
-        fb.classList.remove('hidden');
-        userWords.unshift({ word: word, score: wordPts });
-        renderUserWords();
-        input.value = '';
-        // Award rack star
-        window.__awardStar && window.__awardStar('rack');
-      }).catch(function() {
-        fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-red-900/30 border border-red-500/50 text-red-300';
-        fb.textContent = '❌ Failed to submit. Try again.';
-        fb.classList.remove('hidden');
+      // Fetch meaning first, then submit to both APIs
+      fetchMeaning(word, function(meaning) {
+        // Submit to daily-rack API
+        fetch('/api/daily-rack/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: uid, word: word, score: wordPts })
+        }).then(function() {
+          fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-green-900/30 border border-green-500/50 text-green-300';
+          fb.textContent = '✅ ' + word + ' = ' + wordPts + ' pts!';
+          fb.classList.remove('hidden');
+          userWords.unshift({ word: word, score: wordPts });
+          renderUserWords();
+          input.value = '';
+          // Award rack star
+          window.__awardStar && window.__awardStar('rack');
+          // Save to rack history with meaning already fetched
+          if (uid) {
+            fetch('/api/rack-history/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: uid, word: word, score: wordPts, meaning: meaning })
+            }).then(function(r) { return r.json(); })
+              .then(function(data) {
+                rackHistoryCount = data.count || rackHistoryCount + 1;
+                if (rackHistoryCount > 1) {
+                  document.getElementById('drc-history-btn').classList.remove('hidden');
+                }
+              }).catch(function() {});
+          }
+        }).catch(function() {
+          fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-red-900/30 border border-red-500/50 text-red-300';
+          fb.textContent = '❌ Failed to submit. Try again.';
+          fb.classList.remove('hidden');
+        });
       });
     });
 
@@ -130,6 +213,154 @@
     document.getElementById('drc-input').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') document.getElementById('drc-submit').click();
     });
+
+    // ── Rack History Panel ──
+    var historyOpen = false;
+
+    document.getElementById('drc-history-btn').addEventListener('click', function() {
+      var panel = document.getElementById('drc-history-panel');
+      if (historyOpen) {
+        panel.classList.add('hidden');
+        historyOpen = false;
+        return;
+      }
+      panel.classList.remove('hidden');
+      historyOpen = true;
+      loadRackHistory();
+    });
+
+    document.getElementById('drc-history-close').addEventListener('click', function() {
+      document.getElementById('drc-history-panel').classList.add('hidden');
+      historyOpen = false;
+    });
+
+    function loadRackHistory() {
+      if (!uid) return;
+      var loadingEl = document.getElementById('drc-history-loading');
+      var emptyEl = document.getElementById('drc-history-empty');
+      var contentEl = document.getElementById('drc-history-content');
+
+      loadingEl.classList.remove('hidden');
+      emptyEl.classList.add('hidden');
+      contentEl.classList.add('hidden');
+
+      fetch('/api/rack-history/?user_id=' + encodeURIComponent(uid))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          loadingEl.classList.add('hidden');
+          var history = data.history || [];
+          if (history.length === 0) {
+            emptyEl.classList.remove('hidden');
+            return;
+          }
+          contentEl.classList.remove('hidden');
+          renderHistoryStats(history);
+          renderHistoryGroups(history, data.racks || {});
+        }).catch(function() {
+          loadingEl.innerHTML = '<p class="text-xs text-red-400">Failed to load history</p>';
+        });
+    }
+
+    function renderHistoryStats(history) {
+      var totalWords = history.length;
+      var totalScore = history.reduce(function(s, h) { return s + (h.score || 0); }, 0);
+      var avgScore = totalWords > 0 ? Math.round(totalScore / totalWords) : 0;
+      var bingos = history.filter(function(h) { return h.word && h.word.length === 7; }).length;
+
+      document.getElementById('drc-history-stats').innerHTML =
+        '<div class="rounded-lg bg-amber-900/20 border border-amber-700/30 p-2 text-center">' +
+          '<p class="text-lg font-bold text-amber-400">' + totalWords + '</p>' +
+          '<p class="text-[9px] text-gray-500">Words</p>' +
+        '</div>' +
+        '<div class="rounded-lg bg-green-900/20 border border-green-700/30 p-2 text-center">' +
+          '<p class="text-lg font-bold text-green-400">' + avgScore + '</p>' +
+          '<p class="text-[9px] text-gray-500">Avg Pts</p>' +
+        '</div>' +
+        '<div class="rounded-lg bg-purple-900/20 border border-purple-700/30 p-2 text-center">' +
+          '<p class="text-lg font-bold text-purple-400">' + bingos + '</p>' +
+          '<p class="text-[9px] text-gray-500">Bingos (7)</p>' +
+        '</div>';
+    }
+
+    function renderHistoryGroups(history, racks) {
+      // Group by date
+      var groups = {};
+      history.forEach(function(h) {
+        var date = h.submitted_at ? h.submitted_at.split(/[T ]/)[0] : 'Unknown';
+        if (!groups[date]) groups[date] = [];
+        groups[date].push(h);
+      });
+
+      var html = '';
+      var dateKeys = Object.keys(groups).sort(function(a, b) { return b.localeCompare(a); });
+
+      dateKeys.forEach(function(date, idx) {
+        var words = groups[date];
+        var displayDate = formatDate(date);
+        var rack = racks[date] || '';
+        var groupId = 'rack-group-' + idx;
+
+        html += '<div class="mb-4 rounded-lg border border-gray-700/50 overflow-hidden">';
+
+        // Header: date + rack tiles + toggle
+        html += '<div class="flex items-center justify-between gap-2 px-3 py-2 bg-gray-800/60 cursor-pointer" onclick="(function(){var el=document.getElementById(\'' + groupId + '\');el.classList.toggle(\'hidden\');var icon=document.getElementById(\'' + groupId + '-icon\');icon.textContent=el.classList.contains(\'hidden\')?\'\u25B6\':\'\u25BC\';})()">';
+        html += '<div class="flex items-center gap-2 flex-1 min-w-0">';
+        html += '<span class="text-[10px] text-gray-400 uppercase font-semibold whitespace-nowrap">' + displayDate + '</span>';
+
+        // Rack tiles (mini)
+        if (rack) {
+          html += '<div class="flex gap-0.5">';
+          rack.split('').forEach(function(letter) {
+            html += '<span class="w-5 h-6 flex items-center justify-center rounded text-[10px] font-bold text-gray-800" style="background:linear-gradient(145deg,#e8d5c0,#dcc8b0);border:1px solid #c4a882;">' + letter + '</span>';
+          });
+          html += '</div>';
+        }
+
+        html += '</div>';
+        // Toggle icon + word count
+        html += '<span class="flex items-center gap-1.5 text-gray-500 text-xs">';
+        html += '<span class="text-gray-600">' + words.length + ' word' + (words.length > 1 ? 's' : '') + '</span>';
+        html += '<span id="' + groupId + '-icon" class="text-[10px] text-amber-400">▶</span>';
+        html += '</span>';
+        html += '</div>';
+
+        // Collapsible word list (hidden by default)
+        html += '<div id="' + groupId + '" class="hidden">';
+        html += '<table class="w-full text-xs">';
+        html += '<thead class="bg-gray-800/40"><tr><th class="px-2 py-1 text-left text-gray-500">Word</th><th class="px-2 py-1 text-left text-gray-500">Pts</th><th class="px-2 py-1 text-left text-gray-500">Meaning</th></tr></thead>';
+        html += '<tbody class="divide-y divide-gray-800/50">';
+
+        words.forEach(function(w) {
+          var isBingo = w.word && w.word.length === 7;
+          var rowClass = isBingo ? 'bg-amber-900/20' : '';
+          var bingoIcon = isBingo ? ' <span title="Bingo! All 7 tiles used">🎯</span>' : '';
+          var meaning = w.meaning || '<span class="text-gray-600 italic">—</span>';
+
+          html += '<tr class="' + rowClass + '">';
+          html += '<td class="px-2 py-1.5 font-mono uppercase text-amber-300 font-bold">' + w.word + bingoIcon + '</td>';
+          html += '<td class="px-2 py-1.5 text-green-400 font-semibold">' + w.score + '</td>';
+          html += '<td class="px-2 py-1.5 text-gray-400 max-w-[150px] truncate">' + meaning + '</td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        html += '</div>'; // end collapsible
+        html += '</div>'; // end group card
+      });
+
+      document.getElementById('drc-history-groups').innerHTML = html;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr || dateStr === 'Unknown') return 'Unknown';
+      var today = new Date().toISOString().split('T')[0];
+      var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      if (dateStr === today) return 'Today';
+      if (dateStr === yesterday) return 'Yesterday';
+      var parts = dateStr.split('-');
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return parts[2] + ' ' + months[parseInt(parts[1]) - 1] + ' ' + parts[0];
+    }
   })();
 })();
 </script>
