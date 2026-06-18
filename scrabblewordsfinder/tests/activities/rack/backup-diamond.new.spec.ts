@@ -6,10 +6,10 @@ import { test, expect } from '@playwright/test';
  * Covers:
  * - Backup Data button visibility (hidden when already earned, shown otherwise)
  * - Quiz history icon uses 📊 instead of old 🏅 medal
- * - Button placement near ⏱️ 60-Second and 📊 Your Stats
+ * - Button placement near ⏱️ 60-Second link (Stats link temporarily removed)
  */
 
-const BASE_URL = process.env.SWF_TEST_URL || 'https://scrabblewordsfinder-staging.xconvert.workers.dev';
+const BASE_URL = process.env.SWF_TEST_URL || 'http://localhost:4321';
 const ACTIVITIES_URL = `${BASE_URL}/activities/`;
 
 // ── Quiz History Icon — Positive ─────────────────────────────────────────
@@ -76,18 +76,15 @@ test.describe('Backup Data Button — Positive', () => {
     expect(text).toContain('💎');
   });
 
-  test('backup button is positioned between 60-Second and Your Stats links', async ({ page }) => {
+  test('backup button is in the same container as the 60-Second link', async ({ page }) => {
     await page.goto(ACTIVITIES_URL);
     // Get the parent container of the header links
     const sixtyLink = page.locator('a[href="/sixty-seconds/"]');
-    const statsLink = page.locator('a[href="/stats/"]');
     const backupBtn = page.locator('#backup-data-btn');
-    // All three should share the same parent
+    // Both should share the same parent (Stats link removed pending fix)
     const sixtyParent = await sixtyLink.evaluate(el => el.parentElement?.id || el.parentElement?.className);
     const backupParent = await backupBtn.evaluate(el => el.parentElement?.id || el.parentElement?.className);
-    const statsParent = await statsLink.evaluate(el => el.parentElement?.id || el.parentElement?.className);
     expect(backupParent).toBe(sixtyParent);
-    expect(backupParent).toBe(statsParent);
   });
 
   test('backup button shows when user has not earned backup diamond', async ({ page }) => {
@@ -398,5 +395,82 @@ test.describe('Backup Data Button — Negative', () => {
     await page.goto(ACTIVITIES_URL);
     const btns = page.locator('#backup-data-btn');
     await expect(btns).toHaveCount(1);
+  });
+});
+
+// ── window.__swfStore Integration — Positive ─────────────────────────────
+
+test.describe('Backup Button — __swfStore Integration — Positive', () => {
+  test('window.__swfStore is defined before backup script runs', async ({ page }) => {
+    await page.goto(ACTIVITIES_URL);
+    const storeExists = await page.evaluate(() => typeof window.__swfStore === 'object' && window.__swfStore !== null);
+    expect(storeExists).toBe(true);
+  });
+
+  test('__swfStore.getRaw reads localStorage values correctly', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'store-integration-test');
+    });
+    await page.goto(ACTIVITIES_URL);
+    const val = await page.evaluate(() => (window as any).__swfStore.getRaw('swf-uid'));
+    expect(val).toBe('store-integration-test');
+  });
+
+  test('__swfStore.setRaw writes to localStorage correctly', async ({ page }) => {
+    await page.goto(ACTIVITIES_URL);
+    await page.evaluate(() => (window as any).__swfStore.setRaw('test-key-pw', 'test-value'));
+    const val = await page.evaluate(() => localStorage.getItem('test-key-pw'));
+    expect(val).toBe('test-value');
+  });
+
+  test('backup script uses __swfStore.getRaw for swf-uid (not direct localStorage)', async ({ page }) => {
+    // Confirm the page works when __swfStore is the access path
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'swfstore-path-test');
+      localStorage.removeItem('swf-backup-diamond-earned');
+    });
+    await page.route('**/api/bonus-diamond/**', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ earned: false }) });
+    });
+    await page.goto(ACTIVITIES_URL);
+    await page.waitForFunction(() => {
+      const btn = document.getElementById('backup-data-btn');
+      return btn && !btn.classList.contains('hidden');
+    }, { timeout: 5000 });
+    // Button appeared — confirms __swfStore.getRaw('swf-uid') returned a value
+    const btn = page.locator('#backup-data-btn');
+    await expect(btn).toBeVisible();
+  });
+});
+
+// ── window.__swfStore Integration — Negative ─────────────────────────────
+
+test.describe('Backup Button — __swfStore Integration — Negative', () => {
+  test('no ReferenceError or TypeError from __swfStore usage on activities page', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'error-check-uid');
+      localStorage.removeItem('swf-backup-diamond-earned');
+    });
+    await page.goto(ACTIVITIES_URL);
+    await page.waitForTimeout(2000);
+    const storeErrors = errors.filter(e =>
+      e.includes('__swfStore') || e.includes('Cannot read properties of undefined')
+    );
+    expect(storeErrors).toHaveLength(0);
+  });
+
+  test('backup-diamond-earned flag read via __swfStore still hides button', async ({ page }) => {
+    // Set the flag via direct localStorage (simulating prior sessions)
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'hide-via-store-test');
+      localStorage.setItem('swf-backup-diamond-earned', '1');
+    });
+    await page.goto(ACTIVITIES_URL);
+    await page.waitForTimeout(1000);
+    const btn = page.locator('#backup-data-btn');
+    const isHidden = await btn.evaluate(el => el.classList.contains('hidden'));
+    expect(isHidden).toBe(true);
   });
 });

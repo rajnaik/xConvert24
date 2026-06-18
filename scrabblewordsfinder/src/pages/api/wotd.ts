@@ -37,7 +37,13 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'No words available' }), { status: 404 });
   }
 
-  return new Response(JSON.stringify({ word: todayWord }), {
+  // Calculate next midnight UTC for client-side cache expiry
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(0, 0, 0, 0);
+  const expiresAt = tomorrow.toISOString();
+
+  return new Response(JSON.stringify({ word: todayWord, expiresAt }), {
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'public, max-age=3600, s-maxage=86400',

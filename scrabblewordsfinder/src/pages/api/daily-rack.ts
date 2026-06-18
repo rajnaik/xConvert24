@@ -46,6 +46,12 @@ export const GET: APIRoute = async ({ request }) => {
     'SELECT user_id, word, score FROM daily_rack_scores WHERE date = ? ORDER BY score DESC LIMIT 10'
   ).bind(today).all();
 
+  // Calculate next midnight UTC for client-side cache expiry
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(0, 0, 0, 0);
+  const expiresAt = tomorrow.toISOString();
+
   return new Response(JSON.stringify({
     date: rack.date,
     rack: rack.rack,
@@ -53,6 +59,7 @@ export const GET: APIRoute = async ({ request }) => {
     best_score: rack.best_score,
     userScores,
     topScores: topScores.results,
+    expiresAt,
   }), {
     headers: { 'Content-Type': 'application/json' },
   });

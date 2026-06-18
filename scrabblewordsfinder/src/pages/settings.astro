@@ -129,18 +129,19 @@ import '../styles/global.css';
 <script is:inline>
   // ─── UID Display ──────────────────────────────────────────────────────
   (function() {
+    var S = window.__swfStore;
     var uidDisplay = document.getElementById('uid-display');
-    var uid = localStorage.getItem('swf-uid');
+    var uid = S.getRaw('swf-uid');
     if (!uid) {
       uid = crypto.randomUUID();
-      localStorage.setItem('swf-uid', uid);
+      S.setRaw('swf-uid', uid);
     }
     uidDisplay.textContent = uid;
   })();
 
   // ─── Download User ID ─────────────────────────────────────────────────
   document.getElementById('download-uid-btn').addEventListener('click', function() {
-    var uid = localStorage.getItem('swf-uid');
+    var uid = window.__swfStore.getRaw('swf-uid');
     if (!uid) { alert('No User ID found.'); return; }
     var blob = new Blob(['ScrabbleWordsFinder User ID\n' + uid + '\n'], { type: 'text/plain' });
     var a = document.createElement('a');

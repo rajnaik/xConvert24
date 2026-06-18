@@ -1,8 +1,13 @@
       <!-- Panel 5: Daily Anagram Puzzle -->
-      <div class="rounded-xl border border-rose-800/50 bg-gray-900/50 p-6 lg:col-span-2">
+      <div class="rounded-xl border border-rose-800/50 bg-gray-900/50 p-4 sm:p-6">
         <div class="flex items-center justify-between mb-2">
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🔤</span> Daily Anagram <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="anagram" title="⭐ Earn star: Make 1 guess">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="anagram">✅</span></h2>
-          <span id="anagram-streak" class="hidden px-2 py-0.5 rounded-full bg-rose-900/30 border border-rose-500/30 text-xs text-rose-300 font-mono">🔥 0</span>
+          <div class="flex items-center gap-2">
+            <a id="anagram-history-btn" href="/anagram-history/" class="hidden w-7 h-7 flex items-center justify-center rounded-full border-2 border-rose-500/50 bg-rose-900/20 hover:bg-rose-600/30 hover:border-rose-400 text-rose-300 transition-all" title="Anagram History">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </a>
+            <span id="anagram-streak" class="hidden px-2 py-0.5 rounded-full bg-rose-900/30 border border-rose-500/30 text-xs text-rose-300 font-mono">🔥 0</span>
+          </div>
         </div>
         <p class="text-xs text-gray-500 mb-4">Unscramble today's word in 5 guesses or fewer. Same puzzle for everyone!</p>
 
@@ -55,73 +60,115 @@
 (function() {
   // ── Daily Anagram Puzzle ──
   (function loadDailyAnagram() {
-    var uid = localStorage.getItem('swf-uid') || '';
+    var S = window.__swfStore;
+    var uid = S.getRaw('swf-uid') || '';
     var ANAGRAM_STATE_KEY = 'swf-anagram-' + new Date().toISOString().split('T')[0];
+    var DA_CACHE_KEY = 'swf-da-tile';
     var anagramState = { scrambled: '', hint: '', wordLength: 0, guesses: [], gameOver: false, solved: false, answer: '' };
+    var anagramStartTime = 0; // timestamp (ms) when puzzle was shown to user
+    var anagramStartTime = 0; // timestamp (ms) when puzzle first rendered for this session
 
     // Load streak
-    var streakData = JSON.parse(localStorage.getItem('swf-anagram-streak') || '{"count":0,"lastDate":""}');
+    var streakData = JSON.parse(S.getRaw('swf-anagram-streak') || '{"count":0,"lastDate":""}');
     if (streakData.count > 0) {
       var streakEl = document.getElementById('anagram-streak');
       streakEl.textContent = '🔥 ' + streakData.count;
       streakEl.classList.remove('hidden');
     }
 
+    // Show history button if user has played at least 1 game
+    if (uid) {
+      fetch('/api/anagram-history/?count=true&user_id=' + encodeURIComponent(uid))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.count >= 1) {
+            document.getElementById('anagram-history-btn').classList.remove('hidden');
+          }
+        }).catch(function() {});
+    }
+
     // Restore local state if exists
-    var localState = localStorage.getItem(ANAGRAM_STATE_KEY);
+    var localState = S.getRaw(ANAGRAM_STATE_KEY);
     if (localState) {
       try { anagramState = JSON.parse(localState); } catch(e) {}
     }
 
-    fetch('/api/daily-anagram/' + (uid ? '?user_id=' + encodeURIComponent(uid) : ''))
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (data.error) {
-          document.getElementById('anagram-loading').innerHTML = '<p class="text-xs text-gray-400">No puzzle available today. Check back tomorrow!</p>';
-          return;
-        }
+    // Cache-first: try localStorage, fallback to API
+    var cached = S.getIfValid(DA_CACHE_KEY);
+    if (cached) {
+      handleAnagramData(cached);
+    } else {
+      fetchAnagram();
+    }
 
-        document.getElementById('anagram-loading').classList.add('hidden');
-        document.getElementById('anagram-content').classList.remove('hidden');
-
-        anagramState.scrambled = data.scrambled;
-        anagramState.hint = data.hint;
-        anagramState.wordLength = data.word_length;
-
-        // If server says user already played, restore
-        if (data.userResult) {
-          var ur = data.userResult;
-          anagramState.guesses = JSON.parse(ur.guesses || '[]');
-          anagramState.solved = ur.solved === 1;
-          anagramState.gameOver = ur.solved === 1 || anagramState.guesses.length >= 5;
-          if (data.answer) anagramState.answer = data.answer;
-        }
-
-        renderAnagramTiles();
-        renderAnagramGuesses();
-        updateAnagramRemaining();
-
-        if (anagramState.gameOver || anagramState.solved) {
-          showAnagramResult(data.answer || anagramState.answer);
-        }
-
-        // Hint button
-        document.getElementById('anagram-hint-btn').addEventListener('click', function() {
-          document.getElementById('anagram-hint-text').textContent = anagramState.hint;
-          document.getElementById('anagram-hint-text').classList.remove('hidden');
-          this.classList.add('hidden');
+    function fetchAnagram() {
+      fetch('/api/daily-anagram/' + (uid ? '?user_id=' + encodeURIComponent(uid) : ''))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.error) {
+            document.getElementById('anagram-loading').innerHTML = '<p class="text-xs text-gray-400">No puzzle available today. Check back tomorrow!</p>';
+            return;
+          }
+          // Cache tile data with server-provided expiry
+          if (data.expiresAt) {
+            S.setWithExpiry(DA_CACHE_KEY, data, data.expiresAt);
+          }
+          handleAnagramData(data);
+        }).catch(function() {
+          document.getElementById('anagram-loading').innerHTML = '<p class="text-xs text-red-400">Failed to load puzzle</p>';
         });
+    }
 
-        // Stats display
-        if (data.stats && data.stats.players > 0) {
-          var pct = data.stats.solvers ? Math.round((data.stats.solvers / data.stats.players) * 100) : 0;
-          var statsText = data.stats.players + ' played · ' + pct + '% solved';
-          var remEl = document.getElementById('anagram-remaining');
-          if (remEl.textContent) remEl.textContent += ' · ' + statsText;
-        }
-      }).catch(function() {
-        document.getElementById('anagram-loading').innerHTML = '<p class="text-xs text-red-400">Failed to load puzzle</p>';
+    function handleAnagramData(data) {
+      if (data.error) {
+        document.getElementById('anagram-loading').innerHTML = '<p class="text-xs text-gray-400">No puzzle available today. Check back tomorrow!</p>';
+        return;
+      }
+
+      document.getElementById('anagram-loading').classList.add('hidden');
+      document.getElementById('anagram-content').classList.remove('hidden');
+
+      anagramState.scrambled = data.scrambled;
+      anagramState.hint = data.hint;
+      anagramState.wordLength = data.word_length;
+
+      // If server says user already played, restore
+      if (data.userResult) {
+        var ur = data.userResult;
+        anagramState.guesses = JSON.parse(ur.guesses || '[]');
+        anagramState.solved = ur.solved === 1;
+        anagramState.gameOver = ur.solved === 1 || anagramState.guesses.length >= 5;
+        if (data.answer) anagramState.answer = data.answer;
+      }
+
+      renderAnagramTiles();
+      renderAnagramGuesses();
+      updateAnagramRemaining();
+
+      // Start timer only if game is still in progress
+      if (!anagramState.gameOver && !anagramState.solved) {
+        anagramStartTime = Date.now();
+      }
+
+      if (anagramState.gameOver || anagramState.solved) {
+        showAnagramResult(data.answer || anagramState.answer);
+      }
+
+      // Hint button
+      document.getElementById('anagram-hint-btn').addEventListener('click', function() {
+        document.getElementById('anagram-hint-text').textContent = anagramState.hint;
+        document.getElementById('anagram-hint-text').classList.remove('hidden');
+        this.classList.add('hidden');
       });
+
+      // Stats display
+      if (data.stats && data.stats.players > 0) {
+        var pct = data.stats.solvers ? Math.round((data.stats.solvers / data.stats.players) * 100) : 0;
+        var statsText = data.stats.players + ' played · ' + pct + '% solved';
+        var remEl = document.getElementById('anagram-remaining');
+        if (remEl.textContent) remEl.textContent += ' · ' + statsText;
+      }
+    }
 
     function renderAnagramTiles() {
       var tiles = anagramState.scrambled.split('').map(function(letter) {
@@ -174,7 +221,7 @@
           if (streakData.lastDate === yesterday) { streakData.count++; }
           else { streakData.count = 1; }
           streakData.lastDate = today;
-          localStorage.setItem('swf-anagram-streak', JSON.stringify(streakData));
+          S.setRaw('swf-anagram-streak', JSON.stringify(streakData));
           var streakEl = document.getElementById('anagram-streak');
           streakEl.textContent = '🔥 ' + streakData.count;
           streakEl.classList.remove('hidden');
@@ -207,7 +254,7 @@
       fetch('/api/daily-anagram/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: uid, guess: guess })
+        body: JSON.stringify({ user_id: uid, guess: guess, time_taken: anagramStartTime ? Math.round((Date.now() - anagramStartTime) / 1000) : 0 })
       }).then(function(r) { return r.json(); })
       .then(function(data) {
         input.disabled = false;
@@ -227,7 +274,9 @@
         anagramState.gameOver = data.correct || data.game_over;
         if (data.answer) anagramState.answer = data.answer;
 
-        localStorage.setItem(ANAGRAM_STATE_KEY, JSON.stringify(anagramState));
+        S.setRaw(ANAGRAM_STATE_KEY, JSON.stringify(anagramState));
+        // Invalidate tile cache so next visit fetches fresh stats
+        S.removeItem(DA_CACHE_KEY);
         renderAnagramGuesses();
         updateAnagramRemaining();
         // Award anagram star on first guess
@@ -270,10 +319,10 @@
     document.getElementById('anagram-add-btn').addEventListener('click', function() {
       var word = anagramState.answer;
       if (!word) return;
-      var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+      var saved = JSON.parse(S.getRaw('scbAchievements') || '[]');
       if (saved.find(function(s) { return s.word === word; })) { this.textContent = 'Already saved ✓'; return; }
       saved.push({ word: word, score: 0, category: 'anagram', meaning: anagramState.hint || '', dateAdded: new Date().toISOString() });
-      localStorage.setItem('scbAchievements', JSON.stringify(saved));
+      S.setRaw('scbAchievements', JSON.stringify(saved));
       this.textContent = 'Added ✓';
       setTimeout(function() { document.getElementById('anagram-add-btn').textContent = '+ WordBench'; }, 2000);
     });

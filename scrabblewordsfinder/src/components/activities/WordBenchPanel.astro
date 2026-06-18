@@ -1,5 +1,5 @@
       <!-- Panel 3: Memory WordBench (Flash Cards) -->
-      <div class="rounded-xl border border-green-800/50 bg-gray-900/50 p-6">
+      <div class="rounded-xl border border-green-800/50 bg-gray-900/50 p-4 sm:p-6">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🃏</span> <a href="/blog/scrabble-and-memory-training/" class="hover:text-green-400 transition-colors">Memory WordBench</a> <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="wordbench" title="⭐ Earn star: Auto-play 3+ cards">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="wordbench">✅</span></h2>
           <div class="flex items-center gap-2">
@@ -216,7 +216,7 @@
   }
 
   function startFlashCards(filterCategory, autoPlay) {
-    var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+    var saved = JSON.parse(window.__swfStore.getRaw('scbAchievements') || '[]');
     if (saved.length === 0) {
       var emptyEl = document.getElementById('fc-empty');
       emptyEl.innerHTML = '<div class="space-y-3 text-center py-2">' +
@@ -402,7 +402,7 @@
           rareAll.forEach(function(w) { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'rare-letters' }); } });
 
           // Load existing achievements and merge
-          var existing = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+          var existing = JSON.parse(window.__swfStore.getRaw('scbAchievements') || '[]');
           var existingWords = {};
           existing.forEach(function(a) { existingWords[a.word] = true; });
 
@@ -417,7 +417,7 @@
             }
           });
 
-          localStorage.setItem('scbAchievements', JSON.stringify(existing));
+          window.__swfStore.setRaw('scbAchievements', JSON.stringify(existing));
 
           // Update UI
           btn.textContent = '✅ Imported ' + imported + ' words!';
@@ -441,7 +441,7 @@
 
   // Initialize word count and category tabs on load
   function refreshWordBench() {
-    var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+    var saved = JSON.parse(window.__swfStore.getRaw('scbAchievements') || '[]');
     // Show import prompt when no words saved
     if (saved.length === 0) {
       var emptyEl = document.getElementById('fc-empty');
@@ -516,9 +516,9 @@
   document.getElementById('fc-delete-btn').addEventListener('click', function() {
     if (!fcState.active || !fcState.words[fcState.current]) return;
     var wordToDelete = fcState.words[fcState.current].word;
-    var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+    var saved = JSON.parse(window.__swfStore.getRaw('scbAchievements') || '[]');
     saved = saved.filter(function(a) { return a.word !== wordToDelete; });
-    localStorage.setItem('scbAchievements', JSON.stringify(saved));
+    window.__swfStore.setRaw('scbAchievements', JSON.stringify(saved));
     // Remove from current deck
     fcState.words.splice(fcState.current, 1);
     if (fcState.words.length === 0) {

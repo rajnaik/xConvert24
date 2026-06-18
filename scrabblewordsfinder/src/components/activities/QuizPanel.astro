@@ -1,5 +1,5 @@
       <!-- Panel 2: Word Quiz -->
-      <div class="rounded-xl border border-blue-800/50 bg-gray-900/50 p-6">
+      <div class="rounded-xl border border-blue-800/50 bg-gray-900/50 p-4 sm:p-6">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🧠</span> Word Quiz <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="quiz" title="⭐ Earn star: Complete 1 quiz round">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="quiz">✅</span></h2>
           <a id="quiz-history-btn" href="/quiz-history/" class="hidden px-2 py-1 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs text-purple-300 hover:bg-purple-600/40 transition-colors flex items-center gap-1">
@@ -157,7 +157,7 @@
 
     if (useWorkbench) {
       // Use words from Memory WordBench
-      var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+      var saved = JSON.parse(window.__swfStore.getRaw('scbAchievements') || '[]');
       var meaningful = saved.filter(function(w) {
         if (!w.meaning || !w.meaning.trim()) return false;
         var m = w.meaning.toLowerCase();
@@ -189,7 +189,7 @@
     quizState.startTime = Date.now();
     quizState.lastSplitTime = Date.now();
     quizState.details = [];
-    localStorage.setItem('swf-quiz-start', String(quizState.startTime));
+    window.__swfStore.setRaw('swf-quiz-start', String(quizState.startTime));
     startTimer(); showQuestion();
   }
 
@@ -330,7 +330,7 @@
     hideModal();
     var split = ((Date.now() - quizState.startTime) / 1000).toFixed(1);
     quizState.splits.push(split);
-    localStorage.setItem('swf-quiz-splits', JSON.stringify(quizState.splits));
+    window.__swfStore.setRaw('swf-quiz-splits', JSON.stringify(quizState.splits));
     quizState.current++;
     if (quizState.current >= quizState.total) endQuiz(false); else showQuestion();
   }
@@ -361,7 +361,7 @@
     // Save to achievements
     fetch('/api/achievements/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ achievement_text: 'Word Quiz', a_data: JSON.stringify({ score: score, total: total, timeUsed: totalTime, timerLimit: limit, splits: quizState.splits, timedOut: timedOut, date: new Date().toISOString() }) }) }).catch(function(){});
     // Save quiz score to DB with user ID
-    var uid = localStorage.getItem('swf-uid') || '';
+    var uid = window.__swfStore.getRaw('swf-uid') || '';
     fetch('/api/quiz-scores/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: uid, score: score, total: total, time_used: parseFloat(totalTime), timer_limit: limit, timed_out: timedOut ? 1 : 0, details: quizState.details }) }).catch(function(){});
     document.getElementById('quiz-timer').classList.remove('text-red-400');
     // Award quiz star

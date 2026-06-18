@@ -1,5 +1,5 @@
       <!-- Panel 4: Daily Rack Challenge -->
-      <div class="rounded-xl border border-amber-800/50 bg-gray-900/50 p-6">
+      <div class="rounded-xl border border-amber-800/50 bg-gray-900/50 p-4 sm:p-6">
         <div class="flex items-center justify-between mb-2">
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🎲</span> Daily Rack Challenge <span class="star-indicator text-sm opacity-40 cursor-help" data-game="rack" title="⭐ Earn star: Submit 1 valid word">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="rack">✅</span></h2>
           <button id="drc-history-btn" class="hidden w-7 h-7 flex items-center justify-center rounded-full border-2 border-amber-500/50 bg-amber-900/20 hover:bg-amber-600/30 hover:border-amber-400 text-amber-300 transition-all" title="Rack History">
@@ -57,11 +57,13 @@
 (function() {
   // ── Daily Rack Challenge ──
   (function loadDailyRack() {
-    var uid = localStorage.getItem('swf-uid') || '';
+    var S = window.__swfStore;
+    var uid = S.getRaw('swf-uid') || '';
     var scores = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
     var dailyRack = '';
     var userWords = [];
     var rackHistoryCount = 0;
+    var DRC_CACHE_KEY = 'swf-drc-tile';
 
     // Check rack history count on load to show/hide history button
     if (uid) {
@@ -75,36 +77,54 @@
         }).catch(function() {});
     }
 
-    fetch('/api/daily-rack/' + (uid ? '?user_id=' + encodeURIComponent(uid) : ''))
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        document.getElementById('drc-loading').classList.add('hidden');
-        document.getElementById('drc-content').classList.remove('hidden');
-        dailyRack = data.rack || '';
+    // Cache-first: try localStorage, fallback to API
+    var cached = S.getIfValid(DRC_CACHE_KEY);
+    if (cached) {
+      renderDrc(cached);
+    } else {
+      fetchDrc();
+    }
 
-        // Render tiles
-        var tilesHtml = dailyRack.split('').map(function(letter) {
-          var pts = scores[letter] || 0;
-          return '<div class="w-11 h-14 rounded-lg flex flex-col items-center justify-center select-none" style="background:linear-gradient(145deg,#e8d5c0,#dcc8b0);box-shadow:inset 0 2px 0 rgba(255,255,255,0.4),inset 0 -3px 0 rgba(0,0,0,0.08),0 4px 8px rgba(0,0,0,0.2);border:2px solid #c4a882;">' +
-            '<span class="text-lg font-black text-gray-800">' + letter + '</span>' +
-            '<span class="text-[8px] text-gray-600 -mt-0.5">' + pts + '</span>' +
-          '</div>';
-        }).join('');
-        document.getElementById('drc-tiles').innerHTML = tilesHtml;
+    function fetchDrc() {
+      fetch('/api/daily-rack/' + (uid ? '?user_id=' + encodeURIComponent(uid) : ''))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          // Cache the tile data with server-provided expiry
+          if (data.expiresAt) {
+            S.setWithExpiry(DRC_CACHE_KEY, data, data.expiresAt);
+          }
+          renderDrc(data);
+        }).catch(function() {
+          document.getElementById('drc-loading').innerHTML = '<p class="text-xs text-red-400">Failed to load</p>';
+        });
+    }
 
-        // Best score
-        if (data.best_word) {
-          document.getElementById('drc-best').textContent = data.best_word + ' (' + data.best_score + ' pts)';
-        }
+    function renderDrc(data) {
+      document.getElementById('drc-loading').classList.add('hidden');
+      document.getElementById('drc-content').classList.remove('hidden');
+      dailyRack = data.rack || '';
 
-        // Show user's previous submissions
-        if (data.userScores && data.userScores.length > 0) {
-          userWords = data.userScores;
-          renderUserWords();
-        }
-      }).catch(function() {
-        document.getElementById('drc-loading').innerHTML = '<p class="text-xs text-red-400">Failed to load</p>';
-      });
+      // Render tiles
+      var tilesHtml = dailyRack.split('').map(function(letter) {
+        var pts = scores[letter] || 0;
+        return '<div class="w-11 h-14 rounded-lg flex flex-col items-center justify-center select-none" style="background:linear-gradient(145deg,#e8d5c0,#dcc8b0);box-shadow:inset 0 2px 0 rgba(255,255,255,0.4),inset 0 -3px 0 rgba(0,0,0,0.08),0 4px 8px rgba(0,0,0,0.2);border:2px solid #c4a882;">' +
+          '<span class="text-lg font-black text-gray-800">' + letter + '</span>' +
+          '<span class="text-[8px] text-gray-600 -mt-0.5">' + pts + '</span>' +
+        '</div>';
+      }).join('');
+      document.getElementById('drc-tiles').innerHTML = tilesHtml;
+
+      // Best score
+      if (data.best_word) {
+        document.getElementById('drc-best').textContent = data.best_word + ' (' + data.best_score + ' pts)';
+      }
+
+      // Show user's previous submissions
+      if (data.userScores && data.userScores.length > 0) {
+        userWords = data.userScores;
+        renderUserWords();
+      }
+    }
 
     function renderUserWords() {
       if (userWords.length === 0) return;
@@ -185,6 +205,8 @@
           userWords.unshift({ word: word, score: wordPts });
           renderUserWords();
           input.value = '';
+          // Invalidate cache so next load fetches fresh scores
+          S.removeItem(DRC_CACHE_KEY);
           // Award rack star
           window.__awardStar && window.__awardStar('rack');
           // Save to rack history with meaning already fetched

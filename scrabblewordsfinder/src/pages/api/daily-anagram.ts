@@ -40,6 +40,12 @@ export const GET: APIRoute = async ({ request }) => {
     answer = full?.word || null;
   }
 
+  // Calculate next midnight UTC for client-side cache expiry
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(0, 0, 0, 0);
+  const expiresAt = tomorrow.toISOString();
+
   return new Response(JSON.stringify({
     date: puzzle.date,
     scrambled: puzzle.scrambled,
@@ -47,6 +53,7 @@ export const GET: APIRoute = async ({ request }) => {
     word_length: puzzle.word_length,
     userResult,
     answer,
+    expiresAt,
     stats: {
       players: stats?.players || 0,
       solvers: stats?.solvers || 0,
@@ -63,7 +70,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const body = await request.json() as any;
-  const { user_id, guess, date: dateParam } = body;
+  const { user_id, guess, date: dateParam, time_taken } = body;
 
   if (!guess) return new Response(JSON.stringify({ error: 'guess is required' }), { status: 400 });
 
@@ -135,17 +142,28 @@ export const POST: APIRoute = async ({ request }) => {
     }), { headers: { 'Content-Type': 'application/json' } });
   }
 
-  prevGuesses.push({ guess: normalizedGuess, feedback });
+  // Store cumulative time_taken and an ISO timestamp with each guess for per-guess time splits
+  const guessTime = Math.min(Math.max(Number(time_taken) || 0, 0), 3600);
+  const guessedAt = new Date().toISOString();
+  prevGuesses.push({ guess: normalizedGuess, feedback, time_taken: guessTime, guessed_at: guessedAt });
   const attempts = prevGuesses.length;
 
   if (existing) {
-    await db.prepare(
-      'UPDATE daily_anagram_scores SET attempts = ?, solved = ?, guesses = ? WHERE id = ?'
-    ).bind(attempts, isCorrect ? 1 : 0, JSON.stringify(prevGuesses), existing.id).run();
+    const gameEnding = isCorrect || attempts >= 5;
+    if (gameEnding && time_taken) {
+      await db.prepare(
+        'UPDATE daily_anagram_scores SET attempts = ?, solved = ?, guesses = ?, time_taken = ? WHERE id = ?'
+      ).bind(attempts, isCorrect ? 1 : 0, JSON.stringify(prevGuesses), Math.min(Number(time_taken) || 0, 3600), existing.id).run();
+    } else {
+      await db.prepare(
+        'UPDATE daily_anagram_scores SET attempts = ?, solved = ?, guesses = ? WHERE id = ?'
+      ).bind(attempts, isCorrect ? 1 : 0, JSON.stringify(prevGuesses), existing.id).run();
+    }
   } else {
+    const finalTime = (isCorrect || attempts >= 5) ? Math.min(Number(time_taken) || 0, 3600) : 0;
     await db.prepare(
-      'INSERT INTO daily_anagram_scores (date, user_id, attempts, solved, guesses) VALUES (?, ?, ?, ?, ?)'
-    ).bind(today, userId, attempts, isCorrect ? 1 : 0, JSON.stringify(prevGuesses)).run();
+      'INSERT INTO daily_anagram_scores (date, user_id, attempts, solved, guesses, time_taken) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(today, userId, attempts, isCorrect ? 1 : 0, JSON.stringify(prevGuesses), finalTime).run();
   }
 
   const response: any = {

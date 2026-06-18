@@ -1,5 +1,5 @@
       <!-- Panel 6: 60-Second Word Finder -->
-      <div class="rounded-xl border border-green-800/50 bg-gray-900/50 p-6">
+      <div id="60seconds" class="rounded-xl border border-green-800/50 bg-gray-900/50 p-4 sm:p-6">
         <div class="flex items-center justify-between mb-2">
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>⏱️</span> 60-Second Word Finder <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="sixty" title="⭐ Earn star: Play 1 round">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="sixty">✅</span></h2>
           <span id="sixty-pb-badge" class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-xs text-amber-300 font-mono">PB: —</span>
@@ -74,10 +74,14 @@
   var currentTiles = '';
   var PB_KEY = 'swf-60s-pb';
 
-  var pb = parseInt(localStorage.getItem(PB_KEY) || '0');
+  var pb = 0;
+  var pbRaw = window.__swfStore.getRaw(PB_KEY);
+  if (pbRaw) {
+    try { var pbObj = JSON.parse(pbRaw); if (pbObj && typeof pbObj.score === 'number') pb = pbObj.score; } catch(e) { pb = parseInt(pbRaw) || 0; }
+  }
   document.getElementById('sixty-pb-badge').textContent = 'PB: ' + (pb > 0 ? pb + ' pts' : '\u2014');
 
-  var dictPref = localStorage.getItem('scbDictionary') || 'sowpods';
+  var dictPref = window.__swfStore.getRaw('scbDictionary') || 'sowpods';
   document.getElementById('sp-dict').value = dictPref;
 
   function loadDict(name) {
@@ -89,7 +93,7 @@
   loadDict(dictPref);
 
   document.getElementById('sp-dict').addEventListener('change', function() {
-    dictPref = this.value; localStorage.setItem('scbDictionary', dictPref);
+    dictPref = this.value; window.__swfStore.setRaw('scbDictionary', dictPref);
     dictLoaded = false; document.getElementById('sp-dict-status').textContent = 'Loading...';
     loadDict(dictPref);
   });
@@ -177,7 +181,7 @@
     var emoji = score >= 100 ? '\uD83C\uDFC6' : score >= 60 ? '\uD83C\uDF89' : score >= 30 ? '\uD83D\uDC4D' : '\uD83D\uDCAA';
     document.getElementById('sp-result-emoji').textContent = emoji;
     document.getElementById('sp-result-title').textContent = score >= 100 ? 'Amazing!' : score >= 60 ? 'Great!' : score >= 30 ? 'Nice!' : "Time's Up!";
-    if (score > pb) { pb = score; localStorage.setItem(PB_KEY, String(pb)); document.getElementById('sixty-pb-badge').textContent = 'PB: ' + pb + ' pts \uD83C\uDD95'; }
+    if (score > pb) { pb = score; window.__swfStore.setRaw(PB_KEY, JSON.stringify({ score: pb, achievedAt: new Date().toISOString() })); document.getElementById('sixty-pb-badge').textContent = 'PB: ' + pb + ' pts \uD83C\uDD95'; }
     var possible = WORDS.filter(function(w) { return w.length <= 7 && canMake(w, currentTiles); });
     var missed = possible.filter(function(w) { return foundWords.indexOf(w) === -1; }).sort(function(a,b) { return wordScore(b) - wordScore(a); }).slice(0, 10);
     if (missed.length > 0) {

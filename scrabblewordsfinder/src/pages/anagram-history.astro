@@ -1,0 +1,207 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Anagram History — ScrabbleWordsFinder" description="View your Daily Anagram puzzle history, solve rate, streaks, and performance over time. Track your unscrambling skills." keywords="daily anagram history, scrabble anagram scores, word puzzle history, anagram streak">
+
+<main class="mx-auto max-w-4xl px-4 sm:px-6 py-12">
+  <a href="/activities/" class="text-sm text-blue-400 hover:underline mb-6 inline-block">← Back to Activities</a>
+
+  <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">🔤 Anagram History</h1>
+  <p class="text-sm text-gray-400 mb-8">Your Daily Anagram performance over time.</p>
+
+  <!-- Loading -->
+  <div id="ah-loading" class="text-center py-8">
+    <p class="text-sm text-gray-500">Loading anagram history...</p>
+  </div>
+
+  <!-- Stats + Table -->
+  <div id="ah-content" class="hidden">
+    <!-- Summary stats -->
+    <div id="ah-stats" class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6 -mr-[100px]">
+      <div class="rounded-xl border border-rose-800/50 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-white" id="ah-stat-total">0</p>
+        <p class="text-xs text-gray-400">Games Played</p>
+      </div>
+      <div class="rounded-xl border border-green-800/50 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-green-400" id="ah-stat-solved">0</p>
+        <p class="text-xs text-gray-400">Solved</p>
+      </div>
+      <div class="rounded-xl border border-amber-800/50 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="ah-stat-rate">0%</p>
+        <p class="text-xs text-gray-400">Solve Rate</p>
+      </div>
+      <div class="rounded-xl border border-blue-800/50 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-blue-400" id="ah-stat-avg">0</p>
+        <p class="text-xs text-gray-400">Avg Attempts</p>
+      </div>
+      <div class="rounded-xl border border-orange-800/50 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-orange-400" id="ah-stat-streak">0</p>
+        <p class="text-xs text-gray-400">🔥 Streak</p>
+      </div>
+    </div>
+
+    <!-- History table -->
+    <div class="rounded-xl border border-rose-800/50 bg-gray-900/50 p-6 -mr-[100px]">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+          <thead class="bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left text-gray-300">Date</th>
+              <th class="px-4 py-3 text-left text-gray-300">Puzzle</th>
+              <th class="px-4 py-3 text-center text-gray-300">Result</th>
+              <th class="px-4 py-3 text-center text-gray-300">Attempts</th>
+              <th class="px-4 py-3 text-center text-gray-300">Time Taken</th>
+              <th class="px-4 py-3 text-left text-gray-300">Guesses</th>
+            </tr>
+          </thead>
+          <tbody id="ah-body" class="divide-y divide-gray-800"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="ah-empty" class="hidden">
+    <div class="rounded-xl border border-rose-800/50 bg-gray-900/50 p-8 text-center">
+      <span class="text-5xl block mb-4">🔤</span>
+      <h2 class="text-lg font-semibold text-white mb-3">No Anagram History Yet</h2>
+      <p class="text-gray-400 mb-6">Play your first Daily Anagram to start tracking your scores.</p>
+      <a href="/activities/" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-rose-500 text-gray-950 font-semibold hover:bg-rose-400 transition-colors">
+        🔤 Play Daily Anagram →
+      </a>
+    </div>
+  </div>
+</main>
+</Layout>
+
+<script>
+  async function loadAnagramHistory() {
+    const uid = localStorage.getItem('swf-uid') || '';
+    const loading = document.getElementById('ah-loading')!;
+    const content = document.getElementById('ah-content')!;
+    const empty = document.getElementById('ah-empty')!;
+
+    if (!uid) { loading.classList.add('hidden'); empty.classList.remove('hidden'); return; }
+
+    try {
+      const res = await fetch(`/api/anagram-history/?user_id=${encodeURIComponent(uid)}`);
+      if (!res.ok) throw new Error('Failed');
+      const { history, puzzles, stats } = await res.json();
+      loading.classList.add('hidden');
+
+      if (!history || history.length === 0) { empty.classList.remove('hidden'); return; }
+
+      // Populate stats
+      document.getElementById('ah-stat-total')!.textContent = String(stats.totalGames);
+      document.getElementById('ah-stat-solved')!.textContent = String(stats.totalSolved);
+      document.getElementById('ah-stat-rate')!.textContent = stats.solveRate + '%';
+      document.getElementById('ah-stat-avg')!.textContent = String(stats.avgAttempts);
+      document.getElementById('ah-stat-streak')!.textContent = String(stats.streak);
+
+      // Populate table
+      const tbody = document.getElementById('ah-body')!;
+      tbody.innerHTML = history.map((entry: any, index: number) => {
+        const puzzle = puzzles[entry.date] || {};
+        const scrambled = puzzle.scrambled || '???';
+        const answer = entry.solved ? (puzzle.word || '???') : '???';
+        const puzzleCell = entry.solved
+          ? `<span class="text-gray-400 font-mono">${scrambled}</span> <span class="text-gray-500">→</span> <span class="text-rose-300 font-mono font-bold">${answer}</span>`
+          : `<span class="text-gray-400 font-mono">${scrambled}</span> <span class="text-gray-500">→</span> <span class="text-gray-600 italic">unsolved</span>`;
+        const result = entry.solved
+          ? '<span class="text-green-400 font-bold">✅ Solved</span>'
+          : '<span class="text-red-400 font-bold">❌ Failed</span>';
+        const attempts = entry.attempts + '/5';
+
+        // Format time taken
+        let timeDisplay = '—';
+        const timeSec = entry.time_taken || 0;
+        if (timeSec > 0) {
+          if (timeSec < 60) {
+            timeDisplay = timeSec + 's';
+          } else {
+            const mins = Math.floor(timeSec / 60);
+            const secs = timeSec % 60;
+            timeDisplay = mins + 'm ' + (secs < 10 ? '0' : '') + secs + 's';
+          }
+        }
+
+        // Build 6×1 grid: scrambled anagram on top, then each guess attempt below with time splits
+        let guessDisplay = '';
+        try {
+          const guesses = JSON.parse(entry.guesses || '[]');
+          const wordLen = scrambled.length;
+          // Top row: scrambled anagram letters
+          const scrambledRow = scrambled.split('').map((ch: string) =>
+            `<span class="inline-flex items-center justify-center w-6 h-6 rounded text-[11px] font-bold bg-gray-700 text-white border border-gray-600">${ch}</span>`
+          ).join('');
+          // Guess rows: each attempt with colour-coded letter backgrounds + time split
+          const guessRows = guesses.map((g: any, gIdx: number) => {
+            const word = (g.guess || '').toUpperCase();
+            const feedback = g.feedback || [];
+            const letters = word.split('').map((ch: string, i: number) => {
+              const fb = feedback[i] || 'gray';
+              const bg = fb === 'green' ? 'bg-green-600 border-green-500 text-white'
+                       : fb === 'yellow' ? 'bg-amber-500 border-amber-400 text-gray-900'
+                       : 'bg-gray-800 border-gray-600 text-gray-400';
+              return `<span class="inline-flex items-center justify-center w-6 h-6 rounded text-[11px] font-bold ${bg} border">${ch}</span>`;
+            }).join('');
+            // Calculate per-guess time split from guessed_at timestamps
+            let splitLabel = '';
+            if (g.guessed_at) {
+              const currentTs = new Date(g.guessed_at).getTime();
+              const prevTs = gIdx > 0 && guesses[gIdx - 1].guessed_at
+                ? new Date(guesses[gIdx - 1].guessed_at).getTime()
+                : 0;
+              if (prevTs > 0) {
+                const splitSec = Math.round((currentTs - prevTs) / 1000);
+                if (splitSec > 0) {
+                  const label = splitSec >= 60
+                    ? `${Math.floor(splitSec / 60)}m${(splitSec % 60).toString().padStart(2, '0')}s`
+                    : `${splitSec}s`;
+                  splitLabel = `<span class="text-[10px] text-gray-500 ml-1.5 font-mono whitespace-nowrap">+${label}</span>`;
+                }
+              } else {
+                // First guess — show time from puzzle start (not available), just show timestamp
+                // No split for first guess
+              }
+            } else if (typeof g.time_taken === 'number' && g.time_taken > 0) {
+              // Fallback for older data without guessed_at: use cumulative time_taken diff
+              const prevTime = gIdx > 0 && typeof guesses[gIdx - 1].time_taken === 'number' ? guesses[gIdx - 1].time_taken : 0;
+              const split = g.time_taken - prevTime;
+              if (split > 0) {
+                splitLabel = `<span class="text-[10px] text-gray-500 ml-1.5 font-mono whitespace-nowrap">~${split}s</span>`;
+              }
+            }
+            return `<div class="flex gap-0.5 items-center">${letters}${splitLabel}</div>`;
+          });
+          guessDisplay = `<div class="flex flex-col gap-0.5">
+            <div class="flex gap-0.5">${scrambledRow}</div>
+            ${guessRows.join('')}
+          </div>`;
+        } catch (e) { guessDisplay = '—'; }
+
+        const dateFormatted = new Date(entry.date + 'T00:00:00').toLocaleDateString('en-GB', {
+          day: '2-digit', month: 'short', year: 'numeric'
+        });
+
+        return `<tr class="hover:bg-gray-800/50">
+          <td class="px-4 py-3 text-gray-300 whitespace-nowrap">${dateFormatted}</td>
+          <td class="px-4 py-3 tracking-wider whitespace-nowrap">${puzzleCell}</td>
+          <td class="px-4 py-3 text-center">${result}</td>
+          <td class="px-4 py-3 text-center text-gray-300">${attempts}</td>
+          <td class="px-4 py-3 text-center text-gray-300 font-mono">${timeDisplay}</td>
+          <td class="px-4 py-3">${guessDisplay}</td>
+        </tr>`;
+      }).join('');
+
+      content.classList.remove('hidden');
+    } catch (err) {
+      loading.innerHTML = '<p class="text-sm text-red-400">Could not load anagram history.</p>';
+    }
+  }
+
+  loadAnagramHistory();
+</script>

@@ -264,18 +264,77 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
     })();
     </script>
 
+    <!-- Global storage helpers with TTL support (available to all inline scripts) -->
+    <script is:inline>
+    (function() {
+      window.__swfStore = {
+        setWithExpiry: function(key, value, expiresAt) {
+          try { localStorage.setItem(key, JSON.stringify({ value: value, expiresAt: expiresAt })); } catch(e) {}
+        },
+        getIfValid: function(key) {
+          try {
+            var raw = localStorage.getItem(key);
+            if (!raw) return null;
+            var envelope = JSON.parse(raw);
+            if (envelope && envelope.expiresAt && new Date(envelope.expiresAt).getTime() <= Date.now()) {
+              localStorage.removeItem(key);
+              return null;
+            }
+            return envelope && envelope.value !== undefined ? envelope.value : null;
+          } catch(e) { localStorage.removeItem(key); return null; }
+        },
+        setItem: function(key, value) {
+          try { localStorage.setItem(key, JSON.stringify({ value: value })); } catch(e) {}
+        },
+        getItem: function(key) { return window.__swfStore.getIfValid(key); },
+        removeItem: function(key) { try { localStorage.removeItem(key); } catch(e) {} },
+        setRaw: function(key, value) { try { localStorage.setItem(key, value); } catch(e) {} },
+        getRaw: function(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
+        purgeExpired: function() {
+          var purged = 0;
+          try {
+            for (var i = localStorage.length - 1; i >= 0; i--) {
+              var key = localStorage.key(i);
+              if (!key) continue;
+              var raw = localStorage.getItem(key);
+              if (!raw) continue;
+              try {
+                var envelope = JSON.parse(raw);
+                if (envelope && envelope.expiresAt && new Date(envelope.expiresAt).getTime() <= Date.now()) {
+                  localStorage.removeItem(key);
+                  purged++;
+                }
+              } catch(e) {}
+            }
+          } catch(e) {}
+          return purged;
+        },
+        getNextMidnightUTC: function() {
+          var t = new Date();
+          t.setUTCDate(t.getUTCDate() + 1);
+          t.setUTCHours(0, 0, 0, 0);
+          return t.toISOString();
+        },
+        has: function(key) { return window.__swfStore.getIfValid(key) !== null; }
+      };
+      // Purge expired items on every page load
+      window.__swfStore.purgeExpired();
+    })();
+    </script>
+
     <slot />
 
     <!-- Global click tracker — captures ALL interactive element clicks to /api/clicks -->
     <script is:inline>
     (function() {
+      var S = window.__swfStore;
       var UID_KEY = 'swf-uid';
       function getUid() {
         try {
-          var uid = localStorage.getItem(UID_KEY);
+          var uid = S.getRaw(UID_KEY);
           if (!uid) {
             uid = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-            localStorage.setItem(UID_KEY, uid);
+            S.setRaw(UID_KEY, uid);
           }
           return uid;
         } catch(e) {
@@ -462,7 +521,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
       if(window.location.pathname.startsWith("/admin"))return;
 
       function getSessionId(){let s=sessionStorage.getItem("swf_session_id");if(!s){s=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36);sessionStorage.setItem("swf_session_id",s)}return s}
-      function getUserId(){let u=localStorage.getItem("swf_user_id");if(!u){u=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem("swf_user_id",u)}return u}
+      function getUserId(){let u=window.__swfStore.getRaw("swf_user_id");if(!u){u=crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36);window.__swfStore.setRaw("swf_user_id",u)}return u}
       function getDevice(){var a=navigator.userAgent;if(/tablet|ipad|playbook|silk/i.test(a))return"tablet";if(/mobile|iphone|ipod|android.*mobile|windows phone/i.test(a))return"mobile";return"desktop"}
       function getBrowser(){var a=navigator.userAgent;if(a.includes("Firefox/"))return"Firefox";if(a.includes("Edg/"))return"Edge";if(a.includes("Chrome/")&&!a.includes("Edg/"))return"Chrome";if(a.includes("Safari/")&&!a.includes("Chrome"))return"Safari";return"Other"}
       function getOS(){var a=navigator.userAgent;if(a.includes("Windows"))return"Windows";if(a.includes("Mac OS"))return"macOS";if(a.includes("Android"))return"Android";if(/iPhone|iPad|iPod/.test(a))return"iOS";if(a.includes("Linux"))return"Linux";return"Other"}

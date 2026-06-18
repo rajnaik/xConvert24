@@ -1,5 +1,5 @@
       <!-- Panel 1: Word of the Day -->
-      <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-6">
+      <div class="rounded-xl border border-purple-800/50 bg-gray-900/50 p-4 sm:p-6">
         <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2"><span>📖</span> Word of the Day <span class="star-indicator text-sm opacity-40 cursor-help" data-game="wotd" title="⭐ Earn star: Add WOTD to Memory WordBench (auto-awarded if already saved)">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="wotd">✅</span>
           <button id="wotd-history-btn" class="ml-auto w-7 h-7 flex items-center justify-center rounded-full border-2 border-purple-500/50 bg-purple-900/20 hover:bg-purple-600/30 hover:border-purple-400 text-purple-300 transition-all" title="WOTD History">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -58,10 +58,11 @@
 
 <script is:inline>
 (function() {
-    var uid = localStorage.getItem('swf-uid') || '';
+    var S = window.__swfStore;
+    var uid = S.getRaw('swf-uid') || '';
 
     // Show "use workbench words" option if user has saved words with meanings
-    var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+    var saved = JSON.parse(S.getRaw('scbAchievements') || '[]');
     var wordsWithMeaning = saved.filter(function(w) {
       if (!w.meaning || !w.meaning.trim()) return false;
       var m = w.meaning.toLowerCase();
@@ -87,25 +88,25 @@
         }).catch(function() {});
     }
 
-  // ── Word of the Day (with 24h localStorage cache) ──
+  // ── Word of the Day (with server-provided TTL cache) ──
   var WOTD_CACHE_KEY = 'swf-wotd-cache';
-  var WOTD_CACHE_TTL = 24 * 60 * 60 * 1000;
 
   function getWotdCache() {
-    try {
-      var cached = JSON.parse(localStorage.getItem(WOTD_CACHE_KEY));
-      if (cached && Date.now() - cached.ts < WOTD_CACHE_TTL) return cached.data;
-    } catch(e) {}
-    return null;
+    return S.getIfValid(WOTD_CACHE_KEY);
   }
 
-  function setWotdCache(data) {
-    localStorage.setItem(WOTD_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: data }));
+  function setWotdCache(data, expiresAt) {
+    if (expiresAt) {
+      S.setWithExpiry(WOTD_CACHE_KEY, data, expiresAt);
+    } else {
+      // Fallback: expire at next midnight UTC
+      S.setWithExpiry(WOTD_CACHE_KEY, data, S.getNextMidnightUTC());
+    }
   }
 
   function checkWotdInMwb(word) {
     if (!word || word === '—') return;
-    var mwb = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+    var mwb = JSON.parse(S.getRaw('scbAchievements') || '[]');
     var alreadySaved = mwb.find(function(s) { return s.word === word; });
     if (alreadySaved) {
       var btn = document.getElementById('wotd-add-workbench');
@@ -130,7 +131,7 @@
   if (cached) { renderWotd(cached); document.getElementById('wotd-cache-status').textContent = 'from cache'; }
 
   fetch('/api/wotd/').then(function(r) { return r.json(); }).then(function(d) {
-    if (d.word) { renderWotd(d.word); setWotdCache(d.word); document.getElementById('wotd-cache-status').textContent = 'live'; }
+    if (d.word) { renderWotd(d.word); setWotdCache(d.word, d.expiresAt); document.getElementById('wotd-cache-status').textContent = 'live'; }
   }).catch(function() {
     if (!cached) document.getElementById('wotd-meaning').textContent = 'Could not load — try refreshing';
     document.getElementById('wotd-cache-status').textContent = 'offline (cached)';
@@ -156,14 +157,14 @@
   document.getElementById('wotd-add-workbench').addEventListener('click', function() {
     var word = document.getElementById('wotd-word').textContent;
     if (!word || word === '—') return;
-    var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+    var saved = JSON.parse(S.getRaw('scbAchievements') || '[]');
     if (saved.find(function(s) { return s.word === word; })) {
       this.textContent = 'Saved ✓';
       this.className = 'px-4 py-2 rounded-lg bg-green-600/20 border border-green-500/50 text-sm text-green-400 transition-colors';
       return;
     }
     saved.push({ word: word, score: 0, category: 'wotd', meaning: document.getElementById('wotd-meaning').textContent, dateAdded: new Date().toISOString() });
-    localStorage.setItem('scbAchievements', JSON.stringify(saved));
+    S.setRaw('scbAchievements', JSON.stringify(saved));
     this.textContent = 'Saved ✓';
     this.className = 'px-4 py-2 rounded-lg bg-green-600/20 border border-green-500/50 text-sm text-green-400 transition-colors';
     // Notify MWB to refresh immediately

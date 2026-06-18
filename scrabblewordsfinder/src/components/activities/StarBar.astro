@@ -54,7 +54,8 @@
 
 <script is:inline>
 (function() {
-  var uid = localStorage.getItem('swf-uid') || '';
+  var S = window.__swfStore;
+  var uid = S.getRaw('swf-uid') || '';
 
   // Global star award helper with localStorage failsafe
   var STARS_LS_KEY = 'swf-stars-earned-' + new Date().toISOString().split('T')[0];
@@ -62,10 +63,10 @@
   window.__awardStar = function(game) {
     if (!uid) return;
     // 1. Save to localStorage immediately (never fails)
-    var todayStars = JSON.parse(localStorage.getItem(STARS_LS_KEY) || '[]');
+    var todayStars = JSON.parse(S.getRaw(STARS_LS_KEY) || '[]');
     if (todayStars.indexOf(game) === -1) {
       todayStars.push(game);
-      localStorage.setItem(STARS_LS_KEY, JSON.stringify(todayStars));
+      S.setRaw(STARS_LS_KEY, JSON.stringify(todayStars));
     }
     // 2. Sync ALL localStorage stars to DB (batch — covers any missed POSTs)
     syncStarsToDb(todayStars);
@@ -86,7 +87,7 @@
   }
 
   // On page load: sync any localStorage stars that might not have reached DB
-  var savedStars = JSON.parse(localStorage.getItem(STARS_LS_KEY) || '[]');
+  var savedStars = JSON.parse(S.getRaw(STARS_LS_KEY) || '[]');
   if (savedStars.length > 0) { syncStarsToDb(savedStars); }
 
   // Light up star indicators on each panel header — turn green permanently when earned
@@ -122,18 +123,18 @@
   }
 
   var cacheKey = 'swf-stars-' + new Date().toISOString().split('T')[0];
-  var cached = localStorage.getItem(cacheKey);
+  var cached = S.getRaw(cacheKey);
   if (cached) { try { renderStarBar(JSON.parse(cached)); } catch(e) {} }
 
   fetch('/api/daily-progress/?user_id=' + encodeURIComponent(uid))
     .then(function(r) { return r.json(); })
-    .then(function(data) { localStorage.setItem(cacheKey, JSON.stringify(data)); renderStarBar(data); })
+    .then(function(data) { S.setRaw(cacheKey, JSON.stringify(data)); renderStarBar(data); })
     .catch(function() {});
 
   function renderStarBar(data) {
     var stars = data.today && data.today.stars_earned ? data.today.stars_earned : [];
     // Merge with localStorage (failsafe — localStorage might have stars DB doesn't yet)
-    var lsStars = JSON.parse(localStorage.getItem(STARS_LS_KEY) || '[]');
+    var lsStars = JSON.parse(S.getRaw(STARS_LS_KEY) || '[]');
     lsStars.forEach(function(s) { if (stars.indexOf(s) === -1) stars.push(s); });
     var games = data.games || [];
     games.forEach(function(g) {
@@ -186,11 +187,11 @@
       msgEl.textContent = ''; msgEl.className = 'hidden';
       var diamondMsgEl = document.getElementById('sb-diamond-msg');
       diamondMsgEl.textContent = 'Diamond claimed! Come back tomorrow!'; diamondMsgEl.classList.remove('hidden');
-      var cached = localStorage.getItem(cacheKey);
-      if (cached) { try { var d = JSON.parse(cached); d.today.diamond = 1; localStorage.setItem(cacheKey, JSON.stringify(d)); } catch(e) {} }
+      var cached = S.getRaw(cacheKey);
+      if (cached) { try { var d = JSON.parse(cached); d.today.diamond = 1; S.setRaw(cacheKey, JSON.stringify(d)); } catch(e) {} }
       fetch('/api/daily-progress/?user_id=' + encodeURIComponent(uid))
         .then(function(r) { return r.json(); })
-        .then(function(data) { localStorage.setItem(cacheKey, JSON.stringify(data)); renderStarBar(data); })
+        .then(function(data) { S.setRaw(cacheKey, JSON.stringify(data)); renderStarBar(data); })
         .catch(function() {});
     }, 800);
   });
@@ -204,7 +205,7 @@
     }
     fetch('/api/daily-progress/?user_id=' + encodeURIComponent(uid))
       .then(function(r) { return r.json(); })
-      .then(function(data) { localStorage.setItem(cacheKey, JSON.stringify(data)); renderStarBar(data); })
+      .then(function(data) { S.setRaw(cacheKey, JSON.stringify(data)); renderStarBar(data); })
       .catch(function() {});
   });
 })();
