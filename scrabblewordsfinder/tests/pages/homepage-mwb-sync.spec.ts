@@ -74,7 +74,7 @@ test.describe('Homepage MWB Sidebar — mwb-updated Event Sync — Positive', ()
     await page.waitForSelector('#saved-words-list', { timeout: 8000 });
 
     // Should show empty state message
-    await expect(page.locator('#saved-words-list')).toContainText('No memory workbench yet');
+    await expect(page.locator('#saved-words-list')).toContainText('No words saved yet!');
 
     // Add a word externally and fire event
     await page.evaluate(() => {
@@ -86,7 +86,7 @@ test.describe('Homepage MWB Sidebar — mwb-updated Event Sync — Positive', ()
     await page.waitForTimeout(500);
 
     // Empty message should be gone, word should be visible
-    await expect(page.locator('#saved-words-list')).not.toContainText('No memory workbench yet');
+    await expect(page.locator('#saved-words-list')).not.toContainText('No words saved yet!');
     await expect(page.locator('#saved-words-list')).toContainText('QUARTZ');
   });
 });
@@ -118,7 +118,7 @@ test.describe('Homepage MWB Sidebar — mwb-updated Event Sync — Negative', ()
     expect(critical).toHaveLength(0);
 
     // Empty state message still shown
-    await expect(page.locator('#saved-words-list')).toContainText('No memory workbench yet');
+    await expect(page.locator('#saved-words-list')).toContainText('No words saved yet!');
   });
 
   test('mwb-updated does not create duplicate word entries in sidebar', async ({ page }) => {

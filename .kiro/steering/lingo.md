@@ -19,6 +19,7 @@ When Raj uses "aka" between two terms, it means they are the same thing — one 
 | Google OAuth | auth | Auth system |
 | Cloudflare Workers | workers | Hosting |
 | Ship It | full throttle | Deploy to live approval command |
+| Full Visual Treatment | FVT | Apply Visual Enhancement Recipe to a blog page |
 
 ## Rules
 

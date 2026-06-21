@@ -5,5 +5,6 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare({
     platformProxy: { enabled: true }
-  })
+  }),
+  server: { port: 4323 },
 });

@@ -77,6 +77,14 @@ export const POST: APIRoute = async ({ request }) => {
 
   const today = date || new Date().toISOString().split('T')[0];
 
+  // Check for duplicate word submission (same user, same word, same day)
+  const existing = await db.prepare(
+    'SELECT id FROM daily_rack_scores WHERE date = ? AND user_id = ? AND word = ?'
+  ).bind(today, user_id || '', word.toUpperCase()).first();
+  if (existing) {
+    return new Response(JSON.stringify({ error: 'duplicate', message: 'You already submitted this word today' }), { status: 409 });
+  }
+
   await db.prepare(
     'INSERT INTO daily_rack_scores (date, user_id, word, score) VALUES (?, ?, ?, ?)'
   ).bind(today, user_id || '', word, score).run();

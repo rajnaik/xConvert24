@@ -9,6 +9,7 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare(),
   integrations: [mcp()],
+  server: { port: 4322 },
   vite: {
     plugins: [tailwindcss()],
     server: {

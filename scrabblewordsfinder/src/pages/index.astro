@@ -110,6 +110,7 @@ import '../styles/global.css';
 
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight"><span class="text-blue-400">Scrabble</span> Words Finder</h1>
+      <span class="text-sm text-blue-400 font-medium">Free, Fast, No-Sign Up</span>
       <!-- Word of the Day bubble -->
       <div class="relative flex items-center gap-1.5">
         <button id="wotd-solver-btn" class="px-2.5 py-1 rounded-full bg-purple-600/20 border border-purple-500/40 text-xs font-semibold text-purple-300 hover:bg-purple-600/40 transition-all cursor-pointer" title="Word of the Day — click to reveal meaning">
@@ -123,8 +124,8 @@ import '../styles/global.css';
           <a href="/activities/" class="inline-block mt-2 text-[10px] text-blue-400 hover:underline">View on Activities →</a>
         </div>
       </div>
-      <!-- Quick links -->
-      <div class="flex items-center gap-2 ml-auto">
+      <!-- Quick links (desktop only — Header handles mobile nav) -->
+      <div class="hidden sm:flex items-center gap-2 ml-auto">
         <a href="/activities/" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600/20 border border-blue-500/40 hover:bg-blue-600/40 transition-colors" title="Word Quiz">
           <span class="text-base">🧠</span>
         </a>
@@ -158,7 +159,7 @@ import '../styles/global.css';
             <a id="paste-solver" href="#" class="p-1 rounded text-gray-500 hover:text-blue-400 transition-colors" title="Paste from clipboard"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></a>
           </div>
           <div class="flex gap-2 sm:gap-3">
-            <input id="text-solver" type="text" maxlength="15" size="15" placeholder="Type your tiles e.g. QUARTZ" inputmode="text" autocapitalize="characters" class="flex-1 h-11 px-2 sm:px-3 bg-gray-800 border border-gray-700 rounded-lg text-blue-300 text-base sm:text-lg font-mono uppercase tracking-wider sm:tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" autocomplete="off"/>
+            <input id="text-solver" type="text" maxlength="15" size="15" placeholder="Type your tiles e.g. QUARTZ" inputmode="text" autocapitalize="characters" data-track="SolverUsed" class="flex-1 h-11 px-2 sm:px-3 bg-gray-800 border border-gray-700 rounded-lg text-blue-300 text-base sm:text-lg font-mono uppercase tracking-wider sm:tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" autocomplete="off"/>
             <a id="clear-text-solver" href="#" class="flex items-center justify-center w-7 h-7 rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 transition-colors self-center" title="Clear">
               <svg class="w-3 h-3 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </a>
@@ -265,6 +266,7 @@ import '../styles/global.css';
             <button id="download-saved-btn" type="button" class="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 transition-colors opacity-30" title="Download memory workbench" aria-label="Download memory workbench">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/></svg>
             </button>
+
             <span id="saved-count" class="text-xs text-gray-400">0</span>
           </div>
         </div>
@@ -811,14 +813,13 @@ import '../styles/global.css';
 
     if (!allAchievements.length) {
       savedWordsPage = 0;
-      listEl.innerHTML = `<p class="text-sm text-gray-500 text-center py-4 italic">No memory workbench yet. Click any word to collect it.</p>
-        <div class="flex flex-wrap gap-2 justify-center mt-2">
-          <button class="import-section-btn px-2.5 py-1 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" data-section="two-letter-words" data-cat="two-letter">📥 2-Letter</button>
-          <button class="import-section-btn px-2.5 py-1 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" data-section="three-letter-words" data-cat="three-letter">📥 3-Letter</button>
-          <button class="import-section-btn px-2.5 py-1 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" data-section="q-without-u" data-cat="q-without-u">📥 Q no U</button>
-          <button class="import-section-btn px-2.5 py-1 rounded text-xs text-purple-400 border border-purple-700 hover:bg-purple-900/30 transition-colors" data-section="rare-letter-results" data-cat="rare-letters">📥 Rare</button>
-        </div>`;
-      bindImportButtons(listEl);
+      listEl.innerHTML = `<div class="space-y-3 text-center py-2">
+        <p class="text-sm text-gray-300 font-medium">No words saved yet!</p>
+        <p class="text-xs text-gray-400">Import all essential Scrabble word lists in one click:</p>
+        <button id="mwb-import-all-btn" class="mt-2 px-4 py-2 rounded-lg bg-purple-600/30 border border-purple-500/50 text-sm text-purple-300 hover:bg-purple-600/50 hover:border-purple-400 transition-colors font-medium">📥 Import All Word Lists</button>
+        <p class="text-[10px] text-gray-500 mt-2">Imports 2-letter, top 3-letter, Q-without-U, high-scoring by length, and rare letter words with meanings &amp; categories.</p>
+      </div>`;
+      bindMwbImportAllBtn();
       return;
     }
 
@@ -883,6 +884,7 @@ import '../styles/global.css';
       });
     });
     bindCatTabs(listEl);
+    applyFullscreenStyles();
   }
 
   function bindCatTabs(container: HTMLElement) {
@@ -961,6 +963,90 @@ import '../styles/global.css';
             });
           }, i * 150);
         });
+      });
+    });
+  }
+
+  // ── Import All Word Lists (Solver MWB) ──────────────────────────────────
+  function bindMwbImportAllBtn() {
+    const btn = document.getElementById('mwb-import-all-btn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      btn.setAttribute('disabled', 'true');
+      btn.textContent = '⏳ Loading dictionary…';
+      Promise.all([
+        fetch('/data/sowpods-2-7.json').then(r => r.json()),
+        fetch('/data/swfdict.json').then(r => r.json()).catch(() => ({}))
+      ]).then(([words, meanings]: [string[], Record<string, string>]) => {
+        const scores: Record<string, number> = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+        function wScore(w: string) { return w.split('').reduce((s, c) => s + (scores[c.toUpperCase()] || 0), 0); }
+
+        // Two-Letter Words (all)
+        const twoLetter = words.filter(w => w.length === 2).sort();
+        // Top 3-Letter Words (top 30 by score)
+        const threeLetter = words.filter(w => w.length === 3)
+          .map(w => ({ word: w, score: wScore(w) }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 30)
+          .map(w => w.word);
+        // Q without U
+        const qNoU = words.filter(w => w.indexOf('q') !== -1 && w.indexOf('u') === -1).sort();
+        // High-Scoring by Length (top 5 per length 2-5)
+        const highScoring: string[] = [];
+        [2, 3, 4, 5].forEach(len => {
+          words.filter(w => w.length === len)
+            .map(w => ({ word: w, score: wScore(w) }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5)
+            .forEach(item => highScoring.push(item.word));
+        });
+        // Rare letters (top 40 each: Q, Z, X, J)
+        const rareSet: Record<string, boolean> = {};
+        ['q', 'z', 'x', 'j'].forEach(letter => {
+          words.filter(w => w.indexOf(letter) !== -1)
+            .map(w => ({ word: w, score: wScore(w) }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 40)
+            .forEach(item => { rareSet[item.word] = true; });
+        });
+        const rareAll = Object.keys(rareSet);
+
+        // Build import list with categories
+        const toImport: { word: string; category: string }[] = [];
+        const seen: Record<string, boolean> = {};
+        twoLetter.forEach(w => { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'two-letter' }); } });
+        threeLetter.forEach(w => { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'three-letter' }); } });
+        qNoU.forEach(w => { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'q-without-u' }); } });
+        highScoring.forEach(w => { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'high-scoring' }); } });
+        rareAll.forEach(w => { if (!seen[w]) { seen[w] = true; toImport.push({ word: w, category: 'rare-letters' }); } });
+
+        // Merge with existing
+        const existing = getAchievements();
+        const existingWords: Record<string, boolean> = {};
+        existing.forEach(a => { existingWords[a.word] = true; });
+        let imported = 0;
+        const now = new Date().toISOString();
+        toImport.forEach(item => {
+          if (!existingWords[item.word]) {
+            const def = meanings[item.word.toLowerCase()] || '';
+            existing.unshift({ word: item.word, meaning: def, category: item.category, dateAdded: now });
+            existingWords[item.word] = true;
+            imported++;
+          }
+        });
+        saveAchievements(existing);
+
+        // Success feedback
+        btn.textContent = `✅ Imported ${imported} words!`;
+        btn.className = 'mt-2 px-4 py-2 rounded-lg bg-green-600/30 border border-green-500/50 text-sm text-green-300 font-medium';
+
+        // Refresh panel
+        setTimeout(() => { renderSavedWords(); }, 1500);
+      }).catch(err => {
+        btn.textContent = '❌ Failed — try again';
+        btn.removeAttribute('disabled');
+        btn.className = 'mt-2 px-4 py-2 rounded-lg bg-red-600/30 border border-red-500/50 text-sm text-red-300 hover:bg-red-600/50 transition-colors font-medium';
+        console.error('[MWB] Import All failed:', err);
       });
     });
   }
@@ -1090,6 +1176,40 @@ import '../styles/global.css';
     const card = cards[flashCardIdx];
     if (!card) { flashCardMode = false; renderSavedWords(); return; }
 
+    // If in fullscreen, update card content in-place to avoid destroying the fullscreen element
+    if (document.fullscreenElement) {
+      const fcBody = document.getElementById('flashcard-body');
+      const fcCounter = listEl.querySelector('.text-purple-400');
+      const fcPrev = document.getElementById('fc-prev');
+      const fcNext = document.getElementById('fc-next');
+      const fcCatLabel = listEl.querySelector('.text-xs.text-gray-500:not(.italic):not(.animate-pulse)');
+      if (fcBody && fcCounter) {
+        // Update counter
+        fcCounter.textContent = `Flash Card ${flashCardIdx + 1} / ${cards.length}`;
+        // Update card body content
+        fcBody.innerHTML = `
+          <span class="font-mono font-extrabold text-2xl text-white uppercase tracking-widest ${flashCardRevealed ? 'fc-word-pulse' : ''}">${card.word}</span>
+          <span class="text-sm text-blue-400 mt-1">${wordScore(card.word)} pts</span>
+          ${flashCardRevealed ? `<div class="fc-meaning-reveal mt-3"><p class="text-xs text-gray-400 max-w-[220px] text-center leading-relaxed">${card.meaning || 'No definition saved'}</p></div>` : '<p class="text-xs text-gray-500 mt-3 italic animate-pulse cursor-pointer">Tap to reveal meaning</p>'}`;
+        // Ensure cursor-pointer on body for tap-to-flip
+        fcBody.style.cursor = 'pointer';
+        // Update nav button states
+        if (fcPrev) {
+          if (flashCardIdx === 0) { fcPrev.classList.add('opacity-30', 'pointer-events-none'); } else { fcPrev.classList.remove('opacity-30', 'pointer-events-none'); }
+        }
+        if (fcNext) {
+          if (flashCardIdx >= cards.length - 1) { fcNext.classList.add('opacity-30', 'pointer-events-none'); } else { fcNext.classList.remove('opacity-30', 'pointer-events-none'); }
+        }
+        if (fcCatLabel) fcCatLabel.textContent = card.category || 'manual';
+        // Re-bind click on flashcard body for tap-to-flip
+        fcBody.onclick = () => { if (!flashCardRevealed) { flashCardRevealed = true; renderFlashCard(cards); } };
+        // Inject speed slider into fullscreen area if not present
+        ensureFullscreenSlider();
+        applyFullscreenStyles();
+        return;
+      }
+    }
+
     listEl.innerHTML = `
       <style>
         @keyframes fcSlideIn { from { transform: translateX(30px) rotateY(15deg); opacity: 0; } to { transform: translateX(0) rotateY(0); opacity: 1; } }
@@ -1104,6 +1224,7 @@ import '../styles/global.css';
         <div class="absolute top-2 right-2 flex items-center gap-1.5">
           <span id="fc-timer-display" class="text-[10px] font-mono text-amber-400 ${(document.getElementById('mwb-autoplay') as HTMLInputElement)?.checked ? '' : 'hidden'}">0:00</span>
           <a href="/wordbench-practice/" class="w-6 h-6 flex items-center justify-center rounded-full bg-green-600/20 border border-green-500/40 hover:bg-green-600/40 text-green-300 transition-colors" title="Practice History"><span class="text-[10px]">📚</span></a>
+          <button id="mwb-fullscreen-btn" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-600/30 border border-gray-500/50 hover:bg-gray-600/50 text-gray-300 text-sm transition-colors" title="Full screen" aria-label="Full screen"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg></button>
           <button id="flashcard-autoplay-toggle" class="w-7 h-7 flex items-center justify-center rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 text-purple-300 text-sm transition-colors" title="Auto-play">${(document.getElementById('mwb-autoplay') as HTMLInputElement)?.checked ? '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>' : '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'}</button>
           <button id="flashcard-close" class="w-7 h-7 flex items-center justify-center rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 text-purple-300 text-sm transition-colors">✕</button>
         </div>
@@ -1132,6 +1253,7 @@ import '../styles/global.css';
       if (flashCardIdx < cards.length - 1) { flashCardIdx++; flashCardRevealed = false; renderFlashCard(cards); }
     });
     document.getElementById('flashcard-close')!.addEventListener('click', () => {
+      if (document.fullscreenElement) document.exitFullscreen();
       flashCardMode = false;
       stopMwbAutoPlay();
       renderSavedWords();
@@ -1139,6 +1261,29 @@ import '../styles/global.css';
     document.getElementById('flashcard-autoplay-toggle')!.addEventListener('click', () => {
       document.getElementById('mwb-autoplay-btn')!.click();
     });
+    document.getElementById('mwb-fullscreen-btn')!.addEventListener('click', () => {
+      const fcArea = document.getElementById('flashcard-body')!.closest('.relative') as HTMLElement;
+      if (!fcArea) return;
+      if (!document.fullscreenElement) {
+        fcArea.requestFullscreen().then(() => {
+          fcArea.style.padding = '2rem';
+          fcArea.style.display = 'flex';
+          fcArea.style.flexDirection = 'column';
+          fcArea.style.justifyContent = 'center';
+          fcArea.style.alignItems = 'center';
+          fcArea.style.background = '#0f172a';
+          fcArea.style.overflow = 'auto';
+          applyFullscreenStyles();
+          ensureFullscreenSlider();
+          const btn = document.getElementById('mwb-fullscreen-btn')!;
+          btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
+          btn.title = 'Exit full screen';
+        }).catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    });
+    applyFullscreenStyles();
   }
 
   // ── Solver Memory WordBench Auto-play ──
@@ -1230,10 +1375,12 @@ import '../styles/global.css';
     if (!checkbox.checked) {
       checkbox.checked = true;
       document.getElementById('mwb-speed-wrap')!.classList.remove('hidden');
+      if (document.fullscreenElement) ensureFullscreenSlider();
       startMwbAutoPlay();
     } else {
       checkbox.checked = false;
       document.getElementById('mwb-speed-wrap')!.classList.add('hidden');
+      removeFullscreenSlider();
       clearTimeout(mwbAutoTimer);
     }
   });
@@ -1281,6 +1428,108 @@ import '../styles/global.css';
     const a = document.createElement('a');
     a.href = url; a.download = `www.scrabblewordsfinder.com_wordbench-export_${new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'')}:${new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/:/g,'-')}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  });
+
+  // ── MWB Fullscreen Slider Injection ────────────────────────────────────────
+  function ensureFullscreenSlider() {
+    if (!document.fullscreenElement) return;
+    const fcArea = document.fullscreenElement as HTMLElement;
+    // Only inject if not already present
+    if (fcArea.querySelector('#fs-speed-wrap')) return;
+    const speedSlider = document.getElementById('mwb-speed-slider') as HTMLInputElement;
+    const speedLabel = document.getElementById('mwb-speed-label');
+    const autoplayChecked = (document.getElementById('mwb-autoplay') as HTMLInputElement)?.checked;
+    // Only show slider if autoplay is active
+    if (!autoplayChecked) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'fs-speed-wrap';
+    wrap.className = 'flex items-center gap-2 mt-4';
+    wrap.innerHTML = `
+      <span class="text-[10px] text-gray-400">Speed:</span>
+      <input type="range" id="fs-speed-slider" min="1" max="30" value="${speedSlider?.value || '5'}" class="w-32 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500" />
+      <span id="fs-speed-label" class="text-xs text-gray-400 font-mono">${speedLabel?.textContent || '5s'}</span>
+    `;
+    // Insert after the nav buttons row
+    const navRow = fcArea.querySelector('.flex.items-center.justify-center.gap-4.mt-4');
+    if (navRow) { navRow.after(wrap); } else { fcArea.appendChild(wrap); }
+    // Sync the clone slider with the real one
+    const fsSlider = wrap.querySelector('#fs-speed-slider') as HTMLInputElement;
+    fsSlider?.addEventListener('input', () => {
+      const val = fsSlider.value;
+      const lbl = wrap.querySelector('#fs-speed-label');
+      if (lbl) lbl.textContent = val + 's';
+      // Sync to real slider
+      if (speedSlider) { speedSlider.value = val; speedSlider.dispatchEvent(new Event('input')); }
+    });
+  }
+
+  function removeFullscreenSlider() {
+    document.getElementById('fs-speed-wrap')?.remove();
+  }
+
+  // ── MWB Fullscreen Styles Helper ──────────────────────────────────────────
+  function applyFullscreenStyles() {
+    if (!document.fullscreenElement) return;
+    const fcBody = document.getElementById('flashcard-body') as HTMLElement;
+    if (fcBody) {
+      const fcWord = fcBody.querySelector('.font-mono.font-extrabold') as HTMLElement;
+      if (fcWord) fcWord.style.fontSize = '6rem';
+      const fcMeaning = fcBody.querySelector('.text-xs.text-gray-400') as HTMLElement;
+      if (fcMeaning) {
+        fcMeaning.style.fontSize = '1.5rem';
+        fcMeaning.style.maxWidth = 'none';
+      }
+      // Also enlarge the meaning container and remove max-height cap from animation
+      const fcMeaningWrap = fcBody.querySelector('.fc-meaning-reveal') as HTMLElement;
+      if (fcMeaningWrap) {
+        fcMeaningWrap.style.animation = 'none';
+        fcMeaningWrap.style.maxHeight = 'none';
+        fcMeaningWrap.style.opacity = '1';
+      }
+      const fcScore = fcBody.querySelector('.text-blue-400') as HTMLElement;
+      if (fcScore) fcScore.style.fontSize = '1.25rem';
+      // Enlarge the "Tap to reveal" hint in fullscreen
+      const fcHint = fcBody.querySelector('.animate-pulse') as HTMLElement;
+      if (fcHint) fcHint.style.fontSize = '1.25rem';
+      fcBody.style.minHeight = '300px';
+      fcBody.style.padding = '3rem';
+      fcBody.style.cursor = 'pointer';
+    }
+  }
+
+  // ── MWB Fullscreen exit handler ─────────────────────────────────────────
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+      removeFullscreenSlider();
+      const fcArea = document.querySelector('#flashcard-body')?.closest('.relative') as HTMLElement;
+      if (fcArea) {
+        fcArea.style.padding = '';
+        fcArea.style.display = '';
+        fcArea.style.flexDirection = '';
+        fcArea.style.justifyContent = '';
+        fcArea.style.alignItems = '';
+        fcArea.style.background = '';
+        fcArea.style.overflow = '';
+      }
+      // Reset flashcard sizes
+      const fcBody = document.getElementById('flashcard-body') as HTMLElement;
+      if (fcBody) {
+        const fcWord = fcBody.querySelector('.font-mono.font-extrabold') as HTMLElement;
+        if (fcWord) fcWord.style.fontSize = '';
+        const fcMeaning = fcBody.querySelector('.text-xs.text-gray-400') as HTMLElement;
+        if (fcMeaning) fcMeaning.style.fontSize = '';
+        const fcScore = fcBody.querySelector('.text-blue-400') as HTMLElement;
+        if (fcScore) fcScore.style.fontSize = '';
+        fcBody.style.minHeight = '';
+        fcBody.style.padding = '';
+      }
+      // Reset button icon
+      const btn = document.getElementById('mwb-fullscreen-btn');
+      if (btn) {
+        btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>';
+        btn.title = 'Full screen';
+      }
+    }
   });
 
   // ── Edit Modal ──────────────────────────────────────────────────────────

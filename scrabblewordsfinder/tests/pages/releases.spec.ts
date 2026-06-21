@@ -10,7 +10,7 @@ test.describe('Releases Page — Positive', () => {
 
   test('displays current version badge', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const versionBadge = page.locator('span.font-mono.text-blue-400');
+    const versionBadge = page.locator('main p span.font-mono').first();
     await expect(versionBadge).toBeVisible();
     const text = await versionBadge.textContent();
     expect(text).toMatch(/^v\d+\.\d+\.\d+$/);
@@ -20,16 +20,39 @@ test.describe('Releases Page — Positive', () => {
     await page.goto(`${BASE}/releases/`);
     const articles = page.locator('article');
     const count = await articles.count();
-    expect(count).toBeGreaterThanOrEqual(7);
+    expect(count).toBeGreaterThanOrEqual(8);
   });
 
   test('each release article has a version heading', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const headings = page.locator('article h2');
     const count = await headings.count();
-    expect(count).toBeGreaterThanOrEqual(7);
+    expect(count).toBeGreaterThanOrEqual(8);
     const firstText = await headings.first().textContent();
     expect(firstText).toMatch(/v\d+\.\d+\.\d+/);
+  });
+
+  test('v1.10.0 release entry is present and is the latest', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const heading = firstArticle.locator('h2');
+    await expect(heading).toContainText('v1.10.0');
+    await expect(heading).toContainText('June 21, 2026');
+  });
+
+  test('v1.10.0 lists all key features', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const items = firstArticle.locator('ul li');
+    const count = await items.count();
+    expect(count).toBe(16);
+    // Verify key feature items are listed
+    const content = await firstArticle.textContent();
+    expect(content).toContain('Live Sessions admin');
+    expect(content).toContain('Useful Links page');
+    expect(content).toContain('Heartbeat API');
+    expect(content).toContain('Flash Card UX');
+    expect(content).toContain('80+ new Playwright tests');
   });
 
   test('release items have feature bullet points', async ({ page }) => {
@@ -56,7 +79,7 @@ test.describe('Releases Page — Positive', () => {
     await page.goto(`${BASE}/releases/`);
     const schema = page.locator('script[type="application/ld+json"]');
     const content = await schema.textContent();
-    expect(content).toContain('"@type":"FAQPage"');
+    expect(content).toContain('"FAQPage"');
     expect(content).toContain('How often is ScrabbleWordsFinder updated');
   });
 });
@@ -95,10 +118,31 @@ test.describe('Releases Page — Negative', () => {
 
   test('version badge does not show undefined or NaN', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const versionBadge = page.locator('span.font-mono.text-blue-400');
+    const versionBadge = page.locator('main p span.font-mono').first();
     const text = await versionBadge.textContent();
     expect(text).not.toContain('undefined');
     expect(text).not.toContain('NaN');
     expect(text).not.toContain('null');
+  });
+
+  test('v1.10.0 has no empty list items', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const items = firstArticle.locator('ul li');
+    const count = await items.count();
+    for (let i = 0; i < count; i++) {
+      const text = await items.nth(i).textContent();
+      expect(text!.trim().length).toBeGreaterThan(5);
+    }
+  });
+
+  test('v1.10.0 date is not in the future', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstHeading = page.locator('article h2').first();
+    const text = await firstHeading.textContent();
+    const match = text?.match(/(\w+ \d+, \d{4})/);
+    expect(match).not.toBeNull();
+    const releaseDate = new Date(match![1]);
+    expect(releaseDate.getTime()).toBeLessThanOrEqual(Date.now());
   });
 });

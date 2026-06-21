@@ -36,6 +36,7 @@ const staticPages = [
   { url: '/privacy', priority: '0.3', changefreq: 'yearly', lastmod: '2026-06-10' },
   { url: '/disclaimer', priority: '0.3', changefreq: 'yearly', lastmod: '2026-06-10' },
   { url: '/terms', priority: '0.3', changefreq: 'yearly', lastmod: '2026-06-10' },
+  { url: '/blog/useful-links', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
   // Blog category landing pages
   { url: '/blog/beginner-guides', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
   { url: '/blog/two-letter-words', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },

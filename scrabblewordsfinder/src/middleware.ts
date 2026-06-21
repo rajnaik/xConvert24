@@ -33,7 +33,7 @@ export const onRequest = defineMiddleware(async ({ url, request, redirect }, nex
   const match = cookieHeader.match(/swf_admin_session=([^;]+)/);
 
   if (!match) {
-    return redirect('/api/auth/login');
+    return redirect('/api/auth/login/');
   }
 
   try {
@@ -43,7 +43,7 @@ export const onRequest = defineMiddleware(async ({ url, request, redirect }, nex
       return new Response('Access denied', { status: 403 });
     }
   } catch {
-    return redirect('/api/auth/login');
+    return redirect('/api/auth/login/');
   }
 
   return next();

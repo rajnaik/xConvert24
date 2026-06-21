@@ -5,18 +5,19 @@ const BASE_URL = process.env.SWF_TEST_URL || 'https://scrabblewordsfinder-stagin
 // ── Header Tests ──────────────────────────────────────────────────────────
 
 test.describe('Header — Positive', () => {
-  test('search bar is visible with default text', async ({ page }) => {
+  test('search bar is visible with placeholder text', async ({ page }) => {
     await page.goto(BASE_URL);
     const search = page.locator('#dict-search');
     await expect(search).toBeVisible();
-    await expect(search).toHaveValue('Words starting with Q');
+    await expect(search).toHaveAttribute('placeholder', 'Search pages, blog...');
+    await expect(search).toHaveValue('');
   });
 
-  test('search bar clears on focus', async ({ page }) => {
+  test('search bar accepts user input', async ({ page }) => {
     await page.goto(BASE_URL);
     const search = page.locator('#dict-search');
-    await search.focus();
-    await expect(search).toHaveValue('');
+    await search.fill('scrabble tips');
+    await expect(search).toHaveValue('scrabble tips');
   });
 
   test('Find button is visible', async ({ page }) => {
@@ -45,6 +46,12 @@ test.describe('Header — Positive', () => {
 });
 
 test.describe('Header — Negative', () => {
+  test('search bar does not have a hardcoded value', async ({ page }) => {
+    await page.goto(BASE_URL);
+    const search = page.locator('#dict-search');
+    await expect(search).toHaveValue('');
+  });
+
   test('no duplicate ScrabbleWordsFinder nav on Guide page', async ({ page }) => {
     await page.goto(`${BASE_URL}/guide`);
     const navs = page.locator('nav');

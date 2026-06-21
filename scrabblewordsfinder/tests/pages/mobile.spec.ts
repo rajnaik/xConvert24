@@ -76,6 +76,13 @@ test.describe('Mobile — Homepage Layout', () => {
     // Should be hidden on mobile via sm:block class
     await expect(versionStamp).toBeHidden();
   });
+
+  test('quick links are hidden on mobile (desktop only via sm:flex)', async ({ page }) => {
+    await page.goto('/');
+    const quickLinks = page.locator('main .items-center.gap-2.ml-auto');
+    // Quick links use hidden sm:flex — invisible below 640px
+    await expect(quickLinks).toBeHidden();
+  });
 });
 
 test.describe('Mobile — Settings Page', () => {

@@ -9,10 +9,11 @@ interface Props {
   keywords?: string;
   showHeader?: boolean;
   showSectionLinks?: boolean;
+  noindex?: boolean;
 }
 
 const VERSION = packageJson.version;
-const { title, description = 'Free Scrabble Word Finder — find the highest-scoring words from your tiles instantly. No sign-up needed.', keywords = 'scrabble word finder, scrabble solver, word finder, scrabble cheat, anagram solver' , showHeader = true, showSectionLinks = false } = Astro.props;
+const { title, description = 'Free Scrabble Word Finder — find the highest-scoring words from your tiles instantly. No sign-up needed.', keywords = 'scrabble word finder, scrabble solver, word finder, scrabble cheat, anagram solver' , showHeader = true, showSectionLinks = false, noindex = false } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinder.com').href;
 ---
 
@@ -25,7 +26,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
     <meta name="keywords" content={keywords} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL} />
-    {Astro.url.pathname.startsWith('/admin') && <meta name="robots" content="noindex, nofollow" />}
+    {(noindex || Astro.url.pathname.startsWith('/admin')) && <meta name="robots" content="noindex, nofollow" />}
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
@@ -110,62 +111,84 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
     })();
     </script>
 
-    <!-- Site search bar logic -->
+    <!-- Site search bar logic (desktop + mobile) -->
     <script is:inline>
     (function() {
-      var searchInput = document.getElementById('dict-search');
-      var searchIcon = document.getElementById('search-icon');
-      if (!searchInput) return;
-      var resultsBox = null;
-
-      // Complete site + blog index
+      // All SWF pages searchable from the header
       var PAGES = [
-        {t:'Solver',u:'/',d:'Find all words from your tiles'},
+        // Site pages
+        {t:'Word Solver',u:'/',d:'Find all words from your tiles'},
+        {t:'Blog',u:'/blog',d:'Scrabble tips, strategy & word lists'},
         {t:'Guide',u:'/guide',d:'How to use the word finder'},
         {t:'About',u:'/about',d:'About ScrabbleWordsFinder'},
-        {t:'Privacy',u:'/privacy',d:'Privacy policy'},
-        {t:'Contact',u:'/contact',d:'Get in touch'},
+        {t:'Privacy',u:'/privacy',d:'Privacy policy & data practices'},
+        {t:'Contact',u:'/contact',d:'Get in touch or report a bug'},
         {t:'Suggest',u:'/suggest',d:'Suggest a feature'},
-        {t:'Settings',u:'/settings',d:'Your preferences & data'},
+        {t:'FAQ',u:'/faq',d:'Frequently asked questions'},
+        {t:'Settings',u:'/settings',d:'Your preferences, UUID & data'},
         {t:'Releases',u:'/releases',d:'Version changelog'},
-        {t:'Blog',u:'/blog',d:'Scrabble tips & strategy articles'},
+        {t:'Achievements',u:'/achievements',d:'Track your word-finding milestones'},
+        {t:'Activities',u:'/activities',d:'Word of the Day, Daily Rack, Anagram'},
+        {t:'Roadmap',u:'/roadmap',d:'Upcoming features'},
+        {t:'Disclaimer',u:'/disclaimer',d:'Legal disclaimer'},
+        {t:'Terms',u:'/terms',d:'Terms of use'},
+        {t:'Stats',u:'/stats',d:'Your solver statistics'},
+        {t:'60-Second Challenge',u:'/sixty-seconds',d:'Speed word-finding game'},
+        {t:'WordBench Practice',u:'/wordbench-practice',d:'Memory training for Scrabble'},
+        {t:'Tech Stack',u:'/tech-stack',d:'Built with Astro, Cloudflare Workers, D1'},
+        // Blog category landing pages
         {t:'Beginner Guides',u:'/blog/beginner-guides',d:'Learn Scrabble from scratch'},
-        {t:'Beginner Scrabble Strategy',u:'/blog/beginner-scrabble-strategy',d:'10 tips to win more games'},
-        {t:'Best Three-Letter Words',u:'/blog/best-three-letter-scrabble-words',d:'High scoring 3-letter words'},
-        {t:'Best Two-Letter Words',u:'/blog/best-two-letter-words-scrabble',d:'Top 10 highest scoring 2-letter words'},
-        {t:'Common Scrabble Mistakes',u:'/blog/common-scrabble-mistakes',d:'Mistakes new players make'},
-        {t:'Common Three-Letter Words',u:'/blog/common-three-letter-words',d:'Every player needs these'},
-        {t:'Competitive Scrabble',u:'/blog/competitive-scrabble-tournament-world',d:'Tournament guide'},
-        {t:'Easy Three-Letter Words',u:'/blog/easy-three-letter-words',d:'Learn first in Scrabble'},
-        {t:'Highest Scoring Three-Letter Words',u:'/blog/highest-scoring-three-letter-words',d:'Maximum points from 3 letters'},
+        {t:'Two-Letter Words',u:'/blog/two-letter-words',d:'Essential 2-letter word guides'},
+        {t:'Three-Letter Words',u:'/blog/three-letter-words',d:'3-letter word strategy & lists'},
+        {t:'Strategy',u:'/blog/strategy',d:'Offensive, defensive & endgame tactics'},
+        {t:'High-Scoring Words',u:'/blog/high-scoring',d:'Maximum points from every play'},
+        {t:'Bingos',u:'/blog/bingos',d:'7 and 8-letter bonus words'},
+        {t:'Tournament & Competitive',u:'/blog/tournament',d:'Tournament prep & competitive play'},
+        {t:'Letter Guides',u:'/blog/letter-guides',d:'Words by starting letter, ending, or pattern'},
+        {t:'Dictionaries',u:'/blog/dictionaries',d:'SOWPODS, TWL, Collins & dictionary guides'},
+        {t:'Word of the Day Series',u:'/blog/word-of-the-day-series',d:'Daily word learning'},
+        // Popular blog posts — strategy
+        {t:'Rack Management Basics',u:'/blog/rack-management-basics',d:'Balance your rack for better plays'},
+        {t:'Rack Leave Explained',u:'/blog/rack-leave-explained',d:'What to keep after your play'},
+        {t:'Defensive Strategy',u:'/blog/defensive-scrabble-strategy',d:'Block premium squares & limit opponent'},
+        {t:'Offensive Strategy',u:'/blog/offensive-scrabble-strategy',d:'Maximize scoring opportunities'},
+        {t:'Endgame Strategy',u:'/blog/endgame-strategy',d:'Win the final turns'},
+        {t:'Midgame Strategy',u:'/blog/midgame-strategy',d:'Board control in the middle game'},
+        {t:'Opening Moves Guide',u:'/blog/opening-moves-guide',d:'Best first plays'},
+        {t:'Tile Tracking Guide',u:'/blog/tile-tracking-guide',d:'Know what tiles remain'},
+        {t:'Blocking Triple Word Squares',u:'/blog/blocking-triple-word-squares',d:'Deny your opponent the big scores'},
+        {t:'Creating Parallel Plays',u:'/blog/creating-parallel-plays',d:'Score multiple words at once'},
+        // Popular blog posts — beginner
+        {t:'What Is Scrabble',u:'/blog/what-is-scrabble',d:'Introduction to the word game'},
+        {t:'How to Play Scrabble',u:'/blog/how-to-play-scrabble',d:'Step-by-step beginners guide'},
+        {t:'Scrabble Rules Explained',u:'/blog/scrabble-rules-explained',d:'Complete rules reference'},
+        {t:'How to Win Scrabble',u:'/blog/how-to-win-scrabble',d:'Proven strategies to improve'},
+        {t:'Beginner Scrabble Strategy',u:'/blog/beginner-scrabble-strategy',d:'10 tips for new players'},
+        {t:'Common Scrabble Mistakes',u:'/blog/common-scrabble-mistakes',d:'Avoid these errors'},
+        {t:'Scrabble Scoring Guide',u:'/blog/scrabble-scoring-guide',d:'Points, values & premium squares'},
         {t:'How Blank Tiles Work',u:'/blog/how-blank-tiles-work',d:'Rules & strategy for blanks'},
-        {t:'How to Play Scrabble',u:'/blog/how-to-play-scrabble',d:'Beginners guide'},
-        {t:'How to Win Scrabble',u:'/blog/how-to-win-scrabble',d:'Proven strategies'},
-        {t:'Memorizing Two-Letter Words',u:'/blog/memorizing-two-letter-words',d:'How to memorize all 2-letter words'},
-        {t:'Most Useful Two-Letter Words',u:'/blog/most-useful-two-letter-words',d:'Essential 2-letter words'},
-        {t:'Overlooked Three-Letter Words',u:'/blog/overlooked-three-letter-words',d:'Words most people miss'},
-        {t:'Printable Three-Letter List',u:'/blog/printable-three-letter-list',d:'Print and study'},
-        {t:'Printable Two-Letter List',u:'/blog/printable-two-letter-word-list',d:'Print and study'},
-        {t:'Rare Two-Letter Words',u:'/blog/rare-two-letter-scrabble-words',d:'Words most people dont know'},
-        {t:'Scrabble Dictionaries',u:'/blog/scrabble-dictionaries-languages-weird-words',d:'SOWPODS TWL and weird words'},
+        {t:'Understanding Premium Squares',u:'/blog/understanding-premium-squares',d:'Double & triple scoring'},
         {t:'Scrabble Etiquette',u:'/blog/scrabble-etiquette',d:'Unwritten rules of the game'},
-        {t:'History of Scrabble',u:'/blog/scrabble-history-origins-great-depression',d:'Origins and history'},
-        {t:'Scrabble Rules Explained',u:'/blog/scrabble-rules-explained',d:'Complete rules guide'},
-        {t:'Scrabble Scoring Guide',u:'/blog/scrabble-scoring-guide',d:'Points and values'},
-        {t:'Scrabble Tile Strategy',u:'/blog/scrabble-tile-strategy-letters-scoring',d:'Letter values and rack management'},
-        {t:'Three-Letter Word Strategy',u:'/blog/three-letter-word-strategy',d:'Strategic 3-letter plays'},
-        {t:'Three-Letter Words for Beginners',u:'/blog/three-letter-words-for-beginners',d:'Where to start'},
-        {t:'Three-Letter Words With Q',u:'/blog/three-letter-words-with-q',d:'Q words without U'},
-        {t:'Three-Letter Words With Z',u:'/blog/three-letter-words-with-z',d:'High scoring Z words'},
-        {t:'Three-Letter Words',u:'/blog/three-letter-words',d:'Category landing page'},
+        // Popular blog posts — high scoring
+        {t:'Highest Scoring Scrabble Words',u:'/blog/highest-scoring-scrabble-words',d:'Record-breaking words'},
+        {t:'High Scoring Short Words',u:'/blog/high-scoring-short-words',d:'Maximum points from few tiles'},
+        {t:'Best Q Words',u:'/blog/best-q-words-scrabble',d:'Top Q without U words'},
+        {t:'Best Z Words',u:'/blog/best-z-words-scrabble',d:'Highest scoring Z plays'},
+        {t:'Best X Words',u:'/blog/best-x-words-scrabble',d:'Highest scoring X plays'},
+        {t:'Best J Words',u:'/blog/best-j-words-scrabble',d:'Highest scoring J plays'},
+        {t:'Best Two-Letter Words',u:'/blog/best-two-letter-words-scrabble',d:'Top scoring 2-letter words'},
+        {t:'Best Three-Letter Words',u:'/blog/best-three-letter-scrabble-words',d:'High scoring 3-letter words'},
+        // Popular blog posts — word lists
         {t:'Complete Two-Letter Words List',u:'/blog/two-letter-scrabble-words-complete-list',d:'All valid 2-letter words'},
-        {t:'Two-Letter Words by Alphabet',u:'/blog/two-letter-words-by-alphabet',d:'Listed by starting letter'},
-        {t:'Two-Letter Words With Q',u:'/blog/two-letter-words-with-q',d:'QI strategy guide'},
-        {t:'Two-Letter Words With X',u:'/blog/two-letter-words-with-x',d:'XI XU AX EX OX'},
-        {t:'Two-Letter Words With Z',u:'/blog/two-letter-words-with-z',d:'ZA and ZO strategy'},
-        {t:'Two-Letter Words',u:'/blog/two-letter-words',d:'Essential word guides'},
-        {t:'Understanding Premium Squares',u:'/blog/understanding-premium-squares',d:'Double and triple scores'},
-        {t:'What Is Scrabble',u:'/blog/what-is-scrabble',d:'Word game guide'},
+        {t:'Memorizing Two-Letter Words',u:'/blog/memorizing-two-letter-words',d:'Techniques to memorize them all'},
+        {t:'Q Words Without U',u:'/blog/q-words-without-u',d:'Play Q without needing U'},
+        {t:'Words Without Vowels',u:'/blog/words-without-vowels',d:'CWM, SHH, TSK and more'},
+        {t:'Longest Scrabble Words',u:'/blog/longest-scrabble-words',d:'The longest valid plays'},
+        // Popular blog posts — history & culture
+        {t:'History of Scrabble',u:'/blog/scrabble-history-origins-great-depression',d:'Origins in the Great Depression'},
+        {t:'Scrabble Dictionaries Guide',u:'/blog/scrabble-dictionaries-languages-weird-words',d:'SOWPODS, TWL & weird words'},
+        {t:'Competitive Tournament World',u:'/blog/competitive-scrabble-tournament-world',d:'Inside competitive Scrabble'},
+        // Letter guides (A-Z)
         {t:'Words Starting With A',u:'/blog/words-starting-with-a',d:'Top scoring A words'},
         {t:'Words Starting With B',u:'/blog/words-starting-with-b',d:'Top scoring B words'},
         {t:'Words Starting With C',u:'/blog/words-starting-with-c',d:'Top scoring C words'},
@@ -194,73 +217,79 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
         {t:'Words Starting With Z',u:'/blog/words-starting-with-z',d:'Top scoring Z words'},
       ];
 
-      function createResultsBox() {
-        if (resultsBox) return resultsBox;
-        resultsBox = document.createElement('div');
-        resultsBox.className = 'absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-56 overflow-y-auto hidden';
-        resultsBox.style.width = '280px';
-        searchInput.parentElement.appendChild(resultsBox);
-        return resultsBox;
-      }
+      function initSearch(inputId, findBtnId) {
+        var input = document.getElementById(inputId);
+        if (!input) return;
+        var resultsBox = null;
 
-      function doSearch() {
-        var q = searchInput.value.trim().toLowerCase();
-        var box = createResultsBox();
-        if (q.length < 2) { box.classList.add('hidden'); return; }
-        var matches = PAGES.filter(function(p) {
-          return p.t.toLowerCase().includes(q) || p.d.toLowerCase().includes(q);
-        }).slice(0, 12);
-        if (matches.length === 0) {
-          box.innerHTML = '<div class="px-3 py-2 text-xs text-gray-500">No pages found</div>';
-        } else {
-          box.innerHTML = matches.map(function(p) {
-            return '<a href="' + p.u + '" class="block px-3 py-2 hover:bg-blue-900/30 transition-colors border-b border-gray-700/50 last:border-0"><span class="text-xs font-medium text-gray-200 block">' + p.t + '</span><span class="text-xs text-gray-500">' + p.d + '</span></a>';
-          }).join('');
+        function createResultsBox() {
+          if (resultsBox) return resultsBox;
+          resultsBox = document.createElement('div');
+          resultsBox.className = 'absolute top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-56 overflow-y-auto hidden';
+          resultsBox.style.width = inputId === 'dict-search' ? '280px' : '100%';
+          input.parentElement.appendChild(resultsBox);
+          return resultsBox;
         }
-        box.classList.remove('hidden');
-      }
 
-      var debounce = null;
-      searchInput.addEventListener('input', function() {
-        clearTimeout(debounce);
-        debounce = setTimeout(doSearch, 150);
-      });
-
-      searchInput.addEventListener('focus', function() {
-        if (searchInput.value === 'Words starting with Q') {
-          searchInput.value = '';
-          searchInput.classList.remove('text-gray-400');
-          searchInput.classList.add('text-gray-100');
+        function doSearch() {
+          var q = input.value.trim().toLowerCase();
+          var box = createResultsBox();
+          if (q.length < 2) { box.classList.add('hidden'); return; }
+          var matches = PAGES.filter(function(p) {
+            return p.t.toLowerCase().includes(q) || p.d.toLowerCase().includes(q) || p.u.toLowerCase().includes(q);
+          }).slice(0, 12);
+          if (matches.length === 0) {
+            box.innerHTML = '<div class="px-3 py-2 text-xs text-gray-500">No results — press Enter to search all blog posts</div>';
+          } else {
+            box.innerHTML = matches.map(function(p) {
+              var href = p.u.endsWith('/') ? p.u : p.u + '/';
+              return '<a href="' + href + '" class="block px-3 py-2 hover:bg-blue-900/30 transition-colors border-b border-gray-700/50 last:border-0"><span class="text-xs font-medium text-gray-200 block">' + p.t + '</span><span class="text-xs text-gray-500">' + p.d + '</span></a>';
+            }).join('');
+          }
+          box.classList.remove('hidden');
         }
-        if (searchInput.value.trim().length >= 2) doSearch();
-      });
 
-      // Find button navigates to blog with search query
-      var findBtn = document.getElementById('search-find-btn');
-      if (findBtn) {
-        findBtn.addEventListener('click', function(e) {
-          var q = searchInput.value.trim();
-          if (q.length >= 2) {
-            e.preventDefault();
-            window.location.href = '/blog?q=' + encodeURIComponent(q);
+        var debounce = null;
+        input.addEventListener('input', function() {
+          clearTimeout(debounce);
+          debounce = setTimeout(doSearch, 150);
+        });
+
+        input.addEventListener('focus', function() {
+          if (input.value.trim().length >= 2) doSearch();
+        });
+
+        // Find button navigates to blog with search query
+        var findBtn = document.getElementById(findBtnId);
+        if (findBtn) {
+          findBtn.addEventListener('click', function(e) {
+            var q = input.value.trim();
+            if (q.length >= 2) {
+              e.preventDefault();
+              window.location.href = '/blog?q=' + encodeURIComponent(q);
+            }
+          });
+        }
+
+        // Close on click outside
+        document.addEventListener('click', function(e) {
+          if (resultsBox && !input.contains(e.target) && !resultsBox.contains(e.target) && (!findBtn || !findBtn.contains(e.target))) {
+            resultsBox.classList.add('hidden');
+          }
+        });
+
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && resultsBox) resultsBox.classList.add('hidden');
+          if (e.key === 'Enter') {
+            var q = input.value.trim();
+            if (q.length >= 2) window.location.href = '/blog?q=' + encodeURIComponent(q);
           }
         });
       }
 
-      // Close on click outside
-      document.addEventListener('click', function(e) {
-        if (resultsBox && !searchInput.contains(e.target) && !resultsBox.contains(e.target) && (!findBtn || !findBtn.contains(e.target))) {
-          resultsBox.classList.add('hidden');
-        }
-      });
-
-      searchInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && resultsBox) resultsBox.classList.add('hidden');
-        if (e.key === 'Enter') {
-          var q = searchInput.value.trim();
-          if (q.length >= 2) window.location.href = '/blog?q=' + encodeURIComponent(q);
-        }
-      });
+      // Init both desktop and mobile search inputs
+      initSearch('dict-search', 'search-find-btn');
+      initSearch('dict-search-mobile', 'search-find-btn-mobile');
     })();
     </script>
 
@@ -324,9 +353,11 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
 
     <slot />
 
-    <!-- Global click tracker — captures ALL interactive element clicks to /api/clicks -->
+    <!-- Global click tracker — captures ALL interactive element clicks to /api/clicks/ -->
     <script is:inline>
     (function() {
+      if (window.location.pathname.startsWith('/admin')) return;
+
       var S = window.__swfStore;
       var UID_KEY = 'swf-uid';
       function getUid() {
@@ -364,14 +395,16 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
         // Skip refresh clicks
         if (element === "🔄 Refresh" || element === "Refresh" || element === "refresh") return;
         // Skip generic tag-only elements (not useful)
-        if (element === "SPAN" || element === "DIV" || element === "IMG" || element === "P") return;        var payload = JSON.stringify({
+        if (element === "SPAN" || element === "DIV" || element === "IMG" || element === "P") return;
+
+        var payload = JSON.stringify({
           user_id: uid,
           ui_element: element,
           url: pageUrl
         });
 
         try {
-          fetch('/api/clicks', {
+          fetch('/api/clicks/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: payload,
@@ -382,44 +415,96 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
 
         try {
           if (navigator.sendBeacon) {
-            navigator.sendBeacon('/api/clicks', new Blob([payload], { type: 'application/json' }));
+            navigator.sendBeacon('/api/clicks/', new Blob([payload], { type: 'application/json' }));
             return;
           }
         } catch(e) {}
 
         try {
           var xhr = new XMLHttpRequest();
-          xhr.open('POST', '/api/clicks', true);
+          xhr.open('POST', '/api/clicks/', true);
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.send(payload);
         } catch(e2) {}
       });
+
+      // Track focus on solver input (registers as "Solver" in clicks table)
+      document.addEventListener('focus', function(e) {
+        var el = e.target;
+        if (!el || !el.getAttribute || !el.getAttribute('data-track')) return;
+        var trackName = el.getAttribute('data-track');
+        if (trackName !== 'SolverUsed') return;
+
+        var uid = getUid();
+        var pageUrl = window.location.pathname + window.location.search;
+        var payload = JSON.stringify({
+          user_id: uid,
+          ui_element: 'Solver',
+          url: pageUrl
+        });
+
+        try {
+          fetch('/api/clicks/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true
+          }).catch(function() {});
+        } catch(e2) {}
+      }, true);
     })();
     </script>
-    <!-- Live click counter — fetches total on load, increments optimistically -->
+
+    <!-- Heartbeat — pings /api/heartbeat/ every 30s for live session tracking -->
     <script is:inline>
     (function() {
-      var counterEl = document.getElementById('total-clicks-value');
-      if (!counterEl) return;
-      var currentCount = 0;
+      if (window.location.pathname.startsWith('/admin')) return;
 
-      fetch('/api/clicks?count=true')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          currentCount = data.total || 0;
-          counterEl.textContent = currentCount.toLocaleString();
-        })
-        .catch(function() { counterEl.textContent = '—'; });
+      var S = window.__swfStore;
+      var UID_KEY = 'swf-uid';
+      function getUid() {
+        try {
+          var uid = S.getRaw(UID_KEY);
+          if (!uid) {
+            uid = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+            S.setRaw(UID_KEY, uid);
+          }
+          return uid;
+        } catch(e) {
+          return 'anon_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        }
+      }
 
-      var INTERACTIVE = 'a, button, [role="button"], input[type="submit"], input[type="button"], [data-track], summary, [onclick]';
-      document.addEventListener('click', function(e) {
-        var el = e.target.closest(INTERACTIVE);
-        if (!el) return;
-        currentCount++;
-        counterEl.textContent = currentCount.toLocaleString();
+      function sendHeartbeat() {
+        try {
+          var payload = JSON.stringify({
+            uid: getUid(),
+            page: window.location.pathname
+          });
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon('/api/heartbeat/', new Blob([payload], { type: 'application/json' }));
+          } else {
+            fetch('/api/heartbeat/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: payload,
+              keepalive: true
+            }).catch(function() {});
+          }
+        } catch(e) {}
+      }
+
+      // Send immediately on page load, then every 30 seconds
+      sendHeartbeat();
+      setInterval(sendHeartbeat, 30000);
+
+      // Also send on page visibility change (user returns to tab)
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') sendHeartbeat();
       });
     })();
     </script>
+
     <!-- Version stamp -->
     <div class="fixed bottom-2 right-2 z-40 hidden sm:block">
       <a href="/releases/" class="flex flex-col items-end leading-none shrink-0 opacity-60 hover:opacity-100 transition-opacity" title={`Version ${VERSION}`} style="font-size:8px;">
@@ -452,7 +537,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
     </footer>
     <script is:inline>
       function updateClickCounter() {
-        fetch('/api/clicks?count=true')
+        fetch('/api/clicks/?count=true')
           .then(function(r){ return r.json(); })
           .then(function(d){
             var el = document.getElementById('footer-clicks-value');

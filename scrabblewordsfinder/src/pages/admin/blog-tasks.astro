@@ -162,7 +162,7 @@ import '../../styles/global.css';
       if (status) params += '&status=' + encodeURIComponent(status);
       if (ready) params += '&ready_status=' + encodeURIComponent(ready);
 
-      var res = await fetch('/api/blog-tasks' + params);
+      var res = await fetch('/api/blog-tasks/' + params);
       var data = await res.json();
       tasksData = data.tasks;
 
@@ -218,7 +218,7 @@ import '../../styles/global.css';
 
     window.deleteTask = async function(id) {
       if (!confirm('Delete this blog task?')) return;
-      var res = await fetch('/api/blog-tasks?id=' + id, { method: 'DELETE' });
+      var res = await fetch('/api/blog-tasks/?id=' + id, { method: 'DELETE' });
       if (res.ok) { showToast('Deleted', 'success'); loadTasks(); }
       else showToast('Delete failed', 'error');
     };
@@ -240,7 +240,7 @@ import '../../styles/global.css';
       };
       if (!body.title) { showToast('Title required', 'error'); return; }
       var method = id ? 'PUT' : 'POST';
-      var res = await fetch('/api/blog-tasks', { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      var res = await fetch('/api/blog-tasks/', { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (res.ok) { showToast(id ? 'Updated' : 'Created', 'success'); closeModal(); loadTasks(); }
       else showToast('Save failed', 'error');
     });

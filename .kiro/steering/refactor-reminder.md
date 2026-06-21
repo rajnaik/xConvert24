@@ -58,6 +58,14 @@ After every major feature delivery (or once per session if multiple features are
 | 5 | Add LIMIT to all SELECT queries that could grow unbounded | All | Medium | ✅ Done (16Jun2026) |
 | 6 | Migrate pg file storage from D1 base64 to R2 when enabled | PG | Low | Blocked (R2 not enabled) |
 | 7 | Add error boundaries to all admin pages (try/catch around fetch) | All | Low | Open |
+| 8 | BlogLayout → use Header.astro component (stale nav copy) | SWF | High | Planned (post-credits) |
+| 9 | Remove duplicate click tracker in Layout.astro (double-counting) | SWF | Medium | Planned (post-credits) |
+| 10 | Extract shared theme toggle script (duped in Layout + BlogLayout) | SWF | Medium | Planned (post-credits) |
+| 11 | Extract `json()` helper to `src/lib/api-helpers.ts` (10+ files) | SWF | Low | Planned (post-credits) |
+| 12 | Shared email-sender utility (contact + suggest 70% identical) | SWF | Low | Planned (post-credits) |
+| 13 | Extract Footer component (differs between Layout + BlogLayout) | SWF | Low | Planned (post-credits) |
+| 14 | Dynamic search index (hardcoded PAGES array, stale) | SWF | Low | Planned (post-credits) |
+| 15 | Remove stale `swf-admin-auth-reminder` steering (auth exists) | SWF | Note | Planned |
 
 ## How to Update This File
 

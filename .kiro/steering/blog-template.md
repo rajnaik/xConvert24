@@ -303,6 +303,35 @@ Replace bullet lists of tips with purple-bordered tiles:
 </div>
 ```
 
+#### 9. Inline Cross-Links (hyperlink to other blog sections mid-article)
+Use when referencing a concept that has its own dedicated guide, or as a bridge between h2 sections to push readers deeper into the content cluster. This is NOT the same as the "Related Articles" aside at the bottom — these go inline within the body content.
+
+```html
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/RELATED-SLUG/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Related Post Title — one-line description</span>
+    </a>
+    <a href="/blog/ANOTHER-SLUG/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Another Post Title — one-line description</span>
+    </a>
+  </div>
+</div>
+```
+
+**When to use:**
+- After introducing a concept that has its own dedicated blog post (e.g., mention "rack leave" → link to `/blog/rack-leave-explained/`)
+- Between h2 sections as a bridge to deeper content in a related category
+- When a section references strategy, word lists, or techniques covered elsewhere
+- Aim for 1-2 cross-link blocks per long-form article (3+ h2 sections)
+
+**Label variations:** "📚 Dig Deeper", "🔗 Related Guides", "📖 Learn More", "🧭 Explore Further"
+
+**Color:** Indigo (`indigo-500/30` border, `indigo-950/10` bg, `text-indigo-400` accent) — distinct from blue (insight) and purple (strategy).
+
 ### Rules for Applying Visual Blocks
 
 1. **Every h2 section** should have at least ONE visual block (callout, grid, stat strip, or card)
@@ -312,8 +341,10 @@ Replace bullet lists of tips with purple-bordered tiles:
 5. **Comparisons** → always use side-by-side cards (green/red or any pair)
 6. **Processes/steps** → always use numbered step cards
 7. **Key takeaways** → always use insight callouts
-8. **Lead paragraph stays as `<p>`** — that's the one exception (it's the hook)
-9. **Tables are fine** — keep them for large datasets (5+ rows). Enhance with a stat strip above/below for key numbers.
+8. **Cross-references to other posts** → always use inline cross-link blocks (not plain `<a>` tags buried in paragraphs)
+9. **Lead paragraph stays as `<p>`** — that's the one exception (it's the hook)
+10. **Tables are fine** — keep them for large datasets (5+ rows). Enhance with a stat strip above/below for key numbers.
+11. **Aim for 1-2 inline cross-link blocks per long article** (3+ h2 sections) — boost internal link juice and reduce bounce rate
 
 ### Color Guide
 
@@ -324,6 +355,7 @@ Replace bullet lists of tips with purple-bordered tiles:
 | Practical/Do This | `green-500/30` | `green-950/10` | `text-green-400` |
 | Warning/Rule | `amber-500/30` | `amber-950/10` | `text-amber-400` |
 | Tips/Strategy | `purple-500/30` | `purple-950/20` | `text-purple-400` |
+| Cross-Links/Navigation | `indigo-500/30` | `indigo-950/10` | `text-indigo-400` |
 | Danger/Barriers | `red-500/30` | `red-950/10` | `text-red-400` |
 | Neutral/Data | `gray-700` | `gray-800/40` | `text-white` |
 
@@ -339,11 +371,13 @@ After applying the Visual Enhancement Recipe to any blog post, **always run a pr
 1. ✅ **No 3+ consecutive `<p>` paragraphs** — every section broken up with visual blocks
 2. ✅ **Every h2 section has at least 1 visual block** (callout, grid, stat strip, steps, or cards)
 3. ✅ **Strategy Tips use purple tiles** — not bullet lists
-4. ✅ **JSON-LD Article + FAQPage schemas present** (minimum 3 Q&A)
-5. ✅ **CTA box present** (blue gradient for SWF, amber for xConvert)
-6. ✅ **"Back to all articles" link** at bottom
-7. ✅ **Related Articles aside** with 2-3 linked posts
-8. ✅ **No orphaned plain-text sections** — every content block has visual treatment
+4. ✅ **Inline cross-links present** (1-2 per long article linking to related blog posts mid-content)
+5. ✅ **JSON-LD Article + FAQPage schemas present** (minimum 3 Q&A)
+6. ✅ **CTA box present** (blue gradient for SWF, amber for xConvert)
+7. ✅ **"Back to all articles" link** at bottom
+8. ✅ **Related Articles aside** with 2-3 linked posts
+9. ✅ **No orphaned plain-text sections** — every content block has visual treatment
+10. ✅ **Inbound links injected** — 2 existing blog posts now link back to this page
 
 ### After Passing
 
@@ -358,3 +392,36 @@ Keep a running count:
 - **Treated + Prettified:** X posts
 - **Existing (needs treatment):** Y posts
 - **New (created with recipe):** Z posts
+
+---
+
+## Inbound Link Injection (MANDATORY)
+
+After applying FVT to a blog post, you MUST add **2 inbound links** to the newly treated page from other relevant existing blog posts. This boosts the new page's internal link equity and helps Google discover and rank it faster.
+
+### Steps
+
+1. **Identify 2 related blog posts** that are already published and have real content (not stubs). Pick posts where the FVT page topic is naturally relevant.
+2. **Add a link** in each of those 2 posts pointing back to the newly treated page. Use one of these insertion methods (in order of preference):
+   - **Inline cross-link block** — add the page to an existing "📚 Dig Deeper" block, or create a new one if the section naturally references the topic
+   - **Related Articles aside** — add it to the existing Related Articles section at the bottom (max 4 links per aside)
+   - **Contextual `<a>` in prose** — if neither block fits, add a natural inline hyperlink within a relevant paragraph
+
+### Rules
+
+1. Never force a link where it doesn't make sense — relevance matters more than quantity
+2. If the treated page already has 2+ inbound links from other posts, skip this step
+3. Don't add links to stub pages (55-line skeletons) — only link from posts that have real content
+4. After inserting, verify the href path is correct (include trailing slash)
+5. Log which pages were updated so it's traceable
+
+### Example
+
+After applying FVT to `scoring-100-points-single-turn.astro`:
+- Open `highest-scoring-scrabble-words.astro` → add to its Related Articles aside
+- Open `best-words-for-premium-squares.astro` → add an inline cross-link block referencing "scoring 100+ points"
+
+### Checklist Addition
+
+Add this to the Post-Treatment Prettify checklist:
+10. ✅ **Inbound links injected** — 2 existing blog posts now link back to this page

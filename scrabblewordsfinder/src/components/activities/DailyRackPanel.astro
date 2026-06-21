@@ -81,6 +81,21 @@
     var cached = S.getIfValid(DRC_CACHE_KEY);
     if (cached) {
       renderDrc(cached);
+      // Always fetch fresh userScores to avoid stale duplicate data
+      if (uid) {
+        fetch('/api/daily-rack/?user_id=' + encodeURIComponent(uid))
+          .then(function(r) { return r.json(); })
+          .then(function(freshData) {
+            if (freshData.userScores && freshData.userScores.length > 0) {
+              userWords = freshData.userScores;
+              renderUserWords();
+            }
+            // Update cache with fresh data
+            if (freshData.expiresAt) {
+              S.setWithExpiry(DRC_CACHE_KEY, freshData, freshData.expiresAt);
+            }
+          }).catch(function() {});
+      }
     } else {
       fetchDrc();
     }
@@ -198,7 +213,22 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: uid, word: word, score: wordPts })
-        }).then(function() {
+        }).then(function(res) {
+          if (res.status === 409) {
+            // Server-side duplicate — word was already submitted (stale cache scenario)
+            fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-red-900/30 border border-red-500/50 text-red-300';
+            fb.textContent = "❌ You already submitted '" + word + "' today!";
+            fb.classList.remove('hidden');
+            // Add to local userWords so next attempt is caught client-side
+            if (!userWords.some(function(w) { return w.word.toUpperCase() === word; })) {
+              userWords.unshift({ word: word, score: wordPts });
+            }
+            S.removeItem(DRC_CACHE_KEY);
+            return;
+          }
+          if (!res.ok) {
+            throw new Error('Server error');
+          }
           fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-green-900/30 border border-green-500/50 text-green-300';
           fb.textContent = '✅ ' + word + ' = ' + wordPts + ' pts!';
           fb.classList.remove('hidden');

@@ -10,6 +10,9 @@ export const GET: APIRoute = async ({ url }) => {
   const clientId = (env as any).GOOGLE_CLIENT_ID;
   const clientSecret = (env as any).GOOGLE_CLIENT_SECRET;
 
+  const origin = url.origin;
+  const redirectUri = `${origin}/api/auth/callback`;
+
   // Exchange code for tokens
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -18,7 +21,7 @@ export const GET: APIRoute = async ({ url }) => {
       code,
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uri: 'https://www.scrabblewordsfinder.com/api/auth/callback',
+      redirect_uri: redirectUri,
       grant_type: 'authorization_code',
     }),
   });
@@ -53,7 +56,7 @@ export const GET: APIRoute = async ({ url }) => {
   return new Response(null, {
     status: 302,
     headers: {
-      'Location': 'https://www.scrabblewordsfinder.com/admin',
+      'Location': `${origin}/admin/`,
       'Set-Cookie': `swf_admin_session=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
     },
   });

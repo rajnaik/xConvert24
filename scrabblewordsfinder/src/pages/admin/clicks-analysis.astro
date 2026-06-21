@@ -16,9 +16,9 @@ import '../../styles/global.css';
     </a>
     <div class="flex items-center gap-6 text-sm text-gray-400">
       <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
-      <a href="/admin/clicks" class="hover:text-blue-400 transition-colors">Clicks</a>
-      <a href="/admin/clicks-analysis" class="text-blue-400 font-medium">Analysis</a>
-      <a href="/admin/telemetry" class="hover:text-blue-400 transition-colors">Telemetry</a>
+      <a href="/admin/clicks/" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/admin/clicks-analysis/" class="text-blue-400 font-medium">Analysis</a>
+      <a href="/admin/telemetry/" class="hover:text-blue-400 transition-colors">Telemetry</a>
       <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
     </div>
   </nav>
@@ -212,7 +212,7 @@ import '../../styles/global.css';
       }
 
       try {
-        const res = await fetch('/api/clicks-analysis');
+        const res = await fetch('/api/clicks-analysis/');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
@@ -254,7 +254,7 @@ import '../../styles/global.css';
     async function enrichIPs(statusEl: HTMLElement | null) {
       if (statusEl) statusEl.textContent = 'Enriching...';
       try {
-        const res = await fetch('/api/geo-enrich', { method: 'POST' });
+        const res = await fetch('/api/geo-enrich/', { method: 'POST' });
         const data = await res.json();
         if (statusEl) {
           statusEl.textContent = `✅ Enriched: ${data.enriched}, Skipped: ${data.skipped}, Failed: ${data.failed}`;
@@ -286,7 +286,7 @@ import '../../styles/global.css';
     // --- Bubble Chart Functions ---
 
     async function loadData() {
-      const res = await fetch('/api/clicks?limit=500');
+      const res = await fetch('/api/clicks/?limit=500');
       const data = await res.json();
       allClicks = data.clicks || [];
 

@@ -49,8 +49,8 @@ test.describe('API — /api/clicks', () => {
     expect(response.status()).toBe(400);
   });
 
-  test('GET /api/clicks?count=true returns total', async ({ request }) => {
-    const response = await request.get('/api/clicks?count=true');
+  test('GET /api/clicks/?count=true returns total', async ({ request }) => {
+    const response = await request.get('/api/clicks/?count=true');
     if (response.status() === 200) {
       const body = await response.json();
       expect(body.total).toBeDefined();

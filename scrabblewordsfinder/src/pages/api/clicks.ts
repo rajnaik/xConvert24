@@ -140,13 +140,16 @@ export const GET: APIRoute = async ({ url }) => {
     if (conditions.length) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
-    query += ' ORDER BY created_at DESC LIMIT ?';
+    query += ' ORDER BY id DESC LIMIT ?';
     params.push(limit);
 
-    const { results } = await db.prepare(query).bind(...params).all();
+    const [dataResult, countResult] = await db.batch([
+      db.prepare(query).bind(...params),
+      db.prepare('SELECT COUNT(*) as count FROM clicks'),
+    ]);
 
-    const countRow = await db.prepare('SELECT COUNT(*) as count FROM clicks').first();
-    const total = countRow?.count ?? results.length;
+    const results = dataResult.results || [];
+    const total = countResult.results?.[0]?.count ?? results.length;
 
     return new Response(JSON.stringify({ clicks: results, total }), {
       headers: { 'Content-Type': 'application/json' },

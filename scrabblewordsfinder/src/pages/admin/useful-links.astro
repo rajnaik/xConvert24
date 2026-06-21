@@ -1,0 +1,251 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+
+// Orphan blog pages organized by category
+const categories = [
+  {
+    name: 'Words Containing (Two-Letter Combos)',
+    icon: '🔤',
+    color: 'blue',
+    collapsed: true,
+    links: [
+      'words-containing-aa','words-containing-ab','words-containing-ac','words-containing-ad','words-containing-ae','words-containing-af','words-containing-ag','words-containing-ah','words-containing-ai','words-containing-aj','words-containing-ak','words-containing-al','words-containing-am','words-containing-an','words-containing-ao','words-containing-ap','words-containing-aq','words-containing-ar','words-containing-as','words-containing-at','words-containing-au','words-containing-av','words-containing-aw','words-containing-ax','words-containing-ay','words-containing-az',
+      'words-containing-ba','words-containing-be','words-containing-bi','words-containing-bo','words-containing-bu',
+      'words-containing-ca','words-containing-ce','words-containing-ch','words-containing-ci','words-containing-ck','words-containing-co','words-containing-cu',
+      'words-containing-da','words-containing-de','words-containing-di','words-containing-do','words-containing-du',
+      'words-containing-ea','words-containing-ee','words-containing-ei','words-containing-eo','words-containing-eu',
+      'words-containing-fa','words-containing-fe','words-containing-fi','words-containing-fo','words-containing-fu',
+      'words-containing-ga','words-containing-ge','words-containing-gh','words-containing-gi','words-containing-go','words-containing-gu',
+      'words-containing-ha','words-containing-he','words-containing-hi','words-containing-ho','words-containing-hu',
+      'words-containing-ia','words-containing-ie','words-containing-ii','words-containing-io','words-containing-iu',
+      'words-containing-ja','words-containing-je','words-containing-jo','words-containing-ju',
+      'words-containing-ka','words-containing-ke','words-containing-ki','words-containing-kn','words-containing-ko','words-containing-ku',
+      'words-containing-la','words-containing-le','words-containing-li','words-containing-lo','words-containing-lu',
+      'words-containing-ma','words-containing-me','words-containing-mi','words-containing-mo','words-containing-mu',
+      'words-containing-na','words-containing-ne','words-containing-ni','words-containing-no','words-containing-nu',
+      'words-containing-oa','words-containing-oe','words-containing-oi','words-containing-oo',
+      'words-containing-ph','words-containing-qu-no-u-after','words-containing-sh','words-containing-th','words-containing-wh','words-containing-wr'
+    ]
+  },
+  {
+    name: 'Words Containing (Double Letters)',
+    icon: '🔁',
+    color: 'indigo',
+    collapsed: true,
+    links: [
+      'words-containing-double-b','words-containing-double-d','words-containing-double-e','words-containing-double-f','words-containing-double-g','words-containing-double-l','words-containing-double-m','words-containing-double-n','words-containing-double-o','words-containing-double-p','words-containing-double-r','words-containing-double-s','words-containing-double-t'
+    ]
+  },
+  {
+    name: 'Words Ending With (Suffixes)',
+    icon: '⏩',
+    color: 'purple',
+    collapsed: true,
+    links: [
+      'words-ending-with-able','words-ending-with-age','words-ending-with-al','words-ending-with-ance','words-ending-with-ant','words-ending-with-ary','words-ending-with-ed','words-ending-with-ence','words-ending-with-ent','words-ending-with-er','words-ending-with-est','words-ending-with-ful','words-ending-with-ing','words-ending-with-ism','words-ending-with-ist','words-ending-with-ity','words-ending-with-ive','words-ending-with-ize','words-ending-with-ly','words-ending-with-ment','words-ending-with-ness','words-ending-with-ous','words-ending-with-ous-advanced','words-ending-with-tion','words-ending-with-ure',
+      'words-ending-in-est','words-ending-in-ment','words-ending-in-ness','words-ending-in-ous'
+    ]
+  },
+  {
+    name: 'Words Starting With (Prefixes)',
+    icon: '⏪',
+    color: 'cyan',
+    collapsed: true,
+    links: [
+      'words-starting-with-anti','words-starting-with-dis','words-starting-with-ex','words-starting-with-inter','words-starting-with-mis','words-starting-with-non','words-starting-with-out','words-starting-with-over','words-starting-with-pre','words-starting-with-qu','words-starting-with-re','words-starting-with-semi','words-starting-with-sub','words-starting-with-super','words-starting-with-un',
+      'words-beginning-with-dis','words-beginning-with-mis','words-beginning-with-pre','words-beginning-with-re','words-beginning-with-un'
+    ]
+  },
+  {
+    name: 'Word Lists & Vocabulary',
+    icon: '📋',
+    color: 'amber',
+    collapsed: false,
+    links: [
+      'words-using-all-5-vowels','words-with-all-vowels','words-with-no-vowels-except-y','words-with-only-vowels','words-with-silent-letters','words-with-triple-letters','words-with-w-not-followed-by-vowel','words-without-vowels',
+      'geography-words-scrabble','historical-terms-scrabble','longest-common-scrabble-words','longest-scrabble-words','medical-terms-scrabble','medical-terms-valid-scrabble','music-words-scrabble','nature-words-scrabble','palindrome-words-scrabble','shortest-legal-words','shortest-words-with-j','shortest-words-with-x','shortest-words-with-z','technology-words-scrabble'
+    ]
+  },
+  {
+    name: 'High-Scoring & Points',
+    icon: '💰',
+    color: 'emerald',
+    collapsed: false,
+    links: [
+      'highest-scoring-2-letter-plays','highest-scoring-4-letter-words','position-vs-points'
+    ]
+  },
+  {
+    name: 'Dictionaries & Valid Words',
+    icon: '📖',
+    color: 'teal',
+    collapsed: false,
+    links: [
+      'archaic-words-still-valid','common-illegal-words-scrabble','controversial-scrabble-words','foreign-origin-words-scrabble','foreign-words-valid-in-scrabble','how-scrabble-dictionaries-update','invalid-words-people-think-are-valid','most-surprising-valid-words','new-words-added-2026','newly-added-scrabble-words','obscure-legal-words-scrabble','slang-words-allowed-scrabble','words-only-in-sowpods','words-only-in-twl','words-removed-from-scrabble'
+    ]
+  },
+  {
+    name: 'Tools & Solvers',
+    icon: '🛠️',
+    color: 'violet',
+    collapsed: false,
+    links: [
+      'ai-scrabble-opponents','anagram-solvers-explained','are-scrabble-solvers-fair','best-scrabble-solver-tools','best-scrabble-training-tools','board-position-solvers','how-scrabble-solvers-work','pattern-search-tools','scrabble-dictionary-apps','scrabble-probability-calculators','scrabble-word-checker-tools','ultimate-scrabble-resource-guide','using-wildcards-in-solvers'
+    ]
+  },
+  {
+    name: 'Strategy & Tactics',
+    icon: '♟️',
+    color: 'orange',
+    collapsed: false,
+    links: [
+      'common-strategic-errors','post-game-analysis-scrabble','scrabble-study-plans','setup-moves-scrabble','three-letter-words-complete-strategy','two-letter-words-complete-strategy'
+    ]
+  },
+  {
+    name: 'History & Culture',
+    icon: '🏛️',
+    color: 'rose',
+    collapsed: false,
+    links: [
+      'celebrity-scrabble-players','famous-scrabble-controversies','history-of-scrabble','online-scrabble-communities','record-breaking-scrabble-games','scrabble-around-the-world','scrabble-in-different-languages','scrabble-variants-and-house-rules','weird-scrabble-facts'
+    ]
+  },
+  {
+    name: 'Tournament & Competitive',
+    icon: '🏆',
+    color: 'yellow',
+    collapsed: false,
+    links: [
+      'preparing-for-first-tournament','scrabble-club-etiquette','scrabble-rating-system-explained','scrabble-world-champions'
+    ]
+  },
+  {
+    name: 'Facts & Statistics',
+    icon: '📊',
+    color: 'pink',
+    collapsed: false,
+    links: [
+      'average-game-length','average-winning-score','least-valuable-tile','most-valuable-tile','probability-of-drawing-blank-tiles','probability-of-drawing-q','scrabble-tile-bag-distribution'
+    ]
+  },
+  {
+    name: 'Education & Learning',
+    icon: '🎓',
+    color: 'lime',
+    collapsed: false,
+    links: [
+      'classroom-scrabble-activities','improving-vocabulary-with-scrabble','keeping-score-in-scrabble','learning-english-through-scrabble','scrabble-for-language-learners','scrabble-strategies-for-families'
+    ]
+  },
+  {
+    name: 'Beginner Guides (Unlinked)',
+    icon: '🌱',
+    color: 'green',
+    collapsed: false,
+    links: [
+      'how-to-challenge-in-scrabble','scrabble-glossary-terms','setting-up-a-scrabble-game'
+    ]
+  },
+  {
+    name: 'Online & Apps',
+    icon: '📱',
+    color: 'sky',
+    collapsed: false,
+    links: [
+      'best-scrabble-training-tools'
+    ].filter(l => !['best-scrabble-training-tools'].includes(l)) // already in Tools
+    .concat(['online-scrabble-communities'].filter(l => false)) // already in History
+  },
+];
+
+// Filter out empty categories
+const filteredCategories = categories.filter(c => c.links.length > 0);
+
+// Total count
+const totalOrphans = filteredCategories.reduce((sum, c) => sum + c.links.length, 0);
+---
+
+<Layout title="Useful Links in Blogs — Admin" description="Orphan blog pages with no inbound links, organized by category" keywords="admin, useful links, orphan pages, internal linking">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/useful-links/" class="text-amber-400 font-medium">Useful Links</a>
+      <a href="/admin/seo/" class="hover:text-blue-400 transition-colors">SEO</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-2">
+      <h1 class="text-3xl font-bold text-white">🔗 Useful Links in Blogs</h1>
+      <span class="text-sm text-gray-500 bg-gray-800 px-3 py-1 rounded-full">{totalOrphans} orphan pages</span>
+    </div>
+    <p class="text-gray-400 mb-8 max-w-2xl">
+      Blog pages that exist but have <strong class="text-amber-400">zero inbound links</strong> from any other page, navigation, or sitemap.
+      These are invisible to both users and search engines until linked.
+    </p>
+
+    <!-- Summary Strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
+      {filteredCategories.slice(0, 7).map(cat => (
+        <div class="text-center p-3 rounded-lg bg-gray-800/60 border border-gray-700">
+          <p class="text-lg font-bold text-white">{cat.links.length}</p>
+          <p class="text-[10px] text-gray-400 leading-tight mt-0.5">{cat.name.split('(')[0].trim()}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Category Panels -->
+    <div class="space-y-4">
+      {filteredCategories.map(cat => (
+        <details open={!cat.collapsed} class="group rounded-xl border border-gray-800 bg-gray-900/50 overflow-hidden">
+          <summary class="flex items-center justify-between px-6 py-4 cursor-pointer select-none hover:bg-gray-800/30 transition-colors">
+            <div class="flex items-center gap-3">
+              <span class="text-xl">{cat.icon}</span>
+              <h2 class="text-lg font-semibold text-white">{cat.name}</h2>
+              <span class={`text-xs font-medium px-2 py-0.5 rounded-full bg-${cat.color}-900/40 text-${cat.color}-400 border border-${cat.color}-800/50`}>
+                {cat.links.length}
+              </span>
+            </div>
+            <svg class="w-5 h-5 text-gray-500 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div class="px-6 pb-5 pt-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {cat.links.map(slug => (
+                <a
+                  href={`/blog/${slug}/`}
+                  target="_blank"
+                  class="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-800 hover:border-amber-700 hover:bg-amber-900/10 transition-all group/link text-sm"
+                >
+                  <span class="text-amber-500 group-hover/link:translate-x-0.5 transition-transform shrink-0">→</span>
+                  <span class="text-gray-300 group-hover/link:text-amber-400 transition-colors truncate">
+                    {slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  </span>
+                  <svg class="w-3.5 h-3.5 text-gray-600 shrink-0 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              ))}
+            </div>
+          </div>
+        </details>
+      ))}
+    </div>
+
+    <!-- Footer info -->
+    <div class="mt-10 p-4 rounded-xl border border-gray-800 bg-gray-900/30 text-sm text-gray-500">
+      <p><strong class="text-gray-300">How to fix:</strong> Add inbound links to these pages from related blog posts, category landing pages, or the letter-guides hub. Each page linked from at least one other page helps Google discover and rank it.</p>
+      <p class="mt-2">Run <code class="bg-gray-800 px-1.5 py-0.5 rounded text-amber-400 text-xs">CheckPorts swf</code> or the SEO health check to monitor progress.</p>
+    </div>
+  </div>
+</Layout>

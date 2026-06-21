@@ -1,0 +1,1240 @@
+---
+export const prerender = true;
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import '../../styles/global.css';
+
+// Helper to convert slug to title
+function slugToTitle(slug: string): string {
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// Orphan blog pages organized by category (from admin/useful-links)
+const orphanCategories = [
+  {
+    name: 'Words Containing (Two-Letter Combos)',
+    icon: '🔤',
+    color: 'blue',
+    links: [
+      'words-containing-aa','words-containing-ab','words-containing-ac','words-containing-ad','words-containing-ae','words-containing-af','words-containing-ag','words-containing-ah','words-containing-ai','words-containing-aj','words-containing-ak','words-containing-al','words-containing-am','words-containing-an','words-containing-ao','words-containing-ap','words-containing-aq','words-containing-ar','words-containing-as','words-containing-at','words-containing-au','words-containing-av','words-containing-aw','words-containing-ax','words-containing-ay','words-containing-az',
+      'words-containing-ba','words-containing-be','words-containing-bi','words-containing-bo','words-containing-bu',
+      'words-containing-ca','words-containing-ce','words-containing-ch','words-containing-ci','words-containing-ck','words-containing-co','words-containing-cu',
+      'words-containing-da','words-containing-de','words-containing-di','words-containing-do','words-containing-du',
+      'words-containing-ea','words-containing-ee','words-containing-ei','words-containing-eo','words-containing-eu',
+      'words-containing-fa','words-containing-fe','words-containing-fi','words-containing-fo','words-containing-fu',
+      'words-containing-ga','words-containing-ge','words-containing-gh','words-containing-gi','words-containing-go','words-containing-gu',
+      'words-containing-ha','words-containing-he','words-containing-hi','words-containing-ho','words-containing-hu',
+      'words-containing-ia','words-containing-ie','words-containing-ii','words-containing-io','words-containing-iu',
+      'words-containing-ja','words-containing-je','words-containing-jo','words-containing-ju',
+      'words-containing-ka','words-containing-ke','words-containing-ki','words-containing-kn','words-containing-ko','words-containing-ku',
+      'words-containing-la','words-containing-le','words-containing-li','words-containing-lo','words-containing-lu',
+      'words-containing-ma','words-containing-me','words-containing-mi','words-containing-mo','words-containing-mu',
+      'words-containing-na','words-containing-ne','words-containing-ni','words-containing-no','words-containing-nu',
+      'words-containing-oa','words-containing-oe','words-containing-oi','words-containing-oo',
+      'words-containing-ph','words-containing-qu-no-u-after','words-containing-sh','words-containing-th','words-containing-wh','words-containing-wr'
+    ]
+  },
+  {
+    name: 'Words Containing (Double Letters)',
+    icon: '🔁',
+    color: 'indigo',
+    links: [
+      'words-containing-double-b','words-containing-double-d','words-containing-double-e','words-containing-double-f','words-containing-double-g','words-containing-double-l','words-containing-double-m','words-containing-double-n','words-containing-double-o','words-containing-double-p','words-containing-double-r','words-containing-double-s','words-containing-double-t'
+    ]
+  },
+  {
+    name: 'Words Ending With (Suffixes)',
+    icon: '⏩',
+    color: 'purple',
+    links: [
+      'words-ending-with-able','words-ending-with-age','words-ending-with-al','words-ending-with-ance','words-ending-with-ant','words-ending-with-ary','words-ending-with-ed','words-ending-with-ence','words-ending-with-ent','words-ending-with-er','words-ending-with-est','words-ending-with-ful','words-ending-with-ing','words-ending-with-ism','words-ending-with-ist','words-ending-with-ity','words-ending-with-ive','words-ending-with-ize','words-ending-with-ly','words-ending-with-ment','words-ending-with-ness','words-ending-with-ous','words-ending-with-ous-advanced','words-ending-with-tion','words-ending-with-ure',
+      'words-ending-in-est','words-ending-in-ment','words-ending-in-ness','words-ending-in-ous'
+    ]
+  },
+  {
+    name: 'Words Starting With (Prefixes)',
+    icon: '⏪',
+    color: 'cyan',
+    links: [
+      'words-starting-with-anti','words-starting-with-dis','words-starting-with-ex','words-starting-with-inter','words-starting-with-mis','words-starting-with-non','words-starting-with-out','words-starting-with-over','words-starting-with-pre','words-starting-with-qu','words-starting-with-re','words-starting-with-semi','words-starting-with-sub','words-starting-with-super','words-starting-with-un',
+      'words-beginning-with-dis','words-beginning-with-mis','words-beginning-with-pre','words-beginning-with-re','words-beginning-with-un'
+    ]
+  },
+  {
+    name: 'Word Lists & Vocabulary',
+    icon: '📋',
+    color: 'amber',
+    links: [
+      'words-using-all-5-vowels','words-with-all-vowels','words-with-no-vowels-except-y','words-with-only-vowels','words-with-silent-letters','words-with-triple-letters','words-with-w-not-followed-by-vowel','words-without-vowels',
+      'geography-words-scrabble','historical-terms-scrabble','longest-common-scrabble-words','longest-scrabble-words','medical-terms-scrabble','medical-terms-valid-scrabble','music-words-scrabble','nature-words-scrabble','palindrome-words-scrabble','shortest-legal-words','shortest-words-with-j','shortest-words-with-x','shortest-words-with-z','technology-words-scrabble'
+    ]
+  },
+  {
+    name: 'High-Scoring & Points',
+    icon: '💰',
+    color: 'emerald',
+    links: [
+      'highest-scoring-2-letter-plays','highest-scoring-4-letter-words','position-vs-points'
+    ]
+  },
+  {
+    name: 'Dictionaries & Valid Words',
+    icon: '📖',
+    color: 'teal',
+    links: [
+      'archaic-words-still-valid','common-illegal-words-scrabble','controversial-scrabble-words','foreign-origin-words-scrabble','foreign-words-valid-in-scrabble','how-scrabble-dictionaries-update','invalid-words-people-think-are-valid','most-surprising-valid-words','new-words-added-2026','newly-added-scrabble-words','obscure-legal-words-scrabble','slang-words-allowed-scrabble','words-only-in-sowpods','words-only-in-twl','words-removed-from-scrabble'
+    ]
+  },
+  {
+    name: 'Tools & Solvers',
+    icon: '🛠️',
+    color: 'violet',
+    links: [
+      'ai-scrabble-opponents','anagram-solvers-explained','are-scrabble-solvers-fair','best-scrabble-solver-tools','best-scrabble-training-tools','board-position-solvers','how-scrabble-solvers-work','is-using-a-scrabble-word-finder-cheating','pattern-search-tools','scrabble-dictionary-apps','scrabble-probability-calculators','scrabble-word-checker-tools','ultimate-scrabble-resource-guide','using-wildcards-in-solvers'
+    ]
+  },
+  {
+    name: 'Strategy & Tactics',
+    icon: '♟️',
+    color: 'orange',
+    links: [
+      'common-strategic-errors','post-game-analysis-scrabble','scrabble-study-plans','setup-moves-scrabble','three-letter-words-complete-strategy','two-letter-words-complete-strategy'
+    ]
+  },
+  {
+    name: 'History & Culture',
+    icon: '🏛️',
+    color: 'rose',
+    links: [
+      'celebrity-scrabble-players','famous-scrabble-controversies','history-of-scrabble','online-scrabble-communities','record-breaking-scrabble-games','scrabble-around-the-world','scrabble-in-different-languages','scrabble-variants-and-house-rules','weird-scrabble-facts'
+    ]
+  },
+  {
+    name: 'Tournament & Competitive',
+    icon: '🏆',
+    color: 'yellow',
+    links: [
+      'preparing-for-first-tournament','scrabble-club-etiquette','scrabble-rating-system-explained','scrabble-world-champions'
+    ]
+  },
+  {
+    name: 'Facts & Statistics',
+    icon: '📊',
+    color: 'pink',
+    links: [
+      'average-game-length','average-winning-score','least-valuable-tile','most-valuable-tile','probability-of-drawing-blank-tiles','probability-of-drawing-q','scrabble-tile-bag-distribution'
+    ]
+  },
+  {
+    name: 'Education & Learning',
+    icon: '🎓',
+    color: 'lime',
+    links: [
+      'classroom-scrabble-activities','improving-vocabulary-with-scrabble','keeping-score-in-scrabble','learning-english-through-scrabble','scrabble-for-language-learners','scrabble-strategies-for-families'
+    ]
+  },
+  {
+    name: 'Beginner Guides (Unlinked)',
+    icon: '🌱',
+    color: 'green',
+    links: [
+      'how-to-challenge-in-scrabble','scrabble-glossary-terms','setting-up-a-scrabble-game'
+    ]
+  },
+  {
+    name: 'Word Patterns & Efficiency',
+    icon: '⚡',
+    color: 'sky',
+    links: [
+      'words-ending-with-j','useful-y-words','useful-v-words','useful-c-words','useful-k-words','words-using-only-consonants','words-with-four-vowels-in-row','words-rare-letter-combinations','words-alternating-vowels-consonants','words-from-bingo-stems','short-words-high-point-values','long-words-low-point-values','words-worth-over-20-points','words-ending-with-v','words-ending-with-c'
+    ]
+  },
+];
+
+const totalOrphans = orphanCategories.reduce((sum, c) => sum + c.links.length, 0);
+---
+
+<BlogLayout title="Useful Links — ScrabbleWordsFinder.com" description="Quick access to all ScrabbleWordsFinder pages — games, player tools, stats, site info, blog posts, and legal pages. Everything in one place." keywords="scrabble links, scrabble tools, scrabble games, word finder pages, scrabble resources">
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Useful Links — ScrabbleWordsFinder.com",
+    "description": "Quick access to all ScrabbleWordsFinder pages — games, player tools, stats, site info, blog posts, and legal pages.",
+    "url": "https://www.scrabblewordsfinder.com/blog/useful-links/",
+    "isPartOf": { "@type": "WebSite", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
+    "mainEntity": { "@type": "ItemList", "numberOfItems": 475, "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Strategy Guides", "url": "https://www.scrabblewordsfinder.com/blog/strategy/" },
+      { "@type": "ListItem", "position": 2, "name": "Bingo Guides", "url": "https://www.scrabblewordsfinder.com/blog/bingos/" },
+      { "@type": "ListItem", "position": 3, "name": "High-Scoring Words", "url": "https://www.scrabblewordsfinder.com/blog/high-scoring/" },
+      { "@type": "ListItem", "position": 4, "name": "Letter Guides", "url": "https://www.scrabblewordsfinder.com/blog/letter-guides/" },
+      { "@type": "ListItem", "position": 5, "name": "Tournament & Competitive", "url": "https://www.scrabblewordsfinder.com/blog/tournament/" }
+    ]}
+  })} />
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How many blog posts does ScrabbleWordsFinder have?",
+        "acceptedAnswer": { "@type": "Answer", "text": "ScrabbleWordsFinder has over 475 blog posts covering strategy, word lists, letter guides, tournament tips, bingos, dictionaries, and more — all free with no sign-up required." }
+      },
+      {
+        "@type": "Question",
+        "name": "What categories of Scrabble content are available?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Content is organized into categories including Strategy (30 posts), Bingos (15 posts), Tournament & Competitive (13 posts), High-Scoring Words (11 posts), Dictionaries (7 posts), Letter Guides (136 posts), Beginner Guides (10 posts), and Two/Three-Letter Word guides." }
+      },
+      {
+        "@type": "Question",
+        "name": "Where can I find all Scrabble blog posts in one place?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The Useful Links page at scrabblewordsfinder.com/blog/useful-links/ lists every blog post organized by category with collapsible sections for easy browsing. You can also use the main blog index at /blog/ for recent posts." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-4xl mx-auto px-6 pt-4 pb-10">
+
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+      <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+      <span class="mx-1">›</span>
+      <span class="text-gray-300">Useful Links</span>
+    </nav>
+
+    <h1 class="text-3xl font-extrabold tracking-tight mb-2">
+      <span class="text-blue-400">Useful</span> Links
+    </h1>
+    <p class="text-gray-400 mb-8 text-sm">All ScrabbleWordsFinder pages in one place — games, tools, stats, and more. Bookmark this page for quick access.</p>
+
+    <!-- Games & Activities -->
+    <section id="games-activities" class="mb-8">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-900/30 border border-purple-500/30 text-base">🎮</span>
+        <h2 class="text-lg font-semibold text-purple-400">Games & Activities</h2>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <a href="/activities/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-purple-500/50 hover:bg-purple-950/10 transition-all">
+          <span class="text-xl shrink-0">🧠</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-purple-400 transition-colors">Activities Hub</p>
+            <p class="text-xs text-gray-500">Word Quiz, Daily Rack, Anagram & WordBench</p>
+          </div>
+        </a>
+        <a href="/sixty-seconds/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-purple-500/50 hover:bg-purple-950/10 transition-all">
+          <span class="text-xl shrink-0">⏱️</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-purple-400 transition-colors">60-Second Challenge</p>
+            <p class="text-xs text-gray-500">Speed word-finding under pressure</p>
+          </div>
+        </a>
+        <a href="/anagram-history/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-purple-500/50 hover:bg-purple-950/10 transition-all">
+          <span class="text-xl shrink-0">🔤</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-purple-400 transition-colors">Anagram History</p>
+            <p class="text-xs text-gray-500">Your past daily anagram results</p>
+          </div>
+        </a>
+        <a href="/quiz-history/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-purple-500/50 hover:bg-purple-950/10 transition-all">
+          <span class="text-xl shrink-0">📝</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-purple-400 transition-colors">Quiz History</p>
+            <p class="text-xs text-gray-500">Review your word quiz performance</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Player Tools & Data -->
+    <section id="player-tools" class="mb-8">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900/30 border border-blue-500/30 text-base">📊</span>
+        <h2 class="text-lg font-semibold text-blue-400">Player Tools & Data</h2>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <a href="/stats/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-blue-500/50 hover:bg-blue-950/10 transition-all">
+          <span class="text-xl shrink-0">📈</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-blue-400 transition-colors">Player Statistics</p>
+            <p class="text-xs text-gray-500">Your solving stats, streaks & averages</p>
+          </div>
+        </a>
+        <a href="/achievements/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-blue-500/50 hover:bg-blue-950/10 transition-all">
+          <span class="text-xl shrink-0">🏅</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-blue-400 transition-colors">Achievements</p>
+            <p class="text-xs text-gray-500">Badges and milestones earned</p>
+          </div>
+        </a>
+        <a href="/profile-data/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-blue-500/50 hover:bg-blue-950/10 transition-all">
+          <span class="text-xl shrink-0">👤</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-blue-400 transition-colors">Profile Data</p>
+            <p class="text-xs text-gray-500">View & export your saved data</p>
+          </div>
+        </a>
+        <a href="/wordbench-practice/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-blue-500/50 hover:bg-blue-950/10 transition-all">
+          <span class="text-xl shrink-0">📚</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-blue-400 transition-colors">WordBench Practice</p>
+            <p class="text-xs text-gray-500">Practice saved word collections</p>
+          </div>
+        </a>
+        <a href="/workbench-data/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-blue-500/50 hover:bg-blue-950/10 transition-all">
+          <span class="text-xl shrink-0">💾</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-blue-400 transition-colors">WordBench Data</p>
+            <p class="text-xs text-gray-500">Manage stored word lists & definitions</p>
+          </div>
+        </a>
+        <a href="/settings/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-blue-500/50 hover:bg-blue-950/10 transition-all">
+          <span class="text-xl shrink-0">⚙️</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-blue-400 transition-colors">Settings</p>
+            <p class="text-xs text-gray-500">Preferences, UUID & localStorage</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Site Information -->
+    <section id="site-information" class="mb-8">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-900/30 border border-amber-500/30 text-base">ℹ️</span>
+        <h2 class="text-lg font-semibold text-amber-400">Site Information</h2>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <a href="/about/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-amber-500/50 hover:bg-amber-950/10 transition-all">
+          <span class="text-xl shrink-0">👋</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-amber-400 transition-colors">About Us</p>
+            <p class="text-xs text-gray-500">Who we are and our mission</p>
+          </div>
+        </a>
+        <a href="/guide/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-amber-500/50 hover:bg-amber-950/10 transition-all">
+          <span class="text-xl shrink-0">📘</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-amber-400 transition-colors">User Guide</p>
+            <p class="text-xs text-gray-500">How to use all features</p>
+          </div>
+        </a>
+        <a href="/faq/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-amber-500/50 hover:bg-amber-950/10 transition-all">
+          <span class="text-xl shrink-0">❓</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-amber-400 transition-colors">FAQ</p>
+            <p class="text-xs text-gray-500">Frequently asked questions</p>
+          </div>
+        </a>
+        <a href="/roadmap/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-amber-500/50 hover:bg-amber-950/10 transition-all">
+          <span class="text-xl shrink-0">🗺️</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-amber-400 transition-colors">Roadmap</p>
+            <p class="text-xs text-gray-500">Upcoming features & plans</p>
+          </div>
+        </a>
+        <a href="/tech-stack/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-amber-500/50 hover:bg-amber-950/10 transition-all">
+          <span class="text-xl shrink-0">🛠️</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-amber-400 transition-colors">Tech Stack</p>
+            <p class="text-xs text-gray-500">Built with Astro, Cloudflare & more</p>
+          </div>
+        </a>
+        <a href="/releases/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-amber-500/50 hover:bg-amber-950/10 transition-all">
+          <span class="text-xl shrink-0">🚀</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-amber-400 transition-colors">Release Notes</p>
+            <p class="text-xs text-gray-500">Latest updates & changelog</p>
+          </div>
+        </a>
+        <a href="/suggest/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-amber-500/50 hover:bg-amber-950/10 transition-all">
+          <span class="text-xl shrink-0">💡</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-amber-400 transition-colors">Suggest a Feature</p>
+            <p class="text-xs text-gray-500">Tell us what you'd like to see</p>
+          </div>
+        </a>
+        <a href="/contact/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-amber-500/50 hover:bg-amber-950/10 transition-all">
+          <span class="text-xl shrink-0">✉️</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-amber-400 transition-colors">Contact Us</p>
+            <p class="text-xs text-gray-500">Get in touch or report a bug</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Legal & Privacy -->
+    <section id="legal-privacy" class="mb-8">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800 border border-gray-600 text-base">⚖️</span>
+        <h2 class="text-lg font-semibold text-gray-300">Legal & Privacy</h2>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <a href="/privacy/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-gray-600 hover:bg-gray-800/50 transition-all">
+          <span class="text-xl shrink-0">🔒</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-gray-100 transition-colors">Privacy Policy</p>
+            <p class="text-xs text-gray-500">How we handle your data</p>
+          </div>
+        </a>
+        <a href="/disclaimer/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-gray-600 hover:bg-gray-800/50 transition-all">
+          <span class="text-xl shrink-0">📜</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-gray-100 transition-colors">Disclaimer</p>
+            <p class="text-xs text-gray-500">Terms of accuracy & liability</p>
+          </div>
+        </a>
+        <a href="/terms/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-gray-600 hover:bg-gray-800/50 transition-all">
+          <span class="text-xl shrink-0">📄</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-gray-100 transition-colors">Terms of Use</p>
+            <p class="text-xs text-gray-500">Site usage terms & conditions</p>
+          </div>
+        </a>
+        <a href="/privacy-abc/" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-800 bg-gray-900/50 hover:border-gray-600 hover:bg-gray-800/50 transition-all">
+          <span class="text-xl shrink-0">🧩</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200 group-hover:text-gray-100 transition-colors">ABC Extension Privacy</p>
+            <p class="text-xs text-gray-500">Auto Button Clicker extension policy</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- BLOG POSTS BY CATEGORY                                 -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+
+    <div class="border-t border-gray-800 my-10 pt-8">
+      <h2 class="text-2xl font-bold text-white mb-2">📚 All Blog Posts by Category</h2>
+      <p class="text-sm text-gray-400 mb-8">Every article we've published, organised by topic. Click a category to expand.</p>
+    </div>
+
+    <!-- Beginner Guides -->
+    <section id="beginner-guides" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-green-900/30 border border-green-500/30 text-sm">📘</span>
+          <span class="text-base font-semibold text-green-400 flex-1">Beginner Guides</span>
+          <span class="text-xs text-gray-500 mr-2">10 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/beginner-guides/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View category landing page</a>
+          <a href="/blog/what-is-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">What Is Scrabble?</a>
+          <a href="/blog/how-to-play-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">How to Play Scrabble</a>
+          <a href="/blog/scrabble-rules-explained/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Scrabble Rules Explained</a>
+          <a href="/blog/beginner-scrabble-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Beginner Scrabble Strategy</a>
+          <a href="/blog/how-to-win-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">How to Win at Scrabble</a>
+          <a href="/blog/common-scrabble-mistakes/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Common Scrabble Mistakes</a>
+          <a href="/blog/scrabble-scoring-guide/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Scrabble Scoring Guide</a>
+          <a href="/blog/understanding-premium-squares/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Understanding Premium Squares</a>
+          <a href="/blog/how-blank-tiles-work/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">How Blank Tiles Work</a>
+          <a href="/blog/scrabble-etiquette/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Scrabble Etiquette</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Two-Letter Words -->
+    <section id="two-letter-words" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-cyan-900/30 border border-cyan-500/30 text-sm">🔤</span>
+          <span class="text-base font-semibold text-cyan-400 flex-1">Two-Letter Words</span>
+          <span class="text-xs text-gray-500 mr-2">10 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/two-letter-words/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View category landing page</a>
+          <a href="/blog/best-two-letter-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Best Two-Letter Words in Scrabble</a>
+          <a href="/blog/two-letter-scrabble-words-complete-list/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Complete Two-Letter Words List</a>
+          <a href="/blog/most-useful-two-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Most Useful Two-Letter Words</a>
+          <a href="/blog/memorizing-two-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Memorizing Two-Letter Words</a>
+          <a href="/blog/rare-two-letter-scrabble-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Rare Two-Letter Scrabble Words</a>
+          <a href="/blog/two-letter-words-by-alphabet/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Two-Letter Words by Alphabet</a>
+          <a href="/blog/printable-two-letter-word-list/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Printable Two-Letter Word List</a>
+          <a href="/blog/two-letter-words-with-q/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Two-Letter Words with Q</a>
+          <a href="/blog/two-letter-words-with-x/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Two-Letter Words with X</a>
+          <a href="/blog/two-letter-words-with-z/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Two-Letter Words with Z</a>
+          <a href="/blog/two-letter-words-complete-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Two-Letter Words Complete Strategy</a>
+          <a href="/blog/highest-scoring-2-letter-plays/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-cyan-400 transition-colors">Highest Scoring 2-Letter Plays</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Three-Letter Words -->
+    <section id="three-letter-words" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-teal-900/30 border border-teal-500/30 text-sm">🏆</span>
+          <span class="text-base font-semibold text-teal-400 flex-1">Three-Letter Words</span>
+          <span class="text-xs text-gray-500 mr-2">10 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/three-letter-words/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View category landing page</a>
+          <a href="/blog/best-three-letter-scrabble-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Best Three-Letter Scrabble Words</a>
+          <a href="/blog/common-three-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Common Three-Letter Words</a>
+          <a href="/blog/easy-three-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Easy Three-Letter Words</a>
+          <a href="/blog/highest-scoring-three-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Highest Scoring Three-Letter Words</a>
+          <a href="/blog/overlooked-three-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Overlooked Three-Letter Words</a>
+          <a href="/blog/three-letter-word-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Three-Letter Word Strategy</a>
+          <a href="/blog/three-letter-words-for-beginners/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Three-Letter Words for Beginners</a>
+          <a href="/blog/three-letter-words-with-q/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Three-Letter Words with Q</a>
+          <a href="/blog/three-letter-words-with-z/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Three-Letter Words with Z</a>
+          <a href="/blog/printable-three-letter-list/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Printable Three-Letter List</a>
+          <a href="/blog/three-letter-words-complete-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Three-Letter Words Complete Strategy</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ORPHAN BLOG POSTS (previously unlinked)                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+
+    <div class="border-t border-gray-800 my-10 pt-8">
+      <h2 class="text-2xl font-bold text-white mb-2">🔗 More Blog Posts ({totalOrphans} articles)</h2>
+      <p class="text-sm text-gray-400 mb-8">Additional guides and references covering combos, suffixes, prefixes, vocabulary, strategy, history, and more.</p>
+    </div>
+
+    {orphanCategories.map(cat => (
+      <section class="mb-6">
+        <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+          <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+            <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-800 border border-gray-700 text-sm">{cat.icon}</span>
+            <span class="text-base font-semibold text-gray-200 flex-1">{cat.name}</span>
+            <span class="text-xs text-gray-500 mr-2">{cat.links.length} posts</span>
+            <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+          </summary>
+          <div class="p-4 pt-2 grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+            {cat.links.map(slug => (
+              <a href={`/blog/${slug}/`} class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors truncate">
+                <span class="text-blue-500 shrink-0">→</span>
+                <span class="truncate">{slugToTitle(slug)}</span>
+              </a>
+            ))}
+          </div>
+        </details>
+      </section>
+    ))}
+
+    <!-- Strategy -->
+    <section id="strategy" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-purple-900/30 border border-purple-500/30 text-sm">🎯</span>
+          <span class="text-base font-semibold text-purple-400 flex-1">Strategy</span>
+          <span class="text-xs text-gray-500 mr-2">30 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/strategy/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View category landing page</a>
+          <a href="/blog/rack-management-basics/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Rack Management Basics</a>
+          <a href="/blog/rack-leave-explained/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Rack Leave Explained</a>
+          <a href="/blog/defensive-scrabble-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Defensive Scrabble Strategy</a>
+          <a href="/blog/offensive-scrabble-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Offensive Scrabble Strategy</a>
+          <a href="/blog/tile-tracking-guide/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Tile Tracking Guide</a>
+          <a href="/blog/endgame-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Endgame Strategy</a>
+          <a href="/blog/midgame-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Midgame Strategy</a>
+          <a href="/blog/opening-moves-guide/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Opening Moves Guide</a>
+          <a href="/blog/blocking-triple-word-squares/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Blocking Triple Word Squares</a>
+          <a href="/blog/creating-parallel-plays/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Creating Parallel Plays</a>
+          <a href="/blog/expert-scrabble-tactics/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Expert Scrabble Tactics</a>
+          <a href="/blog/board-openness-control/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Board Openness Control</a>
+          <a href="/blog/consonant-heavy-rack-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Consonant-Heavy Rack Strategy</a>
+          <a href="/blog/vowel-heavy-rack-solutions/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Vowel-Heavy Rack Solutions</a>
+          <a href="/blog/dealing-with-bad-tiles/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Dealing with Bad Tiles</a>
+          <a href="/blog/when-to-exchange-tiles-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">When to Exchange Tiles</a>
+          <a href="/blog/when-to-exchange-tiles/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">When to Exchange Tiles (Guide)</a>
+          <a href="/blog/using-the-s-effectively/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Using the S Effectively</a>
+          <a href="/blog/managing-the-q-tile/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Managing the Q Tile</a>
+          <a href="/blog/how-to-use-blank-tiles-strategically/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">How to Use Blank Tiles Strategically</a>
+          <a href="/blog/maximizing-blank-tiles/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Maximizing Blank Tiles</a>
+          <a href="/blog/position-vs-points/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Position vs Points</a>
+          <a href="/blog/playing-scrabble-with-a-lead/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Playing with a Lead</a>
+          <a href="/blog/coming-from-behind-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Coming from Behind</a>
+          <a href="/blog/common-strategic-errors/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Common Strategic Errors</a>
+          <a href="/blog/risk-management-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Risk Management in Scrabble</a>
+          <a href="/blog/why-rack-balance-matters/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Why Rack Balance Matters</a>
+          <a href="/blog/counting-tiles-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Counting Tiles Strategy</a>
+          <a href="/blog/probability-based-play/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Probability-Based Play</a>
+          <a href="/blog/setup-moves-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Setup Moves in Scrabble</a>
+          <a href="/blog/hotspots-and-dead-zones/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Hotspots and Dead Zones</a>
+          <a href="/blog/parallel-play-mastery/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Parallel Play Mastery</a>
+          <a href="/blog/how-to-play-around-triple-word/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">How to Play Around Triple Word</a>
+          <a href="/blog/scrabble-opening-strategy-first-move/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-purple-400 transition-colors">Opening Strategy: First Move</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Bingos -->
+    <section id="bingos" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-900/30 border border-amber-500/30 text-sm">🎲</span>
+          <span class="text-base font-semibold text-amber-400 flex-1">Bingos</span>
+          <span class="text-xs text-gray-500 mr-2">18 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/bingos/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View category landing page</a>
+          <a href="/blog/what-is-a-bingo/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">What Is a Bingo?</a>
+          <a href="/blog/best-bingo-racks/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Best Bingo Racks</a>
+          <a href="/blog/bingo-probability/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Bingo Probability</a>
+          <a href="/blog/bingo-stem-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Bingo Stem Strategy</a>
+          <a href="/blog/bingo-training-methods/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Bingo Training Methods</a>
+          <a href="/blog/bingo-racks-to-memorise/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Bingo Racks to Memorise</a>
+          <a href="/blog/common-bingo-endings/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Common Bingo Endings</a>
+          <a href="/blog/common-bingo-prefixes/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Common Bingo Prefixes</a>
+          <a href="/blog/fishing-for-bingos/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Fishing for Bingos</a>
+          <a href="/blog/how-to-spot-bingos-faster/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">How to Spot Bingos Faster</a>
+          <a href="/blog/spotting-bingos-on-your-rack/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Spotting Bingos on Your Rack</a>
+          <a href="/blog/bingo-bonus-vs-steady-scoring/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Bingo Bonus vs Steady Scoring</a>
+          <a href="/blog/bingo-through-existing-letter/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Bingo Through Existing Letter</a>
+          <a href="/blog/bingo-frequency-by-dictionary/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Bingo Frequency by Dictionary</a>
+          <a href="/blog/top-bingo-stems-satire/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Top Bingo Stems (SATIRE)</a>
+          <a href="/blog/seven-letter-bingo-list/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Seven-Letter Bingo List</a>
+          <a href="/blog/eight-letter-bingos/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Eight-Letter Bingos</a>
+          <a href="/blog/eight-letter-bingos-guide/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Eight-Letter Bingos Guide</a>
+          <a href="/blog/six-letter-words-that-lead-to-bingos/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Six-Letter Words That Lead to Bingos</a>
+          <a href="/blog/ing-words-scrabble-bingo/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">ING Words for Scrabble Bingos</a>
+          <a href="/blog/seven-letter-words-with-common-tiles/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-amber-400 transition-colors">Seven-Letter Words with Common Tiles</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- High-Scoring Words -->
+    <section id="high-scoring" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-900/30 border border-rose-500/30 text-sm">💎</span>
+          <span class="text-base font-semibold text-rose-400 flex-1">High-Scoring Words</span>
+          <span class="text-xs text-gray-500 mr-2">20 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/high-scoring/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View category landing page</a>
+          <a href="/blog/highest-scoring-scrabble-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Highest Scoring Scrabble Words</a>
+          <a href="/blog/high-scoring-short-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">High-Scoring Short Words</a>
+          <a href="/blog/highest-scoring-bingos/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Highest Scoring Bingos</a>
+          <a href="/blog/best-q-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Best Q Words in Scrabble</a>
+          <a href="/blog/best-z-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Best Z Words in Scrabble</a>
+          <a href="/blog/best-x-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Best X Words in Scrabble</a>
+          <a href="/blog/best-j-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Best J Words in Scrabble</a>
+          <a href="/blog/highest-scoring-five-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Highest Scoring Five-Letter Words</a>
+          <a href="/blog/highest-scoring-six-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Highest Scoring Six-Letter Words</a>
+          <a href="/blog/highest-scoring-seven-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Highest Scoring Seven-Letter Words</a>
+          <a href="/blog/highest-scoring-4-letter-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Highest Scoring 4-Letter Words</a>
+          <a href="/blog/best-words-for-premium-squares/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Best Words for Premium Squares</a>
+          <a href="/blog/scoring-100-points-single-turn/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Scoring 100 Points in a Single Turn</a>
+          <a href="/blog/triple-triple-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Triple-Triple Words</a>
+          <a href="/blog/power-plays-under-5-tiles/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Power Plays Under 5 Tiles</a>
+          <a href="/blog/five-letter-power-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Five-Letter Power Words</a>
+          <a href="/blog/five-letter-words-that-score-high/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Five-Letter Words That Score High</a>
+          <a href="/blog/four-letter-power-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Four-Letter Power Words</a>
+          <a href="/blog/words-worth-50-plus-points/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Words Worth 50+ Points</a>
+          <a href="/blog/oxyphenbutazone-highest-scoring-word/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Oxyphenbutazone: The Highest Scoring Word</a>
+          <a href="/blog/maximum-possible-scrabble-score/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-rose-400 transition-colors">Maximum Possible Scrabble Score</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Tournament & Competitive -->
+    <section id="tournament" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-yellow-900/30 border border-yellow-500/30 text-sm">🏅</span>
+          <span class="text-base font-semibold text-yellow-400 flex-1">Tournament & Competitive</span>
+          <span class="text-xs text-gray-500 mr-2">20 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/tournament/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View category landing page</a>
+          <a href="/blog/competitive-scrabble-tournament-world/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Competitive Scrabble Tournament World</a>
+          <a href="/blog/how-scrabble-tournaments-work/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">How Scrabble Tournaments Work</a>
+          <a href="/blog/tournament-rules-explained/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Tournament Rules Explained</a>
+          <a href="/blog/tournament-level-strategy/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Tournament-Level Strategy</a>
+          <a href="/blog/preparing-for-first-tournament/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Preparing for Your First Tournament</a>
+          <a href="/blog/preparing-for-competition/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Preparing for Competition</a>
+          <a href="/blog/becoming-a-tournament-player/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Becoming a Tournament Player</a>
+          <a href="/blog/mental-stamina-tournament-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Mental Stamina in Tournament Scrabble</a>
+          <a href="/blog/scrabble-clock-management/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Scrabble Clock Management</a>
+          <a href="/blog/time-management-tournaments/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Time Management in Tournaments</a>
+          <a href="/blog/how-to-challenge-in-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">How to Challenge in Scrabble</a>
+          <a href="/blog/scrabble-rating-system-explained/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Scrabble Rating System Explained</a>
+          <a href="/blog/scrabble-ratings-explained/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Scrabble Ratings Explained</a>
+          <a href="/blog/greatest-scrabble-players/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Greatest Scrabble Players</a>
+          <a href="/blog/scrabble-world-champions/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Scrabble World Champions</a>
+          <a href="/blog/world-scrabble-championships/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">World Scrabble Championships</a>
+          <a href="/blog/famous-scrabble-matches/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Famous Scrabble Matches</a>
+          <a href="/blog/famous-tournament-bingos/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Famous Tournament Bingos</a>
+          <a href="/blog/highest-tournament-scores/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Highest Tournament Scores</a>
+          <a href="/blog/record-breaking-scrabble-games/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Record-Breaking Scrabble Games</a>
+          <a href="/blog/most-unusual-tournament-stories/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Most Unusual Tournament Stories</a>
+          <a href="/blog/online-vs-tournament-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Online vs Tournament Scrabble</a>
+          <a href="/blog/scrabble-club-etiquette/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400 transition-colors">Scrabble Club Etiquette</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Dictionaries & Word Lists -->
+    <section id="dictionaries" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-indigo-900/30 border border-indigo-500/30 text-sm">📖</span>
+          <span class="text-base font-semibold text-indigo-400 flex-1">Dictionaries & Word Lists</span>
+          <span class="text-xs text-gray-500 mr-2">25 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/dictionaries/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View category landing page</a>
+          <a href="/blog/official-scrabble-dictionary-guide/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Official Scrabble Dictionary Guide</a>
+          <a href="/blog/sowpods-dictionary/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">SOWPODS Dictionary</a>
+          <a href="/blog/sowpods-vs-twl-which-to-use/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">SOWPODS vs TWL: Which to Use</a>
+          <a href="/blog/twl-naspa-dictionary/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">TWL (NASPA) Dictionary</a>
+          <a href="/blog/twl-vs-sowpods/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">TWL vs SOWPODS</a>
+          <a href="/blog/collins-official-dictionary/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Collins Official Dictionary</a>
+          <a href="/blog/words-with-friends-dictionary/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Words with Friends Dictionary</a>
+          <a href="/blog/how-scrabble-dictionaries-update/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">How Scrabble Dictionaries Update</a>
+          <a href="/blog/scrabble-dictionaries-languages-weird-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Scrabble Dictionaries, Languages & Weird Words</a>
+          <a href="/blog/words-only-in-sowpods/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Words Only in SOWPODS</a>
+          <a href="/blog/words-only-in-twl/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Words Only in TWL</a>
+          <a href="/blog/words-removed-from-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Words Removed from Scrabble</a>
+          <a href="/blog/new-words-added-2026/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">New Words Added (2026)</a>
+          <a href="/blog/newly-added-scrabble-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Newly Added Scrabble Words</a>
+          <a href="/blog/controversial-scrabble-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Controversial Scrabble Words</a>
+          <a href="/blog/common-illegal-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Common Illegal Words in Scrabble</a>
+          <a href="/blog/invalid-words-people-think-are-valid/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Invalid Words People Think Are Valid</a>
+          <a href="/blog/most-surprising-valid-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Most Surprising Valid Words</a>
+          <a href="/blog/slang-words-allowed-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Slang Words Allowed in Scrabble</a>
+          <a href="/blog/foreign-words-valid-in-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Foreign Words Valid in Scrabble</a>
+          <a href="/blog/foreign-origin-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Foreign-Origin Words in Scrabble</a>
+          <a href="/blog/archaic-words-still-valid/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Archaic Words Still Valid</a>
+          <a href="/blog/obscure-legal-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Obscure Legal Words in Scrabble</a>
+          <a href="/blog/q-words-without-u/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Q Words Without U</a>
+          <a href="/blog/scrabble-glossary-terms/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-indigo-400 transition-colors">Scrabble Glossary of Terms</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- History & Culture -->
+    <section id="history-culture" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-900/30 border border-orange-500/30 text-sm">📜</span>
+          <span class="text-base font-semibold text-orange-400 flex-1">History & Culture</span>
+          <span class="text-xs text-gray-500 mr-2">12 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/scrabble-history-origins-great-depression/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Scrabble History: Origins & the Great Depression</a>
+          <a href="/blog/history-of-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">History of Scrabble</a>
+          <a href="/blog/who-invented-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Who Invented Scrabble?</a>
+          <a href="/blog/scrabble-around-the-world/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Scrabble Around the World</a>
+          <a href="/blog/scrabble-in-different-languages/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Scrabble in Different Languages</a>
+          <a href="/blog/scrabble-variants-and-house-rules/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Scrabble Variants & House Rules</a>
+          <a href="/blog/celebrity-scrabble-players/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Celebrity Scrabble Players</a>
+          <a href="/blog/famous-scrabble-controversies/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Famous Scrabble Controversies</a>
+          <a href="/blog/weird-scrabble-facts/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Weird Scrabble Facts</a>
+          <a href="/blog/scrabble-by-the-numbers/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Scrabble by the Numbers</a>
+          <a href="/blog/scrabble-and-mathematics/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Scrabble and Mathematics</a>
+          <a href="/blog/psychology-of-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-orange-400 transition-colors">Psychology of Scrabble</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Tools & Solvers -->
+    <section id="tools-solvers" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-sky-900/30 border border-sky-500/30 text-sm">🔧</span>
+          <span class="text-base font-semibold text-sky-400 flex-1">Tools & Solvers</span>
+          <span class="text-xs text-gray-500 mr-2">12 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/how-scrabble-solvers-work/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">How Scrabble Solvers Work</a>
+          <a href="/blog/are-scrabble-solvers-fair/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Are Scrabble Solvers Fair?</a>
+          <a href="/blog/is-using-a-scrabble-word-finder-cheating/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Is Using a Word Finder Cheating?</a>
+          <a href="/blog/best-scrabble-solver-tools/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Best Scrabble Solver Tools</a>
+          <a href="/blog/best-scrabble-training-tools/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Best Scrabble Training Tools</a>
+          <a href="/blog/anagram-solvers-explained/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Anagram Solvers Explained</a>
+          <a href="/blog/scrabble-word-checker-tools/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Scrabble Word Checker Tools</a>
+          <a href="/blog/scrabble-dictionary-apps/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Scrabble Dictionary Apps</a>
+          <a href="/blog/pattern-search-tools/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Pattern Search Tools</a>
+          <a href="/blog/board-position-solvers/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Board Position Solvers</a>
+          <a href="/blog/rack-leave-calculators/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Rack Leave Calculators</a>
+          <a href="/blog/scrabble-probability-calculators/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Scrabble Probability Calculators</a>
+          <a href="/blog/using-wildcards-in-solvers/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">Using Wildcards in Solvers</a>
+          <a href="/blog/ai-scrabble-opponents/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-sky-400 transition-colors">AI Scrabble Opponents</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Facts & Statistics -->
+    <section id="facts-stats" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-900/30 border border-emerald-500/30 text-sm">📊</span>
+          <span class="text-base font-semibold text-emerald-400 flex-1">Facts & Statistics</span>
+          <span class="text-xs text-gray-500 mr-2">14 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/tile-distribution-explained/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Tile Distribution Explained</a>
+          <a href="/blog/scrabble-tile-bag-distribution/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Scrabble Tile Bag Distribution</a>
+          <a href="/blog/letter-frequency-in-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Letter Frequency in Scrabble</a>
+          <a href="/blog/letter-frequency-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Letter Frequency (Scrabble)</a>
+          <a href="/blog/most-valuable-tile/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Most Valuable Tile</a>
+          <a href="/blog/least-valuable-tile/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Least Valuable Tile</a>
+          <a href="/blog/probability-of-drawing-blank-tiles/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Probability of Drawing Blank Tiles</a>
+          <a href="/blog/probability-of-drawing-blank/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Probability of Drawing a Blank</a>
+          <a href="/blog/probability-of-drawing-q/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Probability of Drawing Q</a>
+          <a href="/blog/average-winning-score/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Average Winning Score</a>
+          <a href="/blog/average-game-length/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Average Game Length</a>
+          <a href="/blog/tile-turnover-rate/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Tile Turnover Rate</a>
+          <a href="/blog/scrabble-board-layout-explained/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Scrabble Board Layout Explained</a>
+          <a href="/blog/scrabble-tile-strategy-letters-scoring/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Scrabble Tile Strategy: Letters & Scoring</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Learning & Improvement -->
+    <section id="learning" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-lime-900/30 border border-lime-500/30 text-sm">🎓</span>
+          <span class="text-base font-semibold text-lime-400 flex-1">Learning & Improvement</span>
+          <span class="text-xs text-gray-500 mr-2">18 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/how-to-improve-at-scrabble-fast/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">How to Improve at Scrabble Fast</a>
+          <a href="/blog/scrabble-study-plans/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Scrabble Study Plans</a>
+          <a href="/blog/tracking-your-improvement/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Tracking Your Improvement</a>
+          <a href="/blog/post-game-analysis-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Post-Game Analysis</a>
+          <a href="/blog/speed-anagramming-techniques/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Speed Anagramming Techniques</a>
+          <a href="/blog/cognitive-benefits-of-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Cognitive Benefits of Scrabble</a>
+          <a href="/blog/scrabble-and-brain-health/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Scrabble and Brain Health</a>
+          <a href="/blog/scrabble-and-memory-training/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Scrabble and Memory Training</a>
+          <a href="/blog/scrabble-and-vocabulary-growth/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Scrabble and Vocabulary Growth</a>
+          <a href="/blog/improving-vocabulary-with-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Improving Vocabulary with Scrabble</a>
+          <a href="/blog/learning-english-through-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Learning English Through Scrabble</a>
+          <a href="/blog/scrabble-for-language-learners/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Scrabble for Language Learners</a>
+          <a href="/blog/scrabble-for-kids-guide/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Scrabble for Kids Guide</a>
+          <a href="/blog/teaching-kids-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Teaching Kids Scrabble</a>
+          <a href="/blog/scrabble-for-seniors/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Scrabble for Seniors</a>
+          <a href="/blog/classroom-scrabble-activities/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Classroom Scrabble Activities</a>
+          <a href="/blog/family-scrabble-night-ideas/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Family Scrabble Night Ideas</a>
+          <a href="/blog/scrabble-strategies-for-families/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-lime-400 transition-colors">Scrabble Strategies for Families</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Hooks & Word Patterns -->
+    <section id="hooks-patterns" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-fuchsia-900/30 border border-fuchsia-500/30 text-sm">🪝</span>
+          <span class="text-base font-semibold text-fuchsia-400 flex-1">Hooks & Word Patterns</span>
+          <span class="text-xs text-gray-500 mr-2">10 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/complete-guide-to-hooks/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Complete Guide to Hooks</a>
+          <a href="/blog/hook-words-advanced/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Hook Words (Advanced)</a>
+          <a href="/blog/hooking-existing-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Hooking Existing Words</a>
+          <a href="/blog/front-hooks-vs-back-hooks/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Front Hooks vs Back Hooks</a>
+          <a href="/blog/palindrome-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Palindrome Words in Scrabble</a>
+          <a href="/blog/words-with-double-letters/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Words with Double Letters</a>
+          <a href="/blog/best-words-with-double-letters/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Best Words with Double Letters</a>
+          <a href="/blog/words-with-triple-letters/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Words with Triple Letters</a>
+          <a href="/blog/words-with-silent-letters/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Words with Silent Letters</a>
+          <a href="/blog/words-with-w-not-followed-by-vowel/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-fuchsia-400 transition-colors">Words with W Not Followed by Vowel</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Vowels & Consonants -->
+    <section id="vowels-consonants" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-violet-900/30 border border-violet-500/30 text-sm">🅰️</span>
+          <span class="text-base font-semibold text-violet-400 flex-1">Vowels & Consonants</span>
+          <span class="text-xs text-gray-500 mr-2">7 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/words-without-vowels/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Words Without Vowels</a>
+          <a href="/blog/words-with-no-vowels-except-y/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Words with No Vowels Except Y</a>
+          <a href="/blog/words-with-only-vowels/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Words with Only Vowels</a>
+          <a href="/blog/words-with-all-vowels/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Words with All Vowels</a>
+          <a href="/blog/words-using-all-5-vowels/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Words Using All 5 Vowels</a>
+          <a href="/blog/words-with-multiple-vowels/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Words with Multiple Vowels</a>
+          <a href="/blog/longest-scrabble-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Longest Scrabble Words</a>
+          <a href="/blog/longest-common-scrabble-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Longest Common Scrabble Words</a>
+          <a href="/blog/shortest-legal-words/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Shortest Legal Words</a>
+          <a href="/blog/shortest-words-with-j/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Shortest Words with J</a>
+          <a href="/blog/shortest-words-with-x/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Shortest Words with X</a>
+          <a href="/blog/shortest-words-with-z/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-violet-400 transition-colors">Shortest Words with Z</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Themed Word Lists -->
+    <section id="themed-words" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-pink-900/30 border border-pink-500/30 text-sm">🏷️</span>
+          <span class="text-base font-semibold text-pink-400 flex-1">Themed Word Lists</span>
+          <span class="text-xs text-gray-500 mr-2">16 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/animal-names-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Animal Names in Scrabble</a>
+          <a href="/blog/food-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Food Words in Scrabble</a>
+          <a href="/blog/nature-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Nature Words in Scrabble</a>
+          <a href="/blog/science-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Science Words in Scrabble</a>
+          <a href="/blog/medical-terms-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Medical Terms in Scrabble</a>
+          <a href="/blog/medical-terms-valid-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Medical Terms Valid in Scrabble</a>
+          <a href="/blog/music-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Music Words in Scrabble</a>
+          <a href="/blog/musical-terms-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Musical Terms in Scrabble</a>
+          <a href="/blog/sports-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Sports Words in Scrabble</a>
+          <a href="/blog/geography-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Geography Words in Scrabble</a>
+          <a href="/blog/historical-terms-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Historical Terms in Scrabble</a>
+          <a href="/blog/technology-words-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Technology Words in Scrabble</a>
+          <a href="/blog/four-letter-words-every-player-should-know/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Four-Letter Words Every Player Should Know</a>
+          <a href="/blog/first-10-words-to-learn-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">First 10 Words to Learn in Scrabble</a>
+          <a href="/blog/word-of-the-day-series/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Word of the Day Series</a>
+          <a href="/blog/ultimate-scrabble-resource-guide/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-pink-400 transition-colors">Ultimate Scrabble Resource Guide</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Online Play & Community -->
+    <section id="online-play" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-900/30 border border-blue-500/30 text-sm">🌐</span>
+          <span class="text-base font-semibold text-blue-400 flex-1">Online Play & Community</span>
+          <span class="text-xs text-gray-500 mr-2">10 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/best-online-scrabble-sites/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Best Online Scrabble Sites</a>
+          <a href="/blog/best-scrabble-apps/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Best Scrabble Apps</a>
+          <a href="/blog/online-scrabble-communities/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Online Scrabble Communities</a>
+          <a href="/blog/online-scrabble-etiquette/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Online Scrabble Etiquette</a>
+          <a href="/blog/online-vs-board-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Online vs Board Scrabble</a>
+          <a href="/blog/scrabble-vs-words-with-friends/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Scrabble vs Words with Friends</a>
+          <a href="/blog/multiplayer-scrabble-tips/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Multiplayer Scrabble Tips</a>
+          <a href="/blog/playing-scrabble-on-mobile/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Playing Scrabble on Mobile</a>
+          <a href="/blog/keeping-score-in-scrabble/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Keeping Score in Scrabble</a>
+          <a href="/blog/setting-up-a-scrabble-game/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-blue-400 transition-colors">Setting Up a Scrabble Game</a>
+        </div>
+      </details>
+    </section>
+
+    <!-- Letter Guides — Words Starting With -->
+    <section id="letter-guides-starting" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-green-900/30 border border-green-500/30 text-sm">🔠</span>
+          <span class="text-base font-semibold text-green-400 flex-1">Words Starting With...</span>
+          <span class="text-xs text-gray-500 mr-2">41 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/letter-guides/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View Letter Guides landing page</a>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1">
+            <a href="/blog/words-starting-with-a/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with A</a>
+            <a href="/blog/words-starting-with-b/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with B</a>
+            <a href="/blog/words-starting-with-c/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with C</a>
+            <a href="/blog/words-starting-with-d/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with D</a>
+            <a href="/blog/words-starting-with-e/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with E</a>
+            <a href="/blog/words-starting-with-f/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with F</a>
+            <a href="/blog/words-starting-with-g/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with G</a>
+            <a href="/blog/words-starting-with-h/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with H</a>
+            <a href="/blog/words-starting-with-i/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with I</a>
+            <a href="/blog/words-starting-with-j/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with J</a>
+            <a href="/blog/words-starting-with-k/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with K</a>
+            <a href="/blog/words-starting-with-l/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with L</a>
+            <a href="/blog/words-starting-with-m/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with M</a>
+            <a href="/blog/words-starting-with-n/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with N</a>
+            <a href="/blog/words-starting-with-o/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with O</a>
+            <a href="/blog/words-starting-with-p/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with P</a>
+            <a href="/blog/words-starting-with-q/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with Q</a>
+            <a href="/blog/words-starting-with-r/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with R</a>
+            <a href="/blog/words-starting-with-s/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with S</a>
+            <a href="/blog/words-starting-with-t/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with T</a>
+            <a href="/blog/words-starting-with-u/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with U</a>
+            <a href="/blog/words-starting-with-v/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with V</a>
+            <a href="/blog/words-starting-with-w/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with W</a>
+            <a href="/blog/words-starting-with-x/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with X</a>
+            <a href="/blog/words-starting-with-y/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with Y</a>
+            <a href="/blog/words-starting-with-z/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with Z</a>
+          </div>
+          <p class="text-xs text-gray-500 mt-3 mb-1 font-medium">Prefix Guides:</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1">
+            <a href="/blog/words-starting-with-re/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with RE-</a>
+            <a href="/blog/words-starting-with-un/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with UN-</a>
+            <a href="/blog/words-starting-with-pre/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with PRE-</a>
+            <a href="/blog/words-starting-with-dis/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with DIS-</a>
+            <a href="/blog/words-starting-with-mis/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with MIS-</a>
+            <a href="/blog/words-starting-with-ex/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with EX-</a>
+            <a href="/blog/words-starting-with-anti/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with ANTI-</a>
+            <a href="/blog/words-starting-with-inter/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with INTER-</a>
+            <a href="/blog/words-starting-with-over/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with OVER-</a>
+            <a href="/blog/words-starting-with-out/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with OUT-</a>
+            <a href="/blog/words-starting-with-sub/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with SUB-</a>
+            <a href="/blog/words-starting-with-super/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with SUPER-</a>
+            <a href="/blog/words-starting-with-non/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with NON-</a>
+            <a href="/blog/words-starting-with-semi/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with SEMI-</a>
+            <a href="/blog/words-starting-with-qu/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Starting with QU-</a>
+          </div>
+          <p class="text-xs text-gray-500 mt-3 mb-1 font-medium">Beginning With (alternate series):</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1">
+            <a href="/blog/words-beginning-with-un/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Beginning with UN-</a>
+            <a href="/blog/words-beginning-with-re/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Beginning with RE-</a>
+            <a href="/blog/words-beginning-with-dis/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Beginning with DIS-</a>
+            <a href="/blog/words-beginning-with-mis/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Beginning with MIS-</a>
+            <a href="/blog/words-beginning-with-pre/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-green-400 transition-colors">Beginning with PRE-</a>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- Letter Guides — Words Ending With -->
+    <section id="letter-guides-ending" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-900/30 border border-emerald-500/30 text-sm">🔡</span>
+          <span class="text-base font-semibold text-emerald-400 flex-1">Words Ending With...</span>
+          <span class="text-xs text-gray-500 mr-2">42 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0 grid gap-1">
+          <a href="/blog/letter-guides/" class="text-xs text-blue-400 hover:underline mb-2 inline-block">→ View Letter Guides landing page</a>
+          <p class="text-xs text-gray-500 mb-1 font-medium">By Letter:</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1">
+            <a href="/blog/words-ending-with-a/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with A</a>
+            <a href="/blog/words-ending-with-e/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with E</a>
+            <a href="/blog/words-ending-with-i/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with I</a>
+            <a href="/blog/words-ending-with-o/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with O</a>
+            <a href="/blog/words-ending-with-u/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with U</a>
+            <a href="/blog/words-ending-with-x/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with X</a>
+            <a href="/blog/words-ending-with-z/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with Z</a>
+          </div>
+          <p class="text-xs text-gray-500 mt-3 mb-1 font-medium">By Suffix:</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1">
+            <a href="/blog/words-ending-with-able/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ABLE</a>
+            <a href="/blog/words-ending-with-age/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -AGE</a>
+            <a href="/blog/words-ending-with-al/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -AL</a>
+            <a href="/blog/words-ending-with-ance/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ANCE</a>
+            <a href="/blog/words-ending-with-ant/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ANT</a>
+            <a href="/blog/words-ending-with-ary/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ARY</a>
+            <a href="/blog/words-ending-with-ed/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ED</a>
+            <a href="/blog/words-ending-with-ence/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ENCE</a>
+            <a href="/blog/words-ending-with-ent/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ENT</a>
+            <a href="/blog/words-ending-with-er/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ER</a>
+            <a href="/blog/words-ending-with-est/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -EST</a>
+            <a href="/blog/words-ending-with-ful/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -FUL</a>
+            <a href="/blog/words-ending-with-ing/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ING</a>
+            <a href="/blog/words-ending-with-ism/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ISM</a>
+            <a href="/blog/words-ending-with-ist/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -IST</a>
+            <a href="/blog/words-ending-with-ity/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -ITY</a>
+            <a href="/blog/words-ending-with-ive/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -IVE</a>
+            <a href="/blog/words-ending-with-ize/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -IZE</a>
+            <a href="/blog/words-ending-with-ly/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -LY</a>
+            <a href="/blog/words-ending-with-ment/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -MENT</a>
+            <a href="/blog/words-ending-with-ness/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -NESS</a>
+            <a href="/blog/words-ending-with-ous/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -OUS</a>
+            <a href="/blog/words-ending-with-ous-advanced/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -OUS (Advanced)</a>
+            <a href="/blog/words-ending-with-tion/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -TION</a>
+            <a href="/blog/words-ending-with-ure/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending with -URE</a>
+          </div>
+          <p class="text-xs text-gray-500 mt-3 mb-1 font-medium">Ending In (alternate series):</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1">
+            <a href="/blog/words-ending-in-able/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -ABLE</a>
+            <a href="/blog/words-ending-in-ed/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -ED</a>
+            <a href="/blog/words-ending-in-er/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -ER</a>
+            <a href="/blog/words-ending-in-est/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -EST</a>
+            <a href="/blog/words-ending-in-ing/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -ING</a>
+            <a href="/blog/words-ending-in-ly/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -LY</a>
+            <a href="/blog/words-ending-in-ment/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -MENT</a>
+            <a href="/blog/words-ending-in-ness/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -NESS</a>
+            <a href="/blog/words-ending-in-ous/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -OUS</a>
+            <a href="/blog/words-ending-in-tion/" class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-emerald-400 transition-colors">Ending in -TION</a>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- Letter Guides — Words Containing -->
+    <section id="letter-guides-containing" class="mb-6">
+      <details class="group rounded-xl border border-gray-800 bg-gray-900/30 overflow-hidden">
+        <summary class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-800/50 transition-colors">
+          <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-teal-900/30 border border-teal-500/30 text-sm">🔍</span>
+          <span class="text-base font-semibold text-teal-400 flex-1">Words Containing...</span>
+          <span class="text-xs text-gray-500 mr-2">125 posts</span>
+          <span class="text-gray-500 group-open:rotate-90 transition-transform">▶</span>
+        </summary>
+        <div class="p-4 pt-0">
+          <a href="/blog/letter-guides/" class="text-xs text-blue-400 hover:underline mb-3 inline-block">→ View Letter Guides landing page</a>
+          <p class="text-xs text-gray-500 mb-1 font-medium">A-series:</p>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-1 mb-3">
+            <a href="/blog/words-containing-aa/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AA</a>
+            <a href="/blog/words-containing-ab/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AB</a>
+            <a href="/blog/words-containing-ac/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AC</a>
+            <a href="/blog/words-containing-ad/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AD</a>
+            <a href="/blog/words-containing-ae/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AE</a>
+            <a href="/blog/words-containing-af/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AF</a>
+            <a href="/blog/words-containing-ag/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AG</a>
+            <a href="/blog/words-containing-ah/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AH</a>
+            <a href="/blog/words-containing-ai/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AI</a>
+            <a href="/blog/words-containing-aj/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AJ</a>
+            <a href="/blog/words-containing-ak/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AK</a>
+            <a href="/blog/words-containing-al/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AL</a>
+            <a href="/blog/words-containing-am/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AM</a>
+            <a href="/blog/words-containing-an/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AN</a>
+            <a href="/blog/words-containing-ao/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AO</a>
+            <a href="/blog/words-containing-ap/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AP</a>
+            <a href="/blog/words-containing-aq/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AQ</a>
+            <a href="/blog/words-containing-ar/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AR</a>
+            <a href="/blog/words-containing-as/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AS</a>
+            <a href="/blog/words-containing-at/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AT</a>
+            <a href="/blog/words-containing-au/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AU</a>
+            <a href="/blog/words-containing-av/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AV</a>
+            <a href="/blog/words-containing-aw/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AW</a>
+            <a href="/blog/words-containing-ax/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AX</a>
+            <a href="/blog/words-containing-ay/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AY</a>
+            <a href="/blog/words-containing-az/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">AZ</a>
+          </div>
+          <p class="text-xs text-gray-500 mb-1 font-medium">B through G:</p>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-1 mb-3">
+            <a href="/blog/words-containing-ba/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">BA</a>
+            <a href="/blog/words-containing-be/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">BE</a>
+            <a href="/blog/words-containing-bi/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">BI</a>
+            <a href="/blog/words-containing-bo/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">BO</a>
+            <a href="/blog/words-containing-bu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">BU</a>
+            <a href="/blog/words-containing-ca/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">CA</a>
+            <a href="/blog/words-containing-ce/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">CE</a>
+            <a href="/blog/words-containing-ch/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">CH</a>
+            <a href="/blog/words-containing-ci/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">CI</a>
+            <a href="/blog/words-containing-ck/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">CK</a>
+            <a href="/blog/words-containing-co/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">CO</a>
+            <a href="/blog/words-containing-cu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">CU</a>
+            <a href="/blog/words-containing-da/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">DA</a>
+            <a href="/blog/words-containing-de/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">DE</a>
+            <a href="/blog/words-containing-di/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">DI</a>
+            <a href="/blog/words-containing-do/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">DO</a>
+            <a href="/blog/words-containing-du/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">DU</a>
+            <a href="/blog/words-containing-ea/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">EA</a>
+            <a href="/blog/words-containing-ee/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">EE</a>
+            <a href="/blog/words-containing-ei/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">EI</a>
+            <a href="/blog/words-containing-eo/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">EO</a>
+            <a href="/blog/words-containing-eu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">EU</a>
+            <a href="/blog/words-containing-fa/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">FA</a>
+            <a href="/blog/words-containing-fe/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">FE</a>
+            <a href="/blog/words-containing-fi/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">FI</a>
+            <a href="/blog/words-containing-fo/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">FO</a>
+            <a href="/blog/words-containing-fu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">FU</a>
+            <a href="/blog/words-containing-ga/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">GA</a>
+            <a href="/blog/words-containing-ge/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">GE</a>
+            <a href="/blog/words-containing-gh/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">GH</a>
+            <a href="/blog/words-containing-gi/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">GI</a>
+            <a href="/blog/words-containing-go/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">GO</a>
+            <a href="/blog/words-containing-gu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">GU</a>
+          </div>
+          <p class="text-xs text-gray-500 mb-1 font-medium">H through N:</p>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-1 mb-3">
+            <a href="/blog/words-containing-ha/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">HA</a>
+            <a href="/blog/words-containing-he/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">HE</a>
+            <a href="/blog/words-containing-hi/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">HI</a>
+            <a href="/blog/words-containing-ho/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">HO</a>
+            <a href="/blog/words-containing-hu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">HU</a>
+            <a href="/blog/words-containing-ia/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">IA</a>
+            <a href="/blog/words-containing-ie/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">IE</a>
+            <a href="/blog/words-containing-ii/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">II</a>
+            <a href="/blog/words-containing-io/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">IO</a>
+            <a href="/blog/words-containing-iu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">IU</a>
+            <a href="/blog/words-containing-j/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">J</a>
+            <a href="/blog/words-containing-ja/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">JA</a>
+            <a href="/blog/words-containing-je/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">JE</a>
+            <a href="/blog/words-containing-jo/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">JO</a>
+            <a href="/blog/words-containing-ju/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">JU</a>
+            <a href="/blog/words-containing-k/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">K</a>
+            <a href="/blog/words-containing-ka/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">KA</a>
+            <a href="/blog/words-containing-ke/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">KE</a>
+            <a href="/blog/words-containing-ki/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">KI</a>
+            <a href="/blog/words-containing-kn/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">KN</a>
+            <a href="/blog/words-containing-ko/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">KO</a>
+            <a href="/blog/words-containing-ku/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">KU</a>
+            <a href="/blog/words-containing-la/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">LA</a>
+            <a href="/blog/words-containing-le/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">LE</a>
+            <a href="/blog/words-containing-li/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">LI</a>
+            <a href="/blog/words-containing-lo/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">LO</a>
+            <a href="/blog/words-containing-lu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">LU</a>
+            <a href="/blog/words-containing-ma/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">MA</a>
+            <a href="/blog/words-containing-me/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">ME</a>
+            <a href="/blog/words-containing-mi/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">MI</a>
+            <a href="/blog/words-containing-mo/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">MO</a>
+            <a href="/blog/words-containing-mu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">MU</a>
+            <a href="/blog/words-containing-na/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">NA</a>
+            <a href="/blog/words-containing-ne/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">NE</a>
+            <a href="/blog/words-containing-ni/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">NI</a>
+            <a href="/blog/words-containing-no/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">NO</a>
+            <a href="/blog/words-containing-nu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">NU</a>
+          </div>
+          <p class="text-xs text-gray-500 mb-1 font-medium">O through Z & Special:</p>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-1 mb-3">
+            <a href="/blog/words-containing-oa/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">OA</a>
+            <a href="/blog/words-containing-oe/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">OE</a>
+            <a href="/blog/words-containing-oi/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">OI</a>
+            <a href="/blog/words-containing-oo/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">OO</a>
+            <a href="/blog/words-containing-ph/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">PH</a>
+            <a href="/blog/words-containing-q/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Q</a>
+            <a href="/blog/words-containing-qu/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">QU</a>
+            <a href="/blog/words-containing-qu-no-u-after/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">QU (no U after)</a>
+            <a href="/blog/words-containing-sh/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">SH</a>
+            <a href="/blog/words-containing-th/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">TH</a>
+            <a href="/blog/words-containing-v/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">V</a>
+            <a href="/blog/words-containing-w/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">W</a>
+            <a href="/blog/words-containing-wh/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">WH</a>
+            <a href="/blog/words-containing-wr/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">WR</a>
+            <a href="/blog/words-containing-x/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">X</a>
+            <a href="/blog/words-containing-z/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Z</a>
+          </div>
+          <p class="text-xs text-gray-500 mb-1 font-medium">Double Letters:</p>
+          <div class="grid grid-cols-3 sm:grid-cols-4 gap-1">
+            <a href="/blog/words-containing-double-b/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double B</a>
+            <a href="/blog/words-containing-double-d/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double D</a>
+            <a href="/blog/words-containing-double-e/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double E</a>
+            <a href="/blog/words-containing-double-f/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double F</a>
+            <a href="/blog/words-containing-double-g/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double G</a>
+            <a href="/blog/words-containing-double-l/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double L</a>
+            <a href="/blog/words-containing-double-m/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double M</a>
+            <a href="/blog/words-containing-double-n/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double N</a>
+            <a href="/blog/words-containing-double-o/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double O</a>
+            <a href="/blog/words-containing-double-p/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double P</a>
+            <a href="/blog/words-containing-double-r/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double R</a>
+            <a href="/blog/words-containing-double-s/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double S</a>
+            <a href="/blog/words-containing-double-t/" class="block px-2 py-1.5 rounded text-xs text-gray-400 hover:bg-gray-800/50 hover:text-teal-400 transition-colors">Double T</a>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- CTA -->
+    <div class="mt-10 text-center">
+      <a href="/" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors">
+        🔤 Try the Word Finder →
+      </a>
+    </div>
+
+    <div class="mt-6 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to Blog</a>
+    </div>
+
+  </div>
+
+</BlogLayout>

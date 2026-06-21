@@ -88,6 +88,123 @@ test.describe('Settings Page — User ID', () => {
   });
 });
 
+test.describe('Settings Page — Copy User ID — Positive', () => {
+  test('copy UID button exists and is visible', async ({ page }) => {
+    await page.goto('/settings');
+    const btn = page.locator('#copy-uid-btn');
+    await expect(btn).toBeVisible();
+    await expect(btn).toHaveAttribute('aria-label', 'Copy User ID to clipboard');
+  });
+
+  test('copy icon is visible and check icon is hidden by default', async ({ page }) => {
+    await page.goto('/settings');
+    const copyIcon = page.locator('#copy-icon');
+    const checkIcon = page.locator('#check-icon');
+    await expect(copyIcon).toBeVisible();
+    await expect(checkIcon).toBeHidden();
+  });
+
+  test('clicking copy button switches to check icon temporarily', async ({ page }) => {
+    await page.goto('/settings');
+    // Grant clipboard permission
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    await page.locator('#copy-uid-btn').click();
+
+    // Check icon should appear
+    const checkIcon = page.locator('#check-icon');
+    await expect(checkIcon).toBeVisible();
+
+    // Copy icon should be hidden
+    const copyIcon = page.locator('#copy-icon');
+    await expect(copyIcon).toBeHidden();
+
+    // After ~2 seconds it reverts — wait for it
+    await expect(copyIcon).toBeVisible({ timeout: 3000 });
+    await expect(checkIcon).toBeHidden();
+  });
+
+  test('copy button writes UID text to clipboard', async ({ page }) => {
+    await page.goto('/settings');
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    // Set a known UID
+    await page.evaluate(() => localStorage.setItem('swf-uid', 'copy-test-uid-12345'));
+    await page.reload();
+
+    await page.locator('#copy-uid-btn').click();
+    await page.waitForTimeout(200);
+
+    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboardText).toBe('copy-test-uid-12345');
+  });
+});
+
+test.describe('Settings Page — Copy User ID — Negative', () => {
+  test('no duplicate copy buttons exist', async ({ page }) => {
+    await page.goto('/settings');
+    await expect(page.locator('#copy-uid-btn')).toHaveCount(1);
+  });
+
+  test('copy button does nothing when UID shows "Loading..."', async ({ page }) => {
+    await page.goto('/settings');
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    // Force the display to show "Loading..." before clicking
+    await page.evaluate(() => {
+      document.getElementById('uid-display')!.textContent = 'Loading...';
+    });
+
+    // Clear clipboard first
+    await page.evaluate(() => navigator.clipboard.writeText(''));
+
+    await page.locator('#copy-uid-btn').click();
+    await page.waitForTimeout(200);
+
+    // Check icon should NOT appear (copy was prevented)
+    const checkIcon = page.locator('#check-icon');
+    await expect(checkIcon).toBeHidden();
+
+    // Clipboard should remain empty
+    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboardText).toBe('');
+  });
+
+  test('copy button does nothing when UID shows "— cleared —"', async ({ page }) => {
+    await page.goto('/settings');
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    // Force the display to show cleared state
+    await page.evaluate(() => {
+      document.getElementById('uid-display')!.textContent = '— cleared —';
+    });
+
+    // Clear clipboard first
+    await page.evaluate(() => navigator.clipboard.writeText(''));
+
+    await page.locator('#copy-uid-btn').click();
+    await page.waitForTimeout(200);
+
+    const checkIcon = page.locator('#check-icon');
+    await expect(checkIcon).toBeHidden();
+
+    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboardText).toBe('');
+  });
+
+  test('no console errors when clicking copy button', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.goto('/settings');
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.locator('#copy-uid-btn').click();
+    await page.waitForTimeout(500);
+
+    expect(errors.filter(e => e.includes('clipboard') || e.includes('copy'))).toHaveLength(0);
+  });
+});
+
 test.describe('Settings Page — Relink Modal', () => {
   test('relink button opens modal', async ({ page }) => {
     await page.goto('/settings');
