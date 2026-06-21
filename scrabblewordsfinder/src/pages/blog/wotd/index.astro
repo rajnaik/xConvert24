@@ -13,10 +13,11 @@ const result = await db.prepare(
 
 const months = (result.results || []).map((r: any) => r.month);
 
-// Future months (locked preview)
+// Future months (locked preview) — only months that start AFTER the current month
+const currentMonth = today.substring(0, 7); // e.g. "2026-06"
 const futureResult = await db.prepare(
-  "SELECT DISTINCT substr(date, 1, 7) as month FROM word_of_the_day WHERE date > ? ORDER BY month ASC LIMIT 6"
-).bind(today).all();
+  "SELECT DISTINCT substr(date, 1, 7) as month FROM word_of_the_day WHERE substr(date, 1, 7) > ? ORDER BY month ASC LIMIT 6"
+).bind(currentMonth).all();
 const futureMonths = (futureResult.results || []).map((r: any) => r.month);
 
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
