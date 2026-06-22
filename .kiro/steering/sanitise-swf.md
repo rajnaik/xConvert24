@@ -32,7 +32,20 @@ All public-facing pages must comply with these principles:
 - **Cookie consent** — every page must load the CookieConsent component via Layout
 - **No misleading claims** — if we have ads in future, don't say "no ads forever" anywhere
 
-### 5. Consistency Check
+### 5. Visitor Monitoring / Surveillance Language
+- Public pages (including release notes, about, blog) must NEVER mention:
+  - "visitor monitoring", "real-time visitor", "session tracking", "heartbeat tracking"
+  - "monitor users", "track visitors", "user surveillance", "watching users"
+  - "live sessions" (in context of monitoring visitors — game sessions are fine)
+  - Any language that implies we watch, monitor, or track individual visitors
+- Admin-only features (live sessions, click tracking, heartbeat) are internal tools — they should NEVER appear in public-facing copy, changelogs, or release notes
+- Acceptable alternatives: "Admin improvements", "Internal tooling updates", "Backend enhancements"
+- The grep pattern for this check:
+```bash
+grep -rn "visitor monitor\|real-time visitor\|session track\|heartbeat.*track\|monitor.*user\|track.*visitor\|user surveil\|watching user\|live session" . --include="*.astro" | grep -v "node_modules\|admin/"
+```
+
+### 6. Consistency Check
 - Privacy page must accurately reflect current data practices
 - Disclaimer must not contradict privacy page
 - About page claims must match reality
@@ -44,6 +57,12 @@ All public-facing pages must comply with these principles:
 ```bash
 cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder/src/pages
 grep -rn "no ads\|ad-free\|never.*ads\|won't.*advertis\|Google Analytics\|GA4\|@gmail\|password\|api.key\|API_KEY\|rajeev\|employee\|no tracking\|no cookies\|zero.*track" . --include="*.astro" | grep -v node_modules
+```
+
+2. **Scan for surveillance/monitoring language on public pages:**
+```bash
+cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder/src/pages
+grep -rn "visitor monitor\|real-time visitor\|session track\|heartbeat.*track\|monitor.*user\|track.*visitor\|user surveil\|watching user\|live session" . --include="*.astro" | grep -v "node_modules\|admin/"
 ```
 
 2. **Fix any findings** — replace or remove the sensitive/incorrect content

@@ -33,6 +33,65 @@ test.describe('About Page', () => {
     await expect(page.locator('footer')).toBeAttached();
     await expect(page.locator('footer a').first()).toBeAttached();
   });
+
+  test('Our Promise section shows "Clean experience" messaging', async ({ page }) => {
+    await page.goto('/about/');
+    const body = await page.textContent('body');
+    expect(body).toContain('Clean experience.');
+    expect(body).toContain('No pop-ups, no sponsored results cluttering your solver');
+  });
+
+  test('does not contain banned "No ads" claim', async ({ page }) => {
+    await page.goto('/about/');
+    const body = await page.textContent('body');
+    expect(body).not.toMatch(/No ads\./i);
+    expect(body).not.toMatch(/No banners/i);
+  });
+
+  test('lists three audiences in Built For Everyone section', async ({ page }) => {
+    await page.goto('/about/');
+    const body = await page.textContent('body');
+    expect(body).toContain('three audiences');
+    expect(body).toContain('Casual players');
+    expect(body).toContain('Competitive enthusiasts');
+    expect(body).toContain('Serious students of the game');
+  });
+
+  test('Memory WordBench highlight box has purple border and stars', async ({ page }) => {
+    await page.goto('/about/');
+    const mwbBox = page.locator('div.border-purple-600\\/60');
+    await expect(mwbBox).toBeVisible();
+    // Stars surrounding the heading
+    const stars = mwbBox.locator('text=⭐');
+    expect(await stars.count()).toBe(2);
+  });
+
+  test('Memory WordBench link exists and points to correct anchor', async ({ page }) => {
+    await page.goto('/about/');
+    const mwbLink = page.locator('a[href="/#wordBench"]');
+    await expect(mwbLink).toBeAttached();
+    await expect(mwbLink).toHaveText('Memory WordBench');
+  });
+
+  test('Memory WordBench feature bullets list key features', async ({ page }) => {
+    await page.goto('/about/');
+    const mwbBox = page.locator('div.border-purple-600\\/60');
+    const body = await mwbBox.textContent();
+    expect(body).toContain('Flashcards');
+    expect(body).toContain('tap-to-flip recall');
+    expect(body).toContain('Autoplay');
+    expect(body).toContain('Fullscreen mode');
+    expect(body).toContain('One-click save');
+  });
+
+  test('WordBench description is NOT inlined in the audience list', async ({ page }) => {
+    await page.goto('/about/');
+    // The MWB description was moved into its own highlight box —
+    // it should not appear inside the audience <ul> bullets anymore
+    const audienceList = page.locator('ul.space-y-2').first();
+    const text = await audienceList.textContent();
+    expect(text).not.toContain('turns your saved words into flashcards');
+  });
 });
 
 test.describe('Guide Page', () => {

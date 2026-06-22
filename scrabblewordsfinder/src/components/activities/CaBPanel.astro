@@ -1,0 +1,773 @@
+      <!-- Panel: Cows and Bulls -->
+      <div class="rounded-xl border border-orange-800/50 bg-gray-900/50 p-4 sm:p-6" id="cab">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🐄</span> Cows and Bulls <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="cab" title="⭐ Earn star: Solve 1 game">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="cab">✅</span></h2>
+          <!-- History icon (shown only when user has 1+ rounds) -->
+          <div id="cab-history-btn-wrap" class="hidden">
+            <button id="cab-history-btn" class="p-1.5 rounded-lg text-orange-300 hover:bg-orange-800/30 hover:text-orange-200 transition-colors cursor-pointer" title="View history">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mb-4">Guess the secret word! 🐄 = right letter, wrong spot. 🐂 = right letter, right spot.</p>
+
+        <!-- History panel (toggled by history button) -->
+        <div id="cab-history-panel" class="hidden mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-orange-200">Your Rounds</h3>
+            <button id="cab-history-close" class="text-xs text-gray-400 hover:text-white cursor-pointer">✕ Close</button>
+          </div>
+          <div id="cab-history-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+          <p id="cab-history-empty" class="hidden text-xs text-gray-500 text-center py-3">No rounds found.</p>
+        </div>
+
+        <!-- Inspect panel (shows all guesses for one round) -->
+        <div id="cab-inspect-panel" class="hidden mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-orange-200">Round Details</h3>
+            <button id="cab-inspect-close" class="text-xs text-gray-400 hover:text-white cursor-pointer">← Back</button>
+          </div>
+          <div id="cab-inspect-info" class="text-xs text-gray-400 mb-3"></div>
+          <div id="cab-inspect-guesses" class="space-y-2 max-h-64 overflow-y-auto"></div>
+        </div>
+
+        <!-- Game setup (shown before game starts) -->
+        <div id="cab-setup">
+          <!-- Timer toggle -->
+          <div class="flex items-center justify-center gap-3 mb-4">
+            <label for="cab-timer-toggle" class="text-sm text-gray-300 cursor-pointer select-none">⏱️ Play with timer</label>
+            <button id="cab-timer-toggle" role="switch" aria-checked="false" class="relative w-10 h-5 rounded-full bg-gray-700 border border-gray-600 transition-colors cursor-pointer" title="Toggle countdown timer">
+              <span id="cab-timer-knob" class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-gray-400 transition-transform"></span>
+            </button>
+          </div>
+
+          <!-- Timer countdown options (hidden until toggle is on) -->
+          <div id="cab-timer-options" class="hidden mb-4">
+            <p class="text-xs text-gray-400 text-center mb-2">Choose countdown:</p>
+            <div class="flex gap-2 justify-center flex-wrap">
+              <button data-timer="30" class="cab-timer-btn px-3 py-1.5 rounded-lg border border-orange-600/40 bg-orange-950/30 text-xs font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">30s</button>
+              <button data-timer="45" class="cab-timer-btn px-3 py-1.5 rounded-lg border border-orange-600/40 bg-orange-950/30 text-xs font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">45s</button>
+              <button data-timer="60" class="cab-timer-btn px-3 py-1.5 rounded-lg border border-orange-600/40 bg-orange-950/30 text-xs font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">60s</button>
+              <button data-timer="75" class="cab-timer-btn px-3 py-1.5 rounded-lg border border-orange-600/40 bg-orange-950/30 text-xs font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">75s</button>
+              <button data-timer="90" class="cab-timer-btn px-3 py-1.5 rounded-lg border border-orange-600/40 bg-orange-950/30 text-xs font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">90s</button>
+            </div>
+          </div>
+
+          <p class="text-sm text-gray-300 mb-3">Choose word length:</p>
+          <div class="flex gap-2 justify-center mb-4">
+            <button data-len="4" class="cab-len-btn px-4 py-2 rounded-lg border border-orange-600/40 bg-orange-950/30 text-sm font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">4 Letters</button>
+            <button data-len="5" class="cab-len-btn px-4 py-2 rounded-lg border border-orange-600/40 bg-orange-950/30 text-sm font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">5 Letters</button>
+            <button data-len="6" class="cab-len-btn px-4 py-2 rounded-lg border border-orange-600/40 bg-orange-950/30 text-sm font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">6 Letters</button>
+            <button data-len="7" class="cab-len-btn px-4 py-2 rounded-lg border border-orange-600/40 bg-orange-950/30 text-sm font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">7 Letters</button>
+          </div>
+
+          <!-- Start button (shown when timer mode is active) -->
+          <div id="cab-start-wrap" class="hidden text-center">
+            <button id="cab-start-btn" class="px-6 py-2.5 rounded-lg bg-orange-600 text-white font-semibold text-sm hover:bg-orange-500 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" disabled>Start Game</button>
+            <p id="cab-start-hint" class="text-xs text-gray-500 mt-2">Select a timer and word length to start</p>
+          </div>
+        </div>
+
+        <!-- Game active (shown after game starts) -->
+        <div id="cab-game" class="hidden">
+          <div class="flex items-center justify-between mb-3">
+            <span id="cab-game-info" class="text-xs text-gray-400"></span>
+            <span id="cab-timer-display" class="hidden text-sm font-mono font-bold text-orange-300 tabular-nums">⏱️ 60s</span>
+            <span id="cab-attempts" class="text-xs text-orange-300 font-mono">Attempt: 0</span>
+          </div>
+
+          <!-- Guess history -->
+          <div id="cab-history" class="space-y-2 mb-4 max-w-sm mx-auto"></div>
+
+          <!-- Input boxes (one per letter) -->
+          <div id="cab-input-row" class="flex gap-1.5 justify-center mb-4"></div>
+
+          <!-- Submit button -->
+          <div class="flex justify-center">
+            <button id="cab-submit" class="px-5 py-2 rounded-lg bg-orange-600 text-white font-semibold text-sm hover:bg-orange-500 transition-colors cursor-pointer">Guess</button>
+          </div>
+
+          <!-- A-Z letter tracker -->
+          <div id="cab-alphabet" class="flex flex-wrap gap-1 justify-center mt-4 max-w-sm mx-auto"></div>
+
+          <!-- Result (shown when game is won) -->
+          <div id="cab-result" class="hidden text-center py-4 mt-3">
+            <p id="cab-result-emoji" class="text-4xl mb-2">🎉</p>
+            <p id="cab-result-text" class="text-lg font-bold text-white mb-1"></p>
+            <p id="cab-result-word" class="text-sm text-orange-400 font-mono tracking-wider mb-2"></p>
+            <button id="cab-play-again" class="mt-3 px-4 py-2 rounded-lg bg-orange-600/30 border border-orange-500/50 text-sm text-orange-300 hover:bg-orange-600/50 transition-colors cursor-pointer">🔄 Play Again</button>
+          </div>
+        </div>
+      </div>
+
+<script is:inline>
+(function() {
+  var S = window.__swfStore;
+  var uid = S ? S.getRaw('swf-uid') : (localStorage.getItem('swf-uid') || '');
+
+  var gameState = { gameId: null, wordId: null, length: 0, attempts: 0, guesses: [], solved: false };
+
+  // ─── Timer state ─────────────────────────────────────────────────────
+  var CAB_TIMER_KEY = 'cab-timer-enabled';
+  var CAB_TIMER_SECS_KEY = 'cab-timer-secs';
+  var CAB_LEN_KEY = 'cab-word-length';
+
+  var timerEnabled = localStorage.getItem(CAB_TIMER_KEY) === '1';
+  var selectedTimerSecs = parseInt(localStorage.getItem(CAB_TIMER_SECS_KEY) || '0') || 0;
+  var selectedLen = parseInt(localStorage.getItem(CAB_LEN_KEY) || '0') || 0;
+  var countdownInterval = null;
+  var timerSecsRemaining = 0;
+
+  // Timer UI elements
+  var timerToggle = document.getElementById('cab-timer-toggle');
+  var timerKnob = document.getElementById('cab-timer-knob');
+  var timerOptions = document.getElementById('cab-timer-options');
+  var timerBtns = document.querySelectorAll('.cab-timer-btn');
+  var startWrap = document.getElementById('cab-start-wrap');
+  var startBtn = document.getElementById('cab-start-btn');
+  var startHint = document.getElementById('cab-start-hint');
+  var timerDisplay = document.getElementById('cab-timer-display');
+
+  // ─── Restore timer state from localStorage ───────────────────────────
+  function restoreTimerState() {
+    if (timerEnabled) {
+      timerToggle.setAttribute('aria-checked', 'true');
+      timerToggle.classList.remove('bg-gray-700', 'border-gray-600');
+      timerToggle.classList.add('bg-orange-600', 'border-orange-500');
+      timerKnob.classList.add('translate-x-5');
+      timerKnob.classList.remove('bg-gray-400');
+      timerKnob.classList.add('bg-white');
+      timerOptions.classList.remove('hidden');
+      startWrap.classList.remove('hidden');
+    }
+    // Highlight saved timer button
+    if (selectedTimerSecs) {
+      timerBtns.forEach(function(b) {
+        if (parseInt(b.getAttribute('data-timer')) === selectedTimerSecs) {
+          b.classList.add('!bg-orange-600', '!border-orange-400', '!text-white');
+        }
+      });
+    }
+    // Highlight saved length button
+    if (selectedLen) {
+      lenBtns.forEach(function(b) {
+        if (parseInt(b.getAttribute('data-len')) === selectedLen) {
+          b.classList.add('!bg-orange-600', '!border-orange-400', '!text-white');
+        }
+      });
+    }
+    updateStartBtn();
+  }
+
+  // ─── Timer toggle ────────────────────────────────────────────────────
+  timerToggle.addEventListener('click', function() {
+    timerEnabled = !timerEnabled;
+    localStorage.setItem(CAB_TIMER_KEY, timerEnabled ? '1' : '0');
+
+    if (timerEnabled) {
+      timerToggle.setAttribute('aria-checked', 'true');
+      timerToggle.classList.remove('bg-gray-700', 'border-gray-600');
+      timerToggle.classList.add('bg-orange-600', 'border-orange-500');
+      timerKnob.classList.add('translate-x-5');
+      timerKnob.classList.remove('bg-gray-400');
+      timerKnob.classList.add('bg-white');
+      timerOptions.classList.remove('hidden');
+      startWrap.classList.remove('hidden');
+    } else {
+      timerToggle.setAttribute('aria-checked', 'false');
+      timerToggle.classList.add('bg-gray-700', 'border-gray-600');
+      timerToggle.classList.remove('bg-orange-600', 'border-orange-500');
+      timerKnob.classList.remove('translate-x-5');
+      timerKnob.classList.add('bg-gray-400');
+      timerKnob.classList.remove('bg-white');
+      timerOptions.classList.add('hidden');
+      startWrap.classList.add('hidden');
+      // Clear selected len highlight when switching back to instant mode
+      lenBtns.forEach(function(b) { b.classList.remove('!bg-orange-600', '!border-orange-400', '!text-white'); });
+      selectedLen = 0;
+      localStorage.removeItem(CAB_LEN_KEY);
+    }
+    updateStartBtn();
+  });
+
+  // ─── Timer button selection ──────────────────────────────────────────
+  timerBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      timerBtns.forEach(function(b) { b.classList.remove('!bg-orange-600', '!border-orange-400', '!text-white'); });
+      btn.classList.add('!bg-orange-600', '!border-orange-400', '!text-white');
+      selectedTimerSecs = parseInt(btn.getAttribute('data-timer'));
+      localStorage.setItem(CAB_TIMER_SECS_KEY, selectedTimerSecs.toString());
+      updateStartBtn();
+    });
+  });
+
+  // ─── Word length selection (when timer mode is on, just highlights) ──
+  function handleLenClickTimerMode(btn) {
+    lenBtns.forEach(function(b) { b.classList.remove('!bg-orange-600', '!border-orange-400', '!text-white'); });
+    btn.classList.add('!bg-orange-600', '!border-orange-400', '!text-white');
+    selectedLen = parseInt(btn.getAttribute('data-len'));
+    localStorage.setItem(CAB_LEN_KEY, selectedLen.toString());
+    updateStartBtn();
+  }
+
+  // ─── Start button enabled/disabled state ─────────────────────────────
+  function updateStartBtn() {
+    if (!timerEnabled) return;
+    if (selectedTimerSecs > 0 && selectedLen > 0) {
+      startBtn.disabled = false;
+      startHint.textContent = selectedLen + ' letters, ' + selectedTimerSecs + 's countdown';
+    } else {
+      startBtn.disabled = true;
+      startHint.textContent = 'Select a timer and word length to start';
+    }
+  }
+
+  // ─── Start button click (timer mode) ────────────────────────────────
+  startBtn.addEventListener('click', function() {
+    if (startBtn.disabled) return;
+    startGame(selectedLen);
+  });
+
+  // ─── Timer countdown logic ───────────────────────────────────────────
+  function startTimer(secs) {
+    timerSecsRemaining = secs;
+    timerDisplay.classList.remove('hidden');
+    updateTimerDisplay();
+    countdownInterval = setInterval(function() {
+      timerSecsRemaining--;
+      updateTimerDisplay();
+      if (timerSecsRemaining <= 0) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+        onTimerExpired();
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    if (timerSecsRemaining <= 10) {
+      timerDisplay.className = 'text-sm font-mono font-bold text-red-400 tabular-nums animate-pulse';
+    } else {
+      timerDisplay.className = 'text-sm font-mono font-bold text-orange-300 tabular-nums';
+    }
+    timerDisplay.textContent = '⏱️ ' + timerSecsRemaining + 's';
+  }
+
+  function stopTimer() {
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+    timerDisplay.classList.add('hidden');
+  }
+
+  function onTimerExpired() {
+    if (gameState.solved) return;
+    // Time's up — end the game as a loss
+    gameState.solved = true; // prevent further guesses
+    timerDisplay.textContent = '⏱️ 0s';
+    timerDisplay.className = 'text-sm font-mono font-bold text-red-400 tabular-nums';
+
+    // Fetch the answer from server by sending a "give up" signal
+    fetch('/api/cab/', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameId: gameState.gameId, wordId: gameState.wordId, guess: '', guessNumber: 0, giveUp: true })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        showResult(false, data.word || '');
+      })
+      .catch(function() {
+        showResult(false, '');
+      });
+  }
+
+  var setupEl = document.getElementById('cab-setup');
+  var gameEl = document.getElementById('cab-game');
+  var inputRow = document.getElementById('cab-input-row');
+  var historyEl = document.getElementById('cab-history');
+  var attemptsEl = document.getElementById('cab-attempts');
+  var gameInfoEl = document.getElementById('cab-game-info');
+  var submitBtn = document.getElementById('cab-submit');
+  var resultEl = document.getElementById('cab-result');
+  var playAgainBtn = document.getElementById('cab-play-again');
+  var alphabetEl = document.getElementById('cab-alphabet');
+
+  // History elements
+  var historyBtnWrap = document.getElementById('cab-history-btn-wrap');
+  var historyBtn = document.getElementById('cab-history-btn');
+  var historyPanel = document.getElementById('cab-history-panel');
+  var historyCloseBtn = document.getElementById('cab-history-close');
+  var historyList = document.getElementById('cab-history-list');
+  var historyEmpty = document.getElementById('cab-history-empty');
+
+  // Inspect elements
+  var inspectPanel = document.getElementById('cab-inspect-panel');
+  var inspectCloseBtn = document.getElementById('cab-inspect-close');
+  var inspectInfo = document.getElementById('cab-inspect-info');
+  var inspectGuesses = document.getElementById('cab-inspect-guesses');
+
+  // Track letter statuses across guesses: 'bull' > 'cow' > 'miss' > unknown
+  var letterStatus = {};
+
+  // ─── Check if user has 1+ rounds (show history button) ───────────────
+  function checkHistoryAvailable() {
+    if (!uid) return;
+    fetch('/api/cab/?user_id=' + encodeURIComponent(uid))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.count && data.count >= 1) {
+          historyBtnWrap.classList.remove('hidden');
+        }
+      })
+      .catch(function() {});
+  }
+  checkHistoryAvailable();
+
+  // ─── History button click — load and show rounds ─────────────────────
+  historyBtn.addEventListener('click', function() {
+    loadHistory();
+  });
+
+  function loadHistory() {
+    if (!uid) return;
+    historyList.innerHTML = '<p class="text-xs text-gray-500 text-center py-2">Loading...</p>';
+    historyEmpty.classList.add('hidden');
+    historyPanel.classList.remove('hidden');
+    setupEl.classList.add('hidden');
+    gameEl.classList.add('hidden');
+
+    fetch('/api/cab/?user_id=' + encodeURIComponent(uid))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        historyList.innerHTML = '';
+        var rounds = data.rounds || [];
+        if (rounds.length === 0) {
+          historyEmpty.classList.remove('hidden');
+          return;
+        }
+        rounds.forEach(function(round) {
+          var row = document.createElement('div');
+          row.className = 'flex items-center justify-between p-3 rounded-lg bg-gray-800/50 border border-gray-700/50';
+
+          var left = document.createElement('div');
+          left.className = 'flex flex-col gap-0.5';
+
+          var wordLine = document.createElement('span');
+          wordLine.className = 'text-sm font-mono text-white tracking-wider';
+          wordLine.textContent = round.word ? round.word.toUpperCase() : '???';
+
+          var meta = document.createElement('span');
+          meta.className = 'text-xs text-gray-500';
+          var dateStr = round.startDatetime ? new Date(round.startDatetime + 'Z').toLocaleDateString() : '';
+          var parts = [round.length + ' letters'];
+          parts.push(round.attempts + ' attempt' + (round.attempts === 1 ? '' : 's'));
+          if (round.timer_duration) parts.push('⏱️ ' + round.timer_duration + 's');
+          if (round.split_time != null && round.solved) parts.push('🏁 ' + round.split_time + 's left');
+          if (dateStr) parts.push(dateStr);
+          meta.textContent = parts.join(' • ');
+
+          left.appendChild(wordLine);
+          left.appendChild(meta);
+
+          var right = document.createElement('div');
+          right.className = 'flex items-center gap-3';
+
+          var badge = document.createElement('span');
+          badge.className = round.solved ? 'text-xs font-semibold text-green-400' : 'text-xs font-semibold text-red-400';
+          badge.textContent = round.solved ? '✅ Solved' : '❌ Failed';
+
+          var inspectBtn = document.createElement('button');
+          inspectBtn.className = 'p-1.5 rounded-lg border border-gray-600 hover:border-orange-400 hover:bg-orange-950/30 transition-colors cursor-pointer';
+          inspectBtn.title = 'Inspect round';
+          inspectBtn.setAttribute('aria-label', 'Inspect round ' + round.id);
+          inspectBtn.innerHTML = '<svg class="w-4 h-4 text-orange-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>';
+          inspectBtn.addEventListener('click', function() {
+            loadInspect(round.id, round);
+          });
+
+          right.appendChild(badge);
+          if (round.solved) {
+            right.appendChild(inspectBtn);
+          }
+          row.appendChild(left);
+          row.appendChild(right);
+          historyList.appendChild(row);
+        });
+      })
+      .catch(function() {
+        historyList.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Failed to load history.</p>';
+      });
+  }
+
+  // ─── Close history ───────────────────────────────────────────────────
+  historyCloseBtn.addEventListener('click', function() {
+    historyPanel.classList.add('hidden');
+    setupEl.classList.remove('hidden');
+  });
+
+  // ─── Inspect a round — show all guesses ──────────────────────────────
+  function loadInspect(roundId, roundInfo) {
+    inspectGuesses.innerHTML = '<p class="text-xs text-gray-500 text-center py-2">Loading...</p>';
+    historyPanel.classList.add('hidden');
+    inspectPanel.classList.remove('hidden');
+
+    // Show round info header
+    var word = roundInfo.word ? roundInfo.word.toUpperCase() : '???';
+    var status = roundInfo.solved ? '<span class="text-green-400">Solved</span>' : '<span class="text-red-400">Not solved</span>';
+    var timerInfo = roundInfo.timer_duration ? ' • ⏱️ ' + roundInfo.timer_duration + 's' : ' • No timer';
+    var splitInfo = (roundInfo.split_time != null && roundInfo.solved) ? ' • 🏁 ' + roundInfo.split_time + 's left' : '';
+    inspectInfo.innerHTML = '<span class="font-mono text-white">' + word + '</span> • ' + roundInfo.length + ' letters • ' + roundInfo.attempts + ' attempts • ' + status + timerInfo + splitInfo;
+
+    fetch('/api/cab/?round=' + roundId)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        inspectGuesses.innerHTML = '';
+        var guesses = data.guesses || [];
+        if (guesses.length === 0) {
+          inspectGuesses.innerHTML = '<p class="text-xs text-gray-500 text-center py-2">No guesses recorded for this round.</p>';
+          return;
+        }
+        guesses.forEach(function(g) {
+          var row = document.createElement('div');
+          row.className = 'flex items-center gap-3 p-2 rounded-lg bg-gray-800/50 border border-gray-700/50';
+
+          // Guess number
+          var numEl = document.createElement('span');
+          numEl.className = 'text-xs text-gray-500 font-mono w-5 shrink-0';
+          numEl.textContent = '#' + g.guess_number;
+
+          // Letter tiles with feedback coloring
+          var letters = document.createElement('div');
+          letters.className = 'flex gap-1';
+          var feedback = [];
+          try { feedback = typeof g.feedback === 'string' ? JSON.parse(g.feedback) : (g.feedback || []); } catch(e) { feedback = []; }
+          for (var i = 0; i < g.guess.length; i++) {
+            var span = document.createElement('span');
+            var fb = feedback[i] || 'miss';
+            var bgClass = 'bg-gray-700 text-white border border-gray-600';
+            if (fb === 'bull') bgClass = 'bg-green-600 text-white border border-green-400';
+            else if (fb === 'cow') bgClass = 'bg-amber-600 text-white border border-amber-400';
+            span.className = 'w-7 h-8 flex items-center justify-center rounded text-xs font-bold ' + bgClass;
+            span.textContent = g.guess[i];
+            letters.appendChild(span);
+          }
+
+          // Bulls/cows counts
+          var counts = document.createElement('div');
+          counts.className = 'ml-auto flex items-center gap-2 text-sm';
+          counts.innerHTML = '<span class="text-green-400 font-semibold">🐂 ' + g.bulls + '</span><span class="text-amber-400 font-semibold">🐄 ' + g.cows + '</span>';
+
+          row.appendChild(numEl);
+          row.appendChild(letters);
+          row.appendChild(counts);
+          inspectGuesses.appendChild(row);
+        });
+      })
+      .catch(function() {
+        inspectGuesses.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Failed to load round details.</p>';
+      });
+  }
+
+  // ─── Close inspect → back to history ─────────────────────────────────
+  inspectCloseBtn.addEventListener('click', function() {
+    inspectPanel.classList.add('hidden');
+    historyPanel.classList.remove('hidden');
+    loadHistory(); // refresh
+  });
+
+  // ─── Length button click — start game or select (timer mode) ────────
+  var lenBtns = document.querySelectorAll('.cab-len-btn');
+  lenBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var len = parseInt(btn.getAttribute('data-len'));
+      if (timerEnabled) {
+        // In timer mode, just select — don't start game yet
+        handleLenClickTimerMode(btn);
+      } else {
+        startGame(len);
+      }
+    });
+  });
+
+  // Restore saved state on load
+  restoreTimerState();
+
+  function startGame(len) {
+    // Disable buttons while loading
+    lenBtns.forEach(function(b) { b.disabled = true; b.style.opacity = '0.5'; });
+    if (startBtn) startBtn.disabled = true;
+
+    // Reset letter status tracker
+    letterStatus = {};
+
+    fetch('/api/cab/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ length: len, user_id: uid, timer_duration: timerEnabled ? selectedTimerSecs : null })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          alert(data.error);
+          lenBtns.forEach(function(b) { b.disabled = false; b.style.opacity = '1'; });
+          if (startBtn) startBtn.disabled = false;
+          return;
+        }
+
+        gameState.gameId = data.gameId;
+        gameState.wordId = data.wordId;
+        gameState.length = data.length;
+        gameState.attempts = 0;
+        gameState.guesses = [];
+        gameState.solved = false;
+
+        // Switch to game view
+        setupEl.classList.add('hidden');
+        historyPanel.classList.add('hidden');
+        inspectPanel.classList.add('hidden');
+        gameEl.classList.remove('hidden');
+        resultEl.classList.add('hidden');
+        historyEl.innerHTML = '';
+        attemptsEl.textContent = 'Attempt: 0';
+        gameInfoEl.textContent = data.length + '-letter word • Game #' + data.gameId;
+
+        // Build input boxes
+        buildInputBoxes(data.length);
+        // Build A-Z alphabet tracker
+        buildAlphabet();
+
+        // Start timer if timer mode is active
+        if (timerEnabled && selectedTimerSecs > 0) {
+          startTimer(selectedTimerSecs);
+        }
+      })
+      .catch(function(err) {
+        alert('Error starting game: ' + err.message);
+        lenBtns.forEach(function(b) { b.disabled = false; b.style.opacity = '1'; });
+        if (startBtn) startBtn.disabled = false;
+      });
+  }
+
+  function buildInputBoxes(count) {
+    inputRow.innerHTML = '';
+    for (var i = 0; i < count; i++) {
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 1;
+      input.className = 'cab-letter-input w-10 h-12 text-center text-lg font-bold uppercase bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-orange-500 transition-colors';
+      input.setAttribute('data-index', i.toString());
+      input.autocomplete = 'off';
+      input.setAttribute('aria-label', 'Letter ' + (i + 1));
+      inputRow.appendChild(input);
+    }
+
+    // Auto-focus and auto-advance logic
+    var inputs = inputRow.querySelectorAll('.cab-letter-input');
+    inputs.forEach(function(inp, idx) {
+      inp.addEventListener('input', function() {
+        var val = inp.value.replace(/[^a-zA-Z]/g, '');
+        inp.value = val.toUpperCase();
+        if (val && idx < inputs.length - 1) {
+          inputs[idx + 1].focus();
+        }
+      });
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !inp.value && idx > 0) {
+          inputs[idx - 1].focus();
+          inputs[idx - 1].value = '';
+        }
+        if (e.key === 'Enter') {
+          submitGuess();
+        }
+      });
+    });
+
+    // Focus first input
+    inputs[0].focus();
+  }
+
+  function getGuessWord() {
+    var inputs = inputRow.querySelectorAll('.cab-letter-input');
+    var word = '';
+    inputs.forEach(function(inp) { word += inp.value; });
+    return word.toUpperCase();
+  }
+
+  function submitGuess() {
+    if (gameState.solved) return;
+
+    var guess = getGuessWord();
+    if (guess.length !== gameState.length) {
+      // Shake the input row briefly
+      inputRow.style.animation = 'shake 0.3s';
+      setTimeout(function() { inputRow.style.animation = ''; }, 300);
+      return;
+    }
+
+    gameState.attempts++;
+    attemptsEl.textContent = 'Attempt: ' + gameState.attempts;
+
+    // Send guess to server for evaluation (include guessNumber for DB tracking)
+    // Include split_time (seconds remaining) so it's stored if this guess solves the game
+    var splitTime = (timerEnabled && timerSecsRemaining > 0) ? timerSecsRemaining : null;
+    fetch('/api/cab/', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameId: gameState.gameId, wordId: gameState.wordId, guess: guess, guessNumber: gameState.attempts, split_time: splitTime })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          alert(data.error);
+          gameState.attempts--;
+          attemptsEl.textContent = 'Attempt: ' + gameState.attempts;
+          return;
+        }
+
+        // Add to history
+        addGuessToHistory(guess, data.bulls, data.cows, data.feedback);
+        gameState.guesses.push({ guess: guess, bulls: data.bulls, cows: data.cows, feedback: data.feedback });
+
+        // Clear inputs
+        var inputs = inputRow.querySelectorAll('.cab-letter-input');
+        inputs.forEach(function(inp) { inp.value = ''; });
+        inputs[0].focus();
+
+        // Check if solved
+        if (data.bulls === gameState.length) {
+          gameState.solved = true;
+          showResult(true, data.word);
+          // Show history button after a solve (user now has at least 1 more round)
+          historyBtnWrap.classList.remove('hidden');
+        }
+      })
+      .catch(function(err) {
+        alert('Error: ' + err.message);
+        gameState.attempts--;
+        attemptsEl.textContent = 'Attempt: ' + gameState.attempts;
+      });
+  }
+
+  function addGuessToHistory(guess, bulls, cows, feedback) {
+    var row = document.createElement('div');
+    row.className = 'flex items-center gap-3 p-2 rounded-lg bg-gray-800/50 border border-gray-700/50';
+
+    var letters = document.createElement('div');
+    letters.className = 'flex gap-1';
+    for (var i = 0; i < guess.length; i++) {
+      var span = document.createElement('span');
+      var fb = feedback && feedback[i] ? feedback[i] : 'miss';
+      var bgClass = 'bg-gray-700 text-white border border-gray-600';
+      if (fb === 'bull') {
+        bgClass = 'bg-green-600 text-white border border-green-400';
+      } else if (fb === 'cow') {
+        bgClass = 'bg-amber-600 text-white border border-amber-400';
+      }
+      span.className = 'w-7 h-8 flex items-center justify-center rounded text-xs font-bold ' + bgClass;
+      span.textContent = guess[i];
+      letters.appendChild(span);
+
+      // Update letter status tracker (bull > cow > miss > unknown)
+      var letter = guess[i];
+      var current = letterStatus[letter];
+      if (fb === 'bull') {
+        letterStatus[letter] = 'bull';
+      } else if (fb === 'cow' && current !== 'bull') {
+        letterStatus[letter] = 'cow';
+      } else if (fb === 'miss' && !current) {
+        letterStatus[letter] = 'miss';
+      }
+    }
+
+    var feedbackDiv = document.createElement('div');
+    feedbackDiv.className = 'ml-auto flex items-center gap-2 text-sm';
+    feedbackDiv.innerHTML = '<span class="text-green-400 font-semibold" title="Bulls (correct position)">🐂 ' + bulls + '</span>' +
+                         '<span class="text-amber-400 font-semibold" title="Cows (wrong position)">🐄 ' + cows + '</span>';
+
+    row.appendChild(letters);
+    row.appendChild(feedbackDiv);
+    historyEl.appendChild(row);
+    historyEl.scrollTop = historyEl.scrollHeight;
+
+    // Update the alphabet display
+    updateAlphabet();
+  }
+
+  function buildAlphabet() {
+    alphabetEl.innerHTML = '';
+    var letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (var i = 0; i < letters.length; i++) {
+      var tile = document.createElement('span');
+      tile.setAttribute('data-letter', letters[i]);
+      tile.className = 'cab-alpha-tile w-7 h-8 flex items-center justify-center rounded text-xs font-bold bg-gray-700 text-white border border-gray-600 transition-colors';
+      tile.textContent = letters[i];
+      alphabetEl.appendChild(tile);
+    }
+  }
+
+  function updateAlphabet() {
+    var tiles = alphabetEl.querySelectorAll('.cab-alpha-tile');
+    tiles.forEach(function(tile) {
+      var letter = tile.getAttribute('data-letter');
+      var status = letterStatus[letter];
+      // Reset classes
+      tile.className = 'cab-alpha-tile w-7 h-8 flex items-center justify-center rounded text-xs font-bold transition-colors';
+      if (status === 'bull') {
+        tile.className += ' bg-green-600 text-white border border-green-400';
+      } else if (status === 'cow') {
+        tile.className += ' bg-amber-600 text-white border border-amber-400';
+      } else if (status === 'miss') {
+        tile.className += ' bg-red-900/60 text-red-300 border border-red-500 opacity-60 line-through';
+      } else {
+        tile.className += ' bg-gray-700 text-white border border-gray-600';
+      }
+    });
+  }
+
+  function showResult(won, word) {
+    // Stop the timer if running
+    stopTimer();
+
+    resultEl.classList.remove('hidden');
+    document.getElementById('cab-result-emoji').textContent = won ? '🎉' : '😔';
+    var msg = won ? 'You got it in ' + gameState.attempts + ' attempt' + (gameState.attempts === 1 ? '' : 's') + '!' : 'Time\'s up! Better luck next time!';
+    document.getElementById('cab-result-text').textContent = msg;
+    document.getElementById('cab-result-word').textContent = word || '';
+
+    // Hide input row
+    inputRow.classList.add('hidden');
+    submitBtn.classList.add('hidden');
+
+    // Award star on solve
+    if (won) {
+      window.__awardStar && window.__awardStar('cab');
+    }
+  }
+
+  // Submit button click
+  submitBtn.addEventListener('click', submitGuess);
+
+  // Play Again
+  playAgainBtn.addEventListener('click', function() {
+    stopTimer();
+    gameEl.classList.add('hidden');
+    setupEl.classList.remove('hidden');
+    resultEl.classList.add('hidden');
+    inputRow.classList.remove('hidden');
+    submitBtn.classList.remove('hidden');
+    lenBtns.forEach(function(b) { b.disabled = false; b.style.opacity = '1'; });
+    // Restore selection highlights
+    restoreTimerState();
+  });
+})();
+</script>
+
+<style is:global>
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+</style>

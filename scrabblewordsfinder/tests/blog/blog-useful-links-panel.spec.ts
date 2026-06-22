@@ -80,8 +80,8 @@ test.describe('Blog Index — Useful Links Panel — Positive', () => {
     await page.locator('#useful-links-toggle').click();
     const content = page.locator('#useful-links-content');
     const toolsSection = content.locator('.border-blue-500\\/20');
-    await expect(toolsSection.locator('a')).toHaveCount(4);
-    await expect(toolsSection).toContainText('Player Statistics');
+    await expect(toolsSection.locator('a')).toHaveCount(3);
+    await expect(toolsSection).toContainText('Achievements');
     await expect(toolsSection).toContainText('Settings');
   });
 

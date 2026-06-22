@@ -47,6 +47,7 @@ const staticPages = [
   { url: '/blog/high-scoring', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
   { url: '/blog/letter-guides', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
   { url: '/blog/dictionaries', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
+  { url: '/blog/tools-solvers', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
 ];
 
 // Generate blog entries from discovered files (excluding category landing pages already in staticPages)

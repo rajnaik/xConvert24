@@ -45,13 +45,13 @@ test.describe('Releases Page — Positive', () => {
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(16);
+    expect(count).toBe(14);
     // Verify key feature items are listed
     const content = await firstArticle.textContent();
-    expect(content).toContain('Live Sessions admin');
     expect(content).toContain('Useful Links page');
-    expect(content).toContain('Heartbeat API');
+    expect(content).toContain('Admin improvements');
     expect(content).toContain('Flash Card UX');
+    expect(content).toContain('Fullscreen speed slider');
     expect(content).toContain('80+ new Playwright tests');
   });
 
@@ -123,6 +123,16 @@ test.describe('Releases Page — Negative', () => {
     expect(text).not.toContain('undefined');
     expect(text).not.toContain('NaN');
     expect(text).not.toContain('null');
+  });
+
+  test('v1.10.0 does not expose internal admin details', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const content = await firstArticle.textContent();
+    // Removed internal-facing items should not appear
+    expect(content).not.toContain('Live Sessions admin');
+    expect(content).not.toContain('Heartbeat API');
+    expect(content).not.toContain('Admin Useful Links');
   });
 
   test('v1.10.0 has no empty list items', async ({ page }) => {
