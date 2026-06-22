@@ -32,27 +32,36 @@ test.describe('Releases Page — Positive', () => {
     expect(firstText).toMatch(/v\d+\.\d+\.\d+/);
   });
 
-  test('v1.10.0 release entry is present and is the latest', async ({ page }) => {
+  test('v1.11.0 release entry is present and is the latest', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const heading = firstArticle.locator('h2');
-    await expect(heading).toContainText('v1.10.0');
-    await expect(heading).toContainText('June 21, 2026');
+    await expect(heading).toContainText('v1.11.0');
+    await expect(heading).toContainText('June 22, 2026');
   });
 
-  test('v1.10.0 lists all key features', async ({ page }) => {
+  test('v1.11.0 lists all key features', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(14);
+    expect(count).toBe(10);
     // Verify key feature items are listed
     const content = await firstArticle.textContent();
-    expect(content).toContain('Useful Links page');
-    expect(content).toContain('Admin improvements');
-    expect(content).toContain('Flash Card UX');
-    expect(content).toContain('Fullscreen speed slider');
-    expect(content).toContain('80+ new Playwright tests');
+    expect(content).toContain('Cows and Bulls');
+    expect(content).toContain('CaB Timer Mode');
+    expect(content).toContain('CaB Game History');
+    expect(content).toContain('CaB Star Award');
+    expect(content).toContain('StarBar refinements');
+    expect(content).toContain('15+ new Playwright tests');
+  });
+
+  test('v1.10.0 release entry is present as second entry', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const secondArticle = page.locator('article').nth(1);
+    const heading = secondArticle.locator('h2');
+    await expect(heading).toContainText('v1.10.0');
+    await expect(heading).toContainText('June 21, 2026');
   });
 
   test('release items have feature bullet points', async ({ page }) => {
@@ -125,17 +134,18 @@ test.describe('Releases Page — Negative', () => {
     expect(text).not.toContain('null');
   });
 
-  test('v1.10.0 does not expose internal admin details', async ({ page }) => {
+  test('v1.11.0 does not expose internal admin details', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const content = await firstArticle.textContent();
-    // Removed internal-facing items should not appear
     expect(content).not.toContain('Live Sessions admin');
     expect(content).not.toContain('Heartbeat API');
     expect(content).not.toContain('Admin Useful Links');
+    expect(content).not.toContain('visitor monitor');
+    expect(content).not.toContain('real-time visitor');
   });
 
-  test('v1.10.0 has no empty list items', async ({ page }) => {
+  test('v1.11.0 has no empty list items', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
@@ -146,7 +156,7 @@ test.describe('Releases Page — Negative', () => {
     }
   });
 
-  test('v1.10.0 date is not in the future', async ({ page }) => {
+  test('v1.11.0 date is not in the future', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstHeading = page.locator('article h2').first();
     const text = await firstHeading.textContent();

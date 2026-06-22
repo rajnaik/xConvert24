@@ -1,0 +1,315 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="MyBag — Stars & Diamonds Earned | ScrabbleWordsFinder" description="View your star and diamond earning history. See which games earned you stars, when you earned them, and your total tally." keywords="scrabble stars, scrabble diamonds, word game progress, daily challenge history, scrabble achievements">
+
+  <main class="mx-auto max-w-4xl px-4 sm:px-6 pb-20 pt-4">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white"><span class="text-amber-400">🎒</span> MyBag</h1>
+      <a href="/activities/" class="ml-[100px] px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/30 text-xs font-medium text-blue-400 hover:bg-blue-600/40 transition-colors">🎯 Activities</a>
+    </div>
+
+    <!-- Loading state -->
+    <div id="mybag-loading" class="text-center py-12">
+      <p class="text-gray-400 text-sm animate-pulse">Loading your earnings...</p>
+    </div>
+
+    <!-- No user state -->
+    <div id="mybag-no-user" class="hidden text-center py-12">
+      <p class="text-gray-400 text-lg mb-2">No activity data yet</p>
+      <p class="text-gray-500 text-sm">Start playing games on the <a href="/activities/" class="text-blue-400 underline">Activities</a> page to earn stars and diamonds.</p>
+    </div>
+
+    <!-- Main content (hidden until loaded) -->
+    <div id="mybag-content" class="hidden space-y-8">
+
+      <!-- Totals Summary Cards -->
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 mr-[-100px]">
+        <div class="rounded-xl border border-amber-700/40 bg-amber-950/20 px-3 py-2 text-center min-w-0">
+          <p class="text-lg font-bold text-amber-400" id="mb-total-stars">0</p>
+          <p class="text-xs text-gray-400 mt-0.5">⭐ Stars Earned</p>
+        </div>
+        <div class="rounded-xl border border-purple-700/40 bg-purple-950/20 px-3 py-2 text-center min-w-0">
+          <p class="text-lg font-bold text-purple-400" id="mb-total-diamonds">0</p>
+          <p class="text-xs text-gray-400 mt-0.5">💎 Diamonds</p>
+        </div>
+        <div class="rounded-xl border border-orange-700/40 bg-orange-950/20 px-3 py-2 text-center min-w-0">
+          <p class="text-lg font-bold text-orange-400" id="mb-current-streak">0</p>
+          <p class="text-xs text-gray-400 mt-0.5">🔥 Current Streak</p>
+        </div>
+        <div class="rounded-xl border border-green-700/40 bg-green-950/20 px-3 py-2 text-center min-w-0">
+          <p class="text-lg font-bold text-green-400" id="mb-best-streak">0</p>
+          <p class="text-xs text-gray-400 mt-0.5">🏆 Best Streak</p>
+        </div>
+        <div class="rounded-xl border border-purple-700/40 bg-purple-950/10 px-3 py-2 text-center min-w-0">
+          <p class="text-lg font-bold text-purple-300" id="mb-diamond-streak">0</p>
+          <p class="text-xs text-gray-500 mt-0.5">💎 Diamond Streak</p>
+        </div>
+        <div class="rounded-xl border border-purple-700/40 bg-purple-950/10 px-3 py-2 text-center min-w-0">
+          <p class="text-lg font-bold text-purple-300" id="mb-best-diamond-streak">0</p>
+          <p class="text-xs text-gray-500 mt-0.5">💎 Best Diamond Streak</p>
+        </div>
+      </div>
+
+      <!-- Earning History Table -->
+      <div class="mr-[-100px]">
+        <h2 class="text-lg font-semibold text-white mb-3">Earning History</h2>
+        <div class="overflow-x-auto rounded-xl border border-gray-700/50 bg-gray-900/50">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-700/50 text-left">
+                <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Date</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Stars Earned</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase text-center">Count</th>
+                <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase text-center">💎</th>
+              </tr>
+            </thead>
+            <tbody id="mb-history-body">
+            </tbody>
+          </table>
+        </div>
+        <div id="mb-load-more-wrap" class="hidden mt-4 text-center">
+          <button id="mb-load-more-btn" class="px-4 py-2 rounded-lg border border-gray-600 text-xs text-gray-400 hover:text-white hover:border-gray-400 transition-colors">Load more</button>
+        </div>
+        <p id="mb-empty-history" class="hidden text-center text-gray-500 text-sm py-6">No earning history yet. Play some games!</p>
+      </div>
+
+      <!-- Per-Game Breakdown -->
+      <div>
+        <h2 class="text-lg font-semibold text-white mb-3">Stars by Game</h2>
+        <div id="mb-game-breakdown" class="flex flex-wrap gap-2">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Memory WordBench Feature Showcase -->
+    <section class="mt-12 rounded-2xl border-2 border-purple-600/50 bg-gradient-to-br from-purple-950/30 to-gray-900/80 p-6 sm:p-8">
+      <div class="flex items-center gap-3 mb-5">
+        <span class="text-3xl">🃏</span>
+        <h2 class="text-xl sm:text-2xl font-bold text-white">Memory WordBench</h2>
+      </div>
+      <p class="text-gray-300 text-sm sm:text-base leading-relaxed mb-6">
+        Your personal word memory trainer. Every word you save from the solver lands here — then you can drill them using flashcards, autoplay sessions, and fullscreen immersive mode until they stick.
+      </p>
+
+      <!-- Feature Tiles -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <!-- Flashcards -->
+        <div class="rounded-xl border border-purple-500/40 bg-purple-950/30 p-4">
+          <h3 class="text-sm font-semibold text-purple-300 mb-2">🃏 Flashcard Mode</h3>
+          <ul class="space-y-1.5 text-xs text-gray-400">
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Flip cards to reveal meanings</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Navigate with keyboard arrows or swipe</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Shuffle for randomised review</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Filter by category (WOTD, Rack, Manual, etc.)</li>
+          </ul>
+        </div>
+
+        <!-- Autoplay -->
+        <div class="rounded-xl border border-purple-500/40 bg-purple-950/30 p-4">
+          <h3 class="text-sm font-semibold text-purple-300 mb-2">⏱️ Autoplay Timer</h3>
+          <ul class="space-y-1.5 text-xs text-gray-400">
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Configurable interval (3s – 30s per card)</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Hands-free cycling through your WordBench</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Pause, resume, or skip at any time</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Practice sessions logged to your history</li>
+          </ul>
+        </div>
+
+        <!-- Fullscreen -->
+        <div class="rounded-xl border border-purple-500/40 bg-purple-950/30 p-4">
+          <h3 class="text-sm font-semibold text-purple-300 mb-2">🖥️ Fullscreen View</h3>
+          <ul class="space-y-1.5 text-xs text-gray-400">
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Distraction-free immersive mode</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Large text for easy reading</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> All controls accessible: flip, next, prev, autoplay</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Perfect for study sessions or screen-sharing</li>
+          </ul>
+        </div>
+
+        <!-- WordBench -->
+        <div class="rounded-xl border border-purple-500/40 bg-purple-950/30 p-4">
+          <h3 class="text-sm font-semibold text-purple-300 mb-2">📚 WordBench</h3>
+          <ul class="space-y-1.5 text-xs text-gray-400">
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Auto-saves words from the solver with definitions</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Categorised: WOTD, Daily Rack, Anagram, Manual</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Import high-scoring words in one click</li>
+            <li class="flex items-start gap-2"><span class="text-purple-400 mt-0.5">▸</span> Export and backup your entire collection</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Practice Tip -->
+      <p class="text-gray-300 text-sm sm:text-base leading-relaxed mb-6 text-center">
+        Practice 5 to 10 minutes every day and follow your progress in <a href="/wordbench-practice/" class="text-purple-400 hover:text-purple-300 underline font-medium">Memory WordBench Practice History</a>.
+      </p>
+
+      <!-- CTA -->
+      <div class="text-center">
+        <a href="/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-purple-500/60 bg-purple-600/20 text-sm font-semibold text-purple-300 hover:bg-purple-600/40 hover:text-white transition-colors">
+          🃏 Open Memory WordBench →
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <script is:inline>
+  (function() {
+    var S = window.__swfStore;
+    var uid = S.getRaw('swf-uid') || '';
+    var loadingEl = document.getElementById('mybag-loading');
+    var noUserEl = document.getElementById('mybag-no-user');
+    var contentEl = document.getElementById('mybag-content');
+    var currentLimit = 30;
+
+    if (!uid) {
+      loadingEl.classList.add('hidden');
+      noUserEl.classList.remove('hidden');
+      return;
+    }
+
+    fetchData(currentLimit);
+
+    function fetchData(limit) {
+      fetch('/api/mybag/?user_id=' + encodeURIComponent(uid) + '&limit=' + limit)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          loadingEl.classList.add('hidden');
+          contentEl.classList.remove('hidden');
+          renderTotals(data.totals);
+          renderHistory(data.history, data.activities);
+          renderGameBreakdown(data.history, data.activities);
+          // Show load more if we got the full limit back
+          if (data.history.length >= limit && limit < 90) {
+            document.getElementById('mb-load-more-wrap').classList.remove('hidden');
+          } else {
+            document.getElementById('mb-load-more-wrap').classList.add('hidden');
+          }
+        })
+        .catch(function() {
+          loadingEl.classList.add('hidden');
+          noUserEl.classList.remove('hidden');
+        });
+    }
+
+    // Load more button
+    var loadMoreBtn = document.getElementById('mb-load-more-btn');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function() {
+        currentLimit = 90;
+        fetchData(currentLimit);
+      });
+    }
+
+    function renderTotals(totals) {
+      document.getElementById('mb-total-stars').textContent = totals.total_stars;
+      document.getElementById('mb-total-diamonds').textContent = totals.total_diamonds;
+      document.getElementById('mb-current-streak').textContent = totals.current_streak;
+      document.getElementById('mb-best-streak').textContent = totals.best_streak;
+      document.getElementById('mb-diamond-streak').textContent = totals.diamond_streak;
+      document.getElementById('mb-best-diamond-streak').textContent = totals.best_diamond_streak;
+    }
+
+    function renderHistory(history, activities) {
+      var tbody = document.getElementById('mb-history-body');
+      var emptyEl = document.getElementById('mb-empty-history');
+      if (!history || history.length === 0) {
+        tbody.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      var html = '';
+      for (var i = 0; i < history.length; i++) {
+        var row = history[i];
+        var dateStr = formatDate(row.date);
+        var starBadges = '';
+        for (var j = 0; j < row.stars.length; j++) {
+          var slug = row.stars[j];
+          var act = activities[slug];
+          var icon = act ? act.icon : '⭐';
+          var name = act ? act.name : slug;
+          starBadges += '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-gray-800 border border-gray-700 text-xs" title="' + name + '">' + icon + ' <span class="hidden sm:inline text-gray-300">' + name + '</span></span> ';
+        }
+        var diamondBadge = row.diamond ? '<span class="text-purple-400">💎</span>' : '<span class="text-gray-600">—</span>';
+        html += '<tr class="border-b border-gray-800/50 hover:bg-gray-800/30">';
+        html += '<td class="px-4 py-3 text-gray-300 whitespace-nowrap">' + dateStr + '</td>';
+        html += '<td class="px-4 py-3"><div class="flex flex-wrap gap-1">' + starBadges + '</div></td>';
+        html += '<td class="px-4 py-3 text-center text-amber-400 font-medium">' + row.stars_count + '</td>';
+        html += '<td class="px-4 py-3 text-center">' + diamondBadge + '</td>';
+        html += '</tr>';
+      }
+      tbody.innerHTML = html;
+    }
+
+    function renderGameBreakdown(history, activities) {
+      var container = document.getElementById('mb-game-breakdown');
+      // Count stars per game across all history
+      var counts = {};
+      for (var i = 0; i < history.length; i++) {
+        for (var j = 0; j < history[i].stars.length; j++) {
+          var slug = history[i].stars[j];
+          counts[slug] = (counts[slug] || 0) + 1;
+        }
+      }
+      // Sort by count descending
+      var entries = Object.keys(counts).map(function(slug) { return { slug: slug, count: counts[slug] }; });
+      entries.sort(function(a, b) { return b.count - a.count; });
+
+      // Abbreviation map for compact display
+      var abbrev = { wotd:'WOTD', quiz:'Quiz', wordbench:'MWB', rack:'Rack', anagram:'Ana', sixty:'60s', cab:'CaB' };
+
+      var html = '';
+      for (var k = 0; k < entries.length; k++) {
+        var slug = entries[k].slug;
+        var count = entries[k].count;
+        var act = activities[slug];
+        var icon = act ? act.icon : '⭐';
+        var name = act ? act.name : slug;
+        var short = abbrev[slug] || (name.length > 5 ? name.substring(0,4) : name);
+        html += '<div class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-700/60 bg-gray-800/50 text-xs" title="' + name + ' — ' + count + ' stars">';
+        html += '<span>' + icon + '</span>';
+        html += '<span class="text-gray-300 font-medium">' + short + '</span>';
+        html += '<span class="text-amber-400 font-bold">' + count + '</span>';
+        html += '</div>';
+      }
+
+      if (html === '') {
+        html = '<p class="text-center text-gray-500 text-sm py-4">No stars earned yet</p>';
+      }
+      container.innerHTML = html;
+    }
+
+    function formatDate(dateStr) {
+      try {
+        var parts = dateStr.split('-');
+        var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var today = new Date().toISOString().split('T')[0];
+        var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        if (dateStr === today) return 'Today';
+        if (dateStr === yesterday) return 'Yesterday';
+        return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      } catch(e) { return dateStr; }
+    }
+  })();
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is MyBag on ScrabbleWordsFinder?", "acceptedAnswer": { "@type": "Answer", "text": "MyBag is your personal earnings dashboard showing all stars and diamonds earned from daily word games. It tracks which games earned you rewards, when you earned them, and your total progress." } },
+      { "@type": "Question", "name": "How do I earn stars?", "acceptedAnswer": { "@type": "Answer", "text": "Complete any daily activity — Word of the Day, Quiz, Memory WordBench, Daily Rack, Daily Anagram, 60-Second Word Finder, or Cows and Bulls — to earn a star for that game each day." } },
+      { "@type": "Question", "name": "How do I earn diamonds?", "acceptedAnswer": { "@type": "Answer", "text": "Earn all 7 stars in a single day by completing every activity, then click the Redeem button on the StarBar to claim your diamond." } }
+    ]
+  }
+  </script>
+
+</Layout>
