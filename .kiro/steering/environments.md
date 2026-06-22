@@ -55,9 +55,9 @@ Config files: `scrabblewordsfinder/wrangler.jsonc` (live), `scrabblewordsfinder/
 
 This is a fully independent service — its databases are NOT part of the main xConvert24 migration pipeline.
 
-## Fixed Dev Ports
+## Fixed Dev Ports (STRICT — Non-Negotiable)
 
-Each workspace has a **fixed port** configured in `astro.config.mjs` to prevent conflicts:
+Each workspace has a **fixed port** configured in `astro.config.mjs` with `strictPort: true`. The port NEVER changes.
 
 | Workspace | Port | URL |
 |-----------|------|-----|
@@ -66,4 +66,10 @@ Each workspace has a **fixed port** configured in `astro.config.mjs` to prevent 
 | **Coins** | 4323 | http://localhost:4323 |
 | **Playground** | 4324 | http://localhost:4324 |
 
-If a port is already in use, Astro will fail to start rather than silently picking a new port. This prevents orphan dev servers accumulating on random ports.
+### Rules
+
+1. **NEVER accept a fallback port.** If Astro reports "port in use, trying another one" — that's a bug. Kill the process occupying the port and restart.
+2. **`strictPort: true`** is set in every workspace's `astro.config.mjs`. Astro will ERROR (not fallback) if the port is occupied.
+3. **Before starting a dev server**, kill any stale process on the assigned port: `kill $(lsof -ti:<PORT>) 2>/dev/null`
+4. **Tests always use the fixed port.** SWF tests use `SWF_TEST_URL=http://localhost:4321`. Never use any other port.
+5. **If you see the dev server on a different port, something is wrong.** Stop, kill the conflicting process, restart on the correct port.

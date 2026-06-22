@@ -117,6 +117,17 @@ test.describe('Star Bar Diamond Message — Positive', () => {
     expect(classAttr).toContain('border-purple-500/50');
     expect(classAttr).toContain('bg-purple-900/20');
   });
+
+  test('sb-diamond-msg has responsive layout classes for mobile wrapping', async ({ page }) => {
+    await page.goto(ACTIVITIES_URL);
+    const classAttr = await page.locator('#sb-diamond-msg').getAttribute('class');
+    expect(classAttr).toContain('basis-full');
+    expect(classAttr).toContain('sm:basis-auto');
+    expect(classAttr).toContain('mt-2');
+    expect(classAttr).toContain('sm:mt-0');
+    expect(classAttr).toContain('text-center');
+    expect(classAttr).toContain('sm:text-left');
+  });
 });
 
 // ── Star Bar Diamond Message — Negative ──────────────────────────────────
@@ -197,6 +208,46 @@ test.describe('Star Bar Diamond Message — Negative', () => {
     await page.goto(ACTIVITIES_URL);
     const count = await page.locator('#sb-diamond-msg').count();
     expect(count).toBe(1);
+  });
+
+  test('sb-diamond-msg does not overflow on mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+
+    const { cacheKey, cacheData, starsLsKey } = buildDiamondCache();
+
+    await page.addInitScript(({ key, data, starsKey }) => {
+      localStorage.setItem('swf-uid', 'test-user-123');
+      localStorage.setItem(key, data);
+      localStorage.setItem(starsKey, JSON.stringify(['wotd', 'quiz', 'wordbench', 'rack', 'anagram', 'sixty']));
+    }, { key: cacheKey, data: cacheData, starsKey: starsLsKey });
+
+    await page.route('**/api/daily-progress/**', route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          today: { stars_earned: ['wotd', 'quiz', 'wordbench', 'rack', 'anagram', 'sixty'], diamond: 1 },
+          games: [
+            { slug: 'wotd' }, { slug: 'quiz' }, { slug: 'wordbench' },
+            { slug: 'rack' }, { slug: 'anagram' }, { slug: 'sixty' },
+          ],
+          diamond_threshold: 6,
+          lifetime: { current_streak: 1, total_stars: 6, total_diamonds: 1 },
+        }),
+      });
+    });
+
+    await page.goto(ACTIVITIES_URL);
+    await page.waitForFunction(() => {
+      const el = document.getElementById('sb-diamond-msg');
+      return el && !el.classList.contains('hidden');
+    }, { timeout: 8000 });
+
+    const msgEl = page.locator('#sb-diamond-msg');
+    const box = await msgEl.boundingBox();
+    expect(box).not.toBeNull();
+    // Element should not extend beyond the viewport width
+    expect(box!.x + box!.width).toBeLessThanOrEqual(375);
   });
 
   test('no JavaScript errors when diamond message renders', async ({ page }) => {

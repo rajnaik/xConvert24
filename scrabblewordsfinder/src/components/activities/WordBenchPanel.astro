@@ -703,69 +703,146 @@
     }
   });
 
-  // ── Fullscreen toggle ──
+  // ── Fullscreen toggle (with CSS fallback for iOS/mobile) ──
+  var isCssFullscreen = false;
+
+  function applyFsStyles(panel) {
+    panel.style.padding = '2rem';
+    panel.style.display = 'flex';
+    panel.style.flexDirection = 'column';
+    panel.style.justifyContent = 'center';
+    panel.style.alignItems = 'center';
+    panel.style.background = '#0f172a';
+    var card = document.getElementById('fc-card');
+    if (card) {
+      card.style.width = '700px';
+      card.style.maxWidth = '90vw';
+      card.style.height = '300px';
+      card.style.borderRadius = '2rem';
+    }
+    var word = document.getElementById('fc-word');
+    if (word) word.style.fontSize = '5.625rem';
+    var meaning = document.getElementById('fc-meaning');
+    if (meaning) meaning.style.fontSize = '1.5rem';
+    var score = document.getElementById('fc-score');
+    if (score) score.style.fontSize = '1.25rem';
+    var hint = document.getElementById('fc-hint');
+    if (hint) hint.style.fontSize = '0.875rem';
+    var counter = document.getElementById('fc-counter');
+    if (counter) counter.style.fontSize = '1rem';
+  }
+
+  function resetFsStyles(panel) {
+    panel.style.padding = '';
+    panel.style.display = '';
+    panel.style.flexDirection = '';
+    panel.style.justifyContent = '';
+    panel.style.alignItems = '';
+    panel.style.background = '';
+    panel.style.position = '';
+    panel.style.inset = '';
+    panel.style.zIndex = '';
+    panel.style.overflow = '';
+    panel.style.borderRadius = '';
+    var card = document.getElementById('fc-card');
+    if (card) { card.style.width = ''; card.style.maxWidth = ''; card.style.height = ''; card.style.borderRadius = ''; }
+    var word = document.getElementById('fc-word');
+    if (word) word.style.fontSize = '';
+    var meaning = document.getElementById('fc-meaning');
+    if (meaning) meaning.style.fontSize = '';
+    var score = document.getElementById('fc-score');
+    if (score) score.style.fontSize = '';
+    var hint = document.getElementById('fc-hint');
+    if (hint) hint.style.fontSize = '';
+    var counter = document.getElementById('fc-counter');
+    if (counter) counter.style.fontSize = '';
+  }
+
+  function enterCssFullscreen(panel) {
+    isCssFullscreen = true;
+    panel.dataset.cssFullscreen = '1';
+    panel.style.position = 'fixed';
+    panel.style.inset = '0';
+    panel.style.zIndex = '9999';
+    panel.style.overflow = 'auto';
+    panel.style.borderRadius = '0';
+    applyFsStyles(panel);
+    document.body.style.overflow = 'hidden';
+    updateFsBtn(true);
+  }
+
+  function exitCssFullscreen(panel) {
+    isCssFullscreen = false;
+    delete panel.dataset.cssFullscreen;
+    resetFsStyles(panel);
+    document.body.style.overflow = '';
+    updateFsBtn(false);
+  }
+
+  function updateFsBtn(isFullscreen) {
+    var btn = document.getElementById('fc-fullscreen-btn');
+    if (isFullscreen) {
+      btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
+      btn.title = 'Exit full screen';
+    } else {
+      btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>';
+      btn.title = 'Full screen';
+    }
+  }
+
+  function isFullscreenSupported() {
+    return !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+  }
+
   document.getElementById('fc-fullscreen-btn').addEventListener('click', function() {
     var panel = this.closest('.rounded-xl');
-    if (!document.fullscreenElement) {
+
+    // If currently in CSS fullscreen, exit it
+    if (isCssFullscreen) {
+      exitCssFullscreen(panel);
+      return;
+    }
+
+    // If currently in native fullscreen, exit it
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      return;
+    }
+
+    // Try native fullscreen first (works on desktop + Android)
+    if (panel.requestFullscreen) {
       panel.requestFullscreen().then(function() {
-        panel.style.padding = '2rem';
-        panel.style.display = 'flex';
-        panel.style.flexDirection = 'column';
-        panel.style.justifyContent = 'center';
-        panel.style.alignItems = 'center';
-        panel.style.background = '#0f172a';
-        // Fixed card size 700x300, 3x text
-        var card = document.getElementById('fc-card');
-        if (card) {
-          card.style.width = '700px';
-          card.style.maxWidth = '90vw';
-          card.style.height = '300px';
-          card.style.borderRadius = '2rem';
-        }
-        var word = document.getElementById('fc-word');
-        if (word) word.style.fontSize = '5.625rem';
-        var meaning = document.getElementById('fc-meaning');
-        if (meaning) meaning.style.fontSize = '1.5rem';
-        var score = document.getElementById('fc-score');
-        if (score) score.style.fontSize = '1.25rem';
-        var hint = document.getElementById('fc-hint');
-        if (hint) hint.style.fontSize = '0.875rem';
-        var counter = document.getElementById('fc-counter');
-        if (counter) counter.style.fontSize = '1rem';
-      }).catch(function() {});
+        applyFsStyles(panel);
+      }).catch(function() {
+        // Native failed (iOS) — use CSS fallback
+        enterCssFullscreen(panel);
+      });
+    } else if (panel.webkitRequestFullscreen) {
+      panel.webkitRequestFullscreen();
+      applyFsStyles(panel);
     } else {
-      document.exitFullscreen();
+      // No native support — CSS fallback (iOS Safari)
+      enterCssFullscreen(panel);
     }
   });
 
   document.addEventListener('fullscreenchange', function() {
     var panel = document.getElementById('fc-fullscreen-btn').closest('.rounded-xl');
-    var btn = document.getElementById('fc-fullscreen-btn');
     if (!document.fullscreenElement) {
-      panel.style.padding = '';
-      panel.style.display = '';
-      panel.style.flexDirection = '';
-      panel.style.justifyContent = '';
-      panel.style.alignItems = '';
-      panel.style.background = '';
-      // Reset card size
-      var card = document.getElementById('fc-card');
-      if (card) { card.style.width = ''; card.style.maxWidth = ''; card.style.height = ''; card.style.borderRadius = ''; }
-      var word = document.getElementById('fc-word');
-      if (word) word.style.fontSize = '';
-      var meaning = document.getElementById('fc-meaning');
-      if (meaning) meaning.style.fontSize = '';
-      var score = document.getElementById('fc-score');
-      if (score) score.style.fontSize = '';
-      var hint = document.getElementById('fc-hint');
-      if (hint) hint.style.fontSize = '';
-      var counter = document.getElementById('fc-counter');
-      if (counter) counter.style.fontSize = '';
-      btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>';
-      btn.title = 'Full screen';
+      resetFsStyles(panel);
+      updateFsBtn(false);
     } else {
-      btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
-      btn.title = 'Exit full screen';
+      updateFsBtn(true);
+    }
+  });
+
+  document.addEventListener('webkitfullscreenchange', function() {
+    var panel = document.getElementById('fc-fullscreen-btn').closest('.rounded-xl');
+    if (!document.webkitFullscreenElement) {
+      resetFsStyles(panel);
+      updateFsBtn(false);
+    } else {
+      updateFsBtn(true);
     }
   });
 

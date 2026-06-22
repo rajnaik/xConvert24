@@ -1,0 +1,378 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Users — Admin" description="View all user activity grouped by user ID" keywords="admin, users, activity, engagement">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/users/" class="text-emerald-400 font-medium">Users</a>
+      <a href="/admin/stars-and-diamonds/" class="hover:text-blue-400 transition-colors">Stars</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-6 py-10">
+    <h1 class="text-3xl font-bold text-white mb-2">👥 Users</h1>
+    <p class="text-gray-400 mb-8">All user activity across the site — clicks, games, solver usage, rewards.</p>
+
+    <!-- Detail Panel (shown when a user row is clicked) -->
+    <div id="user-detail-panel" class="hidden mb-8 rounded-xl border border-emerald-800/50 bg-gray-900/80 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+          <span class="text-emerald-400">👤</span>
+          <span id="detail-user-id" class="font-mono text-sm"></span>
+        </h2>
+        <button id="close-detail" class="text-gray-400 hover:text-white text-xl leading-none px-2">&times;</button>
+      </div>
+
+      <!-- Rewards Summary -->
+      <div id="detail-rewards" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+      </div>
+
+      <!-- Activity Tabs -->
+      <div class="flex flex-wrap gap-2 mb-4 border-b border-gray-700 pb-3" id="detail-tabs">
+        <button class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-900/50 text-emerald-300 border border-emerald-700" data-tab="clicks">🖱️ Clicks</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600" data-tab="quizzes">🧠 Quizzes</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600" data-tab="anagrams">🔀 Anagrams</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600" data-tab="racks">🎯 Racks</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600" data-tab="cab">🧩 CaB</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600" data-tab="solver">🔍 Solver</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600" data-tab="practice">📝 Practice</button>
+        <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600" data-tab="bonus">💎 Bonus</button>
+      </div>
+
+      <!-- Tab Content -->
+      <div id="detail-tab-content" class="overflow-x-auto">
+        <p class="text-gray-500 text-sm py-4">Select a tab to view activity.</p>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div id="summary-stats" class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-emerald-400" id="stat-users">—</p>
+        <p class="text-xs text-gray-400">Total Users</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-blue-400" id="stat-clicks">—</p>
+        <p class="text-xs text-gray-400">Total Clicks</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-purple-400" id="stat-games">—</p>
+        <p class="text-xs text-gray-400">Games Played</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-solver">—</p>
+        <p class="text-xs text-gray-400">Solver Uses</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-pink-400" id="stat-returning">—</p>
+        <p class="text-xs text-gray-400">Return Customers</p>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="mb-4">
+      <input type="text" id="user-search" placeholder="Search by User ID..." class="w-full sm:w-80 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-emerald-600" />
+    </div>
+
+    <!-- Table -->
+    <div class="rounded-xl border border-gray-800 bg-gray-900/50 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-800 text-gray-300">
+            <tr>
+              <th class="px-3 py-3 text-left font-semibold">#</th>
+              <th class="px-3 py-3 text-left font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="user_id">User ID <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="clicks">🖱️ Clicks <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="stars">⭐ Stars <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="diamonds">💎 Diamonds <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="current_streak">🔥 Streak <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="games_played">🎮 Games <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="solver_uses">🔍 Solver <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="practice_words">📝 Practice <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="active_days">🔁 Days <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-left font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="last_active">Last Active <span class="sort-arrow text-xs opacity-50"></span></th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody" class="divide-y divide-gray-800">
+            <tr><td colspan="11" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="text-xs text-gray-500 mt-4" id="load-time"></p>
+  </div>
+
+  <script is:inline>
+    let allUsers = [];
+    let currentSort = { key: '', dir: 'desc' };
+    let selectedUserId = null;
+    let detailCache = {};
+
+    (async function loadData() {
+      const start = performance.now();
+      try {
+        const res = await fetch('/api/users/');
+        if (!res.ok) throw new Error('API error: ' + res.status);
+        const data = await res.json();
+
+        // Summary
+        document.getElementById('stat-users').textContent = data.summary.totalUsers.toLocaleString();
+        document.getElementById('stat-clicks').textContent = data.summary.totalClicks.toLocaleString();
+        document.getElementById('stat-games').textContent = data.summary.totalGamesPlayed.toLocaleString();
+        document.getElementById('stat-solver').textContent = data.summary.totalSolverUses.toLocaleString();
+        document.getElementById('stat-returning').textContent = data.summary.totalReturning.toLocaleString();
+
+        allUsers = data.users;
+        renderTable(allUsers);
+
+        const elapsed = Math.round(performance.now() - start);
+        document.getElementById('load-time').textContent = 'Loaded ' + data.users.length + ' users in ' + elapsed + 'ms';
+      } catch (err) {
+        document.getElementById('users-tbody').innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-red-400">Failed to load: ' + err.message + '</td></tr>';
+      }
+    })();
+
+    function renderTable(users) {
+      const tbody = document.getElementById('users-tbody');
+      if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-gray-500">No users found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map(function(u, i) {
+        const shortId = u.user_id.length > 14 ? u.user_id.slice(0, 12) + '…' : u.user_id;
+        const rowBg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/50';
+        const selected = u.user_id === selectedUserId ? ' ring-1 ring-emerald-500/50' : '';
+        const lastActive = u.last_active ? u.last_active.split('T')[0].split(' ')[0] : '—';
+        const daysCell = u.returning
+          ? '<span class="inline-flex items-center gap-1 text-pink-400 font-medium">' + u.active_days + ' <span class="text-[9px] bg-pink-900/40 border border-pink-700/50 rounded px-1">↩</span></span>'
+          : '<span class="text-gray-500">' + u.active_days + '</span>';
+        return '<tr class="' + rowBg + selected + ' hover:bg-gray-700/30 transition-colors cursor-pointer" data-uid="' + u.user_id + '">' +
+          '<td class="px-3 py-3 text-gray-500">' + (i + 1) + '</td>' +
+          '<td class="px-3 py-3 font-mono text-xs text-gray-300" title="' + u.user_id + '">' + shortId + '</td>' +
+          '<td class="px-3 py-3 text-center font-medium text-blue-400">' + u.clicks + '</td>' +
+          '<td class="px-3 py-3 text-center font-medium text-yellow-400">' + u.stars + '</td>' +
+          '<td class="px-3 py-3 text-center font-medium text-cyan-400">' + u.diamonds + '</td>' +
+          '<td class="px-3 py-3 text-center text-orange-400">' + u.current_streak + '</td>' +
+          '<td class="px-3 py-3 text-center font-medium text-purple-400">' + u.games_played + '</td>' +
+          '<td class="px-3 py-3 text-center font-medium text-amber-400">' + u.solver_uses + '</td>' +
+          '<td class="px-3 py-3 text-center text-green-400">' + u.practice_words + '</td>' +
+          '<td class="px-3 py-3 text-center">' + daysCell + '</td>' +
+          '<td class="px-3 py-3 text-gray-400 text-xs">' + lastActive + '</td>' +
+          '</tr>';
+      }).join('');
+
+      // Attach row click handlers
+      tbody.querySelectorAll('tr[data-uid]').forEach(function(row) {
+        row.addEventListener('click', function() {
+          const uid = row.getAttribute('data-uid');
+          openDetailPanel(uid);
+        });
+      });
+    }
+
+    // --- Detail Panel ---
+    async function openDetailPanel(userId) {
+      selectedUserId = userId;
+      const panel = document.getElementById('user-detail-panel');
+      panel.classList.remove('hidden');
+      document.getElementById('detail-user-id').textContent = userId;
+      document.getElementById('detail-rewards').innerHTML = '<p class="text-gray-500 text-sm col-span-full">Loading...</p>';
+      document.getElementById('detail-tab-content').innerHTML = '<p class="text-gray-500 text-sm py-4">Loading activity...</p>';
+
+      // Scroll to panel (now at top of page)
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      // Re-render table to show selection highlight
+      const q = document.getElementById('user-search').value.toLowerCase().trim();
+      const displayUsers = q ? allUsers.filter(function(u) { return u.user_id.toLowerCase().includes(q); }) : allUsers;
+      renderTable(currentSort.key ? sortUsers(displayUsers) : displayUsers);
+
+      // Fetch detail
+      try {
+        let detail = detailCache[userId];
+        if (!detail) {
+          const res = await fetch('/api/users/' + encodeURIComponent(userId) + '/');
+          if (!res.ok) throw new Error('API error: ' + res.status);
+          detail = await res.json();
+          detailCache[userId] = detail;
+        }
+        renderRewardsSummary(detail);
+        renderTabContent('clicks', detail);
+        setActiveTab('clicks');
+      } catch (err) {
+        document.getElementById('detail-rewards').innerHTML = '<p class="text-red-400 text-sm col-span-full">Failed: ' + err.message + '</p>';
+      }
+    }
+
+    function renderRewardsSummary(detail) {
+      const r = detail.rewards;
+      const el = document.getElementById('detail-rewards');
+      if (!r) {
+        el.innerHTML = '<p class="text-gray-500 text-sm col-span-full">No rewards data for this user.</p>';
+        return;
+      }
+      el.innerHTML = [
+        statBox('⭐', r.total_stars, 'Stars', 'text-yellow-400'),
+        statBox('💎', r.total_diamonds, 'Diamonds', 'text-cyan-400'),
+        statBox('🔥', r.current_streak, 'Streak', 'text-orange-400'),
+        statBox('🏆', r.best_streak, 'Best Streak', 'text-amber-400'),
+        statBox('💠', r.diamond_streak, 'Diamond Streak', 'text-blue-400'),
+        statBox('📅', r.last_active_date ? r.last_active_date.split('T')[0].split(' ')[0] : '—', 'Last Active', 'text-gray-300'),
+      ].join('');
+    }
+
+    function statBox(icon, value, label, color) {
+      return '<div class="rounded-lg bg-gray-800/60 border border-gray-700 p-3 text-center">' +
+        '<p class="text-lg font-bold ' + color + '">' + icon + ' ' + value + '</p>' +
+        '<p class="text-[10px] text-gray-500">' + label + '</p></div>';
+    }
+
+    function renderTabContent(tab, detail) {
+      const el = document.getElementById('detail-tab-content');
+      switch (tab) {
+        case 'clicks':
+          el.innerHTML = renderActivityTable(detail.clicks, ['ui_element', 'url', 'created_at'], ['Element', 'URL', 'Time']);
+          break;
+        case 'quizzes':
+          el.innerHTML = renderActivityTable(detail.quizzes, ['score', 'total', 'time_used', 'timer_limit', 'timed_out', 'created_at'], ['Score', 'Total', 'Time(s)', 'Limit', 'Timed Out', 'Date']);
+          break;
+        case 'anagrams':
+          el.innerHTML = renderActivityTable(detail.anagrams, ['date', 'attempts', 'solved', 'time_taken', 'created_at'], ['Date', 'Attempts', 'Solved', 'Time(s)', 'Played']);
+          break;
+        case 'racks':
+          el.innerHTML = renderActivityTable(detail.racks, ['date', 'word', 'score', 'created_at'], ['Date', 'Word', 'Score', 'Played']);
+          break;
+        case 'cab':
+          el.innerHTML = renderActivityTable(detail.cab_games, ['wordId', 'solved', 'attempts', 'split_time', 'timer_duration', 'created_at'], ['Word ID', 'Solved', 'Attempts', 'Split(ms)', 'Timer', 'Played']);
+          break;
+        case 'solver':
+          el.innerHTML = renderActivityTable(detail.solver_history, ['word', 'score', 'meaning', 'created_at'], ['Word', 'Score', 'Meaning', 'Submitted']);
+          break;
+        case 'practice':
+          el.innerHTML = renderActivityTable(detail.practice, ['word', 'meaning', 'created_at'], ['Word', 'Meaning', 'Practiced']);
+          break;
+        case 'bonus':
+          el.innerHTML = renderActivityTable(detail.bonus_diamonds, ['bonus_type', 'created_at'], ['Type', 'Awarded']);
+          break;
+        default:
+          el.innerHTML = '<p class="text-gray-500 text-sm py-4">Unknown tab.</p>';
+      }
+    }
+
+    function renderActivityTable(rows, fields, headers) {
+      if (!rows || !rows.length) return '<p class="text-gray-500 text-sm py-4">No activity found.</p>';
+      var html = '<table class="w-full text-xs"><thead class="bg-gray-800 text-gray-400"><tr>';
+      headers.forEach(function(h) { html += '<th class="px-3 py-2 text-left font-medium">' + h + '</th>'; });
+      html += '</tr></thead><tbody class="divide-y divide-gray-800">';
+      rows.forEach(function(row, i) {
+        var bg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/30';
+        html += '<tr class="' + bg + '">';
+        fields.forEach(function(f) {
+          var val = row[f] != null ? String(row[f]) : '—';
+          // Truncate long values
+          if (val.length > 40) val = val.slice(0, 38) + '…';
+          // Format dates
+          if (f === 'created_at' || f === 'practiced_at' || f === 'submitted_at' || f === 'awarded_at') {
+            val = val ? val.replace('T', ' ').slice(0, 16) : '—';
+          }
+          // Boolean fields
+          if (f === 'solved' || f === 'timed_out') val = row[f] ? '✅' : '❌';
+          html += '<td class="px-3 py-2 text-gray-300">' + val + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      return html;
+    }
+
+    // Tab switching
+    function setActiveTab(tab) {
+      document.querySelectorAll('#detail-tabs .tab-btn').forEach(function(btn) {
+        if (btn.getAttribute('data-tab') === tab) {
+          btn.className = 'tab-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-900/50 text-emerald-300 border border-emerald-700';
+        } else {
+          btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600';
+        }
+      });
+    }
+
+    document.querySelectorAll('#detail-tabs .tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var tab = btn.getAttribute('data-tab');
+        setActiveTab(tab);
+        if (selectedUserId && detailCache[selectedUserId]) {
+          renderTabContent(tab, detailCache[selectedUserId]);
+        }
+      });
+    });
+
+    // Close detail panel
+    document.getElementById('close-detail').addEventListener('click', function() {
+      document.getElementById('user-detail-panel').classList.add('hidden');
+      selectedUserId = null;
+      // Re-render to remove selection highlight
+      var q = document.getElementById('user-search').value.toLowerCase().trim();
+      var displayUsers = q ? allUsers.filter(function(u) { return u.user_id.toLowerCase().includes(q); }) : allUsers;
+      renderTable(currentSort.key ? sortUsers(displayUsers) : displayUsers);
+    });
+
+    // Helper to sort users based on current sort state
+    function sortUsers(users) {
+      if (!currentSort.key) return users;
+      return users.slice().sort(function(a, b) {
+        var aVal = a[currentSort.key];
+        var bVal = b[currentSort.key];
+        if (typeof aVal === 'string') {
+          return currentSort.dir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+        return currentSort.dir === 'asc' ? aVal - bVal : bVal - aVal;
+      });
+    }
+
+    // Search filter
+    document.getElementById('user-search').addEventListener('input', function(e) {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) { renderTable(currentSort.key ? sortUsers(allUsers) : allUsers); return; }
+      const filtered = allUsers.filter(function(u) { return u.user_id.toLowerCase().includes(q); });
+      renderTable(currentSort.key ? sortUsers(filtered) : filtered);
+    });
+
+    // Column sorting
+    document.querySelectorAll('th[data-sort]').forEach(function(th) {
+      th.addEventListener('click', function() {
+        const key = th.getAttribute('data-sort');
+        if (currentSort.key === key) {
+          currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSort.key = key;
+          currentSort.dir = 'desc';
+        }
+
+        // Update arrow indicators
+        document.querySelectorAll('.sort-arrow').forEach(function(el) { el.textContent = ''; });
+        th.querySelector('.sort-arrow').textContent = currentSort.dir === 'asc' ? '▲' : '▼';
+
+        // Sort
+        var sorted = sortUsers(allUsers);
+
+        // Apply search filter on top
+        var q = document.getElementById('user-search').value.toLowerCase().trim();
+        if (q) {
+          sorted = sorted.filter(function(u) { return u.user_id.toLowerCase().includes(q); });
+        }
+        renderTable(sorted);
+      });
+    });
+  </script>
+</Layout>

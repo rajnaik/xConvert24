@@ -45,7 +45,7 @@ test.describe('Releases Page — Positive', () => {
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(10);
+    expect(count).toBe(17);
     // Verify key feature items are listed
     const content = await firstArticle.textContent();
     expect(content).toContain('Cows and Bulls');
@@ -53,7 +53,14 @@ test.describe('Releases Page — Positive', () => {
     expect(content).toContain('CaB Game History');
     expect(content).toContain('CaB Star Award');
     expect(content).toContain('StarBar refinements');
-    expect(content).toContain('15+ new Playwright tests');
+    expect(content).toContain('MyBag page');
+    expect(content).toContain('MyBag Memory WordBench');
+    expect(content).toContain('StarBar MyBag link');
+    expect(content).toContain('Fullscreen CSS fallback');
+    expect(content).toContain('Fullscreen toggle fix');
+    expect(content).toContain('Stars & Diamonds management');
+    expect(content).toContain('50+ new posts');
+    expect(content).toContain('25+ new Playwright tests');
   });
 
   test('v1.10.0 release entry is present as second entry', async ({ page }) => {

@@ -1177,7 +1177,7 @@ import '../styles/global.css';
     if (!card) { flashCardMode = false; renderSavedWords(); return; }
 
     // If in fullscreen, update card content in-place to avoid destroying the fullscreen element
-    if (document.fullscreenElement) {
+    if (document.fullscreenElement || mwbCssFullscreen) {
       const fcBody = document.getElementById('flashcard-body');
       const fcCounter = listEl.querySelector('.text-purple-400');
       const fcPrev = document.getElementById('fc-prev');
@@ -1254,6 +1254,7 @@ import '../styles/global.css';
     });
     document.getElementById('flashcard-close')!.addEventListener('click', () => {
       if (document.fullscreenElement) document.exitFullscreen();
+      if ((document.getElementById('flashcard-body')?.closest('.relative') as HTMLElement)?.dataset?.cssFullscreen) exitMwbCssFullscreen();
       flashCardMode = false;
       stopMwbAutoPlay();
       renderSavedWords();
@@ -1264,7 +1265,21 @@ import '../styles/global.css';
     document.getElementById('mwb-fullscreen-btn')!.addEventListener('click', () => {
       const fcArea = document.getElementById('flashcard-body')!.closest('.relative') as HTMLElement;
       if (!fcArea) return;
-      if (!document.fullscreenElement) {
+
+      // If currently in CSS fullscreen, exit it
+      if (fcArea.dataset.cssFullscreen) {
+        exitMwbCssFullscreen();
+        return;
+      }
+
+      // If currently in native fullscreen, exit it
+      if (document.fullscreenElement || (document as any).webkitFullscreenElement) {
+        ((document.exitFullscreen || (document as any).webkitExitFullscreen) as Function).call(document);
+        return;
+      }
+
+      // Try native fullscreen first (works on desktop + Android)
+      if (fcArea.requestFullscreen) {
         fcArea.requestFullscreen().then(() => {
           fcArea.style.padding = '2rem';
           fcArea.style.display = 'flex';
@@ -1278,9 +1293,15 @@ import '../styles/global.css';
           const btn = document.getElementById('mwb-fullscreen-btn')!;
           btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
           btn.title = 'Exit full screen';
-        }).catch(() => {});
+        }).catch(() => {
+          // Native failed (iOS) — use CSS fallback
+          enterMwbCssFullscreen(fcArea);
+        });
+      } else if ((fcArea as any).webkitRequestFullscreen) {
+        (fcArea as any).webkitRequestFullscreen();
       } else {
-        document.exitFullscreen();
+        // No native support — CSS fallback (iOS Safari)
+        enterMwbCssFullscreen(fcArea);
       }
     });
     applyFullscreenStyles();
@@ -1430,10 +1451,84 @@ import '../styles/global.css';
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   });
 
+  // ── MWB CSS Fullscreen Helpers (iOS/mobile fallback) ──────────────────────
+  let mwbCssFullscreen = false;
+
+  function isMwbInFullscreen(): boolean {
+    return !!(document.fullscreenElement || (document as any).webkitFullscreenElement || mwbCssFullscreen);
+  }
+
+  function enterMwbCssFullscreen(fcArea: HTMLElement) {
+    mwbCssFullscreen = true;
+    fcArea.dataset.cssFullscreen = '1';
+    fcArea.style.position = 'fixed';
+    fcArea.style.inset = '0';
+    fcArea.style.zIndex = '9999';
+    fcArea.style.overflow = 'auto';
+    fcArea.style.borderRadius = '0';
+    fcArea.style.padding = '2rem';
+    fcArea.style.display = 'flex';
+    fcArea.style.flexDirection = 'column';
+    fcArea.style.justifyContent = 'center';
+    fcArea.style.alignItems = 'center';
+    fcArea.style.background = '#0f172a';
+    document.body.style.overflow = 'hidden';
+    applyFullscreenStyles();
+    ensureFullscreenSlider();
+    const btn = document.getElementById('mwb-fullscreen-btn');
+    if (btn) {
+      btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
+      btn.title = 'Exit full screen';
+    }
+  }
+
+  function exitMwbCssFullscreen() {
+    mwbCssFullscreen = false;
+    const fcArea = document.querySelector('[data-css-fullscreen]') as HTMLElement;
+    if (!fcArea) return;
+    delete fcArea.dataset.cssFullscreen;
+    fcArea.style.position = '';
+    fcArea.style.inset = '';
+    fcArea.style.zIndex = '';
+    fcArea.style.overflow = '';
+    fcArea.style.borderRadius = '';
+    fcArea.style.padding = '';
+    fcArea.style.display = '';
+    fcArea.style.flexDirection = '';
+    fcArea.style.justifyContent = '';
+    fcArea.style.alignItems = '';
+    fcArea.style.background = '';
+    document.body.style.overflow = '';
+    removeFullscreenSlider();
+    // Reset flashcard sizes
+    const fcBody = document.getElementById('flashcard-body') as HTMLElement;
+    if (fcBody) {
+      const fcWord = fcBody.querySelector('.font-mono.font-extrabold') as HTMLElement;
+      if (fcWord) fcWord.style.fontSize = '';
+      const fcMeaning = fcBody.querySelector('.text-xs.text-gray-400') as HTMLElement;
+      if (fcMeaning) { fcMeaning.style.fontSize = ''; fcMeaning.style.maxWidth = ''; }
+      const fcMeaningWrap = fcBody.querySelector('.fc-meaning-reveal') as HTMLElement;
+      if (fcMeaningWrap) { fcMeaningWrap.style.animation = ''; fcMeaningWrap.style.maxHeight = ''; fcMeaningWrap.style.opacity = ''; }
+      const fcScore = fcBody.querySelector('.text-blue-400') as HTMLElement;
+      if (fcScore) fcScore.style.fontSize = '';
+      const fcHint = fcBody.querySelector('.animate-pulse') as HTMLElement;
+      if (fcHint) fcHint.style.fontSize = '';
+      fcBody.style.minHeight = '';
+      fcBody.style.padding = '';
+    }
+    // Reset button icon
+    const btn = document.getElementById('mwb-fullscreen-btn');
+    if (btn) {
+      btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>';
+      btn.title = 'Full screen';
+    }
+  }
+
   // ── MWB Fullscreen Slider Injection ────────────────────────────────────────
   function ensureFullscreenSlider() {
-    if (!document.fullscreenElement) return;
-    const fcArea = document.fullscreenElement as HTMLElement;
+    if (!isMwbInFullscreen()) return;
+    const fcArea = (document.fullscreenElement || document.querySelector('[data-css-fullscreen]')) as HTMLElement;
+    if (!fcArea) return;
     // Only inject if not already present
     if (fcArea.querySelector('#fs-speed-wrap')) return;
     const speedSlider = document.getElementById('mwb-speed-slider') as HTMLInputElement;
@@ -1469,7 +1564,7 @@ import '../styles/global.css';
 
   // ── MWB Fullscreen Styles Helper ──────────────────────────────────────────
   function applyFullscreenStyles() {
-    if (!document.fullscreenElement) return;
+    if (!isMwbInFullscreen()) return;
     const fcBody = document.getElementById('flashcard-body') as HTMLElement;
     if (fcBody) {
       const fcWord = fcBody.querySelector('.font-mono.font-extrabold') as HTMLElement;
@@ -1524,6 +1619,38 @@ import '../styles/global.css';
         fcBody.style.padding = '';
       }
       // Reset button icon
+      const btn = document.getElementById('mwb-fullscreen-btn');
+      if (btn) {
+        btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>';
+        btn.title = 'Full screen';
+      }
+    }
+  });
+
+  document.addEventListener('webkitfullscreenchange', () => {
+    if (!(document as any).webkitFullscreenElement) {
+      removeFullscreenSlider();
+      const fcArea = document.querySelector('#flashcard-body')?.closest('.relative') as HTMLElement;
+      if (fcArea) {
+        fcArea.style.padding = '';
+        fcArea.style.display = '';
+        fcArea.style.flexDirection = '';
+        fcArea.style.justifyContent = '';
+        fcArea.style.alignItems = '';
+        fcArea.style.background = '';
+        fcArea.style.overflow = '';
+      }
+      const fcBody = document.getElementById('flashcard-body') as HTMLElement;
+      if (fcBody) {
+        const fcWord = fcBody.querySelector('.font-mono.font-extrabold') as HTMLElement;
+        if (fcWord) fcWord.style.fontSize = '';
+        const fcMeaning = fcBody.querySelector('.text-xs.text-gray-400') as HTMLElement;
+        if (fcMeaning) fcMeaning.style.fontSize = '';
+        const fcScore = fcBody.querySelector('.text-blue-400') as HTMLElement;
+        if (fcScore) fcScore.style.fontSize = '';
+        fcBody.style.minHeight = '';
+        fcBody.style.padding = '';
+      }
       const btn = document.getElementById('mwb-fullscreen-btn');
       if (btn) {
         btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>';

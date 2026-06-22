@@ -206,9 +206,34 @@ import '../../styles/global.css';
       </a>
     </div>
 
+    <!-- Users Section -->
+    <h2 class="text-xl font-semibold text-white mt-10 mb-4 flex items-center gap-2">👥 Users</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <a href="/admin/users/" class="block rounded-xl border border-emerald-800/50 bg-gray-900/50 p-6 hover:border-emerald-700 transition-colors group">
+        <h2 class="text-xl font-semibold text-white mb-2 group-hover:text-emerald-400 transition-colors">👥 Users</h2>
+        <p class="text-gray-400 text-sm">All user activity — clicks, games, solver usage, stars & diamonds.</p>
+        <div id="users-admin-stats" class="mt-3 grid grid-cols-4 gap-2 text-center">
+          <div><p class="text-sm font-bold text-emerald-400" id="users-a-total">-</p><p class="text-[10px] text-gray-500">Users</p></div>
+          <div><p class="text-sm font-bold text-blue-400" id="users-a-clicks">-</p><p class="text-[10px] text-gray-500">Clicks</p></div>
+          <div><p class="text-sm font-bold text-purple-400" id="users-a-games">-</p><p class="text-[10px] text-gray-500">Games</p></div>
+          <div><p class="text-sm font-bold text-amber-400" id="users-a-solver">-</p><p class="text-[10px] text-gray-500">Solver</p></div>
+        </div>
+      </a>
+    </div>
+
     <!-- Activities Section -->
     <h2 class="text-xl font-semibold text-white mt-10 mb-4 flex items-center gap-2">🎯 Activities</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Stars & Diamonds Card -->
+      <a href="/admin/stars-and-diamonds/" class="block rounded-xl border border-amber-800/50 bg-gray-900/50 p-6 hover:border-amber-700 transition-colors group">
+        <h2 class="text-xl font-semibold text-white mb-2 group-hover:text-amber-400 transition-colors">⭐ Stars & Diamonds</h2>
+        <p class="text-gray-400 text-sm">View all earned stars and diamonds grouped by user.</p>
+        <div id="sd-admin-stats" class="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div><p class="text-sm font-bold text-yellow-400" id="sd-a-stars">-</p><p class="text-[10px] text-gray-500">Stars</p></div>
+          <div><p class="text-sm font-bold text-blue-400" id="sd-a-diamonds">-</p><p class="text-[10px] text-gray-500">Diamonds</p></div>
+          <div><p class="text-sm font-bold text-amber-400" id="sd-a-users">-</p><p class="text-[10px] text-gray-500">Users</p></div>
+        </div>
+      </a>
       <a href="/admin/wotd/" class="block rounded-xl border border-purple-800/50 bg-gray-900/50 p-6 hover:border-purple-700 transition-colors group">
         <h2 class="text-xl font-semibold text-white mb-2 group-hover:text-purple-400 transition-colors">📖 Word of the Day</h2>
         <p class="text-gray-400 text-sm">View all WOTD words, assignments, and rotation queue.</p>
@@ -321,5 +346,20 @@ import '../../styles/global.css';
       const count = (d.records || []).length;
       document.getElementById('quiz-a-practice')!.textContent = String(count);
     }).catch(() => { document.getElementById('quiz-a-practice')!.textContent = '0'; });
+
+    // Stars & Diamonds stats
+    fetch('/api/stars-and-diamonds/').then(r => r.json()).then(d => {
+      document.getElementById('sd-a-stars')!.textContent = String(d.summary.totalStars);
+      document.getElementById('sd-a-diamonds')!.textContent = String(d.summary.totalDiamonds);
+      document.getElementById('sd-a-users')!.textContent = String(d.summary.totalUsers);
+    }).catch(() => {});
+
+    // Users stats
+    fetch('/api/users/').then(r => r.json()).then(d => {
+      document.getElementById('users-a-total')!.textContent = String(d.summary.totalUsers);
+      document.getElementById('users-a-clicks')!.textContent = String(d.summary.totalClicks);
+      document.getElementById('users-a-games')!.textContent = String(d.summary.totalGamesPlayed);
+      document.getElementById('users-a-solver')!.textContent = String(d.summary.totalSolverUses);
+    }).catch(() => {});
   </script>
 </Layout>
