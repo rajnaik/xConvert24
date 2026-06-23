@@ -32,45 +32,53 @@ test.describe('Releases Page — Positive', () => {
     expect(firstText).toMatch(/v\d+\.\d+\.\d+/);
   });
 
-  test('v1.11.0 release entry is present and is the latest', async ({ page }) => {
+  test('v1.11.1 release entry is present and is the latest', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const heading = firstArticle.locator('h2');
-    await expect(heading).toContainText('v1.11.0');
-    await expect(heading).toContainText('June 22, 2026');
+    await expect(heading).toContainText('v1.11.1');
+    await expect(heading).toContainText('June 23, 2026');
   });
 
-  test('v1.11.0 lists all key features', async ({ page }) => {
+  test('v1.11.1 lists all key features', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(20);
-    // Verify key feature items are listed
+    expect(count).toBe(8);
     const content = await firstArticle.textContent();
-    expect(content).toContain('Cows and Bulls');
-    expect(content).toContain('CaB Timer Mode');
-    expect(content).toContain('CaB timer_duration sent to API');
-    expect(content).toContain('CaB Game History');
-    expect(content).toContain('CaB Star Award');
-    expect(content).toContain('StarBar refinements');
-    expect(content).toContain('MyBag page');
-    expect(content).toContain('MyBag Memory WordBench');
-    expect(content).toContain('StarBar MyBag link');
-    expect(content).toContain('Fullscreen CSS fallback');
-    expect(content).toContain('Fullscreen toggle fix');
-    expect(content).toContain('Stars & Diamonds management');
-    expect(content).toContain('50+ new posts');
-    expect(content).toContain('25+ new Playwright tests');
-    expect(content).toContain('WOTD, Daily Anagram, and Daily Rack seeded');
-    expect(content).toContain('988 daily rack entries backfilled');
-    expect(content).toContain('Tech Stack page');
+    expect(content).toContain('WOTD enriched content');
+    expect(content).toContain('WOTD date navigation');
+    expect(content).toContain('WOTD API date param');
+    expect(content).toContain('WOTD enrichment migration');
+    expect(content).toContain('Scrabble Word Checker Tools cards now clickable links');
+    expect(content).toContain('Collins link updated');
+    expect(content).toContain('New tests');
+    expect(content).toContain('Enrichment script');
   });
 
-  test('v1.10.0 release entry is present as second entry', async ({ page }) => {
+  test('v1.11.1 contains code references for API and script', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const codeElements = firstArticle.locator('code');
+    const count = await codeElements.count();
+    expect(count).toBe(2);
+    await expect(codeElements.nth(0)).toContainText('/api/wotd?date=YYYY-MM-DD');
+    await expect(codeElements.nth(1)).toContainText('scripts/enrich-wotd.mjs');
+  });
+
+  test('v1.11.0 release entry is present as second entry', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
     const heading = secondArticle.locator('h2');
+    await expect(heading).toContainText('v1.11.0');
+    await expect(heading).toContainText('June 22, 2026');
+  });
+
+  test('v1.10.0 release entry is present as third entry', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const thirdArticle = page.locator('article').nth(2);
+    const heading = thirdArticle.locator('h2');
     await expect(heading).toContainText('v1.10.0');
     await expect(heading).toContainText('June 21, 2026');
   });
@@ -145,7 +153,7 @@ test.describe('Releases Page — Negative', () => {
     expect(text).not.toContain('null');
   });
 
-  test('v1.11.0 does not expose internal admin details', async ({ page }) => {
+  test('v1.11.1 does not expose internal admin details', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const content = await firstArticle.textContent();
@@ -156,7 +164,7 @@ test.describe('Releases Page — Negative', () => {
     expect(content).not.toContain('real-time visitor');
   });
 
-  test('v1.11.0 has no empty list items', async ({ page }) => {
+  test('v1.11.1 has no empty list items', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
@@ -167,7 +175,7 @@ test.describe('Releases Page — Negative', () => {
     }
   });
 
-  test('v1.11.0 date is not in the future', async ({ page }) => {
+  test('v1.11.1 date is not in the future', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstHeading = page.locator('article h2').first();
     const text = await firstHeading.textContent();

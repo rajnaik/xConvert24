@@ -10,9 +10,13 @@
             <p id="wotd-word" class="text-4xl font-black text-purple-400 tracking-wider mb-1">—</p>
             <p id="wotd-viewing-date" class="text-xs text-purple-300/60 mb-3 font-mono"></p>
             <p id="wotd-meaning" class="text-sm text-gray-300 italic mb-3">Loading today's word...</p>
-            <p id="wotd-fact" class="text-xs text-gray-500 mb-3"></p>
-            <!-- Enriched content blurb -->
+            <!-- Explore WOTD button -->
+            <button id="wotd-explore-btn" class="hidden mb-4 px-4 py-2 rounded-lg bg-purple-600/20 border border-purple-500/50 text-sm text-purple-300 hover:bg-purple-600/40 hover:border-purple-400 transition-all">
+              🔍 Explore WOTD
+            </button>
+            <!-- Enriched content blurb (revealed by Explore button) -->
             <div id="wotd-enriched" class="hidden text-left mx-auto max-w-sm mb-4 space-y-2">
+              <p id="wotd-fact" class="text-xs text-gray-400"><span class="text-yellow-400 font-semibold">Fun fact:</span> <span class="wotd-fact-text"></span></p>
               <p id="wotd-origin" class="text-xs text-gray-400"><span class="text-purple-400 font-semibold">Origin:</span> <span class="wotd-origin-text"></span></p>
               <p id="wotd-usage" class="text-xs text-gray-400"><span class="text-blue-400 font-semibold">Example:</span> <span class="wotd-usage-text italic"></span></p>
               <p id="wotd-spelling" class="text-xs text-gray-400"><span class="text-green-400 font-semibold">Spelling tip:</span> <span class="wotd-spelling-text"></span></p>
@@ -132,28 +136,44 @@
   function renderWotd(word) {
     document.getElementById('wotd-word').textContent = word.word || '—';
     document.getElementById('wotd-meaning').textContent = word.meaning || 'Tap "Lookup" to fetch the meaning';
-    document.getElementById('wotd-fact').textContent = word.fun_fact || '';
     document.getElementById('wotd-date').textContent = word.date || new Date().toISOString().split('T')[0];
-    // Enriched content
+    // Enriched content — show Explore button if data exists
     var enrichedEl = document.getElementById('wotd-enriched');
-    var hasEnriched = word.origin || word.usage_example || word.spelling_tip || word.cultural_note;
+    var exploreBtn = document.getElementById('wotd-explore-btn');
+    var hasEnriched = word.origin || word.usage_example || word.spelling_tip || word.cultural_note || word.fun_fact;
     if (hasEnriched && enrichedEl) {
-      enrichedEl.classList.remove('hidden');
+      // Populate the enriched fields
+      var factEl = enrichedEl.querySelector('.wotd-fact-text');
       var originEl = enrichedEl.querySelector('.wotd-origin-text');
       var usageEl = enrichedEl.querySelector('.wotd-usage-text');
       var spellingEl = enrichedEl.querySelector('.wotd-spelling-text');
       var culturalEl = enrichedEl.querySelector('.wotd-cultural-text');
+      if (factEl) factEl.textContent = word.fun_fact || '';
       if (originEl) originEl.textContent = word.origin || '';
       if (usageEl) usageEl.textContent = word.usage_example || '';
       if (spellingEl) spellingEl.textContent = word.spelling_tip || '';
       if (culturalEl) culturalEl.textContent = word.cultural_note || '';
-      // Hide empty rows
+      document.getElementById('wotd-fact').style.display = word.fun_fact ? '' : 'none';
       document.getElementById('wotd-origin').style.display = word.origin ? '' : 'none';
       document.getElementById('wotd-usage').style.display = word.usage_example ? '' : 'none';
       document.getElementById('wotd-spelling').style.display = word.spelling_tip ? '' : 'none';
       document.getElementById('wotd-cultural').style.display = word.cultural_note ? '' : 'none';
-    } else if (enrichedEl) {
-      enrichedEl.classList.add('hidden');
+      // Check if user already explored this word's date (keyed by URL) — if so, show enriched directly
+      var exploredKey = 'swf-wotd-explored:' + window.location.pathname;
+      var exploredDate = S.getRaw(exploredKey);
+      var wordDate = word.date || new Date().toISOString().split('T')[0];
+      if (exploredDate === wordDate) {
+        // Already explored today — show enriched content, hide button
+        enrichedEl.classList.remove('hidden');
+        if (exploreBtn) exploreBtn.classList.add('hidden');
+      } else {
+        // Not explored yet — show button, hide enriched
+        if (exploreBtn) exploreBtn.classList.remove('hidden');
+        enrichedEl.classList.add('hidden');
+      }
+    } else {
+      if (enrichedEl) enrichedEl.classList.add('hidden');
+      if (exploreBtn) exploreBtn.classList.add('hidden');
     }
     checkWotdInMwb(word.word);
   }
@@ -203,7 +223,6 @@
       if (r.status === 404) {
         document.getElementById('wotd-word').textContent = '—';
         document.getElementById('wotd-meaning').textContent = 'No word for this date';
-        document.getElementById('wotd-fact').textContent = '';
         var enrichedEl = document.getElementById('wotd-enriched');
         if (enrichedEl) enrichedEl.classList.add('hidden');
         return;
@@ -219,6 +238,10 @@
           btn.textContent = 'Save to WordBench ✗';
           btn.className = 'px-4 py-2 rounded-lg bg-red-600/20 border border-red-500/50 text-sm text-red-400 hover:bg-red-600/40 transition-colors';
         }
+        // Reset explore button (hide enriched, show button again)
+        var exploreBtn = document.getElementById('wotd-explore-btn');
+        var enrichedEl = document.getElementById('wotd-enriched');
+        if (enrichedEl) enrichedEl.classList.add('hidden');
         checkWotdInMwb(d.word.word);
       }
     }).catch(function() {}).finally(function() {
@@ -272,6 +295,18 @@
   }).catch(function() {
     if (!cached) document.getElementById('wotd-meaning').textContent = 'Could not load — try refreshing';
     document.getElementById('wotd-cache-status').textContent = 'offline (cached)';
+  });
+
+  // ── Explore WOTD Button ──
+  document.getElementById('wotd-explore-btn').addEventListener('click', function() {
+    var enrichedEl = document.getElementById('wotd-enriched');
+    if (enrichedEl) {
+      enrichedEl.classList.remove('hidden');
+      this.classList.add('hidden');
+      // Store the WOTD date (keyed by URL) so the button stays hidden until the next day's word
+      var wotdDate = document.getElementById('wotd-date').textContent || new Date().toISOString().split('T')[0];
+      S.setRaw('swf-wotd-explored:' + window.location.pathname, wotdDate);
+    }
   });
 
   document.getElementById('wotd-fetch-meaning').addEventListener('click', async function() {

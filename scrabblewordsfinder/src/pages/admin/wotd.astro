@@ -2,58 +2,403 @@
 import Layout from '../../layouts/Layout.astro';
 import '../../styles/global.css';
 ---
-<Layout title="Admin — Word of the Day" description="Admin view of all Word of the Day entries" showHeader={false}>
-<meta name="robots" content="noindex, nofollow" slot="head" />
-<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
-  <a href="/admin/" class="text-sm text-blue-400 hover:underline">← Admin</a>
-  <span class="text-sm text-gray-400">📖 Word of the Day</span>
-</nav>
-<main class="max-w-5xl mx-auto px-6 py-8">
-  <h1 class="text-2xl font-bold text-white mb-2">📖 Word of the Day — Admin</h1>
-  <p class="text-sm text-gray-400 mb-6">All words in rotation queue.</p>
-  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"></div>
-  <div id="loading" class="text-center py-8"><p class="text-sm text-gray-500">Loading...</p></div>
-  <div id="table-wrap" class="hidden rounded-xl border border-purple-800/50 bg-gray-900/50 p-4 overflow-x-auto">
-    <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
-      <thead class="bg-gray-800">
-        <tr>
-          <th class="px-3 py-2 text-left text-gray-300">ID</th>
-          <th class="px-3 py-2 text-left text-gray-300">Word</th>
-          <th class="px-3 py-2 text-left text-gray-300">Meaning</th>
-          <th class="px-3 py-2 text-left text-gray-300">Date Assigned</th>
-        </tr>
-      </thead>
-      <tbody id="tbody" class="divide-y divide-gray-800"></tbody>
-    </table>
+
+<Layout title="WOTD — Admin — ScrabbleWordsFinder" description="Manage Word of the Day entries" keywords="admin, wotd, word of the day">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/wotd/" class="text-purple-400 font-medium">WOTD</a>
+      <a href="/admin/emails/" class="hover:text-blue-400 transition-colors">Emails</a>
+      <a href="/admin/clicks/" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">&larr; Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="flex items-center justify-between mb-2">
+      <h1 class="text-3xl font-bold text-white">📖 Word of the Day</h1>
+      <button id="add-btn" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-colors">+ Add Word</button>
+    </div>
+    <p class="text-gray-400 mb-6">Full CRUD for the word_of_the_day table. Every word must have a meaning.</p>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-3 mb-4">
+      <input id="search-input" type="text" placeholder="Search word or meaning..." class="h-9 px-3 w-56 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm placeholder-gray-500" />
+      <select id="filter-status" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm">
+        <option value="">All</option>
+        <option value="assigned">Assigned (has date)</option>
+        <option value="unassigned">Unassigned (no date)</option>
+        <option value="no-meaning">Missing meaning</option>
+      </select>
+      <button id="refresh-btn" class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">🔄 Refresh</button>
+      <span class="h-9 flex items-center text-xs text-gray-500" id="page-info"></span>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Words</p>
+        <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Assigned</p>
+        <p class="text-2xl font-bold text-green-400" id="stat-assigned">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Unassigned</p>
+        <p class="text-2xl font-bold text-amber-400" id="stat-unassigned">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Missing Meaning</p>
+        <p class="text-2xl font-bold text-red-400" id="stat-no-meaning">—</p>
+      </div>
+    </div>
+
+    <!-- Date range info -->
+    <div class="text-xs text-gray-500 mb-4" id="date-range"></div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
+          <tr>
+            <th class="px-3 py-3">ID</th>
+            <th class="px-3 py-3 cursor-pointer hover:text-purple-300 select-none sort-header" data-sort="word">Word <span class="sort-icon"></span></th>
+            <th class="px-3 py-3 cursor-pointer hover:text-purple-300 select-none sort-header" data-sort="date">Date <span class="sort-icon"></span></th>
+            <th class="px-3 py-3 cursor-pointer hover:text-purple-300 select-none sort-header" data-sort="meaning">Meaning <span class="sort-icon"></span></th>
+            <th class="px-3 py-3 cursor-pointer hover:text-purple-300 select-none sort-header" data-sort="fun_fact">Fun Fact <span class="sort-icon"></span></th>
+            <th class="px-3 py-3">Enriched</th>
+            <th class="px-3 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="wotd-tbody" class="divide-y divide-gray-800 text-gray-300">
+          <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-4">
+      <button id="prev-btn" class="px-3 py-1.5 rounded-lg border border-gray-700 text-sm text-gray-400 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed" disabled>&larr; Previous</button>
+      <button id="next-btn" class="px-3 py-1.5 rounded-lg border border-gray-700 text-sm text-gray-400 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed" disabled>Next &rarr;</button>
+    </div>
+
+    <!-- Edit/Add Modal -->
+    <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 overflow-y-auto py-8">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+        <h2 class="text-lg font-semibold text-white mb-4" id="modal-title">Edit Word</h2>
+        <input type="hidden" id="modal-id" />
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400">Word <span class="text-red-400">*</span></label>
+              <input id="modal-word" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm uppercase" placeholder="e.g. QUIXOTIC" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400">Date (YYYY-MM-DD)</label>
+              <input id="modal-date" type="date" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Meaning <span class="text-red-400">*</span></label>
+            <input id="modal-meaning" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" placeholder="Concise definition (required)" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Fun Fact</label>
+            <input id="modal-fun-fact" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" placeholder="Etymology or interesting trivia" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Origin</label>
+            <input id="modal-origin" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" placeholder="e.g. Latin, from 'ephemeros'" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Usage Example</label>
+            <textarea id="modal-usage" class="w-full mt-1 h-16 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" placeholder="Example sentence using the word"></textarea>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Spelling Tip</label>
+            <input id="modal-spelling" type="text" class="w-full mt-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" placeholder="Mnemonic or breakdown" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400">Cultural Note</label>
+            <textarea id="modal-cultural" class="w-full mt-1 h-16 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm" placeholder="Historical or cultural context"></textarea>
+          </div>
+        </div>
+        <div id="modal-error" class="hidden mt-3 text-sm text-red-400 bg-red-900/20 border border-red-800 rounded-lg px-3 py-2"></div>
+        <div class="flex justify-end gap-2 mt-4">
+          <button id="modal-cancel" class="px-4 py-2 text-sm text-gray-400 border border-gray-600 rounded-lg hover:bg-gray-800">Cancel</button>
+          <button id="modal-save" class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-500">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg transition-all"></div>
   </div>
-</main>
+
+  <script>
+    function escapeHtml(s: string): string { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    let currentOffset = 0;
+    const PAGE_SIZE = 50;
+    let totalWords = 0;
+    let currentSort = 'date';
+    let currentOrder: 'asc' | 'desc' = 'desc';
+
+    function updateSortIcons() {
+      document.querySelectorAll('.sort-header').forEach(th => {
+        const col = (th as HTMLElement).dataset.sort;
+        const icon = th.querySelector('.sort-icon') as HTMLElement;
+        if (col === currentSort) {
+          icon.textContent = currentOrder === 'asc' ? ' ▲' : ' ▼';
+          th.classList.add('text-purple-300');
+        } else {
+          icon.textContent = '';
+          th.classList.remove('text-purple-300');
+        }
+      });
+    }
+
+    function showToast(msg: string, success = true) {
+      const el = document.getElementById('toast')!;
+      el.textContent = msg;
+      el.className = `fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg text-sm font-medium shadow-lg transition-all ${success ? 'bg-green-900/90 text-green-300 border border-green-700' : 'bg-red-900/90 text-red-300 border border-red-700'}`;
+      setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
+    async function loadWords() {
+      const search = (document.getElementById('search-input') as HTMLInputElement).value.trim();
+      const filter = (document.getElementById('filter-status') as HTMLSelectElement).value;
+
+      let url = `/api/wotd-admin/?limit=${PAGE_SIZE}&offset=${currentOffset}&sort=${currentSort}&order=${currentOrder}`;
+      if (search) url += '&search=' + encodeURIComponent(search);
+      if (filter) url += '&filter=' + filter;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const words = data.words || [];
+        totalWords = data.total || 0;
+        const stats = data.stats || {};
+
+        // Stats
+        document.getElementById('stat-total')!.textContent = String(stats.total || 0);
+        document.getElementById('stat-assigned')!.textContent = String(stats.assigned || 0);
+        document.getElementById('stat-unassigned')!.textContent = String(stats.unassigned || 0);
+        document.getElementById('stat-no-meaning')!.textContent = String(stats.no_meaning || 0);
+
+        // Date range
+        const rangeEl = document.getElementById('date-range')!;
+        if (stats.earliest_date && stats.latest_date) {
+          rangeEl.textContent = `Date coverage: ${stats.earliest_date} → ${stats.latest_date}`;
+        } else {
+          rangeEl.textContent = '';
+        }
+
+        // Page info
+        const pageStart = totalWords > 0 ? currentOffset + 1 : 0;
+        const pageEnd = Math.min(currentOffset + PAGE_SIZE, totalWords);
+        document.getElementById('page-info')!.textContent = `${pageStart}–${pageEnd} of ${totalWords}`;
+
+        // Pagination buttons
+        (document.getElementById('prev-btn') as HTMLButtonElement).disabled = currentOffset === 0;
+        (document.getElementById('next-btn') as HTMLButtonElement).disabled = currentOffset + PAGE_SIZE >= totalWords;
+
+        // Table
+        const tbody = document.getElementById('wotd-tbody')!;
+        if (!words.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No words found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = words.map((w: any) => {
+          const hasEnriched = w.origin || w.usage_example || w.spelling_tip || w.cultural_note;
+          const meaningClass = (!w.meaning || w.meaning === '') ? 'text-red-400' : 'text-gray-300';
+          return `
+            <tr class="hover:bg-gray-800/40">
+              <td class="px-3 py-3 font-mono text-xs text-gray-500">${w.id}</td>
+              <td class="px-3 py-3 font-bold text-purple-300">${escapeHtml(w.word)}</td>
+              <td class="px-3 py-3 text-xs font-mono ${w.date ? 'text-green-400' : 'text-gray-600'}">${w.date || '—'}</td>
+              <td class="px-3 py-3 text-xs max-w-[200px] truncate ${meaningClass}">${escapeHtml(w.meaning) || '<span class="text-red-400 italic">MISSING</span>'}</td>
+              <td class="px-3 py-3 text-xs max-w-[150px] truncate text-gray-400">${escapeHtml(w.fun_fact) || '—'}</td>
+              <td class="px-3 py-3 text-center">${hasEnriched ? '<span class="text-green-400">✓</span>' : '<span class="text-gray-600">—</span>'}</td>
+              <td class="px-3 py-3">
+                <button class="edit-btn text-xs text-blue-400 hover:underline mr-2" data-id="${w.id}">Edit</button>
+                <button class="del-btn text-xs text-red-400 hover:underline" data-id="${w.id}">Del</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        tbody.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', () => openEdit(parseInt((btn as HTMLElement).dataset.id!))));
+        tbody.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', () => deleteWord(parseInt((btn as HTMLElement).dataset.id!))));
+      } catch {
+        document.getElementById('wotd-tbody')!.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-red-400">Failed to load.</td></tr>';
+      }
+    }
+
+    // ── Edit modal ──────────────────────────────────────────────────────────
+
+    let allWordsCache: any[] = [];
+
+    async function openEdit(id: number) {
+      // Fetch fresh data for this word
+      const res = await fetch(`/api/wotd-admin/?search=&limit=200&offset=0`);
+      const data = await res.json();
+      allWordsCache = data.words || [];
+      const word = allWordsCache.find((w: any) => w.id === id);
+      if (!word) { showToast('Word not found', false); return; }
+
+      document.getElementById('modal-title')!.textContent = `Edit Word #${id}`;
+      (document.getElementById('modal-id') as HTMLInputElement).value = String(id);
+      (document.getElementById('modal-word') as HTMLInputElement).value = word.word || '';
+      (document.getElementById('modal-date') as HTMLInputElement).value = word.date || '';
+      (document.getElementById('modal-meaning') as HTMLInputElement).value = word.meaning || '';
+      (document.getElementById('modal-fun-fact') as HTMLInputElement).value = word.fun_fact || '';
+      (document.getElementById('modal-origin') as HTMLInputElement).value = word.origin || '';
+      (document.getElementById('modal-usage') as HTMLTextAreaElement).value = word.usage_example || '';
+      (document.getElementById('modal-spelling') as HTMLInputElement).value = word.spelling_tip || '';
+      (document.getElementById('modal-cultural') as HTMLTextAreaElement).value = word.cultural_note || '';
+      document.getElementById('modal-error')!.classList.add('hidden');
+      document.getElementById('edit-modal')!.classList.remove('hidden');
+    }
+
+    function openAdd() {
+      document.getElementById('modal-title')!.textContent = 'Add New Word';
+      (document.getElementById('modal-id') as HTMLInputElement).value = '';
+      (document.getElementById('modal-word') as HTMLInputElement).value = '';
+      (document.getElementById('modal-date') as HTMLInputElement).value = '';
+      (document.getElementById('modal-meaning') as HTMLInputElement).value = '';
+      (document.getElementById('modal-fun-fact') as HTMLInputElement).value = '';
+      (document.getElementById('modal-origin') as HTMLInputElement).value = '';
+      (document.getElementById('modal-usage') as HTMLTextAreaElement).value = '';
+      (document.getElementById('modal-spelling') as HTMLInputElement).value = '';
+      (document.getElementById('modal-cultural') as HTMLTextAreaElement).value = '';
+      document.getElementById('modal-error')!.classList.add('hidden');
+      document.getElementById('edit-modal')!.classList.remove('hidden');
+    }
+
+    async function saveWord() {
+      const id = (document.getElementById('modal-id') as HTMLInputElement).value;
+      const word = (document.getElementById('modal-word') as HTMLInputElement).value.trim();
+      const date = (document.getElementById('modal-date') as HTMLInputElement).value;
+      const meaning = (document.getElementById('modal-meaning') as HTMLInputElement).value.trim();
+      const fun_fact = (document.getElementById('modal-fun-fact') as HTMLInputElement).value.trim();
+      const origin = (document.getElementById('modal-origin') as HTMLInputElement).value.trim();
+      const usage_example = (document.getElementById('modal-usage') as HTMLTextAreaElement).value.trim();
+      const spelling_tip = (document.getElementById('modal-spelling') as HTMLInputElement).value.trim();
+      const cultural_note = (document.getElementById('modal-cultural') as HTMLTextAreaElement).value.trim();
+
+      if (!word) { showModalError('Word is required'); return; }
+      if (!meaning) { showModalError('Meaning is required (words-must-have-meanings rule)'); return; }
+
+      const payload: any = { word, date, meaning, fun_fact, origin, usage_example, spelling_tip, cultural_note };
+      const method = id ? 'PUT' : 'POST';
+      if (id) payload.id = parseInt(id);
+
+      try {
+        const res = await fetch('/api/wotd-admin/', {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showModalError(data.error || 'Save failed');
+          return;
+        }
+        document.getElementById('edit-modal')!.classList.add('hidden');
+        showToast(id ? 'Word updated' : 'Word added');
+        loadWords();
+      } catch {
+        showModalError('Network error');
+      }
+    }
+
+    function showModalError(msg: string) {
+      const el = document.getElementById('modal-error')!;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    async function deleteWord(id: number) {
+      if (!confirm(`Delete WOTD entry #${id}? This cannot be undone.`)) return;
+      try {
+        const res = await fetch('/api/wotd-admin/', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (res.ok) {
+          showToast('Word deleted');
+          loadWords();
+        } else {
+          const data = await res.json();
+          showToast(data.error || 'Delete failed', false);
+        }
+      } catch {
+        showToast('Network error', false);
+      }
+    }
+
+    // ── Event listeners ─────────────────────────────────────────────────────
+
+    // Sortable column headers
+    document.querySelectorAll('.sort-header').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = (th as HTMLElement).dataset.sort!;
+        if (currentSort === col) {
+          currentOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSort = col;
+          currentOrder = col === 'word' ? 'asc' : 'desc';
+        }
+        currentOffset = 0;
+        updateSortIcons();
+        loadWords();
+      });
+    });
+    updateSortIcons();
+
+    document.getElementById('modal-cancel')!.addEventListener('click', () => document.getElementById('edit-modal')!.classList.add('hidden'));
+    document.getElementById('modal-save')!.addEventListener('click', saveWord);
+    document.getElementById('add-btn')!.addEventListener('click', openAdd);
+    document.getElementById('refresh-btn')!.addEventListener('click', () => { currentOffset = 0; loadWords(); });
+    document.getElementById('filter-status')!.addEventListener('change', () => { currentOffset = 0; loadWords(); });
+
+    // Search with debounce
+    let searchTimer: any;
+    document.getElementById('search-input')!.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => { currentOffset = 0; loadWords(); }, 300);
+    });
+
+    // Pagination
+    document.getElementById('prev-btn')!.addEventListener('click', () => {
+      if (currentOffset > 0) { currentOffset -= PAGE_SIZE; loadWords(); }
+    });
+    document.getElementById('next-btn')!.addEventListener('click', () => {
+      if (currentOffset + PAGE_SIZE < totalWords) { currentOffset += PAGE_SIZE; loadWords(); }
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('edit-modal')!.addEventListener('click', (e) => {
+      if (e.target === document.getElementById('edit-modal')) {
+        document.getElementById('edit-modal')!.classList.add('hidden');
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !document.getElementById('edit-modal')!.classList.contains('hidden')) {
+        document.getElementById('edit-modal')!.classList.add('hidden');
+      }
+    });
+
+    // Initial load
+    loadWords();
+  </script>
 </Layout>
-<script>
-  async function load() {
-    const res = await fetch('/api/wotd/?all=true');
-    const { words } = await res.json();
-    document.getElementById('loading')!.classList.add('hidden');
-    if (!words?.length) return;
-
-    const assigned = words.filter((w: any) => w.date).length;
-    const withMeaning = words.filter((w: any) => w.meaning).length;
-    document.getElementById('stats')!.innerHTML = `
-      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-xl font-bold text-purple-400">${words.length}</p><p class="text-[10px] text-gray-500">Total</p></div>
-      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-xl font-bold text-green-400">${assigned}</p><p class="text-[10px] text-gray-500">Assigned</p></div>
-      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-xl font-bold text-gray-400">${words.length - assigned}</p><p class="text-[10px] text-gray-500">Queued</p></div>
-      <div class="rounded-lg bg-gray-800 p-3 text-center"><p class="text-xl font-bold text-blue-400">${withMeaning}</p><p class="text-[10px] text-gray-500">With Meaning</p></div>`;
-
-    document.getElementById('tbody')!.innerHTML = words.slice(0, 200).map((w: any, i: number) => {
-      const bg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
-      const meaning = (w.meaning || '').slice(0, 50);
-      return `<tr class="${bg}">
-        <td class="px-3 py-2 text-gray-500 text-xs">${w.id}</td>
-        <td class="px-3 py-2 font-mono font-bold text-white uppercase text-xs">${w.word}</td>
-        <td class="px-3 py-2 text-gray-400 text-xs italic">${meaning || '—'}</td>
-        <td class="px-3 py-2 text-xs ${w.date ? 'text-green-400' : 'text-gray-600'}">${w.date || 'queued'}</td>
-      </tr>`;
-    }).join('');
-    document.getElementById('table-wrap')!.classList.remove('hidden');
-  }
-  load();
-</script>
