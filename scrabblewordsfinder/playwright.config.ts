@@ -71,5 +71,11 @@ export default defineConfig({
       testMatch: /mobile/,
       use: { ...devices['Pixel 7'] },
     },
+    {
+      name: 'smoke',
+      testDir: './tests',
+      testMatch: /smoke\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
 });

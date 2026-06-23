@@ -78,6 +78,26 @@ import '../../styles/global.css';
       </div>
     </div>
 
+    <!-- Return Customers Panel -->
+    <div id="return-customers-panel" class="mb-8 rounded-xl border border-pink-800/50 bg-gray-900/80 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+          <span class="text-pink-400">↩</span> Return Customers
+          <span id="rc-count" class="text-xs bg-pink-900/50 border border-pink-700/50 text-pink-300 rounded-full px-2 py-0.5">—</span>
+        </h2>
+        <div class="flex items-center gap-2">
+          <button id="rc-reset-hidden" class="hidden text-xs text-pink-400 hover:text-pink-300 border border-pink-800/50 rounded px-2 py-1 transition-colors">Unhide all</button>
+          <button id="rc-toggle" class="text-xs text-gray-400 hover:text-white border border-gray-700 rounded px-2 py-1 transition-colors">Hide</button>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mb-4">Users who have visited on 2 or more distinct days. Sorted by active days descending.</p>
+      <div id="rc-content">
+        <div id="rc-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <p class="text-gray-500 text-sm col-span-full py-4">Loading...</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Search -->
     <div class="mb-4">
       <input type="text" id="user-search" placeholder="Search by User ID..." class="w-full sm:w-80 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-emerald-600" />
@@ -134,6 +154,7 @@ import '../../styles/global.css';
 
         allUsers = data.users;
         renderTable(allUsers);
+        renderReturnCustomers(allUsers);
 
         const elapsed = Math.round(performance.now() - start);
         document.getElementById('load-time').textContent = 'Loaded ' + data.users.length + ' users in ' + elapsed + 'ms';
@@ -180,6 +201,116 @@ import '../../styles/global.css';
         });
       });
     }
+
+    // --- Return Customers Panel ---
+    const RC_HIDDEN_KEY = 'swf-admin-rc-hidden';
+
+    function getHiddenRcUsers() {
+      try {
+        const stored = localStorage.getItem(RC_HIDDEN_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch { return []; }
+    }
+
+    function setHiddenRcUsers(list) {
+      localStorage.setItem(RC_HIDDEN_KEY, JSON.stringify(list));
+    }
+
+    function renderReturnCustomers(users) {
+      const returning = users.filter(function(u) { return u.returning; });
+      returning.sort(function(a, b) { return b.active_days - a.active_days; });
+
+      const hiddenIds = getHiddenRcUsers();
+      const visible = returning.filter(function(u) { return hiddenIds.indexOf(u.user_id) === -1; });
+
+      // Show/hide the unhide button
+      const resetBtn = document.getElementById('rc-reset-hidden');
+      if (hiddenIds.length) {
+        resetBtn.classList.remove('hidden');
+        resetBtn.textContent = 'Unhide all (' + hiddenIds.length + ')';
+      } else {
+        resetBtn.classList.add('hidden');
+      }
+
+      document.getElementById('rc-count').textContent = visible.length + (hiddenIds.length ? ' (' + hiddenIds.length + ' hidden)' : '');
+
+      const cardsEl = document.getElementById('rc-cards');
+      if (!visible.length) {
+        cardsEl.innerHTML = '<p class="text-gray-500 text-sm col-span-full py-4">No return customers visible. ' + (hiddenIds.length ? hiddenIds.length + ' hidden via checkbox.' : 'Users appear here after visiting on 2+ distinct days.') + '</p>';
+        return;
+      }
+
+      cardsEl.innerHTML = visible.map(function(u) {
+        const shortId = u.user_id.length > 14 ? u.user_id.slice(0, 12) + '…' : u.user_id;
+        const lastActive = u.last_active ? u.last_active.split('T')[0].split(' ')[0] : '—';
+        return '<div class="rounded-lg border border-pink-800/40 bg-gray-800/60 p-3 hover:border-pink-600/60 transition-colors cursor-pointer rc-card" data-uid="' + u.user_id + '">' +
+          '<div class="flex items-center justify-between mb-2">' +
+            '<span class="font-mono text-xs text-gray-300 truncate" title="' + u.user_id + '">' + shortId + '</span>' +
+            '<label class="flex items-center gap-1 cursor-pointer rc-hide-label" title="Hide this user">' +
+              '<input type="checkbox" class="rc-hide-cb accent-pink-500 w-3.5 h-3.5" data-uid="' + u.user_id + '" />' +
+              '<span class="text-[9px] text-gray-500">hide</span>' +
+            '</label>' +
+          '</div>' +
+          '<div class="flex items-center justify-between mb-2">' +
+            '<span class="text-xs font-bold text-pink-400">' + u.active_days + ' days</span>' +
+          '</div>' +
+          '<div class="grid grid-cols-3 gap-2 text-center text-[10px]">' +
+            '<div><p class="text-sm font-bold text-blue-400">' + u.clicks + '</p><p class="text-gray-500">Clicks</p></div>' +
+            '<div><p class="text-sm font-bold text-yellow-400">' + u.stars + '</p><p class="text-gray-500">Stars</p></div>' +
+            '<div><p class="text-sm font-bold text-purple-400">' + u.games_played + '</p><p class="text-gray-500">Games</p></div>' +
+          '</div>' +
+          '<p class="text-[10px] text-gray-500 mt-2">Last seen: ' + lastActive + '</p>' +
+        '</div>';
+      }).join('');
+
+      // Hide checkbox handler
+      cardsEl.querySelectorAll('.rc-hide-cb').forEach(function(cb) {
+        cb.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (cb.checked) {
+            const uid = cb.getAttribute('data-uid');
+            const hidden = getHiddenRcUsers();
+            if (hidden.indexOf(uid) === -1) {
+              hidden.push(uid);
+              setHiddenRcUsers(hidden);
+              renderReturnCustomers(allUsers);
+            }
+          }
+        });
+      });
+
+      // Prevent card click when clicking the label
+      cardsEl.querySelectorAll('.rc-hide-label').forEach(function(label) {
+        label.addEventListener('click', function(e) { e.stopPropagation(); });
+      });
+
+      // Click on a card opens the detail panel
+      cardsEl.querySelectorAll('.rc-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          const uid = card.getAttribute('data-uid');
+          openDetailPanel(uid);
+        });
+      });
+    }
+
+    // Toggle Return Customers panel
+    document.getElementById('rc-toggle').addEventListener('click', function() {
+      const content = document.getElementById('rc-content');
+      const btn = document.getElementById('rc-toggle');
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        btn.textContent = 'Hide';
+      } else {
+        content.classList.add('hidden');
+        btn.textContent = 'Show';
+      }
+    });
+
+    // Unhide all hidden return customers
+    document.getElementById('rc-reset-hidden').addEventListener('click', function() {
+      localStorage.removeItem(RC_HIDDEN_KEY);
+      renderReturnCustomers(allUsers);
+    });
 
     // --- Detail Panel ---
     async function openDetailPanel(userId) {

@@ -45,7 +45,7 @@ test.describe('Releases Page — Positive', () => {
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(8);
+    expect(count).toBe(13);
     const content = await firstArticle.textContent();
     expect(content).toContain('WOTD enriched content');
     expect(content).toContain('WOTD date navigation');
@@ -55,6 +55,11 @@ test.describe('Releases Page — Positive', () => {
     expect(content).toContain('Collins link updated');
     expect(content).toContain('New tests');
     expect(content).toContain('Enrichment script');
+    expect(content).toContain('Admin WOTD');
+    expect(content).toContain('Admin WOTD sorting');
+    expect(content).toContain('WOTD Admin API');
+    expect(content).toContain('WOTD Explore button');
+    expect(content).toContain('25 WOTD admin sorting tests');
   });
 
   test('v1.11.1 contains code references for API and script', async ({ page }) => {
@@ -62,9 +67,10 @@ test.describe('Releases Page — Positive', () => {
     const firstArticle = page.locator('article').first();
     const codeElements = firstArticle.locator('code');
     const count = await codeElements.count();
-    expect(count).toBe(2);
+    expect(count).toBe(3);
     await expect(codeElements.nth(0)).toContainText('/api/wotd?date=YYYY-MM-DD');
     await expect(codeElements.nth(1)).toContainText('scripts/enrich-wotd.mjs');
+    await expect(codeElements.nth(2)).toContainText('/api/wotd-admin');
   });
 
   test('v1.11.0 release entry is present as second entry', async ({ page }) => {

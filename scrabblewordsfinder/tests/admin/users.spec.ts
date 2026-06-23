@@ -622,3 +622,444 @@ test.describe('Admin Users Page — Activity Tab Rendering — Negative', () => 
     expect(errors).toHaveLength(0);
   });
 });
+
+
+test.describe('Admin Users Page — Return Customers Panel — Positive', () => {
+
+  test('return customers panel exists in the DOM', async ({ page }) => {
+    await page.goto(PAGE);
+    const panel = page.locator('#return-customers-panel');
+    await expect(panel).toHaveCount(1);
+    await expect(panel).toBeVisible();
+  });
+
+  test('panel has correct heading with icon and count badge', async ({ page }) => {
+    await page.goto(PAGE);
+    const heading = page.locator('#return-customers-panel h2');
+    await expect(heading).toContainText('Return Customers');
+    const icon = heading.locator('span.text-pink-400');
+    await expect(icon).toHaveText('↩');
+    const badge = page.locator('#rc-count');
+    await expect(badge).toBeVisible();
+  });
+
+  test('panel has description text explaining the criteria', async ({ page }) => {
+    await page.goto(PAGE);
+    const desc = page.locator('#return-customers-panel > p.text-xs');
+    await expect(desc).toContainText('2 or more distinct days');
+  });
+
+  test('rc-cards container exists for card rendering', async ({ page }) => {
+    await page.goto(PAGE);
+    const cards = page.locator('#rc-cards');
+    await expect(cards).toBeVisible();
+  });
+
+  test('rc-count badge updates after data loads', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForTimeout(4000);
+    const badge = page.locator('#rc-count');
+    const text = await badge.textContent();
+    // Badge should update from initial '—' to either a number or remain '—' if 0
+    expect(text?.trim()).toMatch(/^\d+$|^—$/);
+  });
+
+  test('hide button toggles content visibility', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForTimeout(2000);
+    const toggle = page.locator('#rc-toggle');
+    await expect(toggle).toBeVisible();
+    await expect(toggle).toContainText('Hide');
+    // Click to hide
+    await toggle.click();
+    const content = page.locator('#rc-content');
+    await expect(content).toBeHidden();
+    // Button text should change to Show
+    await expect(toggle).toContainText('Show');
+    // Click to show again
+    await toggle.click();
+    await expect(content).toBeVisible();
+    await expect(toggle).toContainText('Hide');
+  });
+
+  test('panel has pink border styling', async ({ page }) => {
+    await page.goto(PAGE);
+    const panel = page.locator('#return-customers-panel');
+    await expect(panel).toHaveClass(/border-pink-800/);
+  });
+
+  test('cards grid uses responsive columns', async ({ page }) => {
+    await page.goto(PAGE);
+    const grid = page.locator('#rc-cards');
+    await expect(grid).toHaveClass(/grid-cols-1/);
+    await expect(grid).toHaveClass(/lg:grid-cols-3/);
+  });
+});
+
+test.describe('Admin Users Page — Return Customers Unhide All — Positive', () => {
+
+  test('rc-reset-hidden button exists in the DOM', async ({ page }) => {
+    await page.goto(PAGE);
+    const btn = page.locator('#rc-reset-hidden');
+    await expect(btn).toHaveCount(1);
+  });
+
+  test('rc-reset-hidden button is hidden by default (no hidden users)', async ({ page }) => {
+    await page.goto(PAGE);
+    // Clear any hidden state first
+    await page.evaluate(() => localStorage.removeItem('swf-admin-rc-hidden'));
+    await page.reload();
+    await page.waitForTimeout(3000);
+    const btn = page.locator('#rc-reset-hidden');
+    await expect(btn).toHaveClass(/hidden/);
+  });
+
+  test('rc-reset-hidden button becomes visible when users are hidden', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cards = document.getElementById('rc-cards');
+      return cards && cards.querySelectorAll('.rc-card').length > 0;
+    }, { timeout: 6000 });
+
+    // Simulate hiding a user via localStorage
+    await page.evaluate(() => {
+      localStorage.setItem('swf-admin-rc-hidden', JSON.stringify(['fake-uid-123']));
+    });
+    await page.reload();
+    await page.waitForTimeout(3000);
+
+    const btn = page.locator('#rc-reset-hidden');
+    // Button should be visible since there's a hidden user
+    await expect(btn).not.toHaveClass(/hidden/);
+    const text = await btn.textContent();
+    expect(text).toContain('Unhide all');
+    expect(text).toContain('1');
+
+    // Clean up
+    await page.evaluate(() => localStorage.removeItem('swf-admin-rc-hidden'));
+  });
+
+  test('clicking rc-reset-hidden clears localStorage and re-renders', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForTimeout(3000);
+
+    // Set hidden users
+    await page.evaluate(() => {
+      localStorage.setItem('swf-admin-rc-hidden', JSON.stringify(['fake-uid-abc', 'fake-uid-def']));
+    });
+    await page.reload();
+    await page.waitForTimeout(3000);
+
+    const btn = page.locator('#rc-reset-hidden');
+    await expect(btn).not.toHaveClass(/hidden/);
+
+    // Click the button
+    await btn.click();
+    await page.waitForTimeout(500);
+
+    // localStorage should be cleared
+    const stored = await page.evaluate(() => localStorage.getItem('swf-admin-rc-hidden'));
+    expect(stored).toBeNull();
+
+    // Button should be hidden again
+    await expect(btn).toHaveClass(/hidden/);
+  });
+
+  test('rc-count badge no longer shows hidden count after unhide all', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForTimeout(3000);
+
+    // Set hidden users
+    await page.evaluate(() => {
+      localStorage.setItem('swf-admin-rc-hidden', JSON.stringify(['fake-uid-xyz']));
+    });
+    await page.reload();
+    await page.waitForTimeout(3000);
+
+    // Badge should show hidden count
+    const badgeBefore = await page.locator('#rc-count').textContent();
+    expect(badgeBefore).toContain('hidden');
+
+    // Click unhide all
+    await page.locator('#rc-reset-hidden').click();
+    await page.waitForTimeout(500);
+
+    // Badge should no longer show hidden text
+    const badgeAfter = await page.locator('#rc-count').textContent();
+    expect(badgeAfter).not.toContain('hidden');
+  });
+});
+
+test.describe('Admin Users Page — Return Customers Unhide All — Negative', () => {
+
+  test('no console errors when clicking unhide all with no hidden users', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(PAGE);
+    await page.evaluate(() => localStorage.removeItem('swf-admin-rc-hidden'));
+    await page.reload();
+    await page.waitForTimeout(3000);
+
+    // Dispatch click event via JS since button is hidden (simulate edge case)
+    await page.evaluate(() => {
+      document.getElementById('rc-reset-hidden')?.click();
+    });
+    await page.waitForTimeout(500);
+    expect(errors).toHaveLength(0);
+  });
+
+  test('no duplicate rc-reset-hidden buttons exist', async ({ page }) => {
+    await page.goto(PAGE);
+    const btns = page.locator('#rc-reset-hidden');
+    await expect(btns).toHaveCount(1);
+  });
+
+  test('page does not crash after rapid unhide all clicks', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(PAGE);
+    await page.waitForTimeout(2000);
+
+    // Set hidden users so button is visible
+    await page.evaluate(() => {
+      localStorage.setItem('swf-admin-rc-hidden', JSON.stringify(['uid-1', 'uid-2', 'uid-3']));
+    });
+    await page.reload();
+    await page.waitForTimeout(3000);
+
+    // Click the button — after first click it hides, so dispatch via JS for subsequent
+    const btn = page.locator('#rc-reset-hidden');
+    await btn.click();
+    await page.waitForTimeout(100);
+    await page.evaluate(() => {
+      document.getElementById('rc-reset-hidden')?.click();
+      document.getElementById('rc-reset-hidden')?.click();
+    });
+    await page.waitForTimeout(500);
+
+    expect(errors).toHaveLength(0);
+    // localStorage should still be cleared
+    const stored = await page.evaluate(() => localStorage.getItem('swf-admin-rc-hidden'));
+    expect(stored).toBeNull();
+  });
+});
+
+test.describe('Admin Users Page — Return Customers Panel — Negative', () => {
+
+  test('no duplicate return customers panels exist', async ({ page }) => {
+    await page.goto(PAGE);
+    const panels = page.locator('#return-customers-panel');
+    await expect(panels).toHaveCount(1);
+  });
+
+  test('no console errors from return customers panel', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(PAGE);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000);
+    expect(errors).toHaveLength(0);
+  });
+
+  test('loading state clears after data fetch', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForTimeout(5000);
+    const cards = page.locator('#rc-cards');
+    const text = await cards.textContent();
+    expect(text).not.toContain('Loading...');
+  });
+
+  test('panel does not crash when toggled rapidly', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(PAGE);
+    await page.waitForTimeout(1000);
+    const toggle = page.locator('#rc-toggle');
+    // Rapid toggle 5 times
+    for (let i = 0; i < 5; i++) {
+      await toggle.click();
+      await page.waitForTimeout(100);
+    }
+    expect(errors).toHaveLength(0);
+    // Content area should still exist in the DOM
+    await expect(page.locator('#rc-content')).toHaveCount(1);
+  });
+
+  test('rc-count badge does not show NaN or error text', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForTimeout(4000);
+    const badge = page.locator('#rc-count');
+    const text = await badge.textContent();
+    expect(text).not.toContain('NaN');
+    expect(text).not.toContain('undefined');
+    expect(text).not.toContain('null');
+    expect(text).not.toContain('error');
+  });
+});
+
+test.describe('Admin Users Page — Return Customer Hide Checkbox (Positive)', () => {
+
+  // Helper: programmatically check the first rc-hide-cb and trigger the click event
+  async function hideFirstCard(page: any) {
+    await page.evaluate(() => {
+      const cb = document.querySelector('#rc-cards .rc-hide-cb') as HTMLInputElement;
+      if (cb) {
+        cb.checked = true;
+        cb.dispatchEvent(new Event('click', { bubbles: false }));
+      }
+    });
+    await page.waitForTimeout(500);
+  }
+
+  test('each return customer card has a hide checkbox', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cards = document.querySelectorAll('#rc-cards .rc-card');
+      return cards.length > 0;
+    }, { timeout: 8000 });
+    const cards = page.locator('#rc-cards .rc-card');
+    const count = await cards.count();
+    if (count > 0) {
+      const checkboxes = page.locator('#rc-cards .rc-hide-cb');
+      await expect(checkboxes).toHaveCount(count);
+    }
+  });
+
+  test('hide checkbox is unchecked by default', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    const firstCb = page.locator('#rc-cards .rc-hide-cb').first();
+    await expect(firstCb).not.toBeChecked();
+  });
+
+  test('checking hide checkbox hides the tile', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    const initialCount = await page.locator('#rc-cards .rc-card').count();
+    if (initialCount > 0) {
+      await hideFirstCard(page);
+      const newCount = await page.locator('#rc-cards .rc-card').count();
+      expect(newCount).toBe(initialCount - 1);
+    }
+  });
+
+  test('hidden user is saved to localStorage', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    const firstUid = await page.locator('#rc-cards .rc-hide-cb').first().getAttribute('data-uid');
+    await hideFirstCard(page);
+    const stored = await page.evaluate(() => localStorage.getItem('swf-admin-rc-hidden'));
+    expect(stored).not.toBeNull();
+    const parsed = JSON.parse(stored!);
+    expect(parsed).toContain(firstUid);
+  });
+
+  test('hidden user remains hidden after page reload', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    const initialCount = await page.locator('#rc-cards .rc-card').count();
+    if (initialCount > 0) {
+      const firstUid = await page.locator('#rc-cards .rc-hide-cb').first().getAttribute('data-uid');
+      await hideFirstCard(page);
+
+      // Reload
+      await page.goto(PAGE);
+      await page.waitForFunction(() => {
+        const el = document.getElementById('rc-cards');
+        return el && !el.innerHTML.includes('Loading');
+      }, { timeout: 8000 });
+
+      // Check the hidden user is not present
+      const uids = await page.locator('#rc-cards .rc-card').evaluateAll(cards =>
+        cards.map(c => c.getAttribute('data-uid'))
+      );
+      expect(uids).not.toContain(firstUid);
+    }
+  });
+
+  test('rc-count badge shows hidden count in parentheses', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    await hideFirstCard(page);
+    const countText = await page.locator('#rc-count').textContent();
+    expect(countText).toContain('hidden');
+  });
+
+  test('unhide all button appears after hiding a user', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    await hideFirstCard(page);
+    await expect(page.locator('#rc-reset-hidden')).toBeVisible();
+  });
+
+  test('clicking unhide all restores all hidden users', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    const initialCount = await page.locator('#rc-cards .rc-card').count();
+    if (initialCount > 0) {
+      await hideFirstCard(page);
+      await page.locator('#rc-reset-hidden').click();
+      await page.waitForTimeout(500);
+      const restoredCount = await page.locator('#rc-cards .rc-card').count();
+      expect(restoredCount).toBe(initialCount);
+    }
+  });
+});
+
+test.describe('Admin Users Page — Return Customer Hide Checkbox (Negative)', () => {
+
+  async function hideFirstCard(page: any) {
+    await page.evaluate(() => {
+      const cb = document.querySelector('#rc-cards .rc-hide-cb') as HTMLInputElement;
+      if (cb) {
+        cb.checked = true;
+        cb.dispatchEvent(new Event('click', { bubbles: false }));
+      }
+    });
+    await page.waitForTimeout(500);
+  }
+
+  test('hide checkbox does not trigger the detail panel', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    await hideFirstCard(page);
+    // Detail panel should still be hidden
+    await expect(page.locator('#user-detail-panel')).toBeHidden();
+  });
+
+  test('no console errors when hiding users', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cbs = document.querySelectorAll('#rc-cards .rc-hide-cb');
+      return cbs.length > 0;
+    }, { timeout: 8000 });
+    await hideFirstCard(page);
+    expect(errors).toHaveLength(0);
+  });
+});
