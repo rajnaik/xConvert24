@@ -2,6 +2,7 @@
 import packageJson from '../../package.json';
 import CookieConsent from "../components/CookieConsent.astro";
 import Header from "../components/Header.astro";
+import AdUnit from "../components/AdUnit.astro";
 
 interface Props {
   title: string;
@@ -15,6 +16,35 @@ interface Props {
 const VERSION = packageJson.version;
 const { title, description = 'Free Scrabble Word Finder — find the highest-scoring words from your tiles instantly. No sign-up needed.', keywords = 'scrabble word finder, scrabble solver, word finder, scrabble cheat, anagram solver' , showHeader = true, showSectionLinks = false, noindex = false } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinder.com').href;
+const isAdmin = Astro.url.pathname.startsWith('/admin');
+
+// Fetch AdSense toggle — KV cache first, D1 fallback (defaults to ON)
+let adsenseEnabled = true;
+try {
+  const { env } = await import('cloudflare:workers');
+  const kv = (env as any).SESSION;
+  const db = (env as any).DB;
+
+  // Try KV cache first (fast, no DB round-trip)
+  if (kv) {
+    const cached = await kv.get('adsense-status');
+    if (cached !== null) {
+      adsenseEnabled = cached !== 'OFF';
+    } else if (db) {
+      // Cache miss — read from DB and populate KV
+      const row = await db.prepare('SELECT adsense FROM site_status WHERE id = 1').first();
+      if (row) {
+        adsenseEnabled = row.adsense !== 'OFF';
+        await kv.put('adsense-status', row.adsense || 'ON');
+      }
+    }
+  } else if (db) {
+    // No KV available (local dev) — fall back to DB
+    const row = await db.prepare('SELECT adsense FROM site_status WHERE id = 1').first();
+    if (row && row.adsense === 'OFF') adsenseEnabled = false;
+  }
+} catch { /* default to enabled if DB unavailable */ }
+const showAds = adsenseEnabled && !isAdmin;
 ---
 
 <!doctype html>
@@ -40,6 +70,10 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
     <meta property="og:image" content="https://www.scrabblewordsfinder.com/social-card.svg" />
     <meta name="twitter:image" content="https://www.scrabblewordsfinder.com/social-card.svg" />
     <title>{title}</title>
+    {/* AdSense — manual placements (skip admin pages and when disabled) */}
+    {showAds && (
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317" crossorigin="anonymous"></script>
+    )}
     <!-- Google tag (gtag.js) -->
     <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-HYBGD6YJHW"></script>
     <script is:inline>
@@ -351,7 +385,38 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://www.scrabblewordsfinde
     })();
     </script>
 
-    <slot />
+    {/* Banner ad row — full width between header and content (public pages only) */}
+    {showAds && (
+      <div class="hidden lg:flex justify-center py-3 border-b border-gray-800/50">
+        <AdUnit format="banner" slot="4433159473" />
+      </div>
+    )}
+
+    {/* 3-column layout: left skyscraper | content | right skyscraper */}
+    {!isAdmin ? (
+      <div class="flex justify-center gap-0">
+        {/* Left square ad — hidden on mobile/tablet */}
+        {showAds && (
+          <aside class="hidden xl:flex flex-col items-center pt-6 w-[200px] shrink-0">
+            <AdUnit format="rectangle" slot="6908113726" />
+          </aside>
+        )}
+
+        {/* Main content */}
+        <main class="flex-1 min-w-0 max-w-6xl">
+          <slot />
+        </main>
+
+        {/* Right skyscraper — hidden on mobile/tablet */}
+        {showAds && (
+          <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0">
+            <AdUnit format="skyscraper" slot="2761553378" />
+          </aside>
+        )}
+      </div>
+    ) : (
+      <slot />
+    )}
 
     <!-- Heartbeat — pings /api/heartbeat/ every 30s for live session tracking -->
     <script is:inline>

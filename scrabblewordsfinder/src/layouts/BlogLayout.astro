@@ -2,6 +2,7 @@
 import packageJson from '../../package.json';
 import CookieConsent from "../components/CookieConsent.astro";
 import Header from "../components/Header.astro";
+import AdUnit from "../components/AdUnit.astro";
 
 interface Props {
   title: string;
@@ -30,6 +31,34 @@ const pageTitle = title.split('—')[0].trim();
 if (pathParts.length > 1 && pathParts[0] === 'blog') {
   breadcrumbs.push({ name: pageTitle, url: canonicalURL });
 }
+
+// Fetch AdSense toggle — KV cache first, D1 fallback (defaults to ON)
+let adsenseEnabled = true;
+try {
+  const { env } = await import('cloudflare:workers');
+  const kv = (env as any).SESSION;
+  const db = (env as any).DB;
+
+  // Try KV cache first (fast, no DB round-trip)
+  if (kv) {
+    const cached = await kv.get('adsense-status');
+    if (cached !== null) {
+      adsenseEnabled = cached !== 'OFF';
+    } else if (db) {
+      // Cache miss — read from DB and populate KV
+      const row = await db.prepare('SELECT adsense FROM site_status WHERE id = 1').first();
+      if (row) {
+        adsenseEnabled = row.adsense !== 'OFF';
+        await kv.put('adsense-status', row.adsense || 'ON');
+      }
+    }
+  } else if (db) {
+    // No KV available (local dev) — fall back to DB
+    const row = await db.prepare('SELECT adsense FROM site_status WHERE id = 1').first();
+    if (row && row.adsense === 'OFF') adsenseEnabled = false;
+  }
+} catch { /* default to enabled if DB unavailable */ }
+const showAds = adsenseEnabled;
 ---
 
 <!doctype html>
@@ -78,6 +107,10 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="https://www.scrabblewordsfinder.com/social-card.svg" />
     <title>{title}</title>
+    {/* AdSense — manual placements (controlled by DB toggle) */}
+    {showAds && (
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317" crossorigin="anonymous"></script>
+    )}
     <!-- Google tag (gtag.js) -->
     <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-HYBGD6YJHW"></script>
     <script is:inline>
@@ -276,7 +309,34 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     })();
     </script>
 
-    <slot />
+    {/* Banner ad row — full width between header and content */}
+    {showAds && (
+      <div class="hidden lg:flex justify-center py-3 border-b border-gray-800/50">
+        <AdUnit format="banner" />
+      </div>
+    )}
+
+    {/* 3-column layout: left skyscraper | content | right skyscraper */}
+    <div class="flex justify-center gap-0">
+      {/* Left skyscraper — hidden on mobile/tablet */}
+      {showAds && (
+        <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0">
+          <AdUnit format="skyscraper" />
+        </aside>
+      )}
+
+      {/* Main content */}
+      <main class="flex-1 min-w-0 max-w-4xl">
+        <slot />
+      </main>
+
+      {/* Right skyscraper — hidden on mobile/tablet */}
+      {showAds && (
+        <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0">
+          <AdUnit format="skyscraper" />
+        </aside>
+      )}
+    </div>
 
     <!-- Footer -->
 

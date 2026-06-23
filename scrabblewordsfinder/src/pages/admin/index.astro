@@ -26,7 +26,7 @@ import '../../styles/global.css';
         <span id="status-indicator" class="inline-block w-3 h-3 rounded-full bg-gray-600 animate-pulse"></span>
         Site Status
       </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <!-- Status -->
         <div class="rounded-lg bg-gray-800/60 p-4">
           <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Status</p>
@@ -38,6 +38,17 @@ import '../../styles/global.css';
           <div>
             <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Active Logo</p>
             <p class="text-sm font-medium text-white" id="widget-logo-label">—</p>
+          </div>
+        </div>
+        <!-- AdSense Toggle -->
+        <div class="rounded-lg bg-gray-800/60 p-4">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">AdSense</p>
+          <div class="flex items-center gap-3 mt-1">
+            <button id="adsense-toggle-btn" type="button" role="switch" aria-checked="true" aria-label="Toggle AdSense"
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-green-500 transition-colors focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 focus:ring-offset-gray-900">
+              <span class="pointer-events-none inline-block h-5 w-5 translate-x-5 transform rounded-full bg-white shadow transition-transform"></span>
+            </button>
+            <span id="adsense-status-label" class="text-sm font-medium text-green-400">ON</span>
           </div>
         </div>
         <!-- Last Updated -->
@@ -270,6 +281,51 @@ import '../../styles/global.css';
       red: '🔴 Red',
     };
 
+    function setAdsenseToggleUI(isOn: boolean) {
+      const btn = document.getElementById('adsense-toggle-btn')!;
+      const knob = btn.querySelector('span')!;
+      const label = document.getElementById('adsense-status-label')!;
+      btn.setAttribute('aria-checked', String(isOn));
+      if (isOn) {
+        btn.classList.remove('bg-gray-600');
+        btn.classList.add('bg-green-500');
+        knob.classList.remove('translate-x-0');
+        knob.classList.add('translate-x-5');
+        label.textContent = 'ON';
+        label.classList.remove('text-gray-400');
+        label.classList.add('text-green-400');
+      } else {
+        btn.classList.remove('bg-green-500');
+        btn.classList.add('bg-gray-600');
+        knob.classList.remove('translate-x-5');
+        knob.classList.add('translate-x-0');
+        label.textContent = 'OFF';
+        label.classList.remove('text-green-400');
+        label.classList.add('text-gray-400');
+      }
+    }
+
+    async function toggleAdsense() {
+      const btn = document.getElementById('adsense-toggle-btn')!;
+      const currentlyOn = btn.getAttribute('aria-checked') === 'true';
+      const newVal = currentlyOn ? 'OFF' : 'ON';
+      // Optimistic UI update
+      setAdsenseToggleUI(!currentlyOn);
+      try {
+        const res = await fetch('/api/site-status', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ adsense: newVal }),
+        });
+        if (!res.ok) throw new Error('Failed to update');
+      } catch {
+        // Revert on failure
+        setAdsenseToggleUI(currentlyOn);
+      }
+    }
+
+    document.getElementById('adsense-toggle-btn')!.addEventListener('click', toggleAdsense);
+
     async function loadSiteStatus() {
       try {
         const res = await fetch('/api/site-status');
@@ -291,6 +347,10 @@ import '../../styles/global.css';
         const logoLabel = document.getElementById('widget-logo-label')!;
         logoImg.src = `/logo-options/option-${data.logo_option || 1}.svg`;
         logoLabel.textContent = `Option ${data.logo_option || 1}`;
+
+        // AdSense toggle
+        const adsenseOn = data.adsense !== 'OFF';
+        setAdsenseToggleUI(adsenseOn);
 
         // Updated
         const updatedEl = document.getElementById('widget-updated')!;

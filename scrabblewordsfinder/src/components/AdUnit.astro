@@ -1,0 +1,74 @@
+---
+/**
+ * AdUnit.astro — Reusable Google AdSense manual ad placement
+ * 
+ * Props:
+ *   format: 'skyscraper' | 'banner' | 'rectangle' | 'responsive' (default: 'responsive')
+ *   slot: string — the data-ad-slot ID from AdSense dashboard (placeholder until created)
+ *   className: string — additional CSS classes
+ * 
+ * Usage:
+ *   <AdUnit format="skyscraper" slot="1234567890" />
+ *   <AdUnit format="banner" slot="0987654321" />
+ */
+
+interface Props {
+  format?: 'skyscraper' | 'banner' | 'rectangle' | 'responsive';
+  slot?: string;
+  className?: string;
+}
+
+const { format = 'responsive', slot = '', className = '' } = Astro.props;
+
+const CLIENT_ID = 'ca-pub-8890486330870317';
+
+// Ad format dimensions and styles
+const formatStyles: Record<string, { width: string; height: string; display: string }> = {
+  skyscraper: { width: '160px', height: '600px', display: 'inline-block' },
+  banner: { width: '728px', height: '90px', display: 'inline-block' },
+  rectangle: { width: '336px', height: '280px', display: 'inline-block' },
+  responsive: { width: '100%', height: 'auto', display: 'block' },
+};
+
+const style = formatStyles[format] || formatStyles.responsive;
+// All ad units from Raj use data-ad-format="auto" + responsive=true, so always use responsive display
+const isResponsive = true;
+---
+
+<div class:list={['ad-unit', `ad-unit--${format}`, className]} data-ad-format={format}>
+  {slot ? (
+    <>
+      <ins
+        class="adsbygoogle"
+        style={isResponsive
+          ? 'display:block'
+          : `display:${style.display};width:${style.width};height:${style.height}`
+        }
+        data-ad-client={CLIENT_ID}
+        data-ad-slot={slot}
+        {...(isResponsive ? { 'data-ad-format': 'auto', 'data-full-width-responsive': 'true' } : {})}
+      ></ins>
+      <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </>
+  ) : (
+    <!-- Placeholder: ad slot not configured yet -->
+    <div
+      class="flex items-center justify-center border border-dashed border-gray-700 rounded-lg text-gray-600 text-xs"
+      style={`width:${style.width};height:${style.height};max-width:100%;`}
+    >
+      <span>Ad: {format}</span>
+    </div>
+  )}
+</div>
+
+<style>
+  .ad-unit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ad-unit--skyscraper {
+    position: sticky;
+    top: 1rem;
+  }
+</style>

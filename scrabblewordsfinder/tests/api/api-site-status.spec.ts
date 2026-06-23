@@ -51,6 +51,16 @@ test.describe('API — /api/site-status GET', () => {
     expect(typeof body.updated_at).toBe('string');
   });
 
+  test('GET /api/site-status includes adsense field', async ({ request }) => {
+    const response = await request.get('/api/site-status');
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect('adsense' in body).toBeTruthy();
+    if (body.adsense !== null) {
+      expect(['ON', 'OFF']).toContain(body.adsense);
+    }
+  });
+
   test('GET /api/site-status includes updated_by field', async ({ request }) => {
     const response = await request.get('/api/site-status');
     expect(response.status()).toBe(200);
@@ -159,6 +169,42 @@ test.describe('API — /api/site-status PUT validation', () => {
     expect(response.status()).toBe(200);
     const body = await response.json();
     expect(body.banner_id).toBeNull();
+  });
+
+  test('PUT /api/site-status accepts adsense ON', async ({ request }) => {
+    const response = await request.put('/api/site-status', {
+      data: { adsense: 'ON', updated_by: 'playwright-test' },
+    });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.adsense).toBe('ON');
+  });
+
+  test('PUT /api/site-status accepts adsense OFF', async ({ request }) => {
+    const response = await request.put('/api/site-status', {
+      data: { adsense: 'OFF', updated_by: 'playwright-test' },
+    });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.adsense).toBe('OFF');
+  });
+
+  test('PUT /api/site-status accepts adsense case-insensitive (lowercase on)', async ({ request }) => {
+    const response = await request.put('/api/site-status', {
+      data: { adsense: 'on', updated_by: 'playwright-test' },
+    });
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.adsense).toBe('ON');
+  });
+
+  test('PUT /api/site-status rejects invalid adsense value', async ({ request }) => {
+    const response = await request.put('/api/site-status', {
+      data: { adsense: 'MAYBE' },
+    });
+    expect(response.status()).toBe(400);
+    const body = await response.json();
+    expect(body.error).toContain("adsense must be 'ON' or 'OFF'");
   });
 
   test('PUT /api/site-status updates updated_at on change', async ({ request }) => {

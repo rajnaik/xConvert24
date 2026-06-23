@@ -4,8 +4,8 @@ import { env } from 'cloudflare:workers';
 /**
  * /api/site-status — Read and update site status (single-row table)
  *
- * GET  /api/site-status  → returns { status, logo_option, banner_option, banner_id, updated_at, updated_by }
- * PUT  /api/site-status  → update any fields (status, logo_option, banner_option, banner_id, updated_by)
+ * GET  /api/site-status  → returns { status, logo_option, banner_option, banner_id, adsense, updated_at, updated_by }
+ * PUT  /api/site-status  → update any fields (status, logo_option, banner_option, banner_id, adsense, updated_by)
  */
 
 export const GET: APIRoute = async () => {
@@ -83,6 +83,13 @@ export const PUT: APIRoute = async ({ request }) => {
       }
     }
 
+    if (body.adsense !== undefined) {
+      const val = String(body.adsense).toUpperCase();
+      if (val !== 'ON' && val !== 'OFF') return jsonError("adsense must be 'ON' or 'OFF'", 400);
+      updates.push('adsense = ?');
+      params.push(val);
+    }
+
     // Only accept explicit updated_by when not a logo change (logo changes use auth email)
     if (body.updated_by !== undefined && body.logo_option === undefined) {
       updates.push('updated_by = ?');
@@ -95,6 +102,17 @@ export const PUT: APIRoute = async ({ request }) => {
 
     const sql = `UPDATE site_status SET ${updates.join(', ')} WHERE id = 1`;
     await db.prepare(sql).bind(...params).run();
+
+    // Sync adsense value to KV cache if it was changed
+    if (body.adsense !== undefined) {
+      try {
+        const kv = (env as any).SESSION;
+        if (kv) {
+          const val = String(body.adsense).toUpperCase();
+          await kv.put('adsense-status', val);
+        }
+      } catch { /* KV write failure is non-fatal */ }
+    }
 
     // Return updated row
     const row = await db.prepare('SELECT * FROM site_status WHERE id = 1').first();

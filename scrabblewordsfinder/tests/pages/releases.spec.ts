@@ -32,21 +32,77 @@ test.describe('Releases Page — Positive', () => {
     expect(firstText).toMatch(/v\d+\.\d+\.\d+/);
   });
 
-  test('v1.11.3 release entry is present and is the latest', async ({ page }) => {
+  test('v1.11.4 release entry is present and is the latest', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const heading = firstArticle.locator('h2');
+    await expect(heading).toContainText('v1.11.4');
+    await expect(heading).toContainText('June 23, 2026');
+  });
+
+  test('v1.11.4 lists all key features', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const items = firstArticle.locator('ul li');
+    const count = await items.count();
+    expect(count).toBe(7);
+    const content = await firstArticle.textContent();
+    expect(content).toContain('Blog batch 12');
+    expect(content).toContain('StitchBlogs pipeline');
+    expect(content).toContain('20 new inbound links');
+    expect(content).toContain('Admin users page');
+    expect(content).toContain('Admin clicks');
+    expect(content).toContain('stitch-slugs.py');
+    expect(content).toContain('558 posts');
+  });
+
+  test('v1.11.4 contains code references for stitch scripts', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const codeElements = firstArticle.locator('code');
+    const count = await codeElements.count();
+    expect(count).toBe(2);
+    await expect(codeElements.nth(0)).toContainText('stitch-slugs.py');
+    await expect(codeElements.nth(1)).toContainText('stitch-inject.py');
+  });
+
+  test('v1.11.4 mentions Is X a Scrabble Word posts', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const content = await firstArticle.textContent();
+    expect(content).toContain('LI');
+    expect(content).toContain('NA');
+    expect(content).toContain('NU');
+    expect(content).toContain('PO');
+    expect(content).toContain('SH');
+    expect(content).toContain('TI');
+  });
+
+  test('v1.11.4 mentions prefix guides', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const content = await firstArticle.textContent();
+    expect(content).toContain('BI');
+    expect(content).toContain('MONO');
+    expect(content).toContain('POLY');
+    expect(content).toContain('TRI');
+  });
+
+  test('v1.11.3 release entry is present as second entry', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const secondArticle = page.locator('article').nth(1);
+    const heading = secondArticle.locator('h2');
     await expect(heading).toContainText('v1.11.3');
     await expect(heading).toContainText('June 23, 2026');
   });
 
   test('v1.11.3 lists all key features', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const firstArticle = page.locator('article').first();
-    const items = firstArticle.locator('ul li');
+    const secondArticle = page.locator('article').nth(1);
+    const items = secondArticle.locator('ul li');
     const count = await items.count();
     expect(count).toBe(9);
-    const content = await firstArticle.textContent();
+    const content = await secondArticle.textContent();
     expect(content).toContain('BlogCrossLinks component');
     expect(content).toContain('Blog gate system');
     expect(content).toContain('New category landing pages');
@@ -58,60 +114,26 @@ test.describe('Releases Page — Positive', () => {
     expect(content).toContain('New tests');
   });
 
-  test('v1.11.3 contains code references for scripts and gate', async ({ page }) => {
+  test('v1.11.2 release entry is present as third entry', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const firstArticle = page.locator('article').first();
-    const codeElements = firstArticle.locator('code');
-    const count = await codeElements.count();
-    expect(count).toBe(3);
-    await expect(codeElements.nth(0)).toContainText('blogGate.ts');
-    await expect(codeElements.nth(1)).toContainText('scripts/check-orphans.py');
-    await expect(codeElements.nth(2)).toContainText('scripts/bulk-seo-fix.py');
-  });
-
-  test('v1.11.3 mentions category landing pages', async ({ page }) => {
-    await page.goto(`${BASE}/releases/`);
-    const firstArticle = page.locator('article').first();
-    const content = await firstArticle.textContent();
-    expect(content).toContain('Vocabulary');
-    expect(content).toContain('Word Patterns');
-    expect(content).toContain('Prefix Guides');
-    expect(content).toContain('Fun Facts');
-    expect(content).toContain('Words Containing');
-    expect(content).toContain('Words Ending');
-  });
-
-  test('v1.11.3 mentions Is X a Scrabble Word posts', async ({ page }) => {
-    await page.goto(`${BASE}/releases/`);
-    const firstArticle = page.locator('article').first();
-    const content = await firstArticle.textContent();
-    expect(content).toContain('QI');
-    expect(content).toContain('ZA');
-    expect(content).toContain('ZE');
-    expect(content).toContain('QAT');
-    expect(content).toContain('EW');
-  });
-
-  test('v1.11.2 release entry is present as second entry', async ({ page }) => {
-    await page.goto(`${BASE}/releases/`);
-    const secondArticle = page.locator('article').nth(1);
-    const heading = secondArticle.locator('h2');
+    const thirdArticle = page.locator('article').nth(2);
+    const heading = thirdArticle.locator('h2');
     await expect(heading).toContainText('v1.11.2');
     await expect(heading).toContainText('June 23, 2026');
   });
 
-  test('v1.11.1 release entry is present as third entry', async ({ page }) => {
+  test('v1.11.1 release entry is present as fourth entry', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const thirdArticle = page.locator('article').nth(2);
-    const heading = thirdArticle.locator('h2');
+    const fourthArticle = page.locator('article').nth(3);
+    const heading = fourthArticle.locator('h2');
     await expect(heading).toContainText('v1.11.1');
     await expect(heading).toContainText('June 23, 2026');
   });
 
-  test('v1.11.0 release entry is present as fourth entry', async ({ page }) => {
+  test('v1.11.0 release entry is present as fifth entry', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const fourthArticle = page.locator('article').nth(3);
-    const heading = fourthArticle.locator('h2');
+    const fifthArticle = page.locator('article').nth(4);
+    const heading = fifthArticle.locator('h2');
     await expect(heading).toContainText('v1.11.0');
     await expect(heading).toContainText('June 22, 2026');
   });
@@ -186,18 +208,20 @@ test.describe('Releases Page — Negative', () => {
     expect(text).not.toContain('null');
   });
 
-  test('v1.11.3 does not expose internal admin details', async ({ page }) => {
+  test('v1.11.4 does not expose internal admin details', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const content = await firstArticle.textContent();
-    expect(content).not.toContain('Live Sessions admin');
-    expect(content).not.toContain('Heartbeat API');
-    expect(content).not.toContain('Admin Useful Links');
+    expect(content).not.toContain('click tracking');
+    expect(content).not.toContain('session tracking');
+    expect(content).not.toContain('heartbeat');
     expect(content).not.toContain('visitor monitor');
     expect(content).not.toContain('real-time visitor');
+    expect(content).not.toContain('IP address');
+    expect(content).not.toContain('UUID tracking');
   });
 
-  test('v1.11.3 has no empty list items', async ({ page }) => {
+  test('v1.11.4 has no empty list items', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
@@ -208,7 +232,7 @@ test.describe('Releases Page — Negative', () => {
     }
   });
 
-  test('v1.11.3 date is not in the future', async ({ page }) => {
+  test('v1.11.4 date is not in the future', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstHeading = page.locator('article h2').first();
     const text = await firstHeading.textContent();
@@ -216,5 +240,16 @@ test.describe('Releases Page — Negative', () => {
     expect(match).not.toBeNull();
     const releaseDate = new Date(match![1]);
     expect(releaseDate.getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
+  test('v1.11.3 does not expose internal admin details', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const secondArticle = page.locator('article').nth(1);
+    const content = await secondArticle.textContent();
+    expect(content).not.toContain('Live Sessions admin');
+    expect(content).not.toContain('Heartbeat API');
+    expect(content).not.toContain('Admin Useful Links');
+    expect(content).not.toContain('visitor monitor');
+    expect(content).not.toContain('real-time visitor');
   });
 });
