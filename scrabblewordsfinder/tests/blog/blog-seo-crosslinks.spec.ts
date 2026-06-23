@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
-const BLOG_DIR = path.join(__dirname, '../src/pages/blog');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const BLOG_DIR = path.join(__dirname, '../../src/pages/blog');
 const blogFiles = fs.readdirSync(BLOG_DIR)
   .filter(f => f.endsWith('.astro') && f !== 'index.astro')
   .map(f => f.replace('.astro', ''));

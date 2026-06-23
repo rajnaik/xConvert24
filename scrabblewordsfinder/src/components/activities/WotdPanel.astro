@@ -7,16 +7,26 @@
         </h2>
         <div id="wotd-panel">
           <div class="text-center py-8">
-            <p id="wotd-word" class="text-4xl font-black text-purple-400 tracking-wider mb-3">—</p>
-            <p id="wotd-meaning" class="text-sm text-gray-300 italic mb-4">Loading today's word...</p>
-            <p id="wotd-fact" class="text-xs text-gray-500 mb-4"></p>
+            <p id="wotd-word" class="text-4xl font-black text-purple-400 tracking-wider mb-1">—</p>
+            <p id="wotd-viewing-date" class="text-xs text-purple-300/60 mb-3 font-mono"></p>
+            <p id="wotd-meaning" class="text-sm text-gray-300 italic mb-3">Loading today's word...</p>
+            <p id="wotd-fact" class="text-xs text-gray-500 mb-3"></p>
+            <!-- Enriched content blurb -->
+            <div id="wotd-enriched" class="hidden text-left mx-auto max-w-sm mb-4 space-y-2">
+              <p id="wotd-origin" class="text-xs text-gray-400"><span class="text-purple-400 font-semibold">Origin:</span> <span class="wotd-origin-text"></span></p>
+              <p id="wotd-usage" class="text-xs text-gray-400"><span class="text-blue-400 font-semibold">Example:</span> <span class="wotd-usage-text italic"></span></p>
+              <p id="wotd-spelling" class="text-xs text-gray-400"><span class="text-green-400 font-semibold">Spelling tip:</span> <span class="wotd-spelling-text"></span></p>
+              <p id="wotd-cultural" class="text-xs text-gray-400"><span class="text-amber-400 font-semibold">Did you know?</span> <span class="wotd-cultural-text"></span></p>
+            </div>
             <div class="flex items-center justify-center gap-3">
+              <button id="wotd-prev" class="w-8 h-8 flex items-center justify-center rounded-full border border-purple-600/50 bg-purple-900/20 hover:bg-purple-600/30 hover:border-purple-400 text-purple-300 transition-all text-lg font-bold" title="Previous day">&lsaquo;</button>
               <button id="wotd-add-workbench" class="px-4 py-2 rounded-lg bg-red-600/20 border border-red-500/50 text-sm text-red-400 hover:bg-red-600/40 transition-colors">
                 Save to WordBench ✗
               </button>
               <button id="wotd-fetch-meaning" class="px-3 py-2 rounded-lg bg-blue-600/30 border border-blue-500/50 text-sm text-blue-300 hover:bg-blue-600/50 transition-colors">
                 📖 Lookup
               </button>
+              <button id="wotd-next" class="w-8 h-8 flex items-center justify-center rounded-full border border-purple-600/50 bg-purple-900/20 hover:bg-purple-600/30 hover:border-purple-400 text-purple-300 transition-all text-lg font-bold" title="Next day">&rsaquo;</button>
             </div>
           </div>
           <div class="mt-4 pt-4 border-t border-gray-800">
@@ -124,14 +134,141 @@
     document.getElementById('wotd-meaning').textContent = word.meaning || 'Tap "Lookup" to fetch the meaning';
     document.getElementById('wotd-fact').textContent = word.fun_fact || '';
     document.getElementById('wotd-date').textContent = word.date || new Date().toISOString().split('T')[0];
+    // Enriched content
+    var enrichedEl = document.getElementById('wotd-enriched');
+    var hasEnriched = word.origin || word.usage_example || word.spelling_tip || word.cultural_note;
+    if (hasEnriched && enrichedEl) {
+      enrichedEl.classList.remove('hidden');
+      var originEl = enrichedEl.querySelector('.wotd-origin-text');
+      var usageEl = enrichedEl.querySelector('.wotd-usage-text');
+      var spellingEl = enrichedEl.querySelector('.wotd-spelling-text');
+      var culturalEl = enrichedEl.querySelector('.wotd-cultural-text');
+      if (originEl) originEl.textContent = word.origin || '';
+      if (usageEl) usageEl.textContent = word.usage_example || '';
+      if (spellingEl) spellingEl.textContent = word.spelling_tip || '';
+      if (culturalEl) culturalEl.textContent = word.cultural_note || '';
+      // Hide empty rows
+      document.getElementById('wotd-origin').style.display = word.origin ? '' : 'none';
+      document.getElementById('wotd-usage').style.display = word.usage_example ? '' : 'none';
+      document.getElementById('wotd-spelling').style.display = word.spelling_tip ? '' : 'none';
+      document.getElementById('wotd-cultural').style.display = word.cultural_note ? '' : 'none';
+    } else if (enrichedEl) {
+      enrichedEl.classList.add('hidden');
+    }
     checkWotdInMwb(word.word);
   }
 
   var cached = getWotdCache();
   if (cached) { renderWotd(cached); document.getElementById('wotd-cache-status').textContent = 'from cache'; }
 
+  // Track current viewing date for navigation
+  var wotdCurrentDate = new Date().toISOString().split('T')[0];
+  var wotdToday = wotdCurrentDate;
+
+  // Initial state — disable next button since we start on today
+  (function() {
+    var nextBtn = document.getElementById('wotd-next');
+    if (nextBtn) {
+      nextBtn.disabled = true;
+      nextBtn.classList.add('opacity-30', 'cursor-not-allowed');
+      nextBtn.classList.remove('hover:bg-purple-600/30', 'hover:border-purple-400');
+    }
+  })();
+
+  function updateViewingDate(date) {
+    var el = document.getElementById('wotd-viewing-date');
+    if (!el) return;
+    if (date === wotdToday) {
+      el.textContent = 'Today';
+      el.className = 'text-xs text-purple-300/60 mb-3 font-mono';
+    } else {
+      el.textContent = date;
+      el.className = 'text-xs text-purple-300/60 mb-3 font-mono cursor-pointer hover:text-purple-300';
+      el.title = 'Click to return to today';
+      el.onclick = function() { navigateWotd(wotdToday); };
+    }
+  }
+
+  function navigateWotd(date) {
+    wotdCurrentDate = date;
+    updateViewingDate(date);
+    updateNextBtnState();
+    // Disable nav buttons during fetch
+    var prevBtn = document.getElementById('wotd-prev');
+    var nextBtn = document.getElementById('wotd-next');
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+
+    fetch('/api/wotd/?date=' + date).then(function(r) {
+      if (r.status === 404) {
+        document.getElementById('wotd-word').textContent = '—';
+        document.getElementById('wotd-meaning').textContent = 'No word for this date';
+        document.getElementById('wotd-fact').textContent = '';
+        var enrichedEl = document.getElementById('wotd-enriched');
+        if (enrichedEl) enrichedEl.classList.add('hidden');
+        return;
+      }
+      return r.json();
+    }).then(function(d) {
+      if (d && d.word) {
+        renderWotd(d.word);
+        updateViewingDate(d.word.date || date);
+        // Reset workbench button state
+        var btn = document.getElementById('wotd-add-workbench');
+        if (btn) {
+          btn.textContent = 'Save to WordBench ✗';
+          btn.className = 'px-4 py-2 rounded-lg bg-red-600/20 border border-red-500/50 text-sm text-red-400 hover:bg-red-600/40 transition-colors';
+        }
+        checkWotdInMwb(d.word.word);
+      }
+    }).catch(function() {}).finally(function() {
+      if (prevBtn) prevBtn.disabled = false;
+      if (nextBtn) nextBtn.disabled = false;
+      updateNextBtnState();
+    });
+  }
+
+  // Navigation button handlers
+  function updateNextBtnState() {
+    var nextBtn = document.getElementById('wotd-next');
+    if (!nextBtn) return;
+    if (wotdCurrentDate >= wotdToday) {
+      nextBtn.disabled = true;
+      nextBtn.classList.add('opacity-30', 'cursor-not-allowed');
+      nextBtn.classList.remove('hover:bg-purple-600/30', 'hover:border-purple-400');
+    } else {
+      nextBtn.disabled = false;
+      nextBtn.classList.remove('opacity-30', 'cursor-not-allowed');
+      nextBtn.classList.add('hover:bg-purple-600/30', 'hover:border-purple-400');
+    }
+  }
+
+  document.getElementById('wotd-prev').addEventListener('click', function() {
+    var d = new Date(wotdCurrentDate + 'T12:00:00Z');
+    d.setUTCDate(d.getUTCDate() - 1);
+    navigateWotd(d.toISOString().split('T')[0]);
+  });
+
+  document.getElementById('wotd-next').addEventListener('click', function() {
+    // Don't navigate past today
+    if (wotdCurrentDate >= wotdToday) return;
+    var d = new Date(wotdCurrentDate + 'T12:00:00Z');
+    d.setUTCDate(d.getUTCDate() + 1);
+    // Cap at today
+    var target = d.toISOString().split('T')[0];
+    if (target > wotdToday) target = wotdToday;
+    navigateWotd(target);
+  });
+
   fetch('/api/wotd/').then(function(r) { return r.json(); }).then(function(d) {
-    if (d.word) { renderWotd(d.word); setWotdCache(d.word, d.expiresAt); document.getElementById('wotd-cache-status').textContent = 'live'; }
+    if (d.word) {
+      renderWotd(d.word);
+      setWotdCache(d.word, d.expiresAt);
+      document.getElementById('wotd-cache-status').textContent = 'live';
+      wotdCurrentDate = d.word.date || wotdToday;
+      updateViewingDate(wotdCurrentDate);
+      updateNextBtnState();
+    }
   }).catch(function() {
     if (!cached) document.getElementById('wotd-meaning').textContent = 'Could not load — try refreshing';
     document.getElementById('wotd-cache-status').textContent = 'offline (cached)';

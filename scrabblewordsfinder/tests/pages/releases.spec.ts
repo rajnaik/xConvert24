@@ -45,11 +45,12 @@ test.describe('Releases Page — Positive', () => {
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(17);
+    expect(count).toBe(20);
     // Verify key feature items are listed
     const content = await firstArticle.textContent();
     expect(content).toContain('Cows and Bulls');
     expect(content).toContain('CaB Timer Mode');
+    expect(content).toContain('CaB timer_duration sent to API');
     expect(content).toContain('CaB Game History');
     expect(content).toContain('CaB Star Award');
     expect(content).toContain('StarBar refinements');
@@ -61,6 +62,9 @@ test.describe('Releases Page — Positive', () => {
     expect(content).toContain('Stars & Diamonds management');
     expect(content).toContain('50+ new posts');
     expect(content).toContain('25+ new Playwright tests');
+    expect(content).toContain('WOTD, Daily Anagram, and Daily Rack seeded');
+    expect(content).toContain('988 daily rack entries backfilled');
+    expect(content).toContain('Tech Stack page');
   });
 
   test('v1.10.0 release entry is present as second entry', async ({ page }) => {

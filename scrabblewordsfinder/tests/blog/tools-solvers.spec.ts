@@ -188,9 +188,9 @@ test.describe('Scrabble Word Checker Tools Post — Positive', () => {
     await expect(page).toHaveTitle(/Word Checker/i);
   });
 
-  test('has h1 heading', async ({ page }) => {
+  test('has h1 heading in article', async ({ page }) => {
     await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
-    const h1 = page.locator('h1');
+    const h1 = page.locator('article h1').first();
     await expect(h1).toBeVisible();
     const text = await h1.textContent();
     expect(text!.trim().length).toBeGreaterThan(0);
@@ -198,8 +198,8 @@ test.describe('Scrabble Word Checker Tools Post — Positive', () => {
 
   test('has at least 6 h2 sections', async ({ page }) => {
     await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
-    const h2s = page.locator('h2');
-    await expect(h2s).toHaveCount({ minimum: 6 });
+    const h2Count = await page.locator('h2').count();
+    expect(h2Count).toBeGreaterThanOrEqual(6);
   });
 
   test('has FAQPage JSON-LD schema', async ({ page }) => {
@@ -228,6 +228,71 @@ test.describe('Scrabble Word Checker Tools Post — Positive', () => {
     const ctaLink = page.locator('a[href="/"]');
     await expect(ctaLink.first()).toBeVisible();
   });
+
+  test('card grid has exactly 5 clickable tool cards', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const cardGrid = page.locator('.grid.grid-cols-1.gap-4');
+    const cards = cardGrid.locator('> a');
+    await expect(cards).toHaveCount(5);
+  });
+
+  test('Collins card links to scrabblechecker.collinsdictionary.com', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const collinsCard = page.locator('a[href="https://scrabblechecker.collinsdictionary.com/"]');
+    await expect(collinsCard).toBeVisible();
+    await expect(collinsCard).toHaveAttribute('target', '_blank');
+    await expect(collinsCard).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  test('Merriam-Webster card links to scrabble.merriam-webster.com', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const mwCard = page.locator('a[href="https://scrabble.merriam-webster.com/"]');
+    await expect(mwCard).toBeVisible();
+    await expect(mwCard).toHaveAttribute('target', '_blank');
+    await expect(mwCard).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  test('ScrabbleWordsFinder card links to homepage (/)', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const cardGrid = page.locator('.grid.grid-cols-1.gap-4');
+    const swfCard = cardGrid.locator('a[href="/"]');
+    await expect(swfCard).toBeVisible();
+    await expect(swfCard).toContainText('ScrabbleWordsFinder.com');
+  });
+
+  test('WordFinder card links to wordfinder.yourdictionary.com', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const wfCard = page.locator('a[href="https://wordfinder.yourdictionary.com/scrabble-dictionary/"]');
+    await expect(wfCard).toBeVisible();
+    await expect(wfCard).toHaveAttribute('target', '_blank');
+  });
+
+  test('NASPA card links to scrabbleplayers.org', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const naspaCard = page.locator('a[href="https://scrabbleplayers.org/"]');
+    await expect(naspaCard).toBeVisible();
+    await expect(naspaCard).toHaveAttribute('target', '_blank');
+  });
+
+  test('all tool cards display a favicon image', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const cardGrid = page.locator('.grid.grid-cols-1.gap-4');
+    const favicons = cardGrid.locator('img');
+    await expect(favicons).toHaveCount(5);
+    for (let i = 0; i < 5; i++) {
+      const img = favicons.nth(i);
+      await expect(img).toHaveAttribute('loading', 'lazy');
+      await expect(img).toHaveAttribute('width', '18');
+      await expect(img).toHaveAttribute('height', '18');
+    }
+  });
+
+  test('all tool cards show arrow indicator (↗)', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const cardGrid = page.locator('.grid.grid-cols-1.gap-4');
+    const arrows = cardGrid.locator('span:has-text("↗")');
+    await expect(arrows).toHaveCount(5);
+  });
 });
 
 test.describe('Scrabble Word Checker Tools Post — Negative', () => {
@@ -251,5 +316,42 @@ test.describe('Scrabble Word Checker Tools Post — Negative', () => {
     await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
     const bodyText = await page.locator('article, main').first().textContent();
     expect(bodyText!.length).toBeGreaterThan(2000);
+  });
+
+  test('no card links have empty href', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const cardGrid = page.locator('.grid.grid-cols-1.gap-4');
+    const cards = await cardGrid.locator('> a').all();
+    for (const card of cards) {
+      const href = await card.getAttribute('href');
+      expect(href).toBeTruthy();
+      expect(href!.length).toBeGreaterThan(0);
+    }
+  });
+
+  test('no duplicate card links in grid', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const cardGrid = page.locator('.grid.grid-cols-1.gap-4');
+    const cards = await cardGrid.locator('> a').all();
+    const hrefs: string[] = [];
+    for (const card of cards) {
+      const href = await card.getAttribute('href');
+      hrefs.push(href || '');
+    }
+    const unique = new Set(hrefs);
+    expect(unique.size).toBe(hrefs.length);
+  });
+
+  test('external cards all have rel="noopener noreferrer"', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-word-checker-tools/`);
+    const cardGrid = page.locator('.grid.grid-cols-1.gap-4');
+    const externalCards = cardGrid.locator('a[target="_blank"]');
+    const count = await externalCards.count();
+    expect(count).toBe(4); // 4 external, 1 internal (/)
+    for (let i = 0; i < count; i++) {
+      const rel = await externalCards.nth(i).getAttribute('rel');
+      expect(rel).toContain('noopener');
+      expect(rel).toContain('noreferrer');
+    }
   });
 });
