@@ -1,0 +1,95 @@
+---
+/**
+ * BlogCrossLinks — renders tool icon links next to blog title and a favourite heart.
+ * Adapted for SWF: links to Scrabble tools rather than unit converters.
+ */
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+
+// SWF tool metadata
+const tools: Record<string, { href: string; icon: string }> = {
+  'Word Finder': { href: '/', icon: '🔤' },
+  'Anagram': { href: '/anagram', icon: '🔀' },
+  'Dictionary': { href: '/dictionary', icon: '📖' },
+  'Word of the Day': { href: '/word-of-the-day', icon: '📅' },
+};
+
+// Static cross-link map: blog slug → tool names this post relates to
+const crossLinks: Record<string, string[]> = {
+  'famous-scrabble-controversies': ['Word Finder', 'Dictionary'],
+  'celebrity-scrabble-players': ['Word Finder'],
+  'famous-scrabble-matches': ['Word Finder'],
+  'greatest-scrabble-players': ['Word Finder'],
+  'scrabble-history-origins-great-depression': ['Word Finder'],
+  'official-scrabble-dictionary-guide': ['Word Finder', 'Dictionary'],
+  'collins-official-dictionary': ['Word Finder', 'Dictionary'],
+  'sowpods-dictionary': ['Word Finder', 'Dictionary'],
+  'twl-naspa-dictionary': ['Word Finder', 'Dictionary'],
+  'how-scrabble-dictionaries-update': ['Dictionary'],
+};
+
+const linked = (crossLinks[slug] || []).map(name => ({ name, ...tools[name] })).filter(c => c.href);
+---
+
+<div class="flex items-center gap-3 flex-wrap mb-2 not-prose">
+  <h1 class="text-3xl font-bold text-white">{title}</h1>
+
+  {linked.length > 0 && (
+    <div class="flex items-center gap-1.5 shrink-0">
+      {linked.map(tool => (
+        <a href={tool.href} class="inline-flex items-center gap-1 px-2 py-1 bg-blue-900/20 border border-blue-800 rounded-lg text-xs text-blue-400 hover:bg-blue-900/40 transition-colors" title={tool.name}>
+          <span aria-hidden="true">{tool.icon}</span>
+          <span class="hidden sm:inline">{tool.name}</span>
+        </a>
+      ))}
+    </div>
+  )}
+
+  <button id="blog-fav-btn" class="ml-auto shrink-0 p-2 rounded-lg text-gray-600 hover:text-red-500 hover:bg-red-900/20 transition-colors" aria-label="Add to favourites" title="Add to favourites">
+    <svg id="blog-fav-outline" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+    <svg id="blog-fav-filled" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+  </button>
+</div>
+
+<script>
+  (function() {
+    const FAV_KEY = 'swf-favourites';
+    const path = window.location.pathname.replace(/\/$/, '') || '/';
+    const title = document.querySelector('h1')?.textContent?.trim() || '';
+    const btn = document.getElementById('blog-fav-btn');
+    const outline = document.getElementById('blog-fav-outline');
+    const filled = document.getElementById('blog-fav-filled');
+    if (!btn) return;
+
+    function getFavs() { try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; } }
+    function isFav() { return getFavs().some(function(f) { return f.href === path; }); }
+
+    function render() {
+      if (isFav()) {
+        outline.classList.add('hidden'); filled.classList.remove('hidden');
+        btn.classList.add('text-red-500', 'bg-red-900/20');
+        btn.classList.remove('text-gray-600');
+        btn.setAttribute('title', '❤️ In favourites — click to remove');
+      } else {
+        outline.classList.remove('hidden'); filled.classList.add('hidden');
+        btn.classList.remove('text-red-500', 'bg-red-900/20');
+        btn.classList.add('text-gray-600');
+        btn.setAttribute('title', 'Add to favourites');
+      }
+    }
+
+    btn.addEventListener('click', function() {
+      var favs = getFavs();
+      if (isFav()) { favs = favs.filter(function(f) { return f.href !== path; }); }
+      else { favs.unshift({ name: title, href: path, category: 'Blog', addedAt: Date.now() }); }
+      localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+      render();
+    });
+    render();
+  })();
+</script>

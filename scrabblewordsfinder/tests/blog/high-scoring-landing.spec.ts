@@ -101,6 +101,20 @@ test.describe('High-Scoring Landing Page — Positive', () => {
     }
   });
 
+  test('Related articles section contains new scoring analysis links', async ({ page }) => {
+    await page.goto('/blog/high-scoring/');
+    const newLinks = [
+      '/blog/short-words-high-point-values/',
+      '/blog/long-words-low-point-values/',
+      '/blog/words-worth-over-20-points/',
+      '/blog/words-worth-over-30-points/',
+      '/blog/words-worth-over-40-points/',
+    ];
+    for (const href of newLinks) {
+      await expect(page.locator(`a[href="${href}"]`)).toBeVisible();
+    }
+  });
+
   test('More Categories section with cross-links is present', async ({ page }) => {
     await page.goto('/blog/high-scoring/');
     const moreCats = page.locator('h3:has-text("More Categories")');
