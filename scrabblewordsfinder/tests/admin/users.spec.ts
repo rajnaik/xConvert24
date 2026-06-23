@@ -49,16 +49,18 @@ test.describe('Admin Users Page — Positive', () => {
     await page.goto(PAGE);
     const table = page.locator('table');
     await expect(table).toBeVisible();
-    await expect(table.locator('th')).toHaveCount(10);
+    await expect(table.locator('th')).toHaveCount(12);
     await expect(table.locator('th').nth(1)).toContainText('User ID');
-    await expect(table.locator('th').nth(2)).toContainText('Clicks');
-    await expect(table.locator('th').nth(3)).toContainText('Stars');
-    await expect(table.locator('th').nth(4)).toContainText('Diamonds');
-    await expect(table.locator('th').nth(5)).toContainText('Streak');
-    await expect(table.locator('th').nth(6)).toContainText('Games');
-    await expect(table.locator('th').nth(7)).toContainText('Solver');
-    await expect(table.locator('th').nth(8)).toContainText('Practice');
-    await expect(table.locator('th').nth(9)).toContainText('Last Active');
+    await expect(table.locator('th').nth(2)).toContainText('Location');
+    await expect(table.locator('th').nth(3)).toContainText('Clicks');
+    await expect(table.locator('th').nth(4)).toContainText('Stars');
+    await expect(table.locator('th').nth(5)).toContainText('Diamonds');
+    await expect(table.locator('th').nth(6)).toContainText('Streak');
+    await expect(table.locator('th').nth(7)).toContainText('Games');
+    await expect(table.locator('th').nth(8)).toContainText('Solver');
+    await expect(table.locator('th').nth(9)).toContainText('Practice');
+    await expect(table.locator('th').nth(10)).toContainText('Days');
+    await expect(table.locator('th').nth(11)).toContainText('Last Active');
   });
 
   test('table loads data from API (rows appear or shows no users)', async ({ page }) => {
@@ -88,15 +90,15 @@ test.describe('Admin Users Page — Positive', () => {
 test.describe('Admin Users Page — Sortable Headers', () => {
 
   const sortableColumns = [
-    'user_id', 'clicks', 'stars', 'diamonds',
+    'user_id', 'location', 'clicks', 'stars', 'diamonds',
     'current_streak', 'games_played', 'solver_uses',
-    'practice_words', 'last_active',
+    'practice_words', 'active_days', 'last_active',
   ];
 
-  test('all 9 sortable column headers have data-sort attribute', async ({ page }) => {
+  test('all 11 sortable column headers have data-sort attribute', async ({ page }) => {
     await page.goto(PAGE);
     const sortableHeaders = page.locator('th[data-sort]');
-    await expect(sortableHeaders).toHaveCount(9);
+    await expect(sortableHeaders).toHaveCount(11);
   });
 
   test('each sortable header has a sort-arrow span', async ({ page }) => {
@@ -266,6 +268,8 @@ test.describe('Admin Users Page — Negative', () => {
     if (data.users.length > 0) {
       for (const user of data.users.slice(0, 5)) {
         expect(typeof user.returning).toBe('boolean');
+        expect(typeof user.active_days).toBe('number');
+        expect(user.active_days).toBeGreaterThanOrEqual(0);
       }
     }
   });
@@ -342,7 +346,7 @@ test.describe('Admin Users Page — Detail Panel — Positive', () => {
 
 test.describe('Admin Users Page — Detail Panel API', () => {
 
-  test('clicking a user row calls /api/users/{id} without trailing slash', async ({ page }) => {
+  test('clicking a user row calls /api/users/{id} detail endpoint', async ({ page }) => {
     await page.goto(PAGE);
     await page.waitForFunction(() => {
       const tbody = document.getElementById('users-tbody');
@@ -357,8 +361,7 @@ test.describe('Admin Users Page — Detail Panel API', () => {
       firstRow.click(),
     ]);
 
-    // Verify the URL does NOT end with a trailing slash (userId is last segment)
-    expect(apiResponse.url()).toMatch(/\/api\/users\/[^/]+$/);
+    expect(apiResponse.url()).toContain('/api/users/' + encodeURIComponent(uid!));
     expect(apiResponse.status()).toBe(200);
   });
 
@@ -373,7 +376,7 @@ test.describe('Admin Users Page — Detail Panel API', () => {
     const uid = await firstRow.getAttribute('data-uid');
 
     const data = await page.evaluate(async (userId) => {
-      const res = await fetch('/api/users/' + encodeURIComponent(userId!));
+      const res = await fetch('/api/users/' + encodeURIComponent(userId!) + '/');
       return { ok: res.ok, status: res.status, body: await res.json() };
     }, uid);
 
@@ -1061,5 +1064,342 @@ test.describe('Admin Users Page — Return Customer Hide Checkbox (Negative)', (
     }, { timeout: 8000 });
     await hideFirstCard(page);
     expect(errors).toHaveLength(0);
+  });
+});
+
+test.describe('Admin Users Page — Return Customers Location Display — Positive', () => {
+
+  test('user card renders location span element inside the ID span', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cards = document.getElementById('rc-cards');
+      return cards && cards.querySelectorAll('.rc-card').length > 0;
+    }, { timeout: 8000 });
+
+    // Every card should have a nested span for location (even if empty string)
+    const firstCard = page.locator('.rc-card').first();
+    const locSpan = firstCard.locator('span.text-gray-500.text-\\[9px\\].ml-1');
+    await expect(locSpan).toHaveCount(1);
+  });
+
+  test('location span shows parenthesized text when user has location data', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cards = document.getElementById('rc-cards');
+      return cards && cards.querySelectorAll('.rc-card').length > 0;
+    }, { timeout: 8000 });
+
+    // Collect all location span texts
+    const locTexts = await page.locator('.rc-card span.text-\\[9px\\].ml-1').allTextContents();
+    // At least verify the format: either empty OR matches " (something)"
+    for (const txt of locTexts) {
+      const trimmed = txt.trim();
+      if (trimmed.length > 0) {
+        expect(trimmed).toMatch(/^\(.+\)$/);
+      }
+    }
+  });
+
+  test('location span has correct styling classes', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cards = document.getElementById('rc-cards');
+      return cards && cards.querySelectorAll('.rc-card').length > 0;
+    }, { timeout: 8000 });
+
+    const locSpan = page.locator('.rc-card').first().locator('span.text-gray-500.text-\\[9px\\].ml-1');
+    await expect(locSpan).toHaveClass(/text-gray-500/);
+    await expect(locSpan).toHaveClass(/ml-1/);
+  });
+
+  test('API returns location field for return customers', async ({ page }) => {
+    await page.goto(PAGE);
+    const data = await page.evaluate(async () => {
+      const res = await fetch('/api/users/');
+      return res.json();
+    });
+    // Check that user objects have a location field (string)
+    if (data.users.length > 0) {
+      for (const user of data.users.slice(0, 5)) {
+        expect(typeof user.location).toBe('string');
+      }
+    }
+  });
+});
+
+test.describe('Admin Users Page — Return Customers Location Display — Negative', () => {
+
+  test('location span is empty when user has no location data', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cards = document.getElementById('rc-cards');
+      return cards && cards.querySelectorAll('.rc-card').length > 0;
+    }, { timeout: 8000 });
+
+    // At least one card should exist — check that empty location doesn't cause broken rendering
+    const allCards = page.locator('.rc-card');
+    const count = await allCards.count();
+    expect(count).toBeGreaterThan(0);
+
+    // For each card the location span should either be empty or show a valid parenthesized string
+    for (let i = 0; i < Math.min(count, 5); i++) {
+      const card = allCards.nth(i);
+      const locSpan = card.locator('span.text-\\[9px\\].ml-1');
+      const text = await locSpan.textContent();
+      const trimmed = (text || '').trim();
+      // Must be empty string or "(City, Country)" format — never partial/broken
+      if (trimmed.length > 0) {
+        expect(trimmed).toMatch(/^\(.+\)$/);
+      }
+    }
+  });
+
+  test('no console errors from location rendering on cards', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cards = document.getElementById('rc-cards');
+      return cards && cards.querySelectorAll('.rc-card').length > 0;
+    }, { timeout: 8000 });
+    expect(errors).toHaveLength(0);
+  });
+
+  test('location does not overflow or break the card layout', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const cards = document.getElementById('rc-cards');
+      return cards && cards.querySelectorAll('.rc-card').length > 0;
+    }, { timeout: 8000 });
+
+    // The parent span has class "truncate" — verify it contains the location span without overflow
+    const firstCard = page.locator('.rc-card').first();
+    const idSpan = firstCard.locator('span.font-mono.text-xs.text-gray-300.truncate');
+    await expect(idSpan).toHaveCount(1);
+    // Verify the nested location span is inside the truncate container
+    const nestedLoc = idSpan.locator('span.text-\\[9px\\].ml-1');
+    await expect(nestedLoc).toHaveCount(1);
+  });
+});
+
+
+test.describe('Admin Users Page — Pagination — Positive', () => {
+
+  test('pagination controls container exists in the DOM', async ({ page }) => {
+    await page.goto(PAGE);
+    const container = page.locator('#pagination-controls');
+    await expect(container).toHaveCount(1);
+  });
+
+  test('pagination shows page info when users exceed 50', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const container = page.locator('#pagination-controls');
+    const text = await container.textContent();
+    // If more than 50 users, pagination should show "Page X of Y"
+    const rowCount = await page.locator('#users-tbody tr[data-uid]').count();
+    if (rowCount === 50) {
+      expect(text).toContain('Page 1 of');
+    }
+  });
+
+  test('table shows max 50 rows per page', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const rowCount = await page.locator('#users-tbody tr[data-uid]').count();
+    expect(rowCount).toBeLessThanOrEqual(50);
+  });
+
+  test('first row number starts at 1 on page 1', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const firstRowNum = await page.locator('#users-tbody tr[data-uid]').first().locator('td').first().textContent();
+    expect(firstRowNum?.trim()).toBe('1');
+  });
+
+  test('prev button is disabled on first page', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const prevBtn = page.locator('#page-prev');
+    if (await prevBtn.count() > 0) {
+      await expect(prevBtn).toBeDisabled();
+    }
+  });
+
+  test('clicking next button advances to page 2', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const nextBtn = page.locator('#page-next');
+    if (await nextBtn.count() > 0 && await nextBtn.isEnabled()) {
+      await nextBtn.click();
+      await page.waitForTimeout(300);
+      const text = await page.locator('#pagination-controls').textContent();
+      expect(text).toContain('Page 2 of');
+      // First row number should be 51
+      const firstRowNum = await page.locator('#users-tbody tr[data-uid]').first().locator('td').first().textContent();
+      expect(firstRowNum?.trim()).toBe('51');
+    }
+  });
+
+  test('clicking prev button goes back to page 1', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const nextBtn = page.locator('#page-next');
+    if (await nextBtn.count() > 0 && await nextBtn.isEnabled()) {
+      await nextBtn.click();
+      await page.waitForTimeout(300);
+      const prevBtn = page.locator('#page-prev');
+      await prevBtn.click();
+      await page.waitForTimeout(300);
+      const text = await page.locator('#pagination-controls').textContent();
+      expect(text).toContain('Page 1 of');
+    }
+  });
+
+  test('search resets pagination to page 1', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    // Go to page 2 if possible
+    const nextBtn = page.locator('#page-next');
+    if (await nextBtn.count() > 0 && await nextBtn.isEnabled()) {
+      await nextBtn.click();
+      await page.waitForTimeout(300);
+      // Now type in search — should reset to page 1
+      await page.locator('#user-search').fill('a');
+      await page.waitForTimeout(300);
+      const paginationText = await page.locator('#pagination-controls').textContent();
+      if (paginationText?.includes('Page')) {
+        expect(paginationText).toContain('Page 1 of');
+      }
+    }
+  });
+});
+
+test.describe('Admin Users Page — Pagination — Negative', () => {
+
+  test('no console errors from pagination controls', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const nextBtn = page.locator('#page-next');
+    if (await nextBtn.count() > 0 && await nextBtn.isEnabled()) {
+      await nextBtn.click();
+      await page.waitForTimeout(300);
+      await page.locator('#page-prev').click();
+      await page.waitForTimeout(300);
+    }
+    expect(errors).toHaveLength(0);
+  });
+
+  test('pagination does not show when 50 or fewer users', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    // If total users <= 50, pagination controls should be empty
+    const totalText = await page.locator('#stat-users').textContent();
+    const total = parseInt(totalText?.replace(/,/g, '') || '0');
+    if (total <= 50) {
+      const container = page.locator('#pagination-controls');
+      const html = await container.innerHTML();
+      expect(html.trim()).toBe('');
+    }
+  });
+
+  test('next button is disabled on last page', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    // Navigate to last page
+    const nextBtn = page.locator('#page-next');
+    if (await nextBtn.count() > 0) {
+      let safety = 0;
+      while (await nextBtn.isEnabled() && safety < 100) {
+        await nextBtn.click();
+        await page.waitForTimeout(200);
+        safety++;
+      }
+      await expect(nextBtn).toBeDisabled();
+    }
+  });
+
+  test('rapid clicking prev/next does not crash the page', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const nextBtn = page.locator('#page-next');
+    if (await nextBtn.count() > 0 && await nextBtn.isEnabled()) {
+      // Rapid clicks
+      for (let i = 0; i < 5; i++) {
+        await nextBtn.click();
+        await page.waitForTimeout(50);
+      }
+      await page.waitForTimeout(300);
+    }
+    expect(errors).toHaveLength(0);
+  });
+
+  test('sorting resets to page 1', async ({ page }) => {
+    await page.goto(PAGE);
+    await page.waitForFunction(() => {
+      const tbody = document.getElementById('users-tbody');
+      return tbody && !tbody.textContent?.includes('Loading...');
+    }, { timeout: 6000 });
+
+    const nextBtn = page.locator('#page-next');
+    if (await nextBtn.count() > 0 && await nextBtn.isEnabled()) {
+      await nextBtn.click();
+      await page.waitForTimeout(300);
+      // Click a sort header — should reset to page 1
+      await page.locator('th[data-sort="clicks"]').click();
+      await page.waitForTimeout(300);
+      const paginationText = await page.locator('#pagination-controls').textContent();
+      if (paginationText?.includes('Page')) {
+        expect(paginationText).toContain('Page 1 of');
+      }
+    }
   });
 });

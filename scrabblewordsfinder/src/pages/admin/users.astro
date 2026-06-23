@@ -111,6 +111,7 @@ import '../../styles/global.css';
             <tr>
               <th class="px-3 py-3 text-left font-semibold">#</th>
               <th class="px-3 py-3 text-left font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="user_id">User ID <span class="sort-arrow text-xs opacity-50"></span></th>
+              <th class="px-3 py-3 text-left font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="location">📍 Location <span class="sort-arrow text-xs opacity-50"></span></th>
               <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="clicks">🖱️ Clicks <span class="sort-arrow text-xs opacity-50"></span></th>
               <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="stars">⭐ Stars <span class="sort-arrow text-xs opacity-50"></span></th>
               <th class="px-3 py-3 text-center font-semibold cursor-pointer hover:text-emerald-400 transition-colors select-none" data-sort="diamonds">💎 Diamonds <span class="sort-arrow text-xs opacity-50"></span></th>
@@ -123,13 +124,14 @@ import '../../styles/global.css';
             </tr>
           </thead>
           <tbody id="users-tbody" class="divide-y divide-gray-800">
-            <tr><td colspan="11" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+            <tr><td colspan="12" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <p class="text-xs text-gray-500 mt-4" id="load-time"></p>
+    <div id="pagination-controls" class="flex items-center justify-center gap-4 mt-4"></div>
   </div>
 
   <script is:inline>
@@ -137,6 +139,8 @@ import '../../styles/global.css';
     let currentSort = { key: '', dir: 'desc' };
     let selectedUserId = null;
     let detailCache = {};
+    let currentPage = 0;
+    const PAGE_SIZE = 50;
 
     (async function loadData() {
       const start = performance.now();
@@ -159,18 +163,27 @@ import '../../styles/global.css';
         const elapsed = Math.round(performance.now() - start);
         document.getElementById('load-time').textContent = 'Loaded ' + data.users.length + ' users in ' + elapsed + 'ms';
       } catch (err) {
-        document.getElementById('users-tbody').innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-red-400">Failed to load: ' + err.message + '</td></tr>';
+        document.getElementById('users-tbody').innerHTML = '<tr><td colspan="12" class="px-4 py-8 text-center text-red-400">Failed to load: ' + err.message + '</td></tr>';
       }
     })();
 
     function renderTable(users) {
       const tbody = document.getElementById('users-tbody');
       if (!users.length) {
-        tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-gray-500">No users found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="px-4 py-8 text-center text-gray-500">No users found.</td></tr>';
+        renderPagination(0);
         return;
       }
 
-      tbody.innerHTML = users.map(function(u, i) {
+      const totalPages = Math.ceil(users.length / PAGE_SIZE);
+      if (currentPage >= totalPages) currentPage = totalPages - 1;
+      if (currentPage < 0) currentPage = 0;
+
+      const start = currentPage * PAGE_SIZE;
+      const pageUsers = users.slice(start, start + PAGE_SIZE);
+
+      tbody.innerHTML = pageUsers.map(function(u, i) {
+        const globalIdx = start + i;
         const shortId = u.user_id.length > 14 ? u.user_id.slice(0, 12) + '…' : u.user_id;
         const rowBg = i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/50';
         const selected = u.user_id === selectedUserId ? ' ring-1 ring-emerald-500/50' : '';
@@ -179,8 +192,9 @@ import '../../styles/global.css';
           ? '<span class="inline-flex items-center gap-1 text-pink-400 font-medium">' + u.active_days + ' <span class="text-[9px] bg-pink-900/40 border border-pink-700/50 rounded px-1">↩</span></span>'
           : '<span class="text-gray-500">' + u.active_days + '</span>';
         return '<tr class="' + rowBg + selected + ' hover:bg-gray-700/30 transition-colors cursor-pointer" data-uid="' + u.user_id + '">' +
-          '<td class="px-3 py-3 text-gray-500">' + (i + 1) + '</td>' +
+          '<td class="px-3 py-3 text-gray-500">' + (globalIdx + 1) + '</td>' +
           '<td class="px-3 py-3 font-mono text-xs text-gray-300" title="' + u.user_id + '">' + shortId + '</td>' +
+          '<td class="px-3 py-3 text-xs text-gray-400">' + (u.location || '—') + '</td>' +
           '<td class="px-3 py-3 text-center font-medium text-blue-400">' + u.clicks + '</td>' +
           '<td class="px-3 py-3 text-center font-medium text-yellow-400">' + u.stars + '</td>' +
           '<td class="px-3 py-3 text-center font-medium text-cyan-400">' + u.diamonds + '</td>' +
@@ -200,6 +214,47 @@ import '../../styles/global.css';
           openDetailPanel(uid);
         });
       });
+
+      renderPagination(users.length);
+    }
+
+    function renderPagination(totalItems) {
+      const container = document.getElementById('pagination-controls');
+      if (!container) return;
+      const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+      if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+      const prevDisabled = currentPage === 0;
+      const nextDisabled = currentPage >= totalPages - 1;
+      container.innerHTML =
+        '<button id="page-prev" class="px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ' +
+          (prevDisabled ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-gray-300 hover:border-emerald-500 hover:text-emerald-400') +
+        '" ' + (prevDisabled ? 'disabled' : '') + '>&lt;</button>' +
+        '<span class="text-sm text-gray-400">Page ' + (currentPage + 1) + ' of ' + totalPages + '</span>' +
+        '<button id="page-next" class="px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ' +
+          (nextDisabled ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-gray-300 hover:border-emerald-500 hover:text-emerald-400') +
+        '" ' + (nextDisabled ? 'disabled' : '') + '>&gt;</button>';
+
+      document.getElementById('page-prev').addEventListener('click', function() {
+        if (currentPage > 0) {
+          currentPage--;
+          rerenderCurrentView();
+        }
+      });
+      document.getElementById('page-next').addEventListener('click', function() {
+        if (currentPage < totalPages - 1) {
+          currentPage++;
+          rerenderCurrentView();
+        }
+      });
+    }
+
+    function rerenderCurrentView() {
+      var q = document.getElementById('user-search').value.toLowerCase().trim();
+      var displayUsers = q ? allUsers.filter(function(u) { return u.user_id.toLowerCase().includes(q); }) : allUsers;
+      renderTable(currentSort.key ? sortUsers(displayUsers) : displayUsers);
     }
 
     // --- Return Customers Panel ---
@@ -243,9 +298,10 @@ import '../../styles/global.css';
       cardsEl.innerHTML = visible.map(function(u) {
         const shortId = u.user_id.length > 14 ? u.user_id.slice(0, 12) + '…' : u.user_id;
         const lastActive = u.last_active ? u.last_active.split('T')[0].split(' ')[0] : '—';
+        const locStr = u.location ? ' (' + u.location + ')' : '';
         return '<div class="rounded-lg border border-pink-800/40 bg-gray-800/60 p-3 hover:border-pink-600/60 transition-colors cursor-pointer rc-card" data-uid="' + u.user_id + '">' +
           '<div class="flex items-center justify-between mb-2">' +
-            '<span class="font-mono text-xs text-gray-300 truncate" title="' + u.user_id + '">' + shortId + '</span>' +
+            '<span class="font-mono text-xs text-gray-300 truncate" title="' + u.user_id + '">' + shortId + '<span class="text-gray-500 text-[9px] ml-1">' + locStr + '</span></span>' +
             '<label class="flex items-center gap-1 cursor-pointer rc-hide-label" title="Hide this user">' +
               '<input type="checkbox" class="rc-hide-cb accent-pink-500 w-3.5 h-3.5" data-uid="' + u.user_id + '" />' +
               '<span class="text-[9px] text-gray-500">hide</span>' +
@@ -474,6 +530,7 @@ import '../../styles/global.css';
     // Search filter
     document.getElementById('user-search').addEventListener('input', function(e) {
       const q = e.target.value.toLowerCase().trim();
+      currentPage = 0;
       if (!q) { renderTable(currentSort.key ? sortUsers(allUsers) : allUsers); return; }
       const filtered = allUsers.filter(function(u) { return u.user_id.toLowerCase().includes(q); });
       renderTable(currentSort.key ? sortUsers(filtered) : filtered);
@@ -489,6 +546,8 @@ import '../../styles/global.css';
           currentSort.key = key;
           currentSort.dir = 'desc';
         }
+
+        currentPage = 0;
 
         // Update arrow indicators
         document.querySelectorAll('.sort-arrow').forEach(function(el) { el.textContent = ''; });

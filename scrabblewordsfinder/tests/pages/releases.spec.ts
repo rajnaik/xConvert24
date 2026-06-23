@@ -20,73 +20,100 @@ test.describe('Releases Page — Positive', () => {
     await page.goto(`${BASE}/releases/`);
     const articles = page.locator('article');
     const count = await articles.count();
-    expect(count).toBeGreaterThanOrEqual(8);
+    expect(count).toBeGreaterThanOrEqual(10);
   });
 
   test('each release article has a version heading', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const headings = page.locator('article h2');
     const count = await headings.count();
-    expect(count).toBeGreaterThanOrEqual(8);
+    expect(count).toBeGreaterThanOrEqual(10);
     const firstText = await headings.first().textContent();
     expect(firstText).toMatch(/v\d+\.\d+\.\d+/);
   });
 
-  test('v1.11.1 release entry is present and is the latest', async ({ page }) => {
+  test('v1.11.3 release entry is present and is the latest', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const heading = firstArticle.locator('h2');
-    await expect(heading).toContainText('v1.11.1');
+    await expect(heading).toContainText('v1.11.3');
     await expect(heading).toContainText('June 23, 2026');
   });
 
-  test('v1.11.1 lists all key features', async ({ page }) => {
+  test('v1.11.3 lists all key features', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(13);
+    expect(count).toBe(9);
     const content = await firstArticle.textContent();
-    expect(content).toContain('WOTD enriched content');
-    expect(content).toContain('WOTD date navigation');
-    expect(content).toContain('WOTD API date param');
-    expect(content).toContain('WOTD enrichment migration');
-    expect(content).toContain('Scrabble Word Checker Tools cards now clickable links');
-    expect(content).toContain('Collins link updated');
+    expect(content).toContain('BlogCrossLinks component');
+    expect(content).toContain('Blog gate system');
+    expect(content).toContain('New category landing pages');
+    expect(content).toContain('Is X a Scrabble Word?');
+    expect(content).toContain('Inbound link injection');
+    expect(content).toContain('Zero orphaned pages');
+    expect(content).toContain('Orphan checker script');
+    expect(content).toContain('Bulk SEO fix script');
     expect(content).toContain('New tests');
-    expect(content).toContain('Enrichment script');
-    expect(content).toContain('Admin WOTD');
-    expect(content).toContain('Admin WOTD sorting');
-    expect(content).toContain('WOTD Admin API');
-    expect(content).toContain('WOTD Explore button');
-    expect(content).toContain('25 WOTD admin sorting tests');
   });
 
-  test('v1.11.1 contains code references for API and script', async ({ page }) => {
+  test('v1.11.3 contains code references for scripts and gate', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const codeElements = firstArticle.locator('code');
     const count = await codeElements.count();
     expect(count).toBe(3);
-    await expect(codeElements.nth(0)).toContainText('/api/wotd?date=YYYY-MM-DD');
-    await expect(codeElements.nth(1)).toContainText('scripts/enrich-wotd.mjs');
-    await expect(codeElements.nth(2)).toContainText('/api/wotd-admin');
+    await expect(codeElements.nth(0)).toContainText('blogGate.ts');
+    await expect(codeElements.nth(1)).toContainText('scripts/check-orphans.py');
+    await expect(codeElements.nth(2)).toContainText('scripts/bulk-seo-fix.py');
   });
 
-  test('v1.11.0 release entry is present as second entry', async ({ page }) => {
+  test('v1.11.3 mentions category landing pages', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const content = await firstArticle.textContent();
+    expect(content).toContain('Vocabulary');
+    expect(content).toContain('Word Patterns');
+    expect(content).toContain('Prefix Guides');
+    expect(content).toContain('Fun Facts');
+    expect(content).toContain('Words Containing');
+    expect(content).toContain('Words Ending');
+  });
+
+  test('v1.11.3 mentions Is X a Scrabble Word posts', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const content = await firstArticle.textContent();
+    expect(content).toContain('QI');
+    expect(content).toContain('ZA');
+    expect(content).toContain('ZE');
+    expect(content).toContain('QAT');
+    expect(content).toContain('EW');
+  });
+
+  test('v1.11.2 release entry is present as second entry', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
     const heading = secondArticle.locator('h2');
-    await expect(heading).toContainText('v1.11.0');
-    await expect(heading).toContainText('June 22, 2026');
+    await expect(heading).toContainText('v1.11.2');
+    await expect(heading).toContainText('June 23, 2026');
   });
 
-  test('v1.10.0 release entry is present as third entry', async ({ page }) => {
+  test('v1.11.1 release entry is present as third entry', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const thirdArticle = page.locator('article').nth(2);
     const heading = thirdArticle.locator('h2');
-    await expect(heading).toContainText('v1.10.0');
-    await expect(heading).toContainText('June 21, 2026');
+    await expect(heading).toContainText('v1.11.1');
+    await expect(heading).toContainText('June 23, 2026');
+  });
+
+  test('v1.11.0 release entry is present as fourth entry', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const fourthArticle = page.locator('article').nth(3);
+    const heading = fourthArticle.locator('h2');
+    await expect(heading).toContainText('v1.11.0');
+    await expect(heading).toContainText('June 22, 2026');
   });
 
   test('release items have feature bullet points', async ({ page }) => {
@@ -159,7 +186,7 @@ test.describe('Releases Page — Negative', () => {
     expect(text).not.toContain('null');
   });
 
-  test('v1.11.1 does not expose internal admin details', async ({ page }) => {
+  test('v1.11.3 does not expose internal admin details', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const content = await firstArticle.textContent();
@@ -170,7 +197,7 @@ test.describe('Releases Page — Negative', () => {
     expect(content).not.toContain('real-time visitor');
   });
 
-  test('v1.11.1 has no empty list items', async ({ page }) => {
+  test('v1.11.3 has no empty list items', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
@@ -181,7 +208,7 @@ test.describe('Releases Page — Negative', () => {
     }
   });
 
-  test('v1.11.1 date is not in the future', async ({ page }) => {
+  test('v1.11.3 date is not in the future', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstHeading = page.locator('article h2').first();
     const text = await firstHeading.textContent();

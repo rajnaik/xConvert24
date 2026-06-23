@@ -100,6 +100,18 @@ export const GET: APIRoute = async () => {
       activeDaysMap[r.user_id] = r.active_days;
     }
 
+    // 10. Most recent location (city, country) per user from clicks
+    const locationResult = await db.prepare(
+      `SELECT user_id, city, country FROM clicks
+       WHERE user_id != '' AND (city != '' OR country != '')
+       GROUP BY user_id
+       HAVING MAX(id)`
+    ).all();
+    const locationMap: Record<string, { city: string; country: string }> = {};
+    for (const r of (locationResult.results || []) as any[]) {
+      locationMap[r.user_id] = { city: r.city || '', country: r.country || '' };
+    }
+
     // Collect all unique user_ids
     const allUserIds = new Set<string>();
     Object.keys(clicksMap).forEach(id => allUserIds.add(id));
@@ -154,6 +166,7 @@ export const GET: APIRoute = async () => {
         returning: (activeDaysMap[user_id] || 1) >= 2,
         last_active,
         first_seen,
+        location: locationMap[user_id] ? [locationMap[user_id].city, locationMap[user_id].country].filter(Boolean).join(', ') : '',
       };
     });
 

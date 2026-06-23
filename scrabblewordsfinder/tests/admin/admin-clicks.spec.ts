@@ -68,7 +68,8 @@ test.describe('Admin Clicks — Positive (Page Structure)', () => {
     await expect(headers.nth(2)).toContainText('UI Element');
     await expect(headers.nth(3)).toContainText('URL');
     await expect(headers.nth(4)).toContainText('IP Address');
-    await expect(headers.nth(5)).toContainText('Time');
+    await expect(headers.nth(5)).toContainText('Location');
+    await expect(headers.nth(6)).toContainText('Time');
   });
 
   test('limit select has 50, 100, 200 options', async ({ page }) => {
@@ -114,9 +115,9 @@ test.describe('Admin Clicks — Positive (API Integration)', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           clicks: [
-            { id: 1, user_id: 'abc-123', ui_element: 'solve-btn', url: '/', ip_address: '1.2.3.4', created_at: '2026-06-20 10:00:00' },
-            { id: 2, user_id: 'def-456', ui_element: 'nav-link', url: '/about', ip_address: '5.6.7.8', created_at: '2026-06-20 09:30:00' },
-            { id: 3, user_id: 'ghi-789', ui_element: 'solve-btn', url: '/', ip_address: '9.10.11.12', created_at: '2026-06-20 09:00:00' },
+            { id: 1, user_id: 'abc-123', ui_element: 'solve-btn', url: '/', ip_address: '1.2.3.4', city: 'London', country: 'GB', created_at: '2026-06-20 10:00:00' },
+            { id: 2, user_id: 'def-456', ui_element: 'nav-link', url: '/about', ip_address: '5.6.7.8', city: 'Berlin', country: 'DE', created_at: '2026-06-20 09:30:00' },
+            { id: 3, user_id: 'ghi-789', ui_element: 'solve-btn', url: '/', ip_address: '9.10.11.12', city: '', country: '', created_at: '2026-06-20 09:00:00' },
           ],
           total: 3,
         }),
@@ -472,7 +473,7 @@ test.describe('Admin Clicks — Positive (Live Sessions Panel)', () => {
     await expect(page.locator('#heartbeat-updated')).toBeVisible();
   });
 
-  test('live sessions table has correct column headers (UID, Page, Trail, IP, Last Seen)', async ({ page }) => {
+  test('live sessions table has correct column headers (UID, Page, Trail, IP, Location, Last Seen)', async ({ page }) => {
     await page.goto('/admin/clicks/');
     const liveTable = page.locator('#live-sessions-tbody').locator('..');
     const headers = liveTable.locator('thead th');
@@ -480,7 +481,8 @@ test.describe('Admin Clicks — Positive (Live Sessions Panel)', () => {
     await expect(headers.nth(1)).toContainText('Page');
     await expect(headers.nth(2)).toContainText('Trail');
     await expect(headers.nth(3)).toContainText('IP');
-    await expect(headers.nth(4)).toContainText('Last Seen');
+    await expect(headers.nth(4)).toContainText('Location');
+    await expect(headers.nth(5)).toContainText('Last Seen');
   });
 
   test('fetches /api/heartbeat/ on page load', async ({ page }) => {
@@ -1086,16 +1088,17 @@ test.describe('Admin Clicks — Positive (Page Trail)', () => {
     await expect(trailCell).toContainText('—');
   });
 
-  test('live sessions table now has 5 column headers', async ({ page }) => {
+  test('live sessions table now has 6 column headers', async ({ page }) => {
     await page.goto('/admin/clicks/');
     const liveTable = page.locator('#live-sessions-tbody').locator('..');
     const headers = liveTable.locator('thead th');
-    await expect(headers).toHaveCount(5);
+    await expect(headers).toHaveCount(6);
     await expect(headers.nth(0)).toContainText('UID');
     await expect(headers.nth(1)).toContainText('Page');
     await expect(headers.nth(2)).toContainText('Trail');
     await expect(headers.nth(3)).toContainText('IP');
-    await expect(headers.nth(4)).toContainText('Last Seen');
+    await expect(headers.nth(4)).toContainText('Location');
+    await expect(headers.nth(5)).toContainText('Last Seen');
   });
 });
 

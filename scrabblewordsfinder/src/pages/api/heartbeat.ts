@@ -36,6 +36,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for') || '';
     const userAgent = request.headers.get('user-agent') || '';
+    const country = request.headers.get('cf-ipcountry') || '';
+    const city = (request as any).cf?.city || '';
 
     // Fetch existing row to check if page changed (for history tracking)
     const existing = await db.prepare(
@@ -60,15 +62,17 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     await db.prepare(`
-      INSERT INTO live_sessions (uid, page, ip_address, user_agent, last_seen, page_history)
-      VALUES (?, ?, ?, ?, datetime('now'), ?)
+      INSERT INTO live_sessions (uid, page, ip_address, user_agent, last_seen, page_history, city, country)
+      VALUES (?, ?, ?, ?, datetime('now'), ?, ?, ?)
       ON CONFLICT(uid) DO UPDATE SET
         page = excluded.page,
         ip_address = excluded.ip_address,
         user_agent = excluded.user_agent,
         last_seen = datetime('now'),
-        page_history = excluded.page_history
-    `).bind(uid, page, ip, userAgent, JSON.stringify(pageHistory)).run();
+        page_history = excluded.page_history,
+        city = excluded.city,
+        country = excluded.country
+    `).bind(uid, page, ip, userAgent, JSON.stringify(pageHistory), city, country).run();
 
     // Cleanup stale sessions older than 5 minutes on every write (lightweight)
     await db.prepare(`DELETE FROM live_sessions WHERE last_seen < datetime('now', '-5 minutes')`).run();
@@ -88,7 +92,7 @@ export const GET: APIRoute = async ({ url }) => {
     const threshold = Math.min(Math.max(minutes, 1), 30); // clamp 1-30
 
     const { results } = await db.prepare(`
-      SELECT uid, page, ip_address, user_agent, last_seen, page_history
+      SELECT uid, page, ip_address, user_agent, last_seen, page_history, city, country
       FROM live_sessions
       WHERE last_seen >= datetime('now', '-' || ? || ' minutes')
       ORDER BY last_seen DESC

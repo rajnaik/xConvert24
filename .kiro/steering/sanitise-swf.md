@@ -45,7 +45,25 @@ All public-facing pages must comply with these principles:
 grep -rn "visitor monitor\|real-time visitor\|session track\|heartbeat.*track\|monitor.*user\|track.*visitor\|user surveil\|watching user\|live session" . --include="*.astro" | grep -v "node_modules\|admin/"
 ```
 
-### 6. Consistency Check
+### 6. Release Notes Sanitisation
+- The `/releases` page must NEVER mention internal admin features as user-facing changes
+- Banned terms in release notes specifically:
+  - "click tracking", "click analytics", "banner click tracking"
+  - "session tracking", "user tracking", "visitor tracking"
+  - "heartbeat", "telemetry" (as a feature — OK as internal improvement)
+  - "live sessions", "real-time visitor", "IP address", "geolocation"
+  - "user agent", "fingerprint", "UUID tracking"
+  - Any admin-only infrastructure (click dashboard, ops console, monitoring)
+- Acceptable in release notes:
+  - Game features: "streak tracking", "activity tracking", "performance tracking", "personal best tracking"
+  - User features: "game sessions", "session persistence", "history"
+  - Generic: "Admin improvements", "Backend enhancements", "Internal tooling updates"
+- Grep pattern for release notes specifically:
+```bash
+grep -ni "click track\|click analyt\|session track\|user track\|visitor track\|heartbeat\|live session\|IP address\|geolocation\|user agent\|fingerprint\|UUID track\|banner.*click.*track\|telemetry" src/pages/releases.astro | grep -vi "game\|streak\|activity\|personal best\|performance"
+```
+
+### 7. Consistency Check
 - Privacy page must accurately reflect current data practices
 - Disclaimer must not contradict privacy page
 - About page claims must match reality
@@ -65,12 +83,18 @@ cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder/src/pages
 grep -rn "visitor monitor\|real-time visitor\|session track\|heartbeat.*track\|monitor.*user\|track.*visitor\|user surveil\|watching user\|live session" . --include="*.astro" | grep -v "node_modules\|admin/"
 ```
 
-2. **Fix any findings** — replace or remove the sensitive/incorrect content
-3. **Run automated tests:**
+3. **Scan release notes for internal admin/tracking language:**
+```bash
+cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder/src/pages
+grep -ni "click track\|click analyt\|session track\|user track\|visitor track\|heartbeat\|live session\|IP address\|geolocation\|user agent\|fingerprint\|UUID track\|banner.*click.*track\|telemetry" releases.astro | grep -vi "game\|streak\|activity\|personal best\|performance"
+```
+
+4. **Fix any findings** — replace or remove the sensitive/incorrect content
+5. **Run automated tests:**
 ```bash
 cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder && npx playwright test tests/sanitise.spec.ts --reporter=list
 ```
-4. **Report results**
+6. **Report results**
 
 ## Trigger
 
