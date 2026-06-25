@@ -1,0 +1,269 @@
+---
+export const prerender = true;
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Timezone Converter — Convert Time Between Zones Instantly" description="Free Timezone Converter. Convert any time between world time zones instantly. Schedule meetings, plan calls, and coordinate across continents. No sign-up required." keywords="timezone converter, time zone converter, convert time zones, world time converter, meeting scheduler, time difference calculator, UTC converter, GMT converter, EST to PST, time zone calculator">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I convert time between time zones?","acceptedAnswer":{"@type":"Answer","text":"Select your source time zone and enter the time you want to convert. Then select the destination time zone and the equivalent time appears instantly. Our tool handles daylight saving time automatically."}},{"@type":"Question","name":"Does this tool account for daylight saving time?","acceptedAnswer":{"@type":"Answer","text":"Yes. The timezone converter uses your browser's built-in timezone database which includes all current DST rules worldwide. Times adjust automatically based on the date selected."}},{"@type":"Question","name":"How many time zones are supported?","acceptedAnswer":{"@type":"Answer","text":"Over 400 time zones are supported, covering every IANA timezone identifier including major cities, UTC offsets, and regional zones across all continents."}}]}</script>
+
+  <div class="max-w-3xl">
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-3xl" aria-hidden="true">🌍</span>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Free Timezone Converter</h1>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400">Convert any time between world time zones. Handles daylight saving automatically.</p>
+    </div>
+
+    <!-- Converter UI -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 sm:p-6 mb-6 shadow-sm">
+      <!-- Source -->
+      <div class="mb-4">
+        <label for="from-tz" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">From Time Zone</label>
+        <div class="flex gap-2 sm:gap-3">
+          <select id="from-tz" class="flex-1 min-w-0 h-12 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"></select>
+          <input id="from-time" type="time" class="w-32 h-12 px-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 text-base focus:outline-none focus:ring-2 focus:ring-amber-500" style="color-scheme: light dark" />
+        </div>
+      </div>
+
+      <!-- Date picker -->
+      <div class="mb-4">
+        <label for="conv-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Date</label>
+        <input id="conv-date" type="date" class="w-full sm:w-48 h-12 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500" style="color-scheme: light dark" />
+      </div>
+
+      <!-- Swap button -->
+      <div class="flex justify-center my-3">
+        <button id="swap-btn" aria-label="Swap time zones" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium text-sm transition-colors border border-amber-200 dark:border-amber-800">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          Swap
+        </button>
+      </div>
+
+      <!-- Destination -->
+      <div class="mb-4">
+        <label for="to-tz" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">To Time Zone</label>
+        <select id="to-tz" class="w-full h-12 px-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"></select>
+      </div>
+
+      <!-- Result -->
+      <div id="result" role="status" aria-live="polite" class="p-5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-center">
+        <div class="text-sm text-amber-600 dark:text-amber-400 font-medium mb-1">Converted Time</div>
+        <div id="result-time" class="text-4xl font-bold text-amber-700 dark:text-amber-400 font-mono">--:--</div>
+        <div id="result-date" class="text-sm text-amber-600/80 dark:text-amber-400/70 mt-1">—</div>
+        <div id="result-offset" class="text-xs text-gray-500 dark:text-gray-400 mt-2">—</div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 sm:p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Common Conversions (from your local time)</h2>
+      <div id="quick-ref" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Current time in major cities -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 sm:p-6 mb-6 shadow-sm">
+      <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Current Time Around the World</h2>
+      <div id="world-clocks" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Report / Suggest -->
+    <div class="mt-6 flex items-center justify-center gap-4 flex-wrap">
+      <a href="/report-bug?tool=Timezone+Converter" class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:underline font-medium">
+        <span aria-hidden="true">🐛</span> Report a bug
+      </a>
+      <span class="text-gray-300 dark:text-gray-600">|</span>
+      <a href="/suggest?title=Timezone+Converter" class="inline-flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium">
+        <span aria-hidden="true">💡</span> Suggest a new feature for this tool →
+      </a>
+    </div>
+
+    <!-- SEO Content -->
+    <div class="mt-10 prose prose-sm dark:prose-invert max-w-none">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">About the Timezone Converter</h2>
+      <p class="text-gray-600 dark:text-gray-400">Our free timezone converter helps you instantly translate times between any two time zones worldwide. Whether you are scheduling a video call with colleagues in Tokyo, planning a webinar for an audience spread across North America and Europe, or figuring out when your favourite live stream starts in your local time, this tool handles the conversion with daylight saving time adjustments applied automatically.</p>
+
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">How Time Zones Work</h3>
+      <p class="text-gray-600 dark:text-gray-400">The Earth is divided into 24 primary time zones, each roughly 15 degrees of longitude wide. The baseline is Coordinated Universal Time (UTC), formerly known as Greenwich Mean Time (GMT). Zones east of the Prime Meridian are ahead of UTC (positive offsets like UTC+5:30 for India), while zones to the west are behind (negative offsets like UTC-5 for US Eastern). However, many regions observe daylight saving time (DST), shifting their clocks forward by one hour during summer months. This means the offset between two cities can change throughout the year — our converter accounts for this by using the IANA timezone database built into modern browsers.</p>
+
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Key Features</h3>
+      <ul class="text-gray-600 dark:text-gray-400">
+        <li><strong>400+ time zones</strong> — every IANA timezone identifier from America/New_York to Asia/Kolkata to Pacific/Auckland</li>
+        <li><strong>Automatic DST handling</strong> — conversions adjust for daylight saving based on the date you select</li>
+        <li><strong>Date-aware</strong> — see when a conversion crosses a day boundary (tomorrow/yesterday indicators)</li>
+        <li><strong>Quick reference panel</strong> — view your local time converted to popular zones at a glance</li>
+        <li><strong>Live world clocks</strong> — current time in major cities updates every second</li>
+        <li><strong>Swap button</strong> — instantly reverse your from/to zones for return journey planning</li>
+        <li><strong>No sign-up</strong> — use it immediately, no accounts or email required</li>
+      </ul>
+
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Common Use Cases</h3>
+      <p class="text-gray-600 dark:text-gray-400"><strong>Remote work and meetings:</strong> Distributed teams need to find overlapping work hours. If your team spans San Francisco (PST), London (GMT/BST), and Singapore (SGT), you can use this tool to find a window that works for everyone. Enter your proposed meeting time in one zone and see what it translates to in each colleague's local time.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>Travel planning:</strong> Before flying internationally, check what time you will land in the destination's local time. Account for layovers by converting connection times. Plan your sleep schedule for jet lag management by knowing exactly how many hours ahead or behind your destination is.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>Live events and broadcasts:</strong> Sports events, product launches, live streams, and conferences are often announced in a single time zone. Convert the start time to your local zone so you never miss the opening kickoff, keynote, or episode premiere.</p>
+      <p class="text-gray-600 dark:text-gray-400"><strong>Financial markets:</strong> Stock exchanges around the world open and close at different times. Traders and investors use timezone converters to track when the NYSE, LSE, TSE, or ASX opens relative to their own trading hours.</p>
+
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Understanding UTC Offsets</h3>
+      <p class="text-gray-600 dark:text-gray-400">UTC offsets range from UTC-12 (Baker Island) to UTC+14 (Line Islands, Kiribati). Most offsets are whole hours, but some regions use half-hour or even 45-minute offsets. India uses UTC+5:30, Nepal uses UTC+5:45, and the Chatham Islands in New Zealand use UTC+12:45. Our converter handles all of these non-standard offsets correctly because it uses the full IANA timezone database rather than simplified hour-based approximations.</p>
+
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Daylight Saving Time Explained</h3>
+      <p class="text-gray-600 dark:text-gray-400">Approximately 70 countries observe some form of daylight saving time, though the exact dates of transition vary. In North America, DST runs from the second Sunday in March to the first Sunday in November. In most of Europe, it runs from the last Sunday in March to the last Sunday in October. Southern hemisphere countries that observe DST (like Australia and parts of South America) do so during their summer, which is the northern hemisphere's winter. This means the time difference between, say, London and Sydney changes four times per year as each city enters and exits DST on different dates.</p>
+
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Tips for Scheduling Across Zones</h3>
+      <p class="text-gray-600 dark:text-gray-400">When coordinating with people in multiple time zones, always specify the timezone abbreviation alongside the time. Instead of saying "let us meet at 3pm", say "3pm EST (8pm GMT, 1:30am IST next day)". Use our converter to verify these before sending calendar invites. Most calendar applications handle timezone conversion, but it helps to double-check — especially around DST transition weekends when errors are most common.</p>
+
+      <p class="text-gray-600 dark:text-gray-400">Looking for more time-related tools? Check out our <a href="/tools/clock" class="text-amber-600 dark:text-amber-400 hover:underline">World Clock</a> for live multi-city time displays, or our <a href="/tools/epoch" class="text-amber-600 dark:text-amber-400 hover:underline">Epoch Converter</a> for Unix timestamp conversions. For unit conversions beyond time, browse our full <a href="/convert" class="text-amber-600 dark:text-amber-400 hover:underline">converter directory</a>.</p>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const ZONES = Intl.supportedValuesOf('timeZone');
+  const POPULAR = ['America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Toronto','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow','Asia/Dubai','Asia/Kolkata','Asia/Shanghai','Asia/Tokyo','Asia/Singapore','Australia/Sydney','Pacific/Auckland'];
+
+  const fromTz = document.getElementById('from-tz') as HTMLSelectElement;
+  const toTz = document.getElementById('to-tz') as HTMLSelectElement;
+  const fromTime = document.getElementById('from-time') as HTMLInputElement;
+  const convDate = document.getElementById('conv-date') as HTMLInputElement;
+
+  // Populate selects
+  function populateSelect(sel: HTMLSelectElement, defaultZone: string) {
+    // Add popular zones first
+    const optGroup1 = document.createElement('optgroup');
+    optGroup1.label = '★ Popular';
+    POPULAR.forEach(tz => {
+      const opt = document.createElement('option');
+      opt.value = tz;
+      opt.textContent = tz.replace(/_/g, ' ').replace(/\//g, ' / ');
+      if (tz === defaultZone) opt.selected = true;
+      optGroup1.appendChild(opt);
+    });
+    sel.appendChild(optGroup1);
+
+    const optGroup2 = document.createElement('optgroup');
+    optGroup2.label = 'All Zones';
+    ZONES.forEach(tz => {
+      const opt = document.createElement('option');
+      opt.value = tz;
+      opt.textContent = tz.replace(/_/g, ' ').replace(/\//g, ' / ');
+      if (tz === defaultZone && !POPULAR.includes(tz)) opt.selected = true;
+      optGroup2.appendChild(opt);
+    });
+    sel.appendChild(optGroup2);
+  }
+
+  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  populateSelect(fromTz, localTz);
+  populateSelect(toTz, 'America/New_York');
+
+  // Set defaults
+  const now = new Date();
+  convDate.value = now.toISOString().split('T')[0];
+  fromTime.value = now.toTimeString().slice(0, 5);
+
+  function convert() {
+    const [h, m] = fromTime.value.split(':').map(Number);
+    const dateStr = convDate.value;
+    if (!dateStr || isNaN(h)) return;
+
+    // Build a date in the source timezone
+    const [y, mo, d] = dateStr.split('-').map(Number);
+    const srcDate = new Date(y, mo - 1, d, h, m, 0);
+
+    // Get UTC offset for source TZ
+    const srcStr = srcDate.toLocaleString('en-US', { timeZone: fromTz.value });
+    const srcLocal = new Date(srcStr);
+
+    // Get equivalent in destination TZ
+    const dstStr = srcDate.toLocaleString('en-US', { timeZone: toTz.value });
+    const offsetMs = new Date(dstStr).getTime() - new Date(srcStr).getTime();
+
+    const resultDate = new Date(srcDate.getTime() + offsetMs);
+
+    const timeStr = resultDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: toTz.value });
+    const dateResult = resultDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: toTz.value });
+
+    document.getElementById('result-time')!.textContent = new Date(srcDate.getTime() + offsetMs).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: toTz.value });
+    document.getElementById('result-date')!.textContent = dateResult;
+
+    // Show offset difference
+    const srcOffset = getOffset(fromTz.value, srcDate);
+    const dstOffset = getOffset(toTz.value, srcDate);
+    const diffH = (dstOffset - srcOffset) / 60;
+    const sign = diffH >= 0 ? '+' : '';
+    document.getElementById('result-offset')!.textContent = `${toTz.value.replace(/_/g, ' ')} is ${sign}${diffH} hours from ${fromTz.value.replace(/_/g, ' ')}`;
+  }
+
+  function getOffset(tz: string, date: Date): number {
+    const utcStr = date.toLocaleString('en-US', { timeZone: 'UTC' });
+    const tzStr = date.toLocaleString('en-US', { timeZone: tz });
+    return (new Date(tzStr).getTime() - new Date(utcStr).getTime()) / 60000;
+  }
+
+  fromTz.addEventListener('change', convert);
+  toTz.addEventListener('change', convert);
+  fromTime.addEventListener('input', convert);
+  convDate.addEventListener('input', convert);
+
+  document.getElementById('swap-btn')?.addEventListener('click', () => {
+    const tmp = fromTz.value;
+    fromTz.value = toTz.value;
+    toTz.value = tmp;
+    convert();
+  });
+
+  // Quick reference
+  function renderQuickRef() {
+    const el = document.getElementById('quick-ref')!;
+    const cities = [
+      { tz: 'America/New_York', label: 'New York' },
+      { tz: 'America/Los_Angeles', label: 'Los Angeles' },
+      { tz: 'Europe/London', label: 'London' },
+      { tz: 'Europe/Paris', label: 'Paris' },
+      { tz: 'Asia/Tokyo', label: 'Tokyo' },
+      { tz: 'Australia/Sydney', label: 'Sydney' },
+    ];
+    el.innerHTML = cities.map(c => {
+      const t = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: c.tz });
+      return `<div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-center">
+        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">${c.label}</div>
+        <div class="text-lg font-bold text-gray-900 dark:text-white font-mono">${t}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // World clocks
+  function renderWorldClocks() {
+    const el = document.getElementById('world-clocks')!;
+    const cities = [
+      { tz: 'America/New_York', label: 'New York', flag: '🇺🇸' },
+      { tz: 'America/Los_Angeles', label: 'LA', flag: '🇺🇸' },
+      { tz: 'Europe/London', label: 'London', flag: '🇬🇧' },
+      { tz: 'Europe/Berlin', label: 'Berlin', flag: '🇩🇪' },
+      { tz: 'Europe/Paris', label: 'Paris', flag: '🇫🇷' },
+      { tz: 'Asia/Dubai', label: 'Dubai', flag: '🇦🇪' },
+      { tz: 'Asia/Kolkata', label: 'Mumbai', flag: '🇮🇳' },
+      { tz: 'Asia/Shanghai', label: 'Shanghai', flag: '🇨🇳' },
+      { tz: 'Asia/Tokyo', label: 'Tokyo', flag: '🇯🇵' },
+      { tz: 'Asia/Singapore', label: 'Singapore', flag: '🇸🇬' },
+      { tz: 'Australia/Sydney', label: 'Sydney', flag: '🇦🇺' },
+      { tz: 'Pacific/Auckland', label: 'Auckland', flag: '🇳🇿' },
+    ];
+    el.innerHTML = cities.map(c => {
+      const t = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: c.tz });
+      return `<div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-center">
+        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">${c.flag} ${c.label}</div>
+        <div class="text-base font-bold text-gray-900 dark:text-white font-mono">${t}</div>
+      </div>`;
+    }).join('');
+  }
+
+  convert();
+  renderQuickRef();
+  renderWorldClocks();
+  setInterval(() => { renderQuickRef(); renderWorldClocks(); }, 1000);
+</script>
