@@ -76,33 +76,50 @@ test.describe('Sanitise — No Database IDs or Config Exposed', () => {
 
 test.describe('Sanitise — Data Management Compliance', () => {
   test('privacy page mentions anonymous click tracking', async ({ page }) => {
-    await page.goto('/privacy');
+    await page.goto('/privacy/');
     const text = await page.locator('body').innerText();
     expect(text).toContain('anonymous');
     expect(text).toContain('click');
   });
 
   test('privacy page does NOT claim zero tracking', async ({ page }) => {
-    await page.goto('/privacy');
+    await page.goto('/privacy/');
     const text = await page.locator('body').innerText();
     expect(text.toLowerCase()).not.toContain('no tracking');
     expect(text.toLowerCase()).not.toContain('zero tracking');
   });
 
-  test('privacy page does NOT claim no cookies', async ({ page }) => {
-    await page.goto('/privacy');
+  test('privacy page discloses Google AdSense advertising', async ({ page }) => {
+    await page.goto('/privacy/');
     const text = await page.locator('body').innerText();
-    expect(text.toLowerCase()).not.toMatch(/no cookies(?! preference)/);
+    expect(text).toContain('Google AdSense');
+    expect(text).toContain('Advertising');
+  });
+
+  test('privacy page does NOT claim no ads or ad-free', async ({ page }) => {
+    await page.goto('/privacy/');
+    const text = await page.locator('body').innerText();
+    expect(text.toLowerCase()).not.toMatch(/\bno ads\b/);
+    expect(text.toLowerCase()).not.toMatch(/\bad-free\b/);
+    expect(text.toLowerCase()).not.toMatch(/we don't run ads/);
+  });
+
+  test('privacy page does NOT claim no cookies as blanket policy', async ({ page }) => {
+    await page.goto('/privacy/');
+    const text = await page.locator('body').innerText();
+    // Should not have a blanket "no cookies" claim as site policy
+    // Legitimate uses: "no cookies needed" (solver), "no cookies preference"
+    expect(text.toLowerCase()).not.toMatch(/no cookies(?! needed| preference)/);
   });
 
   test('privacy page states data is never sold', async ({ page }) => {
-    await page.goto('/privacy');
+    await page.goto('/privacy/');
     const text = await page.locator('body').innerText();
     expect(text.toLowerCase()).toContain('never sell');
   });
 
   test('guide page has data management section', async ({ page }) => {
-    await page.goto('/guide');
+    await page.goto('/guide/');
     const text = await page.locator('body').innerText();
     expect(text).toContain('Nuke');
     expect(text).toContain('Download');

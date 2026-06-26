@@ -34,7 +34,7 @@ test.describe('Ad Unit Placements — Positive', () => {
   test('rectangle ad unit exists on homepage with correct slot ID', async ({ page }) => {
     await page.goto(`${BASE_URL}/`);
     const rectAd = page.locator('.ad-unit--rectangle ins.adsbygoogle[data-ad-slot="6908113726"]');
-    await expect(rectAd).toBeAttached();
+    await expect(rectAd.first()).toBeAttached();
   });
 
   test('skyscraper ad unit exists on homepage with correct slot ID', async ({ page }) => {

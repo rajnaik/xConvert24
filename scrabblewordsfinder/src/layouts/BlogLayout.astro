@@ -32,33 +32,8 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
   breadcrumbs.push({ name: pageTitle, url: canonicalURL });
 }
 
-// Fetch AdSense toggle — KV cache first, D1 fallback (defaults to ON)
-let adsenseEnabled = true;
-try {
-  const { env } = await import('cloudflare:workers');
-  const kv = (env as any).SESSION;
-  const db = (env as any).DB;
-
-  // Try KV cache first (fast, no DB round-trip)
-  if (kv) {
-    const cached = await kv.get('adsense-status');
-    if (cached !== null) {
-      adsenseEnabled = cached !== 'OFF';
-    } else if (db) {
-      // Cache miss — read from DB and populate KV
-      const row = await db.prepare('SELECT adsense FROM site_status WHERE id = 1').first();
-      if (row) {
-        adsenseEnabled = row.adsense !== 'OFF';
-        await kv.put('adsense-status', row.adsense || 'ON');
-      }
-    }
-  } else if (db) {
-    // No KV available (local dev) — fall back to DB
-    const row = await db.prepare('SELECT adsense FROM site_status WHERE id = 1').first();
-    if (row && row.adsense === 'OFF') adsenseEnabled = false;
-  }
-} catch { /* default to enabled if DB unavailable */ }
-const showAds = adsenseEnabled;
+// AdSense visibility is now controlled client-side (blog pages are prerendered).
+// Containers render hidden; a client script checks /api/site-status/ and reveals them.
 ---
 
 <!doctype html>
@@ -107,10 +82,24 @@ const showAds = adsenseEnabled;
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="https://www.scrabblewordsfinder.com/social-card.svg" />
     <title>{title}</title>
-    {/* AdSense — manual placements (controlled by DB toggle) */}
-    {showAds && (
-      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317" crossorigin="anonymous"></script>
-    )}
+    {/* AdSense — loaded client-side based on DB toggle */}
+    <script is:inline id="adsense-loader">
+    (function(){
+      // Check site-status and load AdSense + show ad containers if enabled
+      fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
+        if(d.adsense==='ON'){
+          // Load AdSense script
+          var s=document.createElement('script');
+          s.async=true;
+          s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317';
+          s.crossOrigin='anonymous';
+          document.head.appendChild(s);
+          // Show all ad containers
+          document.querySelectorAll('[data-ad-toggle]').forEach(function(el){el.style.display='';});
+        }
+      }).catch(function(){});
+    })();
+    </script>
     <!-- Google tag (gtag.js) -->
     <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-HYBGD6YJHW"></script>
     <script is:inline>
@@ -310,20 +299,21 @@ const showAds = adsenseEnabled;
     </script>
 
     {/* Banner ad row — full width between header and content */}
-    {showAds && (
-      <div class="hidden lg:flex justify-center py-3 border-b border-gray-800/50">
-        <AdUnit format="banner" />
-      </div>
-    )}
+    <div class="hidden lg:flex justify-center py-3 border-b border-gray-800/50" data-ad-toggle style="display:none">
+      <AdUnit format="banner" />
+    </div>
+
+    {/* Mobile-only rectangle ad — visible on small screens, hidden on desktop where sidebars show */}
+    <div class="flex lg:hidden justify-center py-3" data-ad-toggle style="display:none">
+      <AdUnit format="rectangle" />
+    </div>
 
     {/* 3-column layout: left skyscraper | content | right skyscraper */}
     <div class="flex justify-center gap-0">
       {/* Left skyscraper — hidden on mobile/tablet */}
-      {showAds && (
-        <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0">
-          <AdUnit format="skyscraper" />
-        </aside>
-      )}
+      <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0" data-ad-toggle style="display:none">
+        <AdUnit format="skyscraper" />
+      </aside>
 
       {/* Main content */}
       <main class="flex-1 min-w-0 max-w-4xl">
@@ -331,11 +321,9 @@ const showAds = adsenseEnabled;
       </main>
 
       {/* Right skyscraper — hidden on mobile/tablet */}
-      {showAds && (
-        <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0">
-          <AdUnit format="skyscraper" />
-        </aside>
-      )}
+      <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0" data-ad-toggle style="display:none">
+        <AdUnit format="skyscraper" />
+      </aside>
     </div>
 
     <!-- Footer -->

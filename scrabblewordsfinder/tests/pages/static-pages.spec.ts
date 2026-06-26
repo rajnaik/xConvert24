@@ -41,6 +41,12 @@ test.describe('About Page', () => {
     expect(body).toContain('No pop-ups, no sponsored results cluttering your solver');
   });
 
+  test('tagline shows "Free, Fun, Fast & No Sign-up"', async ({ page }) => {
+    await page.goto('/about/');
+    const tagline = page.locator('span.text-purple-400.font-medium');
+    await expect(tagline).toHaveText('Free, Fun, Fast & No Sign-up');
+  });
+
   test('does not contain banned "No ads" claim', async ({ page }) => {
     await page.goto('/about/');
     const body = await page.textContent('body');
@@ -118,7 +124,7 @@ test.describe('Guide Page', () => {
   });
 });
 
-test.describe('Privacy Page', () => {
+test.describe('Privacy Page — Positive', () => {
   test('loads with correct title', async ({ page }) => {
     await page.goto('/privacy/');
     await expect(page).toHaveTitle(/Privacy/);
@@ -126,7 +132,7 @@ test.describe('Privacy Page', () => {
 
   test('has main heading', async ({ page }) => {
     await page.goto('/privacy/');
-    await expect(page.locator('h1')).toBeAttached();
+    await expect(page.getByRole('heading', { name: 'Privacy Policy' })).toBeAttached();
   });
 
   test('mentions localStorage', async ({ page }) => {
@@ -139,6 +145,75 @@ test.describe('Privacy Page', () => {
     await page.goto('/privacy/');
     const body = await page.textContent('body');
     expect(body).toMatch(/no sign-up|no account|no email/i);
+  });
+
+  test('short version mentions ads via Google AdSense', async ({ page }) => {
+    await page.goto('/privacy/');
+    const body = await page.textContent('body');
+    expect(body).toContain('We display ads via Google AdSense');
+  });
+
+  test('short version clarifies no cross-site tracking', async ({ page }) => {
+    await page.goto('/privacy/');
+    const body = await page.textContent('body');
+    expect(body).toContain("don't track you across other sites");
+  });
+
+  test('has dedicated Advertising — Google AdSense section', async ({ page }) => {
+    await page.goto('/privacy/');
+    const heading = page.locator('h2', { hasText: 'Advertising — Google AdSense' });
+    await expect(heading).toBeVisible();
+  });
+
+  test('advertising section has opt-out link to Google Ads Settings', async ({ page }) => {
+    await page.goto('/privacy/');
+    const optOutLink = page.locator('a[href="https://www.google.com/settings/ads"]');
+    await expect(optOutLink).toBeAttached();
+    await expect(optOutLink).toHaveText(/Google Ads Settings/);
+  });
+
+  test('advertising section has opt-out link to aboutads.info', async ({ page }) => {
+    await page.goto('/privacy/');
+    const optOutLink = page.locator('a[href="https://www.aboutads.info/choices/"]');
+    await expect(optOutLink).toBeAttached();
+  });
+
+  test('advertising section mentions cookie consent banner for opt-out', async ({ page }) => {
+    await page.goto('/privacy/');
+    const adSection = page.locator('div.border-amber-800\\/50');
+    const text = await adSection.textContent();
+    expect(text).toContain('cookie consent banner');
+  });
+});
+
+test.describe('Privacy Page — Negative', () => {
+  test('does NOT claim "We don\'t run ads"', async ({ page }) => {
+    await page.goto('/privacy/');
+    const body = await page.textContent('body');
+    expect(body).not.toMatch(/we don't run ads/i);
+    expect(body).not.toMatch(/no ads/i);
+    expect(body).not.toMatch(/ad-free/i);
+  });
+
+  test('does NOT claim "We don\'t track you" without qualifier', async ({ page }) => {
+    await page.goto('/privacy/');
+    const body = await page.textContent('body') || '';
+    // The page should say "don't track you across other sites" (qualified),
+    // NOT a blanket "We don't track you." (full stop, unqualified)
+    expect(body).not.toMatch(/We don't track you\./);
+  });
+
+  test('no duplicate Advertising sections', async ({ page }) => {
+    await page.goto('/privacy/');
+    const headings = page.locator('h2', { hasText: /Advertising/i });
+    expect(await headings.count()).toBe(1);
+  });
+
+  test('opt-out links open in new tab (rel=noopener)', async ({ page }) => {
+    await page.goto('/privacy/');
+    const googleAdsLink = page.locator('a[href="https://www.google.com/settings/ads"]');
+    await expect(googleAdsLink).toHaveAttribute('target', '_blank');
+    await expect(googleAdsLink).toHaveAttribute('rel', /noopener/);
   });
 });
 

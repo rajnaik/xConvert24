@@ -225,8 +225,57 @@ import '../styles/global.css';
       emptyEl.classList.add('hidden');
 
       var html = '';
+
+      // Check for missed days between today and the most recent entry
+      var today = new Date();
+      today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      var firstEntryDate = parseLocalDate(history[0].date);
+      var gapFromToday = Math.round((today - firstEntryDate) / 86400000);
+      if (gapFromToday > 0) {
+        var missedFromToday = Math.min(gapFromToday, 7);
+        for (var t = 0; t < missedFromToday; t++) {
+          var mDate = new Date(today.getTime() - (t * 86400000));
+          var mDateStr = formatDate(mDate.getFullYear() + '-' + String(mDate.getMonth() + 1).padStart(2, '0') + '-' + String(mDate.getDate()).padStart(2, '0'));
+          html += '<tr class="border-b border-gray-800/50 bg-red-950/10" data-missed-day>';
+          html += '<td class="px-4 py-2 text-gray-500 whitespace-nowrap">' + mDateStr + '</td>';
+          html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐ stars and 💎 a diamond</td>';
+          html += '</tr>';
+        }
+        if (gapFromToday > 7) {
+          html += '<tr class="border-b border-gray-800/50 bg-red-950/10" data-missed-day>';
+          html += '<td class="px-4 py-2 text-gray-500 whitespace-nowrap">...</td>';
+          html += '<td class="px-4 py-2 text-red-400/60 text-xs italic" colspan="3">⚠️ ' + (gapFromToday - 7) + ' more missed day' + (gapFromToday - 7 > 1 ? 's' : '') + '</td>';
+          html += '</tr>';
+        }
+      }
+
       for (var i = 0; i < history.length; i++) {
         var row = history[i];
+
+        // Detect missed days between this row and the previous one (dates are DESC)
+        if (i > 0) {
+          var prevDate = parseLocalDate(history[i - 1].date);
+          var currDate = parseLocalDate(row.date);
+          var diffDays = Math.round((prevDate - currDate) / 86400000);
+          // Insert missed-day rows for gaps > 1 day (max 7 shown to avoid flooding)
+          var missedCount = Math.min(diffDays - 1, 7);
+          for (var m = 1; m <= missedCount; m++) {
+            var missedDate = new Date(prevDate.getTime() - (m * 86400000));
+            var missedDateStr = formatDate(missedDate.getFullYear() + '-' + String(missedDate.getMonth() + 1).padStart(2, '0') + '-' + String(missedDate.getDate()).padStart(2, '0'));
+            html += '<tr class="border-b border-gray-800/50 bg-red-950/10" data-missed-day>';
+            html += '<td class="px-4 py-2 text-gray-500 whitespace-nowrap">' + missedDateStr + '</td>';
+            html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐ stars and 💎 a diamond</td>';
+            html += '</tr>';
+          }
+          // If gap > 8 days, show a summary row
+          if (diffDays - 1 > 7) {
+            html += '<tr class="border-b border-gray-800/50 bg-red-950/10" data-missed-day>';
+            html += '<td class="px-4 py-2 text-gray-500 whitespace-nowrap">...</td>';
+            html += '<td class="px-4 py-2 text-red-400/60 text-xs italic" colspan="3">⚠️ ' + (diffDays - 1 - 7) + ' more missed day' + (diffDays - 1 - 7 > 1 ? 's' : '') + '</td>';
+            html += '</tr>';
+          }
+        }
+
         var dateStr = formatDate(row.date);
         var starBadges = '';
         for (var j = 0; j < row.stars.length; j++) {
@@ -245,6 +294,11 @@ import '../styles/global.css';
         html += '</tr>';
       }
       tbody.innerHTML = html;
+    }
+
+    function parseLocalDate(dateStr) {
+      var parts = dateStr.split('-');
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
     }
 
     function renderGameBreakdown(history, activities) {

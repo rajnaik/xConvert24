@@ -1,60 +1,130 @@
 /**
- * Shared constants — single source of truth for magic strings used across the app.
- * Import these instead of hardcoding strings.
+ * Server-side constants helper.
+ * Reads constants from KV CACHE (fast) with DB fallback.
+ * Use in Astro frontmatter for SSR pages.
  */
+import { env } from 'cloudflare:workers';
 
-// ── localStorage Keys ──
-export const STORAGE_KEYS = {
-  UID: 'swf-uid',
-  ACHIEVEMENTS: 'scbAchievements',
-  WOTD_CACHE: 'swf-wotd-cache',
-  QUIZ_START: 'swf-quiz-start',
-  QUIZ_SPLITS: 'swf-quiz-splits',
-  FLASH_CARD_SPEED: 'swf-fc-speed',
-  ANAGRAM_STREAK: 'swf-anagram-streak',
-  ROADMAP_CACHE: 'swf-roadmap-cache',
-  THEME: 'theme',
-} as const;
+interface ConstantRow {
+  id: number;
+  name: string;
+  text: string;
+  description: string;
+  category: string;
+  status: number;
+  updated_at: string;
+  updated_by: string;
+  created_at: string;
+}
 
-// ── Cache TTLs (milliseconds) ──
-export const CACHE_TTL = {
-  WOTD: 24 * 60 * 60 * 1000,        // 24 hours
-  ROADMAP: 5 * 60 * 1000,            // 5 minutes
-  SHORT: 60 * 1000,                   // 1 minute
-} as const;
+const CACHE_TTL = 3600;
 
-// ── API Endpoints ──
-export const API = {
-  WOTD: '/api/wotd/',
-  WORD_QUIZ: '/api/word-quiz/',
-  QUIZ_SCORES: '/api/quiz-scores/',
-  DAILY_RACK: '/api/daily-rack/',
-  DAILY_ANAGRAM: '/api/daily-anagram/',
-  ACHIEVEMENTS: '/api/achievements/',
-  ROADMAP: '/api/roadmap-features/',
-  WORDBENCH_PRACTICE: '/api/wordbench-practice/',
-  BANNERS: '/api/banners',
-} as const;
+// --- Static fallbacks for prerendered pages ---
+// These are used when the page is statically built and runtime bindings aren't available.
+export const TAGLINE = 'Free, Fun, Fast & No Sign-up';
+export const HERO_HEADING = 'Find Any Scrabble Word Instantly';
+export const SITE_NAME = 'ScrabbleWordsFinder.com';
+export const SITE_DOMAIN = 'scrabblewordsfinder.com';
+export const SITE_DESCRIPTION = 'Free Scrabble Word Finder — find the highest-scoring words from your tiles instantly. No sign-up needed.';
+export const COPYRIGHT_YEAR = '2026';
+export const OG_IMAGE_PATH = '/social-card.svg';
+export const FOOTER_TEXT = 'Made with ♟️ for word game lovers';
+export const CONTACT_EMAIL = 'contact@scrabblewordsfinder.com';
+export const DICTIONARY_VERSION = 'SOWPODS + TWL06';
+export const MAX_SAVED_WORDS = '100';
+export const PRIVACY_TRACKING_DISCLOSURE = 'We collect anonymous click data to improve features. No personal information is stored.';
+export const DAILY_ACTIVITIES_ENABLED = '1';
 
-// ── Game Config ──
-export const GAME = {
-  MAX_ANAGRAM_GUESSES: 5,
-  DEFAULT_QUIZ_COUNT: 7,
-  DEFAULT_QUIZ_TIMER: 90,
-  FLASH_CARD_DEFAULT_SPEED: 5,
-  DAILY_RACK_TILES: 7,
-} as const;
+/**
+ * Get a single constant value by name.
+ * Returns the text value or the provided fallback.
+ */
+export async function getConstant(name: string, fallback: string = ''): Promise<string> {
+  const kv = (env as any).CACHE as KVNamespace | undefined;
+  const db = (env as any).DB;
 
-// ── Scrabble Tile Scores ──
-export const TILE_SCORES: Record<string, number> = {
-  A:1, B:3, C:3, D:2, E:1, F:4, G:2, H:4, I:1, J:8, K:5,
-  L:1, M:3, N:1, O:1, P:3, Q:10, R:1, S:1, T:1, U:1, V:4,
-  W:4, X:8, Y:4, Z:10,
-};
+  // Try KV cache first
+  if (kv) {
+    try {
+      const raw = await kv.get(`const:name:${name}`, 'text');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.constant?.text) return parsed.constant.text;
+      }
+    } catch { /* fall through */ }
+  }
 
-// ── Progress Labels ──
-export const PROGRESS_LABELS: Record<string, string> = {
-  live: '✅ Live',
-  'in-progress': '🔨 Building',
-  planned: '📋 Planned',
-};
+  // Fallback to DB
+  if (db) {
+    try {
+      const row = await db.prepare('SELECT text FROM constants WHERE name = ? AND status = 1').bind(name).first() as ConstantRow | null;
+      if (row?.text) {
+        // Warm cache for next time
+        if (kv) {
+          try { await kv.put(`const:name:${name}`, JSON.stringify({ constant: row }), { expirationTtl: CACHE_TTL }); } catch {}
+        }
+        return row.text;
+      }
+    } catch { /* fall through */ }
+  }
+
+  return fallback;
+}
+
+/**
+ * Get multiple constants at once. Returns a map of name → value.
+ * More efficient than calling getConstant() multiple times.
+ */
+export async function getConstants(names: string[], fallbacks: Record<string, string> = {}): Promise<Record<string, string>> {
+  const kv = (env as any).CACHE as KVNamespace | undefined;
+  const db = (env as any).DB;
+  const result: Record<string, string> = {};
+  const missing: string[] = [];
+
+  // Try KV cache for each
+  if (kv) {
+    const reads = names.map(async (name) => {
+      try {
+        const raw = await kv.get(`const:name:${name}`, 'text');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.constant?.text) {
+            result[name] = parsed.constant.text;
+            return;
+          }
+        }
+      } catch { /* miss */ }
+      missing.push(name);
+    });
+    await Promise.all(reads);
+  } else {
+    missing.push(...names);
+  }
+
+  // Fetch missing from DB
+  if (missing.length > 0 && db) {
+    try {
+      const placeholders = missing.map(() => '?').join(',');
+      const { results } = await db.prepare(
+        `SELECT name, text FROM constants WHERE name IN (${placeholders}) AND status = 1`
+      ).bind(...missing).all();
+
+      for (const row of results as ConstantRow[]) {
+        result[row.name] = row.text;
+        // Warm cache
+        if (kv) {
+          try { await kv.put(`const:name:${row.name}`, JSON.stringify({ constant: row }), { expirationTtl: CACHE_TTL }); } catch {}
+        }
+      }
+    } catch { /* fall through */ }
+  }
+
+  // Fill in fallbacks for any still missing
+  for (const name of names) {
+    if (!result[name]) {
+      result[name] = fallbacks[name] || '';
+    }
+  }
+
+  return result;
+}

@@ -109,7 +109,7 @@ export const PUT: APIRoute = async ({ request }) => {
         const kv = (env as any).SESSION;
         if (kv) {
           const val = String(body.adsense).toUpperCase();
-          await kv.put('adsense-status', val);
+          await kv.put('adsense-status', val, { expirationTtl: 3600 });
         }
       } catch { /* KV write failure is non-fatal */ }
     }

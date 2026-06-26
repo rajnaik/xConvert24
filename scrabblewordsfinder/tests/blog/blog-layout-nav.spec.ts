@@ -51,10 +51,10 @@ test.describe('BlogLayout Header Nav — Positive', () => {
 });
 
 test.describe('BlogLayout Header Nav — Negative', () => {
-  test('header does not contain "Free, Fast, No-Sign Up" tagline (removed from nav)', async ({ page }) => {
+  test('header does not contain "Free, Fun, Fast & No Sign-up" tagline (removed from nav)', async ({ page }) => {
     await page.goto(BLOG_PAGE);
     const header = page.locator('header');
-    const tagline = header.locator('text=Free, Fast, No-Sign Up');
+    const tagline = header.locator('text=Free, Fun, Fast & No Sign-up');
     await expect(tagline).toHaveCount(0);
   });
 

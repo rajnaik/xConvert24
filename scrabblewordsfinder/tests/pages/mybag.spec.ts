@@ -430,3 +430,291 @@ test.describe('StarBar MyBag Link — Negative', () => {
     expect(href).not.toBe('#');
   });
 });
+
+
+
+// ── Missed Day Indicator ──────────────────────────────────────────────────
+
+test.describe('MyBag — Missed Day Indicator — Positive', () => {
+  test('shows missed-day row when there is a gap between history entries', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-missed-day');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 5, total_diamonds: 1, current_streak: 0, best_streak: 3, diamond_streak: 0, best_diamond_streak: 1, last_active_date: '2026-06-23' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' }, quiz: { name: 'Quiz', icon: '🧠', color: 'blue' } },
+          history: [
+            { date: '2026-06-25', stars: ['wotd'], stars_count: 1, diamond: false },
+            // Gap: 2026-06-24 is missing
+            { date: '2026-06-22', stars: ['wotd', 'quiz'], stars_count: 2, diamond: false },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    // Should have at least one missed-day row between the two entries
+    const missedRows = page.locator('tr[data-missed-day]');
+    const count = await missedRows.count();
+    expect(count).toBeGreaterThanOrEqual(1);
+  });
+
+  test('missed-day row displays warning message about lost stars and diamond', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-missed-msg');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 2, total_diamonds: 0, current_streak: 0, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-06-23' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [
+            { date: '2026-06-25', stars: ['wotd'], stars_count: 1, diamond: false },
+            { date: '2026-06-22', stars: ['wotd'], stars_count: 1, diamond: false },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    const missedRow = page.locator('tr[data-missed-day]').first();
+    await expect(missedRow).toContainText('Missed day');
+    await expect(missedRow).toContainText('stars');
+    await expect(missedRow).toContainText('diamond');
+  });
+
+  test('missed-day row has red-tinted background styling', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-missed-style');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 2, total_diamonds: 0, current_streak: 0, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-06-20' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [
+            { date: '2026-06-25', stars: ['wotd'], stars_count: 1, diamond: false },
+            { date: '2026-06-23', stars: ['wotd'], stars_count: 1, diamond: false },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    const missedRow = page.locator('tr[data-missed-day]').first();
+    const classes = await missedRow.getAttribute('class') || '';
+    expect(classes).toContain('bg-red-950/10');
+  });
+
+  test('multiple consecutive missed days each get their own row', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-multi-missed');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 2, total_diamonds: 0, current_streak: 0, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-06-25' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [
+            { date: '2026-06-25', stars: ['wotd'], stars_count: 1, diamond: false },
+            // 3-day gap: 24, 23, 22 are missed
+            { date: '2026-06-21', stars: ['wotd'], stars_count: 1, diamond: false },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    const missedRows = page.locator('tr[data-missed-day]');
+    // Should have 3 missed-day rows for the 3-day gap
+    expect(await missedRows.count()).toBe(3);
+  });
+
+  test('large gap shows summary row after 7 individual missed rows', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-large-gap');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 2, total_diamonds: 0, current_streak: 0, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-06-25' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [
+            { date: '2026-06-25', stars: ['wotd'], stars_count: 1, diamond: false },
+            // 12-day gap
+            { date: '2026-06-12', stars: ['wotd'], stars_count: 1, diamond: false },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    // 7 individual + 1 summary = 8 missed rows
+    const missedRows = page.locator('tr[data-missed-day]');
+    expect(await missedRows.count()).toBe(8);
+
+    // Last missed row should be summary with "more missed day" text
+    const summaryRow = missedRows.last();
+    await expect(summaryRow).toContainText('more missed day');
+  });
+});
+
+test.describe('MyBag — Missed Day Indicator — Negative', () => {
+  test('no missed-day rows when history has consecutive dates', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-no-gaps');
+    });
+
+    // Use a fixed "today" by mocking Date to avoid flakiness
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 4, total_diamonds: 0, current_streak: 2, best_streak: 2, diamond_streak: 0, best_diamond_streak: 0, last_active_date: today },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [
+            { date: today, stars: ['wotd'], stars_count: 1, diamond: false },
+            { date: yesterday, stars: ['wotd'], stars_count: 1, diamond: false },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    const missedRows = page.locator('tr[data-missed-day]');
+    expect(await missedRows.count()).toBe(0);
+  });
+
+  test('no missed-day rows when history has only one entry from today', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-single-today');
+    });
+
+    const today = new Date().toISOString().split('T')[0];
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 1, total_diamonds: 0, current_streak: 1, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: today },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [
+            { date: today, stars: ['wotd'], stars_count: 1, diamond: false },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    const missedRows = page.locator('tr[data-missed-day]');
+    expect(await missedRows.count()).toBe(0);
+  });
+
+  test('no JS errors when rendering missed-day rows', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-missed-no-err');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 2, total_diamonds: 0, current_streak: 0, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-06-20' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [
+            { date: '2026-06-25', stars: ['wotd'], stars_count: 1, diamond: false },
+            { date: '2026-06-20', stars: ['wotd'], stars_count: 1, diamond: false },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    expect(errors.filter(e => e.includes('TypeError') || e.includes('ReferenceError'))).toHaveLength(0);
+  });
+
+  test('missed-day rows do not interfere with load-more button functionality', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-missed-loadmore');
+    });
+
+    let requestCount = 0;
+    await page.route('**/api/mybag/**', async (route) => {
+      requestCount++;
+      const limit = requestCount === 1 ? 30 : 90;
+      // Generate 30 entries with gaps
+      const history = [];
+      for (let i = 0; i < limit; i++) {
+        const d = new Date(2026, 5, 25 - (i * 3)); // every 3rd day (2-day gaps)
+        history.push({
+          date: d.toISOString().split('T')[0],
+          stars: ['wotd'],
+          stars_count: 1,
+          diamond: false,
+        });
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: limit, total_diamonds: 0, current_streak: 0, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-06-25' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history,
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    // History rows should exist
+    const historyRows = page.locator('#mb-history-body tr:not([data-missed-day])');
+    expect(await historyRows.count()).toBeGreaterThan(0);
+
+    // Missed-day rows should also exist
+    const missedRows = page.locator('tr[data-missed-day]');
+    expect(await missedRows.count()).toBeGreaterThan(0);
+  });
+});

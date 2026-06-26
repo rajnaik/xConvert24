@@ -191,6 +191,138 @@ test.describe('Quiz History Timeline — Positive', () => {
   });
 });
 
+// ── Trophy Emoji on Perfect Scores ────────────────────────────────────────
+
+test.describe('Quiz History — Trophy Emoji on Perfect Score', () => {
+  test('perfect score row shows trophy emoji prefix in the score cell', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-trophy-user');
+    });
+
+    await page.route('**/api/quiz-scores/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          scores: [
+            {
+              id: 1, user_id: 'test-trophy-user', score: 5, total: 5,
+              time_used: 20, timer_limit: 90, timed_out: 0,
+              details: '', created_at: '2026-06-25 10:00:00',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(QUIZ_HISTORY_URL);
+    await page.waitForSelector('#qh-content:not(.hidden)', { timeout: 5000 });
+
+    // Score cell should contain the trophy emoji followed by the score
+    const scoreCell = page.locator('tbody tr:first-child td:nth-child(2)');
+    await expect(scoreCell).toContainText('🏆');
+    await expect(scoreCell).toContainText('5/5');
+  });
+
+  test('non-perfect score row does NOT show trophy emoji', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-no-trophy-user');
+    });
+
+    await page.route('**/api/quiz-scores/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          scores: [
+            {
+              id: 1, user_id: 'test-no-trophy-user', score: 3, total: 5,
+              time_used: 25, timer_limit: 90, timed_out: 0,
+              details: '', created_at: '2026-06-25 09:00:00',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(QUIZ_HISTORY_URL);
+    await page.waitForSelector('#qh-content:not(.hidden)', { timeout: 5000 });
+
+    const scoreCell = page.locator('tbody tr:first-child td:nth-child(2)');
+    await expect(scoreCell).toContainText('3/5');
+    // Should NOT have the trophy emoji
+    const text = await scoreCell.textContent();
+    expect(text).not.toContain('🏆');
+  });
+
+  test('perfect score cell has green text styling', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-green-trophy');
+    });
+
+    await page.route('**/api/quiz-scores/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          scores: [
+            {
+              id: 1, user_id: 'test-green-trophy', score: 3, total: 3,
+              time_used: 12, timer_limit: 90, timed_out: 0,
+              details: '', created_at: '2026-06-25 10:00:00',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(QUIZ_HISTORY_URL);
+    await page.waitForSelector('#qh-content:not(.hidden)', { timeout: 5000 });
+
+    const scoreCell = page.locator('tbody tr:first-child td:nth-child(2)');
+    await expect(scoreCell).toHaveClass(/text-green-400/);
+  });
+
+  test('mixed results: only perfect rows get trophy', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-mixed-trophy');
+    });
+
+    await page.route('**/api/quiz-scores/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          scores: [
+            {
+              id: 1, user_id: 'test-mixed-trophy', score: 5, total: 5,
+              time_used: 20, timer_limit: 90, timed_out: 0,
+              details: '', created_at: '2026-06-25 10:00:00',
+            },
+            {
+              id: 2, user_id: 'test-mixed-trophy', score: 2, total: 5,
+              time_used: 30, timer_limit: 90, timed_out: 0,
+              details: '', created_at: '2026-06-24 10:00:00',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(QUIZ_HISTORY_URL);
+    await page.waitForSelector('#qh-content:not(.hidden)', { timeout: 5000 });
+
+    // First row (perfect) — should have trophy
+    const firstScoreCell = page.locator('tbody tr:nth-child(1) td:nth-child(2)');
+    await expect(firstScoreCell).toContainText('🏆');
+
+    // Second row (not perfect) — should NOT have trophy
+    const secondScoreCell = page.locator('tbody tr:nth-child(2) td:nth-child(2)');
+    const secondText = await secondScoreCell.textContent();
+    expect(secondText).not.toContain('🏆');
+  });
+});
+
 // ── Negative Tests ────────────────────────────────────────────────────────
 
 test.describe('Quiz History Timeline — Negative', () => {

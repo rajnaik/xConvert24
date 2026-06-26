@@ -207,6 +207,32 @@ test.describe('API — /api/site-status PUT validation', () => {
     expect(body.error).toContain("adsense must be 'ON' or 'OFF'");
   });
 
+  test('PUT /api/site-status adsense toggle persists on subsequent GET (KV cache sync)', async ({ request }) => {
+    // Toggle adsense to ON
+    const putOn = await request.put('/api/site-status', {
+      data: { adsense: 'ON', updated_by: 'playwright-kv-ttl-test' },
+    });
+    expect(putOn.status()).toBe(200);
+
+    // Verify GET reflects the updated adsense value
+    const getAfterOn = await request.get('/api/site-status');
+    expect(getAfterOn.status()).toBe(200);
+    const bodyOn = await getAfterOn.json();
+    expect(bodyOn.adsense).toBe('ON');
+
+    // Toggle adsense to OFF
+    const putOff = await request.put('/api/site-status', {
+      data: { adsense: 'OFF', updated_by: 'playwright-kv-ttl-test' },
+    });
+    expect(putOff.status()).toBe(200);
+
+    // Verify GET reflects the toggled value
+    const getAfterOff = await request.get('/api/site-status');
+    expect(getAfterOff.status()).toBe(200);
+    const bodyOff = await getAfterOff.json();
+    expect(bodyOff.adsense).toBe('OFF');
+  });
+
   test('PUT /api/site-status updates updated_at on change', async ({ request }) => {
     const before = await request.get('/api/site-status');
     const beforeBody = await before.json();
