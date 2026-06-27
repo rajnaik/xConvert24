@@ -47,6 +47,8 @@ const showAds = !isAdmin;
     <meta name="keywords" content={keywords} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL} />
+    <!-- Critical CSS: paint background immediately while stylesheet loads -->
+    <style>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}</style>
     {(noindex || Astro.url.pathname.startsWith('/admin')) && <meta name="robots" content="noindex, nofollow" />}
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -61,31 +63,55 @@ const showAds = !isAdmin;
     <meta property="og:image" content={ogImageURL} />
     <meta name="twitter:image" content={ogImageURL} />
     <title>{title}</title>
-    {/* AdSense — loaded client-side based on DB toggle */}
+    {/* AdSense — load on first user interaction to reduce unused JS */}
     {showAds && (
       <script is:inline id="adsense-loader">
       (function(){
-        fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
-          if(d.adsense==='ON'){
-            var s=document.createElement('script');
-            s.async=true;
-            s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317';
-            s.crossOrigin='anonymous';
-            document.head.appendChild(s);
-            document.querySelectorAll('[data-ad-toggle]').forEach(function(el){el.style.display='';});
-          }
-        }).catch(function(){});
+        var fired=false;
+        function loadAds(){
+          if(fired)return;fired=true;
+          evts.forEach(function(e){document.removeEventListener(e,loadAds,{passive:true});});
+          clearTimeout(fallback);
+          fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
+            if(d.adsense==='ON'){
+              var s=document.createElement('script');
+              s.async=true;
+              s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317';
+              s.crossOrigin='anonymous';
+              document.head.appendChild(s);
+              document.querySelectorAll('[data-ad-toggle]').forEach(function(el){el.style.display='';});
+            }
+          }).catch(function(){});
+        }
+        var evts=['scroll','click','mouseover','touchstart','keydown'];
+        evts.forEach(function(e){document.addEventListener(e,loadAds,{once:true,passive:true});});
+        var fallback=setTimeout(loadAds,12000);
       })();
       </script>
     )}
-    <!-- Google tag (gtag.js) -->
-    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-HYBGD6YJHW"></script>
-    <script is:inline>
+    {/* Google tag (gtag.js) — load on first user interaction */}
+    <script is:inline id="gtag-loader">
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied'});
       gtag('js', new Date());
-      gtag('config', 'G-HYBGD6YJHW');
-      gtag('config', 'AW-18216393264');
+      (function(){
+        var fired=false;
+        function loadGtag(){
+          if(fired)return;fired=true;
+          evts.forEach(function(e){document.removeEventListener(e,loadGtag,{passive:true});});
+          clearTimeout(fallback);
+          var s=document.createElement('script');
+          s.async=true;
+          s.src='https://www.googletagmanager.com/gtag/js?id=G-HYBGD6YJHW';
+          document.head.appendChild(s);
+          gtag('config','G-HYBGD6YJHW');
+          gtag('config','AW-18216393264');
+        }
+        var evts=['scroll','click','mouseover','touchstart','keydown'];
+        evts.forEach(function(e){document.addEventListener(e,loadGtag,{once:true,passive:true});});
+        var fallback=setTimeout(loadGtag,12000);
+      })();
     </script>
   </head>
   <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">

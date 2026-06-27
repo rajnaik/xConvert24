@@ -45,6 +45,8 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     <meta name="keywords" content={keywords} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL} />
+    <!-- Critical CSS: paint background immediately while stylesheet loads -->
+    <style>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}</style>
     <!-- Breadcrumb JSON-LD -->
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
@@ -82,32 +84,43 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="https://www.scrabblewordsfinder.com/social-card.svg" />
     <title>{title}</title>
-    {/* AdSense — loaded client-side based on DB toggle */}
+    {/* AdSense — deferred load via requestIdleCallback */}
     <script is:inline id="adsense-loader">
     (function(){
-      // Check site-status and load AdSense + show ad containers if enabled
-      fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
-        if(d.adsense==='ON'){
-          // Load AdSense script
-          var s=document.createElement('script');
-          s.async=true;
-          s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317';
-          s.crossOrigin='anonymous';
-          document.head.appendChild(s);
-          // Show all ad containers
-          document.querySelectorAll('[data-ad-toggle]').forEach(function(el){el.style.display='';});
-        }
-      }).catch(function(){});
+      function loadAds(){
+        fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
+          if(d.adsense==='ON'){
+            var s=document.createElement('script');
+            s.async=true;
+            s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317';
+            s.crossOrigin='anonymous';
+            document.head.appendChild(s);
+            document.querySelectorAll('[data-ad-toggle]').forEach(function(el){el.style.display='';});
+          }
+        }).catch(function(){});
+      }
+      if('requestIdleCallback' in window){requestIdleCallback(loadAds,{timeout:5000});}
+      else{setTimeout(loadAds,3500);}
     })();
     </script>
-    <!-- Google tag (gtag.js) -->
-    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-HYBGD6YJHW"></script>
+    <!-- Google tag (gtag.js) — deferred until idle -->
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied'});
       gtag('js', new Date());
-      gtag('config', 'G-HYBGD6YJHW');
-      gtag('config', 'AW-18216393264');
+      (function(){
+        function loadGtag(){
+          var s=document.createElement('script');
+          s.async=true;
+          s.src='https://www.googletagmanager.com/gtag/js?id=G-HYBGD6YJHW';
+          document.head.appendChild(s);
+          gtag('config','G-HYBGD6YJHW');
+          gtag('config','AW-18216393264');
+        }
+        if('requestIdleCallback' in window){requestIdleCallback(loadGtag,{timeout:3000});}
+        else{setTimeout(loadGtag,2000);}
+      })();
     </script>
   </head>
   <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">
@@ -303,11 +316,6 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
       <AdUnit format="banner" />
     </div>
 
-    {/* Mobile-only rectangle ad — visible on small screens, hidden on desktop where sidebars show */}
-    <div class="flex lg:hidden justify-center py-3" data-ad-toggle style="display:none">
-      <AdUnit format="rectangle" />
-    </div>
-
     {/* 3-column layout: left skyscraper | content | right skyscraper */}
     <div class="flex justify-center gap-0">
       {/* Left skyscraper — hidden on mobile/tablet */}
@@ -324,6 +332,11 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
       <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0" data-ad-toggle style="display:none">
         <AdUnit format="skyscraper" />
       </aside>
+    </div>
+
+    {/* Mobile-only rectangle ad — between content and footer links on mobile */}
+    <div class="flex lg:hidden justify-center py-3" data-ad-toggle style="display:none">
+      <AdUnit format="rectangle" />
     </div>
 
     <!-- Footer -->

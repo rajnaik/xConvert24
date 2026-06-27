@@ -11,7 +11,19 @@ test.describe('Homepage — Page Load & Structure', () => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Free Scrabble Word Finder/);
     const description = await page.locator('meta[name="description"]').getAttribute('content');
-    expect(description).toContain('Free Scrabble word finder');
+    expect(description).toContain('Scrabble word finder and solver');
+  });
+
+  test('homepage title includes Fun, Free, Fast branding', async ({ page }) => {
+    await page.goto('/');
+    const title = await page.title();
+    expect(title).toContain('Fun, Free, Fast');
+  });
+
+  test('homepage meta description leads with Fun, free, fast', async ({ page }) => {
+    await page.goto('/');
+    const description = await page.locator('meta[name="description"]').getAttribute('content');
+    expect(description).toMatch(/^Fun, free, fast/);
   });
 
   test('has navigation links', async ({ page }) => {

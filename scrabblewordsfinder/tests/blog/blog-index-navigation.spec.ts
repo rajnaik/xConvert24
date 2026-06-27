@@ -4,6 +4,7 @@ import { test, expect } from '@playwright/test';
  * Tests for the Blog Index category navigation grid tiles.
  * The nav was changed from a flex-wrap pill layout to a grid of icon tiles
  * with per-category colour theming on 21 Jun 2026.
+ * Tiles were further grouped into category sections with labels on 27 Jun 2026.
  */
 
 const NAV_GRID = '.grid.grid-cols-3';
@@ -29,16 +30,17 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     expect(classes).toContain('lg:grid-cols-5');
   });
 
-  test('all 24 category/activity tiles are present', async ({ page }) => {
+  test('all 25 category/activity tiles are present', async ({ page }) => {
     await page.goto('/blog/');
     const expectedLabels = [
       'Beginner',
       'Strategy',
+      'Tournament',
+      'Pro Player',
       'Two-Letter',
       'Three-Letter',
       'Bingos',
       'High-Scoring',
-      'Tournament',
       'Letter Guides',
       'Dictionaries',
       'Containing',
@@ -64,11 +66,21 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     }
   });
 
+  test('category group labels are present', async ({ page }) => {
+    await page.goto('/blog/');
+    const navGrid = page.locator(NAV_GRID).first();
+    const groupLabels = ['Learn & Strategy', 'Word Lists', 'Word Patterns', 'Resources', 'Activities'];
+    for (const label of groupLabels) {
+      const groupHeader = navGrid.locator(`p.col-span-full:has-text("${label}")`);
+      await expect(groupHeader, `Group label "${label}" should be present`).toHaveCount(1);
+    }
+  });
+
   test('each tile has an emoji icon and a text label', async ({ page }) => {
     await page.goto('/blog/');
     const navGrid = page.locator(NAV_GRID).first();
     const tiles = await navGrid.locator('a').all();
-    expect(tiles.length).toBe(24);
+    expect(tiles.length).toBe(25);
     for (const tile of tiles) {
       // Each tile should have two spans: emoji icon + label text
       const spans = await tile.locator('span').count();
@@ -81,6 +93,21 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     const tile = page.locator(`${NAV_GRID} a:has-text("WOTD Series")`).first();
     await expect(tile).toBeVisible();
     await expect(tile).toHaveAttribute('href', '/blog/word-of-the-day-series/');
+  });
+
+  test('Pro Player tile points to /blog/roadmap-to-being-a-pro-player/', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Pro Player")`).first();
+    await expect(tile).toBeVisible();
+    await expect(tile).toHaveAttribute('href', '/blog/roadmap-to-being-a-pro-player/');
+  });
+
+  test('Pro Player tile has yellow theming', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Pro Player")`).first();
+    const classes = await tile.getAttribute('class');
+    expect(classes).toContain('border-yellow-500/30');
+    expect(classes).toContain('bg-yellow-950/20');
   });
 
   test('Word Quiz tile points to /activities/', async ({ page }) => {
