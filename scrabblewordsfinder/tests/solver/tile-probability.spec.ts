@@ -91,6 +91,19 @@ test.describe('Tile Bag Probability', () => {
     });
     expect(saved.played).toBe(20);
   });
+
+  test('tiles-in-bag input has an associated sr-only label for accessibility', async ({ page }) => {
+    const label = page.locator('label[for="tiles-in-bag"]');
+    await expect(label).toBeAttached();
+    await expect(label).toHaveClass(/sr-only/);
+    await expect(label).toHaveText('Tiles in bag');
+  });
+
+  test('tiles-in-bag sr-only label does not create a duplicate visible element', async ({ page }) => {
+    // The sr-only label should be visually hidden — only one visible "Bag:" text
+    const visibleBagLabels = page.locator('text=Bag:');
+    await expect(visibleBagLabels).toHaveCount(1);
+  });
 });
 
 test.describe('Rack Leave Analyzer', () => {
