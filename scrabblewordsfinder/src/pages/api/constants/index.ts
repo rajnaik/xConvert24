@@ -34,13 +34,44 @@ async function cacheSet(kv: KVNamespace, key: string, value: unknown): Promise<v
   } catch { /* best-effort — don't fail the request if cache write fails */ }
 }
 
-/** Invalidate all constants cache keys. Uses list() to find and delete them. */
-async function cacheInvalidateAll(kv: KVNamespace): Promise<void> {
+/** Invalidate all constants cache keys and re-populate with fresh DB data (write-through). */
+async function cacheRefresh(kv: KVNamespace, db: any): Promise<void> {
   try {
+    // 1. Delete all existing constant cache keys
     const listed = await kv.list({ prefix: 'const:' });
-    const deletes = listed.keys.map((k) => kv.delete(k.name));
-    await Promise.all(deletes);
-  } catch { /* best-effort */ }
+    if (listed.keys.length > 0) {
+      await Promise.all(listed.keys.map((k) => kv.delete(k.name)));
+    }
+
+    // 2. Fetch fresh data from DB
+    const { results: allResults } = await db.prepare(
+      `SELECT ${ALL_COLS} FROM constants ORDER BY category, name`
+    ).all();
+    const activeResults = allResults.filter((r: any) => r.status === 1);
+
+    // 3. Write-through: immediately populate cache with fresh data
+    const writes: Promise<void>[] = [];
+
+    // Individual keys for each constant
+    for (const row of allResults) {
+      writes.push(kv.put(`const:name:${(row as any).name}`, JSON.stringify({ constant: row }), { expirationTtl: CACHE_TTL }));
+    }
+
+    // List keys
+    writes.push(kv.put('const:list', JSON.stringify({ constants: allResults }), { expirationTtl: CACHE_TTL }));
+    writes.push(kv.put('const:list:active', JSON.stringify({ constants: activeResults }), { expirationTtl: CACHE_TTL }));
+
+    // Category-specific lists
+    const categories = [...new Set(allResults.map((r: any) => r.category).filter(Boolean))];
+    for (const cat of categories) {
+      const catResults = allResults.filter((r: any) => r.category === cat);
+      writes.push(kv.put(`const:list:cat:${cat}`, JSON.stringify({ constants: catResults }), { expirationTtl: CACHE_TTL }));
+      const catActive = catResults.filter((r: any) => r.status === 1);
+      writes.push(kv.put(`const:list:cat:${cat}:active`, JSON.stringify({ constants: catActive }), { expirationTtl: CACHE_TTL }));
+    }
+
+    await Promise.all(writes);
+  } catch { /* best-effort — don't fail the mutation if cache refresh fails */ }
 }
 
 // --- API Routes ---
@@ -163,8 +194,8 @@ export const PUT: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Constant not found' }), { status: 404 });
     }
 
-    // Invalidate cache after successful write
-    if (kv) await cacheInvalidateAll(kv);
+    // Write-through: refresh cache with fresh DB data
+    if (kv) await cacheRefresh(kv, db);
 
     const updated = await db.prepare(`SELECT ${ALL_COLS} FROM constants WHERE name = ?`).bind(name).first();
     return new Response(JSON.stringify({ constant: updated }), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -198,8 +229,8 @@ export const POST: APIRoute = async ({ request }) => {
       `INSERT INTO constants (name, text, description, category, status, updated_at, updated_by, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'), ?, datetime('now'))`
     ).bind(name, text, desc, cat, stat, updatedBy).run();
 
-    // Invalidate cache after successful write
-    if (kv) await cacheInvalidateAll(kv);
+    // Write-through: refresh cache with fresh DB data
+    if (kv) await cacheRefresh(kv, db);
 
     const created = await db.prepare(`SELECT ${ALL_COLS} FROM constants WHERE name = ?`).bind(name).first();
     return new Response(JSON.stringify({ constant: created }), { status: 201, headers: { 'Content-Type': 'application/json' } });
@@ -230,8 +261,8 @@ export const DELETE: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Constant not found' }), { status: 404 });
     }
 
-    // Invalidate cache after successful delete
-    if (kv) await cacheInvalidateAll(kv);
+    // Write-through: refresh cache with fresh DB data
+    if (kv) await cacheRefresh(kv, db);
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   } catch (err: any) {

@@ -590,7 +590,7 @@ import '../styles/global.css';
 
     <p class="text-gray-300 mb-4"><strong class="text-white">Words so far:</strong></p>
     <div class="overflow-x-auto mb-6">
-      <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+      <table id="wotd-month-table" class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
         <thead class="bg-gray-800">
           <tr>
             <th class="px-4 py-2 text-left text-gray-300">Date</th>
@@ -599,12 +599,44 @@ import '../styles/global.css';
             <th class="px-4 py-2 text-left text-gray-300">Scrabble Score</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-800">
-          <tr class="bg-gray-900"><td class="px-4 py-2 text-gray-400">June 15</td><td class="px-4 py-2 font-mono font-bold text-purple-300">QUIXOTIC</td><td class="px-4 py-2 text-gray-300">Exceedingly idealistic; unrealistic and impractical</td><td class="px-4 py-2 text-blue-400">26 pts</td></tr>
-          <tr class="bg-gray-900/50"><td class="px-4 py-2 text-gray-400">June 16</td><td class="px-4 py-2 font-mono font-bold text-purple-300">ZEPHYR</td><td class="px-4 py-2 text-gray-300">A soft, gentle breeze; the west wind</td><td class="px-4 py-2 text-blue-400">23 pts</td></tr>
+        <tbody id="wotd-month-body" class="divide-y divide-gray-800">
+          <tr class="bg-gray-900"><td colspan="4" class="px-4 py-3 text-gray-400 text-center">Loading this month's words...</td></tr>
         </tbody>
       </table>
     </div>
+    <script is:inline>
+    (function(){
+      const SCORES={A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+      const now=new Date();
+      const month=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+      const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const monthName=monthNames[now.getMonth()];
+      fetch('/api/wotd-monthly/?month='+month)
+        .then(r=>r.json())
+        .then(data=>{
+          const words=data.words||[];
+          const today=now.toISOString().split('T')[0];
+          const revealed=words.filter(w=>w.date<=today);
+          const tbody=document.getElementById('wotd-month-body');
+          if(!tbody)return;
+          if(revealed.length===0){
+            tbody.innerHTML='<tr class="bg-gray-900"><td colspan="4" class="px-4 py-3 text-gray-400 text-center">No words yet this month</td></tr>';
+            return;
+          }
+          tbody.innerHTML=revealed.map((w,i)=>{
+            const d=new Date(w.date+'T12:00:00');
+            const dayLabel=monthName+' '+d.getDate();
+            const score=w.word.split('').reduce((s,c)=>s+(SCORES[c]||0),0);
+            const bg=i%2===0?'bg-gray-900':'bg-gray-900/50';
+            return '<tr class="'+bg+'"><td class="px-4 py-2 text-gray-400">'+dayLabel+'</td><td class="px-4 py-2 font-mono font-bold text-purple-300">'+w.word+'</td><td class="px-4 py-2 text-gray-300">'+(w.meaning||'—')+'</td><td class="px-4 py-2 text-blue-400">'+score+' pts</td></tr>';
+          }).join('');
+        })
+        .catch(()=>{
+          const tbody=document.getElementById('wotd-month-body');
+          if(tbody)tbody.innerHTML='<tr class="bg-gray-900"><td colspan="4" class="px-4 py-3 text-gray-400 text-center">Could not load words</td></tr>';
+        });
+    })();
+    </script>
 
     <h3 class="text-lg font-semibold text-purple-400 mt-6 mb-3">🧠 Word Quiz</h3>
     <p class="text-gray-300 mb-4">A timed vocabulary challenge that tests your word knowledge under pressure — just like a real game where the clock is ticking.</p>

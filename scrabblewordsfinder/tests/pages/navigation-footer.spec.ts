@@ -70,6 +70,22 @@ test.describe('Footer Links', () => {
     await page.goto('/suggest');
     await expect(page.locator('footer')).toContainText('ScrabbleWordsFinder.com');
   });
+
+  test('copyright year span exists with valid year', async ({ page }) => {
+    await page.goto('/');
+    const yearSpan = page.locator('#copyright-year');
+    await expect(yearSpan).toBeAttached();
+    const text = await yearSpan.textContent();
+    expect(text).toMatch(/^\d{4}$/);
+  });
+
+  test('copyright year span is not empty', async ({ page }) => {
+    await page.goto('/');
+    const yearSpan = page.locator('#copyright-year');
+    await expect(yearSpan).toBeAttached();
+    const text = await yearSpan.textContent();
+    expect(text!.trim().length).toBeGreaterThan(0);
+  });
 });
 
 test.describe('Related Articles (Homepage)', () => {

@@ -18,14 +18,13 @@ const VERSION = packageJson.version;
 
 // Load constants from KV/DB with sensible fallbacks
 const C = await getConstants(
-  ['SiteName', 'SITE_DOMAIN', 'SITE_DESCRIPTION', 'COPYRIGHT_YEAR', 'OG_IMAGE_PATH', 'FOOTER_TEXT'],
+  ['SiteName', 'SITE_DOMAIN', 'SITE_DESCRIPTION', 'COPYRIGHT_YEAR', 'OG_IMAGE_PATH'],
   {
     SiteName: 'ScrabbleWordsFinder.com',
     SITE_DOMAIN: 'scrabblewordsfinder.com',
     SITE_DESCRIPTION: 'Free Scrabble Word Finder — find the highest-scoring words from your tiles instantly. No sign-up needed.',
     COPYRIGHT_YEAR: '2026',
     OG_IMAGE_PATH: '/social-card.svg',
-    FOOTER_TEXT: 'Made with ♟️ for word game lovers',
   }
 );
 
@@ -492,8 +491,8 @@ const showAds = !isAdmin;
     <!-- Footer -->
     <footer class="border-t border-gray-800 px-6 py-4 mt-2">
       <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
-        <p class="text-sm text-gray-500">&copy; {C.COPYRIGHT_YEAR} {C.SiteName}</p>
-        <span class="text-xs text-gray-600 hidden sm:inline">{C.FOOTER_TEXT}</span>
+        <p class="text-sm text-gray-500">&copy; <span id="copyright-year">{C.COPYRIGHT_YEAR}</span> {C.SiteName}</p>
+
         <a href="/releases/" class="text-xs font-mono text-purple-400 hover:text-purple-300 transition-colors" title={`Version ${VERSION}`}>v{VERSION}</a>
         <span id="footer-clicks" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-purple-700 bg-purple-950/30 text-xs font-mono text-purple-300">
           <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg>
@@ -523,6 +522,15 @@ const showAds = !isAdmin;
       }
       updateClickCounter();
       setInterval(updateClickCounter, 2000);
+
+      // Hydrate copyright year from live DB
+      fetch('/api/constants/?name=COPYRIGHT_YEAR')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var el = document.getElementById('copyright-year');
+          if (el && d.constant && d.constant.text) el.textContent = d.constant.text;
+        })
+        .catch(function(){});
     </script>
     <script is:inline>
       // Show admin dot only if session cookie exists

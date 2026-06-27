@@ -72,6 +72,16 @@ export default defineConfig({
       use: { ...devices['Pixel 7'] },
     },
     {
+      name: 'quick',
+      testDir: './tests/quick/solver',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'site-check',
+      testDir: './tests/quick/site-check',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
       name: 'smoke',
       testDir: './tests',
       testMatch: /smoke\.spec\.ts/,

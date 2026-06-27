@@ -29,7 +29,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     expect(classes).toContain('lg:grid-cols-5');
   });
 
-  test('all 15 category/activity tiles are present', async ({ page }) => {
+  test('all 24 category/activity tiles are present', async ({ page }) => {
     await page.goto('/blog/');
     const expectedLabels = [
       'Beginner',
@@ -41,6 +41,15 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
       'Tournament',
       'Letter Guides',
       'Dictionaries',
+      'Containing',
+      'Endings',
+      'Prefixes',
+      'Patterns',
+      'Vocabulary',
+      'Tools',
+      'History',
+      'Fun Facts',
+      'Cheat Sheets',
       'WOTD Series',
       'Word Quiz',
       'WordBench',
@@ -59,7 +68,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     await page.goto('/blog/');
     const navGrid = page.locator(NAV_GRID).first();
     const tiles = await navGrid.locator('a').all();
-    expect(tiles.length).toBe(15);
+    expect(tiles.length).toBe(24);
     for (const tile of tiles) {
       // Each tile should have two spans: emoji icon + label text
       const spans = await tile.locator('span').count();
@@ -107,6 +116,21 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     const tile = page.locator(`${NAV_GRID} a:has-text("60-Second")`).first();
     await expect(tile).toBeVisible();
     await expect(tile).toHaveAttribute('href', '/activities/');
+  });
+
+  test('Cheat Sheets tile points to /cheat-sheets/', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Cheat Sheets")`).first();
+    await expect(tile).toBeVisible();
+    await expect(tile).toHaveAttribute('href', '/cheat-sheets/');
+  });
+
+  test('Cheat Sheets tile has emerald theming', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Cheat Sheets")`).first();
+    const classes = await tile.getAttribute('class');
+    expect(classes).toContain('border-emerald-500/30');
+    expect(classes).toContain('bg-emerald-950/20');
   });
 
   test('blog category tiles use rounded-xl styling', async ({ page }) => {
