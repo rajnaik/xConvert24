@@ -1,0 +1,439 @@
+---
+/**
+ * BlogComments — Threaded comment section for blog posts.
+ * Loads approved comments from /api/blog-comments/ and renders a tree view.
+ * Users can post new comments and reply to existing ones.
+ */
+interface Props {
+  blogid: string;
+  blogname: string;
+}
+
+const { blogid, blogname } = Astro.props;
+---
+
+<section id="blog-comments-section" class="mt-12 pt-8 border-t border-gray-800" data-blogid={blogid} data-blogname={blogname}>
+  <h2 class="text-xl font-bold text-white mb-6">💬 Comments</h2>
+
+  <!-- Comment list (populated by client JS) -->
+  <div id="comments-tree" class="space-y-4 mb-8">
+    <p id="comments-loading" class="text-sm text-gray-500">Loading comments...</p>
+  </div>
+
+  <!-- Comment form -->
+  <div id="comment-form-wrapper" class="bg-gray-900/50 border border-gray-800 rounded-xl p-5">
+    <h3 id="comment-form-title" class="text-sm font-semibold text-white mb-4">Leave a comment</h3>
+    <form id="comment-form" class="space-y-3">
+      <input type="hidden" id="comment-related" value="" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label for="comment-name" class="block text-xs text-gray-400 mb-1">Name <span class="text-red-400">*</span></label>
+          <input type="text" id="comment-name" maxlength="100" required
+            class="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+            placeholder="Your name" />
+        </div>
+        <div>
+          <label for="comment-subject" class="block text-xs text-gray-400 mb-1">Subject</label>
+          <input type="text" id="comment-subject" maxlength="200"
+            class="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+            placeholder="Optional subject" />
+        </div>
+      </div>
+      <div>
+        <label for="comment-text" class="block text-xs text-gray-400 mb-1">Comment <span class="text-red-400">*</span></label>
+        <textarea id="comment-text" rows="4" maxlength="2000" required
+          class="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors resize-y"
+          placeholder="Share your thoughts..."></textarea>
+        <p class="text-xs text-gray-500 mt-1"><span id="comment-char-count">0</span>/2000</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button type="submit" id="comment-submit-btn"
+          class="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Post Comment
+        </button>
+        <button type="button" id="comment-cancel-reply" class="hidden px-4 py-2 text-sm text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
+          Cancel Reply
+        </button>
+      </div>
+      <p id="comment-status" class="text-sm hidden"></p>
+    </form>
+  </div>
+</section>
+
+<script is:inline>
+(function() {
+  var section = document.getElementById('blog-comments-section');
+  if (!section) return;
+
+  var blogid = section.dataset.blogid;
+  var blogname = section.dataset.blogname;
+  var treeEl = document.getElementById('comments-tree');
+  var loadingEl = document.getElementById('comments-loading');
+  var form = document.getElementById('comment-form');
+  var formTitle = document.getElementById('comment-form-title');
+  var relatedInput = document.getElementById('comment-related');
+  var cancelBtn = document.getElementById('comment-cancel-reply');
+  var statusEl = document.getElementById('comment-status');
+  var submitBtn = document.getElementById('comment-submit-btn');
+  var charCount = document.getElementById('comment-char-count');
+  var textArea = document.getElementById('comment-text');
+
+  // --- localStorage: track own comment IDs ---
+  var STORAGE_KEY = 'swf-my-comments';
+
+  function getMyCommentIds() {
+    try {
+      var stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      return stored[blogid] || [];
+    } catch (e) { return []; }
+  }
+
+  function saveMyCommentId(id) {
+    try {
+      var stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (!stored[blogid]) stored[blogid] = [];
+      if (stored[blogid].indexOf(id) === -1) stored[blogid].push(id);
+      // Cap at 200 IDs per blog to prevent unbounded growth
+      if (stored[blogid].length > 200) stored[blogid] = stored[blogid].slice(-200);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    } catch (e) {}
+  }
+
+  function removeMyCommentId(id) {
+    try {
+      var stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (stored[blogid]) {
+        stored[blogid] = stored[blogid].filter(function(i) { return i !== id; });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+      }
+    } catch (e) {}
+  }
+
+  // Track which IDs are mine (for rendering edit buttons)
+  var myIds = new Set(getMyCommentIds());
+  var allCommentsCache = [];
+
+  // Character counter
+  if (textArea && charCount) {
+    textArea.addEventListener('input', function() {
+      charCount.textContent = textArea.value.length;
+    });
+  }
+
+  // Load comments (includes ?mine= for own pending)
+  function loadComments() {
+    var mineIds = getMyCommentIds();
+    var url = '/api/blog-comments/?blogid=' + encodeURIComponent(blogid);
+    if (mineIds.length > 0) {
+      url += '&mine=' + mineIds.join(',');
+    }
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (loadingEl) loadingEl.remove();
+        allCommentsCache = data.comments || [];
+        renderTree(allCommentsCache);
+      })
+      .catch(function() {
+        if (loadingEl) loadingEl.textContent = 'Unable to load comments.';
+      });
+  }
+
+  // Build tree structure from flat array
+  function buildTree(comments) {
+    var map = {};
+    var roots = [];
+    comments.forEach(function(c) { map[c.id] = Object.assign({}, c, { children: [] }); });
+    comments.forEach(function(c) {
+      if (c.related && map[c.related]) {
+        map[c.related].children.push(map[c.id]);
+      } else {
+        roots.push(map[c.id]);
+      }
+    });
+    return roots;
+  }
+
+  // Render tree recursively
+  function renderTree(comments) {
+    if (!comments.length) {
+      treeEl.innerHTML = '<p class="text-sm text-gray-500">No comments yet. Be the first to share your thoughts!</p>';
+      return;
+    }
+    var tree = buildTree(comments);
+    treeEl.innerHTML = '';
+    tree.forEach(function(node) {
+      treeEl.appendChild(renderNode(node, 0));
+    });
+  }
+
+  function renderNode(node, depth) {
+    var el = document.createElement('div');
+    el.setAttribute('data-comment-id', node.id);
+    var indent = Math.min(depth, 4) * 24;
+    el.style.marginLeft = indent + 'px';
+    el.className = 'border-l-2 ' + (depth === 0 ? 'border-blue-600/30' : 'border-gray-700/50') + ' pl-4 py-3';
+
+    var dateStr = node.datetime ? new Date(node.datetime + (node.datetime.includes('Z') ? '' : 'Z')).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    var edited = (node.editedstatus && node.editedstatus !== 'original') ? ' <span class="text-xs text-gray-500 italic">(edited)</span>' : '';
+
+    var isMine = myIds.has(node.id);
+    var isPending = node.status === 'pending';
+
+    // Status badge for own comments
+    var pendingBadge = '';
+    if (isMine && isPending) {
+      pendingBadge = ' <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-900/40 text-amber-400 border border-amber-800/50">⏳ Pending approval</span>';
+    } else if (isMine && node.status === 'approved') {
+      pendingBadge = ' <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-900/40 text-green-400 border border-green-800/50">✅ Approved</span>';
+    }
+
+    // Edit button — only for own pending comments
+    var editBtn = (isMine && isPending)
+      ? '<button class="edit-btn ml-3 text-xs text-amber-400 hover:text-amber-300 transition-colors" data-id="' + node.id + '">✏️ Edit</button>'
+      : '';
+
+    el.innerHTML =
+      '<div class="flex items-center gap-2 mb-1 flex-wrap">' +
+        '<span class="text-sm font-medium text-blue-300">' + escHtml(node.commenterName) + '</span>' +
+        '<span class="text-xs text-gray-500">' + dateStr + '</span>' +
+        edited +
+        pendingBadge +
+      '</div>' +
+      (node.subject ? '<p class="text-xs font-medium text-gray-400 mb-1 comment-subject-display">' + escHtml(node.subject) + '</p>' : '') +
+      '<p class="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap comment-text-display">' + escHtml(node.comment) + '</p>' +
+      '<div class="flex items-center mt-2">' +
+        '<button class="reply-btn text-xs text-purple-400 hover:text-purple-300 transition-colors" data-id="' + node.id + '" data-name="' + escAttr(node.commenterName) + '">↩ Reply</button>' +
+        editBtn +
+      '</div>';
+
+    // Render children
+    if (node.children && node.children.length) {
+      node.children.forEach(function(child) {
+        el.appendChild(renderNode(child, depth + 1));
+      });
+    }
+
+    return el;
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  function escAttr(s) {
+    return (s || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // --- Edit functionality ---
+  function showEditForm(commentEl, commentId) {
+    var node = allCommentsCache.find(function(c) { return c.id === commentId; });
+    if (!node) return;
+
+    var textDisplay = commentEl.querySelector('.comment-text-display');
+    var subjectDisplay = commentEl.querySelector('.comment-subject-display');
+    if (!textDisplay) return;
+
+    // Hide existing content and buttons
+    textDisplay.style.display = 'none';
+    if (subjectDisplay) subjectDisplay.style.display = 'none';
+    var btnRow = commentEl.querySelector('.edit-btn');
+    if (btnRow) btnRow.closest('.flex').style.display = 'none';
+
+    // Create inline edit form
+    var editForm = document.createElement('div');
+    editForm.className = 'comment-edit-form mt-2 space-y-2';
+    editForm.innerHTML =
+      '<input type="text" class="edit-subject w-full px-3 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-amber-500" placeholder="Subject (optional)" maxlength="200" value="' + escAttr(node.subject || '') + '" />' +
+      '<textarea class="edit-text w-full px-3 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 resize-y" rows="3" maxlength="2000" required>' + escHtml(node.comment) + '</textarea>' +
+      '<div class="flex items-center gap-2">' +
+        '<button type="button" class="edit-save-btn px-4 py-1.5 text-xs font-semibold text-white bg-amber-600 rounded-lg hover:bg-amber-500 transition-colors">Save</button>' +
+        '<button type="button" class="edit-cancel-btn px-4 py-1.5 text-xs text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">Cancel</button>' +
+        '<span class="edit-status text-xs hidden"></span>' +
+      '</div>';
+
+    textDisplay.parentNode.insertBefore(editForm, textDisplay.nextSibling);
+
+    var editText = editForm.querySelector('.edit-text');
+    editText.focus();
+    editText.setSelectionRange(editText.value.length, editText.value.length);
+
+    // Cancel
+    editForm.querySelector('.edit-cancel-btn').addEventListener('click', function() {
+      editForm.remove();
+      textDisplay.style.display = '';
+      if (subjectDisplay) subjectDisplay.style.display = '';
+      var btnRowEl = commentEl.querySelectorAll('.flex');
+      // Show the last flex row (action buttons)
+      var lastFlex = commentEl.querySelector('[style*="display: none"]');
+      if (lastFlex) lastFlex.style.display = '';
+      // Re-render to be safe
+      renderTree(allCommentsCache);
+    });
+
+    // Save
+    editForm.querySelector('.edit-save-btn').addEventListener('click', function() {
+      var newComment = editForm.querySelector('.edit-text').value.trim();
+      var newSubject = editForm.querySelector('.edit-subject').value.trim();
+      var editStatus = editForm.querySelector('.edit-status');
+
+      if (!newComment) {
+        editStatus.textContent = 'Comment cannot be empty.';
+        editStatus.className = 'edit-status text-xs text-red-400';
+        editStatus.classList.remove('hidden');
+        return;
+      }
+
+      var saveBtn = editForm.querySelector('.edit-save-btn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      fetch('/api/blog-comments/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: commentId, comment: newComment, subject: newSubject })
+      })
+        .then(function(r) { return r.json().then(function(d) { return { status: r.status, data: d }; }); })
+        .then(function(res) {
+          var data = res.data;
+          if (data.ok) {
+            // Update local cache
+            var cached = allCommentsCache.find(function(c) { return c.id === commentId; });
+            if (cached) {
+              cached.comment = newComment;
+              cached.subject = newSubject;
+              cached.editedstatus = 'edited';
+            }
+            renderTree(allCommentsCache);
+          } else if (res.status === 403 && data.error && data.error.toLowerCase().indexOf('pending') !== -1) {
+            // Comment was approved server-side — update local cache to reflect approved status
+            var cached = allCommentsCache.find(function(c) { return c.id === commentId; });
+            if (cached) cached.status = 'approved';
+            renderTree(allCommentsCache);
+          } else {
+            editStatus.textContent = data.error || 'Failed to save.';
+            editStatus.className = 'edit-status text-xs text-red-400';
+            editStatus.classList.remove('hidden');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+          }
+        })
+        .catch(function() {
+          editStatus.textContent = 'Network error.';
+          editStatus.className = 'edit-status text-xs text-red-400';
+          editStatus.classList.remove('hidden');
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        });
+    });
+  }
+
+  // Reply + Edit button delegation
+  treeEl.addEventListener('click', function(e) {
+    // Reply button
+    var replyBtn = e.target.closest('.reply-btn');
+    if (replyBtn) {
+      var parentId = replyBtn.dataset.id;
+      var parentName = replyBtn.dataset.name;
+      relatedInput.value = parentId;
+      formTitle.textContent = 'Replying to ' + parentName;
+      cancelBtn.classList.remove('hidden');
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('comment-name').focus();
+      return;
+    }
+
+    // Edit button
+    var editBtn = e.target.closest('.edit-btn');
+    if (editBtn) {
+      var commentId = Number(editBtn.dataset.id);
+      var commentEl = editBtn.closest('[data-comment-id]');
+      if (commentEl) showEditForm(commentEl, commentId);
+      return;
+    }
+  });
+
+  // Cancel reply
+  cancelBtn.addEventListener('click', function() {
+    relatedInput.value = '';
+    formTitle.textContent = 'Leave a comment';
+    cancelBtn.classList.add('hidden');
+  });
+
+  // Submit form — instant display + save ID to localStorage
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name = document.getElementById('comment-name').value.trim();
+    var subject = document.getElementById('comment-subject').value.trim();
+    var comment = textArea.value.trim();
+    var related = relatedInput.value || null;
+
+    if (!name || !comment) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Posting...';
+    statusEl.classList.add('hidden');
+
+    fetch('/api/blog-comments/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blogid: blogid, blogname: blogname, subject: subject, comment: comment, commenterName: name, related: related })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) {
+          // Save to localStorage for ownership tracking
+          if (data.id) {
+            saveMyCommentId(data.id);
+            myIds.add(data.id);
+          }
+
+          // Instant display — add to local cache and re-render
+          var newComment = {
+            id: data.id,
+            blogid: blogid,
+            blogname: blogname,
+            subject: subject,
+            comment: comment,
+            commenterName: name,
+            datetime: new Date().toISOString().replace('Z', '').split('.')[0],
+            dateedited: null,
+            status: 'pending',
+            editedstatus: 'original',
+            related: related ? Number(related) : null,
+            children: []
+          };
+          allCommentsCache.push(newComment);
+          renderTree(allCommentsCache);
+
+          statusEl.textContent = '✅ Comment posted! It will be visible to others after approval.';
+          statusEl.className = 'text-sm text-green-400';
+          statusEl.classList.remove('hidden');
+          form.reset();
+          charCount.textContent = '0';
+          relatedInput.value = '';
+          formTitle.textContent = 'Leave a comment';
+          cancelBtn.classList.add('hidden');
+        } else {
+          statusEl.textContent = '❌ ' + (data.error || 'Failed to post comment.');
+          statusEl.className = 'text-sm text-red-400';
+          statusEl.classList.remove('hidden');
+        }
+      })
+      .catch(function() {
+        statusEl.textContent = '❌ Network error. Please try again.';
+        statusEl.className = 'text-sm text-red-400';
+        statusEl.classList.remove('hidden');
+      })
+      .finally(function() {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Post Comment';
+      });
+  });
+
+  // Initial load
+  loadComments();
+})();
+</script>

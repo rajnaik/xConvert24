@@ -47,15 +47,6 @@ test.describe('NewsFlash — Positive', () => {
     await expect(section).toHaveClass(/border-t/);
   });
 
-  test('NewsFlash fetches content from /api/constants/?name=NEWS_FLASH', async ({ page }) => {
-    const apiCalled = page.waitForResponse(
-      resp => resp.url().includes('/api/constants/') && resp.url().includes('name=NEWS_FLASH')
-    );
-    await page.goto(`${BASE_URL}/`);
-    const response = await apiCalled;
-    expect(response.status()).toBe(200);
-  });
-
   test('NewsFlash content is populated after API fetch resolves', async ({ page }) => {
     await page.goto(`${BASE_URL}/`);
     const content = page.locator('#newsflash-content');
@@ -66,51 +57,80 @@ test.describe('NewsFlash — Positive', () => {
   });
 });
 
-// ── NewsFlash DB-Driven Fetch — Positive ────────────────────────────────────
+// ── Constants Batch Fetch — Positive ────────────────────────────────────────
 
-test.describe('NewsFlash DB Fetch — Positive', () => {
-  test('API response includes constant with text field', async ({ page }) => {
+test.describe('Constants Batch Fetch — Positive', () => {
+  test('single /api/constants/?active=true request fetches all constants', async ({ page }) => {
     const apiCalled = page.waitForResponse(
-      resp => resp.url().includes('/api/constants/') && resp.url().includes('name=NEWS_FLASH')
-    );
-    await page.goto(`${BASE_URL}/`);
-    const response = await apiCalled;
-    const body = await response.json();
-    expect(body).toHaveProperty('constant');
-    expect(body.constant).toHaveProperty('text');
-    expect(body.constant.text.length).toBeGreaterThan(0);
-  });
-
-  test('fetch uses trailing slash on API endpoint', async ({ page }) => {
-    const apiCalled = page.waitForResponse(
-      resp => resp.url().includes('/api/constants/') && resp.url().includes('name=NEWS_FLASH')
-    );
-    await page.goto(`${BASE_URL}/`);
-    const response = await apiCalled;
-    // Ensure the URL has trailing slash before query params
-    const url = new URL(response.url());
-    expect(url.pathname).toMatch(/\/$/);
-  });
-
-  test('NEWSFLASH_HEADER API is called on page load', async ({ page }) => {
-    const apiCalled = page.waitForResponse(
-      resp => resp.url().includes('/api/constants/') && resp.url().includes('name=NEWSFLASH_HEADER')
+      resp => resp.url().includes('/api/constants/') && resp.url().includes('active=true')
     );
     await page.goto(`${BASE_URL}/`);
     const response = await apiCalled;
     expect(response.status()).toBe(200);
   });
 
-  test('NEWSFLASH_HEADER response includes text field', async ({ page }) => {
+  test('batch response includes constants array with name and text fields', async ({ page }) => {
     const apiCalled = page.waitForResponse(
-      resp => resp.url().includes('/api/constants/') && resp.url().includes('name=NEWSFLASH_HEADER')
+      resp => resp.url().includes('/api/constants/') && resp.url().includes('active=true')
     );
     await page.goto(`${BASE_URL}/`);
     const response = await apiCalled;
     const body = await response.json();
-    expect(body).toHaveProperty('constant');
-    expect(body.constant).toHaveProperty('text');
-    expect(body.constant.text.length).toBeGreaterThan(0);
+    expect(body).toHaveProperty('constants');
+    expect(Array.isArray(body.constants)).toBe(true);
+    expect(body.constants.length).toBeGreaterThan(0);
+    // Each constant should have name and text
+    for (const c of body.constants) {
+      expect(c).toHaveProperty('name');
+      expect(c).toHaveProperty('text');
+    }
+  });
+
+  test('batch response includes TAGLINE constant', async ({ page }) => {
+    const apiCalled = page.waitForResponse(
+      resp => resp.url().includes('/api/constants/') && resp.url().includes('active=true')
+    );
+    await page.goto(`${BASE_URL}/`);
+    const response = await apiCalled;
+    const body = await response.json();
+    const tagline = body.constants.find((c: any) => c.name === 'TAGLINE');
+    expect(tagline).toBeDefined();
+    expect(tagline.text.length).toBeGreaterThan(0);
+  });
+
+  test('batch response includes NEWS_FLASH constant', async ({ page }) => {
+    const apiCalled = page.waitForResponse(
+      resp => resp.url().includes('/api/constants/') && resp.url().includes('active=true')
+    );
+    await page.goto(`${BASE_URL}/`);
+    const response = await apiCalled;
+    const body = await response.json();
+    const newsflash = body.constants.find((c: any) => c.name === 'NEWS_FLASH');
+    expect(newsflash).toBeDefined();
+    expect(newsflash.text.length).toBeGreaterThan(0);
+  });
+
+  test('batch response includes NEWSFLASH_HEADER constant', async ({ page }) => {
+    const apiCalled = page.waitForResponse(
+      resp => resp.url().includes('/api/constants/') && resp.url().includes('active=true')
+    );
+    await page.goto(`${BASE_URL}/`);
+    const response = await apiCalled;
+    const body = await response.json();
+    const header = body.constants.find((c: any) => c.name === 'NEWSFLASH_HEADER');
+    expect(header).toBeDefined();
+    expect(header.text.length).toBeGreaterThan(0);
+  });
+
+  test('fetch uses trailing slash on API endpoint', async ({ page }) => {
+    const apiCalled = page.waitForResponse(
+      resp => resp.url().includes('/api/constants/') && resp.url().includes('active=true')
+    );
+    await page.goto(`${BASE_URL}/`);
+    const response = await apiCalled;
+    // Ensure the URL has trailing slash before query params
+    const url = new URL(response.url());
+    expect(url.pathname).toMatch(/\/$/);
   });
 
   test('heading text is updated from NEWSFLASH_HEADER after fetch', async ({ page }) => {
@@ -122,19 +142,19 @@ test.describe('NewsFlash DB Fetch — Positive', () => {
     expect(text!.trim().length).toBeGreaterThan(0);
   });
 
-  test('both NEWS_FLASH and NEWSFLASH_HEADER are fetched in parallel', async ({ page }) => {
-    const responses: string[] = [];
-    page.on('response', resp => {
-      if (resp.url().includes('/api/constants/')) {
-        responses.push(resp.url());
+  test('constants requests reduced to 2 (batch + copyright year from Layout)', async ({ page }) => {
+    const constantsRequests: string[] = [];
+    page.on('request', req => {
+      if (req.url().includes('/api/constants/')) {
+        constantsRequests.push(req.url());
       }
     });
     await page.goto(`${BASE_URL}/`);
     await page.waitForTimeout(3000);
-    const hasContent = responses.some(u => u.includes('name=NEWS_FLASH'));
-    const hasHeader = responses.some(u => u.includes('name=NEWSFLASH_HEADER'));
-    expect(hasContent).toBe(true);
-    expect(hasHeader).toBe(true);
+    // 1 batched active=true (homepage) + 1 COPYRIGHT_YEAR (Layout footer) = 2
+    expect(constantsRequests.length).toBe(2);
+    expect(constantsRequests.some(u => u.includes('active=true'))).toBe(true);
+    expect(constantsRequests.some(u => u.includes('name=COPYRIGHT_YEAR'))).toBe(true);
   });
 });
 
@@ -177,31 +197,47 @@ test.describe('NewsFlash — Negative', () => {
     await expect(content).toBeAttached();
   });
 
-  test('NewsFlash heading falls back to default when NEWSFLASH_HEADER API fails', async ({ page }) => {
-    // Block only the header API, allow content through
-    await page.route('**/api/constants/?name=NEWSFLASH_HEADER', route => route.abort('connectionrefused'));
+  test('NewsFlash heading falls back to default "News" when constants API fails', async ({ page }) => {
+    // Block the constants API entirely
+    await page.route('**/api/constants/**', route => route.abort('connectionrefused'));
     await page.goto(`${BASE_URL}/`);
     await page.waitForTimeout(2000);
     const heading = page.locator('#newsflash-heading');
-    // Should still show fallback "News" since the header fetch failed
+    // Should still show fallback "News" since the batch fetch failed
     await expect(heading).toHaveText('News');
   });
 
-  test('NewsFlash does not render empty content if API returns empty text', async ({ page }) => {
-    // Mock the API to return empty text
+  test('newsflash-content shows fallback when constants API returns empty array', async ({ page }) => {
+    // Mock the API to return empty constants array
     await page.route('**/api/constants/**', route => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ constant: { text: '' } }),
+        body: JSON.stringify({ constants: [] }),
       });
     });
     await page.goto(`${BASE_URL}/`);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500);
     const content = page.locator('#newsflash-content');
-    // Should keep fallback text when API returns empty
+    // Should keep fallback "Loading..." text when no constants returned
     const text = await content.textContent();
-    // Either keeps original fallback or is empty — but shouldn't crash
     expect(text).toBeDefined();
+    // The page should not crash
+    const heading = page.locator('#newsflash-heading');
+    await expect(heading).toHaveText('News');
+  });
+
+  test('no individual NEWS_FLASH or NEWSFLASH_HEADER requests (batched instead)', async ({ page }) => {
+    const individualRequests: string[] = [];
+    page.on('request', req => {
+      const url = req.url();
+      if (url.includes('/api/constants/') && (url.includes('name=NEWS_FLASH') || url.includes('name=NEWSFLASH_HEADER') || url.includes('name=TAGLINE'))) {
+        individualRequests.push(url);
+      }
+    });
+    await page.goto(`${BASE_URL}/`);
+    await page.waitForTimeout(3000);
+    // These should all come from the batch call now, not individual requests
+    expect(individualRequests.length).toBe(0);
   });
 });

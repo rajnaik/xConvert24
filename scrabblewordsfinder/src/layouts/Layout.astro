@@ -47,6 +47,8 @@ const showAds = !isAdmin;
     <meta name="keywords" content={keywords} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL} />
+    <!-- Preload LCP hero banner so the browser fetches it before parsing body -->
+    <link rel="preload" href="/banner-options/banner-1.svg" as="image" type="image/svg+xml" fetchpriority="high" />
     <!-- Critical CSS: paint background immediately while stylesheet loads -->
     <style>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}</style>
     {(noindex || Astro.url.pathname.startsWith('/admin')) && <meta name="robots" content="noindex, nofollow" />}
@@ -546,7 +548,8 @@ const showAds = !isAdmin;
           })
           .catch(function(){});
       }
-      updateClickCounter();
+      // Defer first click counter fetch — not critical for initial render
+      setTimeout(updateClickCounter, 2000);
       setInterval(updateClickCounter, 2000);
 
       // Hydrate copyright year from live DB

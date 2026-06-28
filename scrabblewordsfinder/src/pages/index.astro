@@ -192,9 +192,9 @@ import '../styles/global.css';
         <div class="space-y-3 mb-4">
           <div class="flex flex-wrap gap-3 items-end">
             <div>
-              <label for="dictionary" class="text-xs text-gray-400"><a href="/blog/dictionaries/" class="text-purple-400 underline decoration-purple-500/50 decoration-1 underline-offset-2 hover:text-purple-300 hover:decoration-purple-400 transition-colors">Dictionary</a></label>
+              <label for="dictionary" class="text-xs text-gray-400 min-h-[24px] inline-flex items-center"><a href="/blog/dictionaries/" class="text-purple-400 underline decoration-purple-500/50 decoration-1 underline-offset-2 hover:text-purple-300 hover:decoration-purple-400 transition-colors py-1">Dictionary</a></label>
               <div class="flex items-center gap-1.5 relative">
-                <select id="dictionary" class="h-8 px-2 bg-gray-800 border border-gray-700 rounded text-sm text-gray-100">
+                <select id="dictionary" class="h-10 px-2 bg-gray-800 border border-gray-700 rounded text-sm text-gray-100">
                   <option value="sowpods">SOWPODS (International)</option>
                   <option value="twl">TWL / NASPA (US/Canada)</option>
                   <option value="wwf">Words With Friends</option>
@@ -443,53 +443,43 @@ import '../styles/global.css';
 
   <!-- Footer -->
 
-  <!-- DB-driven tagline fetch -->
+  <!-- DB-driven constants (tagline + newsflash) — single request instead of 3 -->
   <script is:inline>
     (async function() {
       try {
-        const res = await fetch('/api/constants/?name=TAGLINE');
-        if (res.ok) {
-          const { constant } = await res.json();
-          if (constant && constant.text) {
-            const el = document.getElementById('site-tagline');
-            if (el) el.textContent = constant.text;
-          }
-        }
-      } catch (e) { /* fallback to static text */ }
-    })();
-  </script>
+        const res = await fetch('/api/constants/?active=true');
+        if (!res.ok) return;
+        const { constants } = await res.json();
+        if (!constants) return;
+        var map = {};
+        for (var i = 0; i < constants.length; i++) map[constants[i].name] = constants[i].text;
 
-  <!-- DB-driven NewsFlash fetch -->
-  <script is:inline>
-    (async function() {
-      try {
-        const [contentRes, headerRes] = await Promise.all([
-          fetch('/api/constants/?name=NEWS_FLASH'),
-          fetch('/api/constants/?name=NEWSFLASH_HEADER')
-        ]);
-        if (contentRes.ok) {
-          const { constant } = await contentRes.json();
-          if (constant && constant.text) {
-            const el = document.getElementById('newsflash-content');
-            if (el) {
-              const txt = constant.text.trim();
-              if (txt.startsWith('<')) {
-                el.innerHTML = txt;
-              } else {
-                const items = txt.split(/\.\s+/).filter(s => s.trim());
-                el.innerHTML = items.map(item => 
-                  `<div class="border border-purple-500/40 rounded px-2 py-1">${item.trim().replace(/\.$/, '')}.</div>`
-                ).join('');
-              }
+        // Tagline
+        if (map['TAGLINE']) {
+          var el = document.getElementById('site-tagline');
+          if (el) el.textContent = map['TAGLINE'];
+        }
+
+        // NewsFlash content
+        if (map['NEWS_FLASH']) {
+          var nf = document.getElementById('newsflash-content');
+          if (nf) {
+            var txt = map['NEWS_FLASH'].trim();
+            if (txt.startsWith('<')) {
+              nf.innerHTML = txt;
+            } else {
+              var items = txt.split(/\.\s+/).filter(function(s){ return s.trim(); });
+              nf.innerHTML = items.map(function(item){
+                return '<div class="border border-purple-500/40 rounded px-2 py-1">' + item.trim().replace(/\.$/, '') + '.</div>';
+              }).join('');
             }
           }
         }
-        if (headerRes.ok) {
-          const { constant } = await headerRes.json();
-          if (constant && constant.text) {
-            const el = document.getElementById('newsflash-heading');
-            if (el) el.textContent = constant.text;
-          }
+
+        // NewsFlash header
+        if (map['NEWSFLASH_HEADER']) {
+          var nh = document.getElementById('newsflash-heading');
+          if (nh) nh.textContent = map['NEWSFLASH_HEADER'];
         }
       } catch (e) { /* fallback to static text */ }
     })();

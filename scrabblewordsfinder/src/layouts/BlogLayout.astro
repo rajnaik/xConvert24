@@ -3,6 +3,7 @@ import packageJson from '../../package.json';
 import CookieConsent from "../components/CookieConsent.astro";
 import Header from "../components/Header.astro";
 import AdUnit from "../components/AdUnit.astro";
+import BlogComments from "../components/BlogComments.astro";
 
 interface Props {
   title: string;
@@ -45,6 +46,8 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     <meta name="keywords" content={keywords} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL} />
+    <!-- Preload LCP hero banner so the browser fetches it before parsing body -->
+    <link rel="preload" href="/banner-options/banner-1.svg" as="image" type="image/svg+xml" fetchpriority="high" />
     <!-- Critical CSS: paint background immediately while stylesheet loads -->
     <style>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}</style>
     <!-- Breadcrumb JSON-LD -->
@@ -326,6 +329,7 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
       {/* Main content */}
       <main class="flex-1 min-w-0 max-w-4xl">
         <slot />
+        {slug && <BlogComments blogid={slug} blogname={pageTitle} />}
       </main>
 
       {/* Right skyscraper — hidden on mobile/tablet */}
