@@ -299,6 +299,39 @@ test.describe('Solver Results & Filters', () => {
   });
 });
 
+test.describe('Find Words Button — Styling', () => {
+  test('Find Words button has purple border outline styling', async ({ page }) => {
+    await page.goto('/');
+    const btn = page.locator('#text-solve-btn');
+    const classAttr = await btn.getAttribute('class');
+    expect(classAttr).toContain('border-2');
+    expect(classAttr).toContain('border-purple-500');
+  });
+
+  test('Find Words button has green text color', async ({ page }) => {
+    await page.goto('/');
+    const btn = page.locator('#text-solve-btn');
+    const classAttr = await btn.getAttribute('class');
+    expect(classAttr).toContain('text-green-400');
+  });
+
+  test('Find Words button does not have old solid blue background', async ({ page }) => {
+    await page.goto('/');
+    const btn = page.locator('#text-solve-btn');
+    const classAttr = await btn.getAttribute('class');
+    expect(classAttr).not.toContain('bg-blue-500');
+    expect(classAttr).not.toContain('text-gray-950');
+  });
+
+  test('Find Words button has hover states for purple border', async ({ page }) => {
+    await page.goto('/');
+    const btn = page.locator('#text-solve-btn');
+    const classAttr = await btn.getAttribute('class');
+    expect(classAttr).toContain('hover:border-purple-400');
+    expect(classAttr).toContain('hover:bg-purple-900/20');
+  });
+});
+
 test.describe('Text Solver Input — Width Styling', () => {
   test('text solver input has 20ch width class', async ({ page }) => {
     await page.goto('/');

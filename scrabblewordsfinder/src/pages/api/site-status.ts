@@ -15,7 +15,15 @@ export const GET: APIRoute = async () => {
   try {
     const row = await db.prepare('SELECT * FROM site_status WHERE id = 1').first();
     if (!row) return jsonError('Site status not found', 404);
-    return json(row);
+
+    // Include total chat usage count
+    let chatusage = 0;
+    try {
+      const cu = await db.prepare('SELECT COUNT(*) as cnt FROM chatusage').first();
+      if (cu) chatusage = cu.cnt;
+    } catch { /* chatusage table may not exist yet */ }
+
+    return json({ ...row, chatusage });
   } catch (e: any) {
     return jsonError(e.message, 500);
   }

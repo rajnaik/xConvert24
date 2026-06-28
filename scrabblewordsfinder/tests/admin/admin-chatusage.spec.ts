@@ -81,11 +81,12 @@ test.describe('Admin Chat Usage Page — Positive', () => {
     await expect(nav.locator('a[href="/admin/content/chatusage/"]')).toBeAttached();
   });
 
-  test('page has stats summary bar with 4 cards', async ({ page }) => {
+  test('page has stats summary bar with 5 cards', async ({ page }) => {
     await page.goto('/admin/content/chatusage/');
     const statsBar = page.locator('#stats-bar');
     await expect(statsBar).toBeVisible();
     await expect(page.locator('#stat-total')).toBeAttached();
+    await expect(page.locator('#stat-unique-users')).toBeAttached();
     await expect(page.locator('#stat-success')).toBeAttached();
     await expect(page.locator('#stat-failed')).toBeAttached();
     await expect(page.locator('#stat-avg-ms')).toBeAttached();
@@ -97,12 +98,13 @@ test.describe('Admin Chat Usage Page — Positive', () => {
     await expect(table).toBeVisible();
     const headers = table.locator('thead th');
     await expect(headers.nth(0)).toContainText('ID');
-    await expect(headers.nth(1)).toContainText('User Message');
-    await expect(headers.nth(2)).toContainText('Bot Response');
-    await expect(headers.nth(3)).toContainText('Response (ms)');
-    await expect(headers.nth(4)).toContainText('Status');
-    await expect(headers.nth(5)).toContainText('IP');
-    await expect(headers.nth(6)).toContainText('Date');
+    await expect(headers.nth(1)).toContainText('User Id');
+    await expect(headers.nth(2)).toContainText('User Message');
+    await expect(headers.nth(3)).toContainText('Bot Response');
+    await expect(headers.nth(4)).toContainText('Response (ms)');
+    await expect(headers.nth(5)).toContainText('Status');
+    await expect(headers.nth(6)).toContainText('IP');
+    await expect(headers.nth(7)).toContainText('Date');
   });
 
   test('page has pagination controls', async ({ page }) => {

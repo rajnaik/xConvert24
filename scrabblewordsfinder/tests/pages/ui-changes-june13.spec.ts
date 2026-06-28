@@ -108,6 +108,22 @@ test.describe('Solver Controls — Negative', () => {
     expect(text).not.toContain('undefined');
     expect(text).not.toContain('error');
   });
+
+  test('clear button is in header row alongside copy/paste', async ({ page }) => {
+    await page.goto(BASE_URL);
+    // The clear button should share the same parent container as copy-solver and paste-solver
+    const headerRow = page.locator('#copy-solver').locator('..');
+    await expect(headerRow.locator('#clear-text-solver')).toBeVisible();
+  });
+
+  test('clear button is not duplicated in the input row', async ({ page }) => {
+    await page.goto(BASE_URL);
+    // Only one clear button should exist on the page
+    await expect(page.locator('#clear-text-solver')).toHaveCount(1);
+    // The input row (containing #text-solver) should NOT contain the clear button
+    const inputRow = page.locator('#text-solver').locator('..');
+    await expect(inputRow.locator('#clear-text-solver')).toHaveCount(0);
+  });
 });
 
 // ── Achievements Tests ────────────────────────────────────────────────────

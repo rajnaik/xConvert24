@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 
 /**
  * Useful Links Page — Site Information Section Tests
- * Tests the new "Site Information" section added to /blog/useful-links/
- * with 8 links: About Us, User Guide, FAQ, Roadmap, Tech Stack, Release Notes,
- * Suggest a Feature, Contact Us.
+ * Tests the "Site Information" section on /blog/useful-links/
+ * with 9 links: About Us, User Guide, FAQ, Roadmap, Tech Stack, Release Notes,
+ * Suggest a Feature, Contact Us, Page Map.
  */
 
 const SITE_INFO_SECTION = '#site-information';
@@ -18,6 +18,7 @@ const EXPECTED_LINKS = [
   { href: '/releases/', label: 'Release Notes' },
   { href: '/suggest/', label: 'Suggest a Feature' },
   { href: '/contact/', label: 'Contact Us' },
+  { href: '/pagemap/', label: 'Page Map' },
 ];
 
 test.describe('Useful Links Page — Site Information Section — Positive', () => {
@@ -45,10 +46,10 @@ test.describe('Useful Links Page — Site Information Section — Positive', () 
     await expect(heading).toHaveClass(/text-amber-400/);
   });
 
-  test('section contains exactly 8 link cards', async ({ page }) => {
+  test('section contains exactly 9 link cards', async ({ page }) => {
     await page.goto('/blog/useful-links/');
     const links = page.locator(`${SITE_INFO_SECTION} .grid a`);
-    await expect(links).toHaveCount(8);
+    await expect(links).toHaveCount(9);
   });
 
   test('all expected links are present with correct hrefs', async ({ page }) => {
@@ -78,7 +79,7 @@ test.describe('Useful Links Page — Site Information Section — Positive', () 
     await page.goto('/blog/useful-links/');
     const subtitles = page.locator(`${SITE_INFO_SECTION} .grid a .text-xs.text-gray-500`);
     const count = await subtitles.count();
-    expect(count).toBe(8);
+    expect(count).toBe(9);
     // Verify none are empty
     for (let i = 0; i < count; i++) {
       const text = await subtitles.nth(i).textContent();

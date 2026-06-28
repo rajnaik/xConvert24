@@ -67,6 +67,31 @@ test.describe('API — /api/site-status GET', () => {
     const body = await response.json();
     expect('updated_by' in body).toBeTruthy();
   });
+
+  test('GET /api/site-status includes chatusage count', async ({ request }) => {
+    const response = await request.get('/api/site-status/');
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect('chatusage' in body).toBeTruthy();
+    expect(typeof body.chatusage).toBe('number');
+    expect(body.chatusage).toBeGreaterThanOrEqual(0);
+  });
+});
+
+test.describe('API — /api/site-status GET — chatusage (Negative)', () => {
+  test('GET /api/site-status chatusage is never negative', async ({ request }) => {
+    const response = await request.get('/api/site-status/');
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.chatusage).toBeGreaterThanOrEqual(0);
+  });
+
+  test('GET /api/site-status chatusage is an integer (not a float)', async ({ request }) => {
+    const response = await request.get('/api/site-status/');
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(Number.isInteger(body.chatusage)).toBe(true);
+  });
 });
 
 test.describe('API — /api/site-status PUT validation', () => {

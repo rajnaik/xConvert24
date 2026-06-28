@@ -60,6 +60,15 @@ test.describe('Chat Usage API — Positive', () => {
     expect(body.stats).toHaveProperty('successful');
     expect(body.stats).toHaveProperty('failed');
     expect(body.stats).toHaveProperty('avg_response_ms');
+    expect(body.stats).toHaveProperty('unique_users');
+  });
+
+  test('GET /api/chatusage/?stats=true unique_users is a non-negative number', async ({ request }) => {
+    const response = await request.get('/api/chatusage/?stats=true');
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(typeof body.stats.unique_users).toBe('number');
+    expect(body.stats.unique_users).toBeGreaterThanOrEqual(0);
   });
 
   test('GET /api/chatusage/?suggestions=true returns suggestions array with pagination metadata', async ({ request }) => {

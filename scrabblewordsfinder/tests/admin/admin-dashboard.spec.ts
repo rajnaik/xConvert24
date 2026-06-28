@@ -406,6 +406,52 @@ test.describe('Admin Dashboard — Chat Usage / AI Heartbeat', () => {
   });
 });
 
+test.describe('Admin Dashboard — Documentation Card', () => {
+  test('has Documentation card linking to /admin/documentation/', async ({ page }) => {
+    await page.goto('/admin/');
+    const card = page.locator('a[href="/admin/documentation/"]');
+    await expect(card).toBeVisible();
+    await expect(card.locator('h2')).toContainText('Documentation');
+  });
+
+  test('Documentation card shows description text', async ({ page }) => {
+    await page.goto('/admin/');
+    const card = page.locator('a[href="/admin/documentation/"]');
+    await expect(card).toContainText('Architecture diagrams, system docs, and codebase visual maps');
+  });
+
+  test('Documentation card lists feature bullet points', async ({ page }) => {
+    await page.goto('/admin/');
+    const card = page.locator('a[href="/admin/documentation/"]');
+    await expect(card.locator('li')).toHaveCount(3);
+    await expect(card).toContainText('Interactive code architecture diagram');
+    await expect(card).toContainText('API, DB, deployment views');
+    await expect(card).toContainText('Workers & bindings map');
+  });
+
+  test('Documentation card has correct hover border class', async ({ page }) => {
+    await page.goto('/admin/');
+    const card = page.locator('a[href="/admin/documentation/"]');
+    await expect(card).toHaveClass(/hover:border-sky-700/);
+  });
+});
+
+test.describe('Admin Dashboard — Documentation Card Negative', () => {
+  test('no duplicate Documentation cards exist on the page', async ({ page }) => {
+    await page.goto('/admin/');
+    const cards = page.locator('a[href="/admin/documentation/"]');
+    await expect(cards).toHaveCount(1);
+  });
+
+  test('Documentation card does not cause page errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto('/admin/');
+    await expect(page.locator('a[href="/admin/documentation/"]')).toBeVisible();
+    expect(errors.filter(e => e.includes('documentation'))).toHaveLength(0);
+  });
+});
+
 test.describe('Admin Dashboard — Site Status Error Handling', () => {
   test('widget shows error message when API returns 500', async ({ page }) => {
     await page.route('**/api/site-status', route =>

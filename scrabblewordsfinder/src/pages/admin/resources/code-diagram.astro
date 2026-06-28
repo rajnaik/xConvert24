@@ -1,0 +1,549 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+---
+
+<Layout title="Code Diagram — SWF Architecture" description="Interactive architecture diagram of ScrabbleWordsFinder.com codebase" keywords="architecture, code diagram, system design">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/documentation/" class="text-blue-400 font-medium">Documentation</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white">🏗️ SWF Code Architecture</h1>
+        <p class="text-gray-400 text-sm mt-1">Interactive system diagram — code, APIs, database, cache, workers, and deployment pipeline.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <select id="diagram-select" class="rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="system">System Overview</option>
+          <option value="api">API Endpoints</option>
+          <option value="database">Database Schema</option>
+          <option value="deployment">Deployment Pipeline</option>
+          <option value="frontend">Frontend Architecture</option>
+          <option value="workers">Workers & Bindings</option>
+        </select>
+        <button id="fullscreen-btn" class="rounded-lg bg-gray-800 border border-gray-700 text-gray-400 px-3 py-2 text-sm hover:text-white hover:border-gray-600 transition-colors" title="Toggle fullscreen">
+          ⛶
+        </button>
+      </div>
+    </div>
+
+    <!-- Diagram Container -->
+    <div id="diagram-container" class="rounded-xl border border-gray-800 bg-gray-950 p-6 min-h-[600px] overflow-auto">
+      <div id="mermaid-output" class="flex justify-center items-start"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div class="flex items-center gap-2 text-xs text-gray-400">
+        <span class="w-3 h-3 rounded bg-blue-500/60"></span> Pages & UI
+      </div>
+      <div class="flex items-center gap-2 text-xs text-gray-400">
+        <span class="w-3 h-3 rounded bg-emerald-500/60"></span> API Endpoints
+      </div>
+      <div class="flex items-center gap-2 text-xs text-gray-400">
+        <span class="w-3 h-3 rounded bg-purple-500/60"></span> Database (D1)
+      </div>
+      <div class="flex items-center gap-2 text-xs text-gray-400">
+        <span class="w-3 h-3 rounded bg-amber-500/60"></span> KV / Cache
+      </div>
+      <div class="flex items-center gap-2 text-xs text-gray-400">
+        <span class="w-3 h-3 rounded bg-pink-500/60"></span> External Services
+      </div>
+      <div class="flex items-center gap-2 text-xs text-gray-400">
+        <span class="w-3 h-3 rounded bg-cyan-500/60"></span> Workers / AI
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-2xl font-bold text-blue-400">83+</p>
+        <p class="text-xs text-gray-500 mt-1">Pages & Routes</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-2xl font-bold text-emerald-400">25+</p>
+        <p class="text-xs text-gray-500 mt-1">API Endpoints</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-2xl font-bold text-purple-400">15+</p>
+        <p class="text-xs text-gray-500 mt-1">Database Tables</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-2xl font-bold text-cyan-400">6</p>
+        <p class="text-xs text-gray-500 mt-1">Worker Bindings</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mermaid.js CDN -->
+  <script is:inline src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+  <script is:inline>
+  (function() {
+    const diagrams = {
+      system: `graph TB
+        subgraph Client["🌐 Client Browser"]
+          UI[index.astro<br/>Word Solver UI]
+          Blog[Blog Pages<br/>83+ articles]
+          Admin[Admin Dashboard<br/>16+ panels]
+          Chat[Lex AI Chat<br/>Streaming SSE]
+          Games[Activities<br/>WOTD / Anagram / Rack]
+        end
+
+        subgraph Workers["⚡ Cloudflare Workers (SSR)"]
+          MW[middleware.ts<br/>Google OAuth Guard]
+          SSR[Astro SSR<br/>Server-Side Rendering]
+          API[API Layer<br/>25+ endpoints]
+        end
+
+        subgraph Database["💾 Cloudflare D1"]
+          DB[(scrabble-live<br/>Primary DB)]
+          Tables[15+ Tables<br/>clicks, emails, banners...]
+        end
+
+        subgraph Cache["🗄️ KV + Cache"]
+          SESSION[SESSION KV<br/>Admin Sessions]
+          CACHE_KV[CACHE KV<br/>General Cache]
+          LS[localStorage<br/>Client-side Cache]
+        end
+
+        subgraph AI["🤖 AI & Vector"]
+          WAI[Workers AI<br/>Inference Binding]
+          VEC[Vectorize<br/>swf-blog-rag Index]
+        end
+
+        subgraph External["🔗 External Services"]
+          GAUTH[Google OAuth<br/>Authentication]
+          EMAIL_SVC[Cloudflare Email<br/>Outbound Notifications]
+          DICT[DictionaryAPI.dev<br/>Word Definitions]
+        end
+
+        subgraph Static["📁 Static Assets"]
+          SOWPODS[SOWPODS Dictionary<br/>JSON chunks]
+          TWL[TWL06 Dictionary<br/>JSON chunks]
+          SVG[Logos + Banners<br/>SVG assets]
+          MEDIA[Sound Alerts<br/>WAV files]
+        end
+
+        Client -->|HTTP/HTTPS| Workers
+        MW -->|Protect /admin/*| SSR
+        SSR -->|Query| Database
+        API -->|Read/Write| Database
+        API -->|Session| Cache
+        Chat -->|POST /api/chat/| WAI
+        Chat -->|RAG Context| VEC
+        API -->|Send| EMAIL_SVC
+        MW -->|Verify| GAUTH
+        UI -->|Load| Static
+        Games -->|Fetch daily| API`,
+
+      api: `graph LR
+        subgraph Public["🌐 Public APIs"]
+          direction TB
+          CHAT[POST /api/chat/<br/>AI streaming response]
+          CLICKS[POST /api/clicks/<br/>Log user interaction]
+          CONTACT[POST /api/contact/<br/>Contact form + email]
+          SUGGEST[POST /api/suggest/<br/>Suggestion form]
+          WOTD[GET /api/wotd/<br/>Word of the Day]
+          ANAGRAM[GET /api/anagram/<br/>Daily Anagram]
+          RACK[GET /api/rack/<br/>Daily Rack Challenge]
+          SAVE[POST /api/saved-words/<br/>Memory Workbench]
+          SOLVE_SAVE[GET /api/saved-words/<br/>Get saved words]
+          CONSTANTS[GET /api/constants/<br/>Site constants]
+          TELE[GET /api/telemetry/<br/>Health check]
+          STATUS[GET /api/site-status/<br/>Status + logo]
+          SEARCH[GET /api/search/<br/>Blog search]
+          CHATLOG[POST /api/chat-usage/<br/>Log chat metrics]
+        end
+
+        subgraph Admin["🔒 Admin APIs (Auth Required)"]
+          direction TB
+          EMAILS[GET/PUT/DELETE /api/emails/<br/>Email CRUD]
+          BANNERS[GET/PUT /api/banners/<br/>Banner rotation]
+          BCLICK[POST /api/banner-click/<br/>Banner click log]
+          SEO[GET/POST /api/seo-index/<br/>SEO tracking]
+          TASKS[GET/POST /api/tasks/<br/>Task management]
+          USERS[GET /api/users/<br/>User analytics]
+          AUDIT[GET/POST /api/auditlog/<br/>Command audit trail]
+          ADSENSE[GET/PUT /api/adsense/<br/>Ad toggle]
+        end
+
+        subgraph Auth["🔑 Auth Flow"]
+          direction TB
+          LOGIN[GET /api/auth/login/<br/>OAuth redirect]
+          CALLBACK[GET /api/auth/callback/<br/>Token exchange]
+          LOGOUT[GET /api/auth/logout/<br/>Clear session]
+        end
+
+        subgraph DB["💾 D1 Database"]
+          D1[(All Tables)]
+        end
+
+        Public --> D1
+        Admin --> D1
+        Auth -->|Session KV| D1`,
+
+      database: `erDiagram
+        clicks {
+          int id PK
+          text user_id
+          text ui_element
+          text url
+          text ip_address
+          text country
+          text city
+          text user_agent
+          text referrer
+          text device_type
+          text browser
+          text os
+          text session_id
+          int screen_width
+          int screen_height
+          text created_at
+        }
+
+        emails {
+          int id PK
+          text category
+          text name
+          text email
+          text subject
+          text message
+          text ip_address
+          text comment
+          int read
+          int actioned
+          text created_at
+        }
+
+        banners {
+          int id PK
+          int option_number UK
+          text name
+          text description
+          text status
+          text created_at
+        }
+
+        banner_clicks {
+          int id PK
+          int banner_id
+          text ip_address
+          text user_agent
+          text referrer
+          text page_url
+          text created_at
+        }
+
+        word_of_the_day {
+          int id PK
+          text word UK
+          text date
+          text meaning
+          text fun_fact
+        }
+
+        daily_anagram {
+          int id PK
+          text date UK
+          text word
+          text scrambled
+          text hint
+          int word_length
+          text meaning
+        }
+
+        daily_rack {
+          int id PK
+          text date UK
+          text rack
+          text best_word
+          int best_score
+          text meaning
+        }
+
+        saved_words {
+          int id PK
+          text user_id
+          text word
+          int score
+          text definition
+          text rack
+          text created_at
+        }
+
+        telemetry {
+          int id PK
+          text endpoint_name
+          text path
+          int status_code
+          int response_ms
+          int healthy
+          text checked_at
+        }
+
+        blog_ideas {
+          int id PK
+          text title
+          text slug
+          text category
+          text status
+          text estimated_execution_time
+        }
+
+        seo_index {
+          int id PK
+          text url UK
+          text status
+          text last_checked
+          text notes
+        }
+
+        site_status {
+          int id PK
+          text status
+          int logo_option
+          text updated_at
+        }
+
+        chat_usage {
+          int id PK
+          text user_id
+          text question
+          text response_preview
+          int response_ms
+          int success
+          text keyword
+          text created_at
+        }
+
+        constants {
+          int id PK
+          text name UK
+          text value
+          text updated_at
+        }
+
+        test_results {
+          int id PK
+          text test_name
+          text status
+          text run_at
+          text file_changed
+        }`,
+
+      deployment: `graph TB
+        subgraph Dev["🖥️ Development"]
+          LOCAL[localhost:4321<br/>npm run dev]
+          MINIFLARE[Miniflare SQLite<br/>Local D1 emulation]
+          LOCAL_KV[Local KV<br/>Emulated]
+        end
+
+        subgraph Build["🔨 Build Pipeline"]
+          ASTRO_BUILD[astro build<br/>SSR + Static]
+          TS_CHECK[astro check<br/>TypeScript validation]
+          TESTS[Playwright Tests<br/>24+ spec files]
+          SANITISE[Sanitise Scan<br/>No sensitive data]
+        end
+
+        subgraph Staging["🟡 Staging"]
+          STG_WORKER[Workers Deploy<br/>wrangler.staging.jsonc]
+          STG_DB[(scrabble-staging<br/>be0fad12)]
+          STG_URL[staging URL<br/>workers.dev]
+        end
+
+        subgraph Live["🟢 Live Production"]
+          LIVE_WORKER[Workers Deploy<br/>wrangler.jsonc]
+          LIVE_DB[(scrabble-live<br/>e9af2a48)]
+          LIVE_URL[scrabblewordsfinder.com]
+          CF_CDN[Cloudflare CDN<br/>Edge Cache]
+        end
+
+        subgraph Migrations["📋 DB Migrations"]
+          MIG[migrations/ folder<br/>Sequential SQL files]
+        end
+
+        LOCAL --> ASTRO_BUILD
+        ASTRO_BUILD --> TS_CHECK
+        TS_CHECK --> TESTS
+        TESTS --> SANITISE
+        SANITISE -->|deploy:staging| STG_WORKER
+        STG_WORKER --> STG_DB
+        SANITISE -->|Ship It / Full Throttle| LIVE_WORKER
+        LIVE_WORKER --> LIVE_DB
+        LIVE_WORKER --> CF_CDN
+        CF_CDN --> LIVE_URL
+        MIG -->|wrangler d1 migrations apply| STG_DB
+        MIG -->|wrangler d1 migrations apply| LIVE_DB
+        LOCAL --> MINIFLARE`,
+
+      frontend: `graph TB
+        subgraph Layouts["📐 Layouts"]
+          LAYOUT[Layout.astro<br/>Main site layout]
+          BLOG_LAYOUT[BlogLayout.astro<br/>Blog article layout]
+        end
+
+        subgraph Components["🧩 Components"]
+          COOKIE[CookieConsent.astro<br/>GDPR banner]
+          HEADER[Header.astro<br/>Shared navigation]
+        end
+
+        subgraph Pages["📄 Public Pages"]
+          HOME[index.astro<br/>Word Solver + Games]
+          ABOUT[about.astro<br/>About page]
+          PRIVACY[privacy.astro<br/>Privacy policy]
+          CONTACT_P[contact.astro<br/>Contact form]
+          SUGGEST_P[suggest.astro<br/>Feature suggestions]
+          SETTINGS[settings.astro<br/>User preferences]
+          RELEASES[releases.astro<br/>Changelog]
+          GUIDE[guide.astro<br/>User guide]
+          CHAT_P[chat.astro<br/>Lex AI Assistant]
+          TECH[tech-stack.astro<br/>Tech stack info]
+          DISCLAIMER[disclaimer.astro<br/>Legal]
+        end
+
+        subgraph Blog["📝 Blog (83+ posts)"]
+          BLOG_IDX[blog/index.astro<br/>Blog listing]
+          CAT_PAGES[Category Landings<br/>10 category hubs]
+          POSTS[Individual Posts<br/>83+ articles]
+        end
+
+        subgraph AdminPages["🔒 Admin (16+ panels)"]
+          ADM_DASH[admin/index.astro<br/>Dashboard]
+          ADM_EMAILS[admin/emails.astro]
+          ADM_CLICKS[admin/clicks.astro]
+          ADM_TELE[admin/telemetry.astro]
+          ADM_ENV[admin/environments.astro]
+          ADM_BANNER[admin/banner-management.astro]
+          ADM_SEO[admin/seo.astro]
+          ADM_BLOG[admin/blog-tasks.astro]
+          ADM_USERS[admin/users.astro]
+        end
+
+        subgraph ClientScripts["⚡ Client-Side"]
+          SOLVER[Solver Logic<br/>canMake + solve + score]
+          CLICK_TR[Click Tracker<br/>20-field telemetry]
+          BANNER_ROT[Banner Rotation<br/>Random from pool]
+          THEME[Theme Toggle<br/>Dark/Light mode]
+          GAMES_JS[Games Engine<br/>WOTD + Anagram + Rack]
+        end
+
+        LAYOUT --> Pages
+        LAYOUT --> AdminPages
+        BLOG_LAYOUT --> Blog
+        LAYOUT --> Components
+        Pages --> ClientScripts`,
+
+      workers: `graph TB
+        subgraph Worker["⚡ Cloudflare Worker"]
+          ASTRO_RT[Astro Runtime<br/>SSR Engine]
+          MW_AUTH[middleware.ts<br/>OAuth + Route Guard]
+        end
+
+        subgraph Bindings["🔌 Worker Bindings"]
+          B_DB[DB<br/>D1 Database<br/>scrabble-live]
+          B_SESSION[SESSION<br/>KV Namespace<br/>Admin sessions]
+          B_CACHE[CACHE<br/>KV Namespace<br/>General cache]
+          B_EMAIL[EMAIL<br/>Email Service<br/>Outbound mail]
+          B_AI[AI<br/>Workers AI<br/>LLM inference]
+          B_VEC[VECTORIZE<br/>Vectorize Index<br/>swf-blog-rag]
+        end
+
+        subgraph Config["⚙️ Configuration"]
+          WRANGLER[wrangler.jsonc<br/>Live config]
+          WRANGLER_STG[wrangler.staging.jsonc<br/>Staging config]
+          ASTRO_CFG[astro.config.mjs<br/>SSR + trailingSlash]
+          TS_CFG[tsconfig.json<br/>TypeScript strict]
+        end
+
+        subgraph Secrets["🔑 Secrets (wrangler secret)"]
+          S_GCID[GOOGLE_CLIENT_ID]
+          S_GCSEC[GOOGLE_CLIENT_SECRET]
+          S_NOTIFY[SWF_NOTIFY_EMAIL]
+        end
+
+        Worker --> Bindings
+        Worker --> Config
+        Worker --> Secrets
+        ASTRO_RT -->|uses| B_DB
+        ASTRO_RT -->|uses| B_SESSION
+        ASTRO_RT -->|uses| B_CACHE
+        ASTRO_RT -->|uses| B_EMAIL
+        ASTRO_RT -->|uses| B_AI
+        ASTRO_RT -->|uses| B_VEC
+        MW_AUTH -->|reads| B_SESSION
+        MW_AUTH -->|verifies| S_GCID`
+    };
+
+    // Initialize Mermaid with dark theme
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e3a5f',
+        primaryTextColor: '#e2e8f0',
+        primaryBorderColor: '#3b82f6',
+        lineColor: '#64748b',
+        secondaryColor: '#1e293b',
+        tertiaryColor: '#0f172a',
+        background: '#0a0a0f',
+        mainBkg: '#1e293b',
+        nodeBorder: '#475569',
+        clusterBkg: '#0f172a',
+        clusterBorder: '#334155',
+        titleColor: '#f1f5f9',
+        edgeLabelBackground: '#1e293b'
+      },
+      flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+      er: { useMaxWidth: true }
+    });
+
+    const output = document.getElementById('mermaid-output');
+    const select = document.getElementById('diagram-select');
+    const container = document.getElementById('diagram-container');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+    async function renderDiagram(key) {
+      output.innerHTML = '';
+      const { svg } = await mermaid.render('graph-' + key + '-' + Date.now(), diagrams[key]);
+      output.innerHTML = svg;
+      // Make SVG responsive
+      const svgEl = output.querySelector('svg');
+      if (svgEl) {
+        svgEl.style.maxWidth = '100%';
+        svgEl.style.height = 'auto';
+        svgEl.style.minHeight = '500px';
+      }
+    }
+
+    select.addEventListener('change', function() {
+      renderDiagram(this.value);
+    });
+
+    fullscreenBtn.addEventListener('click', function() {
+      if (!document.fullscreenElement) {
+        container.requestFullscreen();
+        fullscreenBtn.textContent = '⛶';
+      } else {
+        document.exitFullscreen();
+        fullscreenBtn.textContent = '⛶';
+      }
+    });
+
+    // Initial render
+    renderDiagram('system');
+  })();
+  </script>
+</Layout>

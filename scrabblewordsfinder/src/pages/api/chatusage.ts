@@ -174,6 +174,7 @@ export const GET: APIRoute = async ({ request }) => {
           SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successful,
           SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as failed,
           ROUND(AVG(response_ms), 0) as avg_response_ms,
+          COUNT(DISTINCT CASE WHEN user_id != '' THEN user_id END) as unique_users,
           MAX(created_at) as last_chat
         FROM chatusage`
       ).first();

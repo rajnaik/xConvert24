@@ -26,10 +26,14 @@ import '../../../styles/global.css';
     <p class="text-gray-400 mb-6">All ScrabbleBot AI chat interactions logged from the chat page.</p>
 
     <!-- Stats summary -->
-    <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
       <div class="rounded-lg bg-gray-800/60 p-4 text-center">
         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Chats</p>
         <p id="stat-total" class="text-2xl font-bold text-emerald-400">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Unique Users</p>
+        <p id="stat-unique-users" class="text-2xl font-bold text-purple-400">—</p>
       </div>
       <div class="rounded-lg bg-gray-800/60 p-4 text-center">
         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Successful</p>
@@ -45,12 +49,19 @@ import '../../../styles/global.css';
       </div>
     </div>
 
+    <!-- View toggle -->
+    <div class="flex items-center gap-3 mb-4">
+      <button id="view-flat" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-emerald-500 text-emerald-400 font-medium transition-colors">Flat View</button>
+      <button id="view-grouped" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors">Group by User</button>
+    </div>
+
     <!-- Table -->
     <div class="overflow-x-auto rounded-xl border border-gray-800">
       <table class="w-full text-sm text-left" id="chatusage-table">
         <thead class="text-xs uppercase text-gray-400 bg-gray-800/80">
           <tr>
             <th class="px-4 py-3">ID</th>
+            <th class="px-4 py-3">User Id</th>
             <th class="px-4 py-3">User Message</th>
             <th class="px-4 py-3">Bot Response</th>
             <th class="px-4 py-3">Response (ms)</th>
@@ -60,7 +71,7 @@ import '../../../styles/global.css';
           </tr>
         </thead>
         <tbody id="chatusage-tbody" class="divide-y divide-gray-800">
-          <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Loading chat logs...</td></tr>
+          <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Loading chat logs...</td></tr>
         </tbody>
       </table>
     </div>
@@ -81,10 +92,14 @@ import '../../../styles/global.css';
     const paginationInfo = document.getElementById('pagination-info');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
+    const viewFlatBtn = document.getElementById('view-flat');
+    const viewGroupedBtn = document.getElementById('view-grouped');
 
     const PAGE_SIZE = 50;
     let currentOffset = 0;
     let totalRows = 0;
+    let currentView = 'flat'; // 'flat' or 'grouped'
+    let cachedChats = [];
 
     // Fetch stats
     async function loadStats() {
@@ -94,6 +109,7 @@ import '../../../styles/global.css';
         const { stats } = await res.json();
         if (stats) {
           document.getElementById('stat-total').textContent = Number(stats.total || 0).toLocaleString();
+          document.getElementById('stat-unique-users').textContent = Number(stats.unique_users || 0).toLocaleString();
           document.getElementById('stat-success').textContent = Number(stats.successful || 0).toLocaleString();
           document.getElementById('stat-failed').textContent = Number(stats.failed || 0).toLocaleString();
           document.getElementById('stat-avg-ms').textContent = (stats.avg_response_ms || 0) + 'ms';
@@ -106,34 +122,102 @@ import '../../../styles/global.css';
       try {
         const res = await fetch(`/api/chatusage/?limit=${PAGE_SIZE}&offset=${currentOffset}`);
         if (!res.ok) {
-          tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-red-400">Failed to load data</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-red-400">Failed to load data</td></tr>';
           return;
         }
         const { chats, total } = await res.json();
         totalRows = total;
+        cachedChats = chats || [];
 
-        if (!chats || chats.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No chat interactions yet</td></tr>';
+        if (!cachedChats.length) {
+          tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No chat interactions yet</td></tr>';
           updatePagination();
           return;
         }
 
-        tbody.innerHTML = chats.map(row => `
-          <tr class="hover:bg-gray-800/40 transition-colors">
+        renderView();
+        updatePagination();
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-red-400">Error loading chat logs</td></tr>';
+      }
+    }
+
+    function renderView() {
+      if (currentView === 'grouped') {
+        renderGrouped();
+      } else {
+        renderFlat();
+      }
+    }
+
+    function renderFlat() {
+      tbody.innerHTML = cachedChats.map(row => `
+        <tr class="hover:bg-gray-800/40 transition-colors">
+          <td class="px-4 py-3 text-gray-500 font-mono text-xs">${row.id}</td>
+          <td class="px-4 py-3 text-purple-300 font-mono text-xs max-w-[120px] truncate" title="${escapeHtml(row.user_id || '')}">${escapeHtml((row.user_id || '—').slice(0, 12))}${(row.user_id || '').length > 12 ? '…' : ''}</td>
+          <td class="px-4 py-3 text-gray-200 max-w-[200px] truncate" title="${escapeHtml(row.user_message)}">${escapeHtml(row.user_message.slice(0, 80))}${row.user_message.length > 80 ? '…' : ''}</td>
+          <td class="px-4 py-3 text-gray-300 max-w-[250px] truncate" title="${escapeHtml(row.bot_response || '')}">${escapeHtml((row.bot_response || '').slice(0, 100))}${(row.bot_response || '').length > 100 ? '…' : ''}</td>
+          <td class="px-4 py-3 text-cyan-400 font-mono text-xs">${row.response_ms || 0}ms</td>
+          <td class="px-4 py-3">${row.success ? '<span class="text-green-400 text-xs font-medium">✓ OK</span>' : '<span class="text-red-400 text-xs font-medium">✗ Fail</span>'}</td>
+          <td class="px-4 py-3 text-gray-500 text-xs font-mono">${row.ip_address || '—'}</td>
+          <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">${formatDate(row.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderGrouped() {
+      // Group by user_id
+      const groups = {};
+      cachedChats.forEach(row => {
+        const uid = row.user_id || '(anonymous)';
+        if (!groups[uid]) groups[uid] = [];
+        groups[uid].push(row);
+      });
+
+      const sortedKeys = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+
+      let html = '';
+      sortedKeys.forEach(uid => {
+        const rows = groups[uid];
+        const displayUid = uid === '(anonymous)' ? '(anonymous)' : uid.slice(0, 16) + (uid.length > 16 ? '…' : '');
+        html += `
+          <tr class="bg-purple-900/20 border-t-2 border-purple-500/30 cursor-pointer group-header" data-uid="${escapeHtml(uid)}">
+            <td colspan="8" class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <span class="text-purple-300 font-mono text-xs font-semibold" title="${escapeHtml(uid)}">${escapeHtml(displayUid)}</span>
+                <span class="text-xs text-gray-400">${rows.length} chat${rows.length !== 1 ? 's' : ''}</span>
+                <span class="text-xs text-gray-600 ml-auto">▼</span>
+              </div>
+            </td>
+          </tr>`;
+        rows.forEach(row => {
+          html += `
+          <tr class="hover:bg-gray-800/40 transition-colors group-row" data-uid="${escapeHtml(uid)}">
             <td class="px-4 py-3 text-gray-500 font-mono text-xs">${row.id}</td>
+            <td class="px-4 py-3 text-purple-300 font-mono text-xs max-w-[120px] truncate">${escapeHtml((row.user_id || '—').slice(0, 12))}</td>
             <td class="px-4 py-3 text-gray-200 max-w-[200px] truncate" title="${escapeHtml(row.user_message)}">${escapeHtml(row.user_message.slice(0, 80))}${row.user_message.length > 80 ? '…' : ''}</td>
             <td class="px-4 py-3 text-gray-300 max-w-[250px] truncate" title="${escapeHtml(row.bot_response || '')}">${escapeHtml((row.bot_response || '').slice(0, 100))}${(row.bot_response || '').length > 100 ? '…' : ''}</td>
             <td class="px-4 py-3 text-cyan-400 font-mono text-xs">${row.response_ms || 0}ms</td>
             <td class="px-4 py-3">${row.success ? '<span class="text-green-400 text-xs font-medium">✓ OK</span>' : '<span class="text-red-400 text-xs font-medium">✗ Fail</span>'}</td>
             <td class="px-4 py-3 text-gray-500 text-xs font-mono">${row.ip_address || '—'}</td>
             <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">${formatDate(row.created_at)}</td>
-          </tr>
-        `).join('');
+          </tr>`;
+        });
+      });
 
-        updatePagination();
-      } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-red-400">Error loading chat logs</td></tr>';
-      }
+      tbody.innerHTML = html;
+
+      // Toggle group collapse on header click
+      tbody.querySelectorAll('.group-header').forEach(header => {
+        header.addEventListener('click', () => {
+          const uid = header.getAttribute('data-uid');
+          const rows = tbody.querySelectorAll(`.group-row[data-uid="${CSS.escape(uid)}"]`);
+          const arrow = header.querySelector('.text-gray-600');
+          const isHidden = rows[0]?.style.display === 'none';
+          rows.forEach(r => r.style.display = isHidden ? '' : 'none');
+          if (arrow) arrow.textContent = isHidden ? '▼' : '▶';
+        });
+      });
     }
 
     function updatePagination() {
@@ -154,6 +238,21 @@ import '../../../styles/global.css';
         currentOffset += PAGE_SIZE;
         loadTable();
       }
+    });
+
+    // View toggle handlers
+    viewFlatBtn.addEventListener('click', () => {
+      currentView = 'flat';
+      viewFlatBtn.className = 'px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-emerald-500 text-emerald-400 font-medium transition-colors';
+      viewGroupedBtn.className = 'px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors';
+      renderView();
+    });
+
+    viewGroupedBtn.addEventListener('click', () => {
+      currentView = 'grouped';
+      viewGroupedBtn.className = 'px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-emerald-500 text-emerald-400 font-medium transition-colors';
+      viewFlatBtn.className = 'px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors';
+      renderView();
     });
 
     function escapeHtml(str) {

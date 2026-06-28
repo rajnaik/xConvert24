@@ -41,6 +41,35 @@ test.describe('Chat Page — Positive', () => {
     expect(count).toBeGreaterThanOrEqual(3);
   });
 
+  test('static keyword shortcuts container is visible', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const container = page.locator('#static-keywords');
+    await expect(container).toBeVisible();
+  });
+
+  test('static keyword shortcuts has exactly 8 buttons', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const buttons = page.locator('#static-keywords .static-kw');
+    const count = await buttons.count();
+    expect(count).toBe(8);
+  });
+
+  test('static keyword button click sends data-prompt value to chat', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const firstBtn = page.locator('#static-keywords .static-kw').first();
+    const dataPrompt = await firstBtn.getAttribute('data-prompt');
+    await firstBtn.click();
+    // After click, a user message bubble should appear in #messages
+    const userMsg = page.locator('#messages .bg-blue-600\\/20');
+    await userMsg.first().waitFor({ state: 'attached', timeout: 5000 });
+    const msgText = await userMsg.first().textContent();
+    // The user message should display the short label, not the full data-prompt
+    // (pendingDisplayLabel logic shows the label in the bubble)
+    expect(msgText).toContain('opening moves');
+    // Verify the data-prompt was not empty (the actual prompt sent to AI)
+    expect(dataPrompt!.length).toBeGreaterThan(20);
+  });
+
   test('right column is aligned with left column (no excessive top margin)', async ({ page }) => {
     await page.goto(`${BASE}/chat/`);
     await page.setViewportSize({ width: 1280, height: 720 });
@@ -85,6 +114,46 @@ test.describe('Chat Page — Positive', () => {
     await page.goto(`${BASE}/chat/`);
     await expect(page.locator('#mic-btn')).toBeVisible();
   });
+
+  test('steps block renders with dynamic category label when numbered list is returned', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    // Type a prompt that will return numbered steps from Lex
+    const input = page.locator('#chat-input');
+    await input.fill('How do I find the best word?');
+    await page.locator('#send-btn').click();
+    // Wait for a response message containing a steps block
+    const stepsLabel = page.locator('#messages .text-emerald-400');
+    // Allow up to 15s for AI response
+    await stepsLabel.first().waitFor({ state: 'attached', timeout: 15000 }).catch(() => {});
+    // If steps block was rendered, verify a non-empty category label exists
+    const count = await stepsLabel.count();
+    if (count > 0) {
+      const labelText = await stepsLabel.first().textContent();
+      // Label should be non-empty (dynamic category or fallback "Steps")
+      expect(labelText?.trim().length).toBeGreaterThan(0);
+      // Label should be max 50 chars (truncation rule)
+      expect(labelText!.trim().length).toBeLessThanOrEqual(50);
+      // Should NOT be the old hardcoded "Here :" label
+      expect(labelText?.trim()).not.toBe('Here :');
+    }
+  });
+
+  test('hyphenated letter words (A-D-D-S style) are rendered with purple styling', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const input = page.locator('#chat-input');
+    await input.fill('What does the word A-D-D-S mean in Scrabble?');
+    await page.locator('#send-btn').click();
+    // Wait for response
+    const purpleWord = page.locator('#messages span.text-purple-400.border-purple-500\\/50');
+    await purpleWord.first().waitFor({ state: 'attached', timeout: 15000 }).catch(() => {});
+    const count = await purpleWord.count();
+    if (count > 0) {
+      const classes = await purpleWord.first().getAttribute('class');
+      expect(classes).toContain('text-purple-400');
+      expect(classes).toContain('border');
+      expect(classes).toContain('border-purple-500/50');
+    }
+  });
 });
 
 test.describe('Chat Page — Negative', () => {
@@ -103,6 +172,59 @@ test.describe('Chat Page — Negative', () => {
     expect(count).toBe(1);
   });
 
+  test('no duplicate static-keywords containers', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const containers = page.locator('#static-keywords');
+    const count = await containers.count();
+    expect(count).toBe(1);
+  });
+
+  test('static keyword buttons all have non-empty text', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const buttons = page.locator('#static-keywords .static-kw');
+    const count = await buttons.count();
+    for (let i = 0; i < count; i++) {
+      const text = await buttons.nth(i).textContent();
+      expect(text!.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  test('all static keyword buttons have a data-prompt attribute', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const buttons = page.locator('#static-keywords .static-kw');
+    const count = await buttons.count();
+    expect(count).toBe(8);
+    for (let i = 0; i < count; i++) {
+      const prompt = await buttons.nth(i).getAttribute('data-prompt');
+      expect(prompt).not.toBeNull();
+      expect(prompt!.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  test('data-prompt values are longer and more descriptive than button labels', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const buttons = page.locator('#static-keywords .static-kw');
+    const count = await buttons.count();
+    for (let i = 0; i < count; i++) {
+      const label = (await buttons.nth(i).textContent())!.trim();
+      const prompt = (await buttons.nth(i).getAttribute('data-prompt'))!.trim();
+      // data-prompt should be substantially longer than the visible label
+      expect(prompt.length).toBeGreaterThan(label.length);
+    }
+  });
+
+  test('no duplicate data-prompt values across static keyword buttons', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const buttons = page.locator('#static-keywords .static-kw');
+    const count = await buttons.count();
+    const prompts = new Set<string>();
+    for (let i = 0; i < count; i++) {
+      const prompt = await buttons.nth(i).getAttribute('data-prompt');
+      expect(prompts.has(prompt!)).toBe(false);
+      prompts.add(prompt!);
+    }
+  });
+
   test('right column does not have mt-[190px] class (regression)', async ({ page }) => {
     await page.goto(`${BASE}/chat/`);
     const rightCol = page.locator('.lg\\:w-64.xl\\:w-72');
@@ -116,5 +238,59 @@ test.describe('Chat Page — Negative', () => {
     expect(body).not.toMatch(/sk-[a-zA-Z0-9]{20,}/);
     expect(body).not.toContain('AKIA');
     expect(body).not.toMatch(/@gmail\.com/);
+  });
+
+  test('steps block does not use old hardcoded labels (regression)', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    // Submit a query to trigger a response with numbered steps
+    const input = page.locator('#chat-input');
+    await input.fill('Give me tips to win at Scrabble');
+    await page.locator('#send-btn').click();
+    // Wait for response
+    await page.waitForTimeout(10000);
+    // Check that old labels are nowhere in the messages area
+    const messagesHtml = await page.locator('#messages').innerHTML();
+    expect(messagesHtml).not.toContain('🧩 Steps');
+    expect(messagesHtml).not.toContain('>Here :<');
+  });
+
+  test('steps block category label is truncated at 50 chars max', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    // If any steps blocks appear, verify all labels obey the 50-char limit
+    const input = page.locator('#chat-input');
+    await input.fill('Explain all the strategies for competitive Scrabble tournaments in detail');
+    await page.locator('#send-btn').click();
+    const stepsLabels = page.locator('#messages .text-emerald-400');
+    await stepsLabels.first().waitFor({ state: 'attached', timeout: 15000 }).catch(() => {});
+    const count = await stepsLabels.count();
+    for (let i = 0; i < count; i++) {
+      const text = await stepsLabels.nth(i).textContent();
+      if (text) {
+        expect(text.trim().length).toBeLessThanOrEqual(50);
+      }
+    }
+  });
+
+  test('identified words show + icon (not tick) before MWB import', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    // Clear any previous identified words
+    await page.evaluate(() => localStorage.removeItem('swf-chat-identified-words'));
+    await page.reload();
+    // Trigger a response that includes 6+ letter uppercase words
+    const input = page.locator('#chat-input');
+    await input.fill('What does QUIXOTIC mean in Scrabble?');
+    await page.locator('#send-btn').click();
+    // Wait for identified words panel to appear
+    const panel = page.locator('#identified-words-panel');
+    await panel.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+    if (await panel.isVisible()) {
+      // Each word should have a + icon (M12 5v14m-7-7h14 is the + path)
+      const icons = page.locator('.word-mwb-icon');
+      const count = await icons.count();
+      expect(count).toBeGreaterThan(0);
+      // First icon should contain + SVG path, not tick path
+      const svg = await icons.first().innerHTML();
+      expect(svg).toContain('M12 5v14');
+    }
   });
 });

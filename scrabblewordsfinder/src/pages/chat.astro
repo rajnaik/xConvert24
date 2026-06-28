@@ -17,7 +17,7 @@ import '../styles/global.css';
         </span>
         Lex
       </h1>
-      <span class="text-xs text-black font-semibold bg-orange-400 px-2 py-0.5 rounded-full">Your AI Assistant</span>
+      <span class="text-xs text-black font-semibold bg-orange-400 px-2 py-0.5 rounded-full">Your Scrabble AI Coach</span>
       <!-- AI Binding Status Bot — Animated Cogs -->
       <span id="ai-status-bot" class="inline-flex items-center gap-1 ml-1" title="Checking AI status...">
         <svg id="ai-cogs-icon" width="28" height="28" viewBox="0 0 80 80" class="opacity-50" aria-hidden="true">
@@ -89,6 +89,25 @@ import '../styles/global.css';
     <!-- Chat usage counter -->
     <p id="chat-usage" class="text-xs text-green-400 font-medium mb-3">Questions asked: <span id="chat-usage-count">—</span></p>
 
+    <!-- Tailwind safelist: classes used in JS-generated FVT HTML (formatAnswer + applyInlineFormatting) -->
+    <div class="hidden">
+      <!-- Inline formatting -->
+      <span class="text-white font-semibold"></span>
+      <code class="px-1.5 py-0.5 rounded bg-gray-700 text-emerald-300 text-xs font-mono"></code>
+      <p class="text-sm text-gray-200 leading-relaxed mt-2"></p>
+      <!-- FVT numbered steps block (emerald theme) -->
+      <div class="my-3 p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10"></div>
+      <p class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-3"></p>
+      <div class="space-y-2.5"></div>
+      <div class="flex items-start gap-3"></div>
+      <span class="shrink-0 w-5 h-5 rounded-full bg-emerald-900/50 border border-emerald-500/40 flex items-center justify-center text-[10px] text-emerald-300 font-bold"></span>
+      <p class="text-sm text-gray-300 leading-relaxed"></p>
+      <!-- FVT bullet tiles (emerald theme) -->
+      <div class="my-3 space-y-2"></div>
+      <div class="flex items-start gap-2.5 p-2.5 rounded-lg border border-emerald-500/20 bg-emerald-950/10"></div>
+      <span class="text-emerald-400 mt-0.5 shrink-0 text-xs"></span>
+    </div>
+
     <!-- Chat container -->
     <div id="chat-container" class="flex flex-col h-[60vh] min-h-[400px] bg-gray-900/50 border border-gray-700 rounded-xl overflow-hidden">
       <!-- Messages area -->
@@ -142,6 +161,18 @@ import '../styles/global.css';
       </div>
     </div>
 
+    <!-- Static keyword shortcuts -->
+    <div id="static-keywords" class="mt-4 flex flex-wrap gap-2">
+      <button class="static-kw px-3 py-1.5 text-xs rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-colors" data-prompt="What are the best opening moves in Scrabble and why? Include word suggestions with point values.">🎯 Best opening moves</button>
+      <button class="static-kw px-3 py-1.5 text-xs rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-colors" data-prompt="Teach me the most useful Scrabble words that use the letter Q, including Q-without-U words with their point values.">🅀 Teach me Q words</button>
+      <button class="static-kw px-3 py-1.5 text-xs rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-colors" data-prompt="Quiz me on Scrabble vocabulary! Give me a Scrabble trivia question about valid words, strategy, or scoring rules.">📚 Can you Quiz me?</button>
+      <button class="static-kw px-3 py-1.5 text-xs rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-colors" data-prompt="I'd like you to analyse a Scrabble rack for me. What should I look for when evaluating my tiles and deciding what to play or exchange?">🎒 Analyse my rack</button>
+      <button class="static-kw px-3 py-1.5 text-xs rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-colors" data-prompt="Pick an interesting Scrabble word and explain its meaning, point value, and when it's strategically useful to play.">📖 Explain this word</button>
+      <button class="static-kw px-3 py-1.5 text-xs rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-colors" data-prompt="What are the top tips for preparing for a competitive Scrabble tournament? Cover time management, word study, and mental preparation.">🏆 Tournament tips</button>
+      <button class="static-kw px-3 py-1.5 text-xs rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-colors" data-prompt="Help me with today's Scrabble daily challenge. What strategy tips do you have for solving anagrams and finding the best word from a random rack?">🎲 Daily challenge help</button>
+      <button class="static-kw px-3 py-1.5 text-xs rounded-full bg-emerald-900/40 border border-emerald-700/50 text-emerald-300 hover:text-emerald-200 hover:border-emerald-400 transition-colors" data-prompt="What are the most impactful ways to improve my Scrabble strategy? Give me actionable tips for scoring higher and winning more games.">📈 Improve my strategy</button>
+    </div>
+
     <!-- Quick prompts (dynamically populated from top chat keywords) -->
     <div id="quick-prompts" class="mt-4 flex flex-wrap gap-2">
       <button class="quick-prompt px-3 py-1.5 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-blue-400 hover:border-blue-500/50 transition-colors">Best 2-letter words?</button>
@@ -161,6 +192,9 @@ import '../styles/global.css';
         <h2 class="text-sm font-semibold text-emerald-300 mb-3 flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           Identified Words
+          <button id="add-identified-to-mwb" class="ml-auto w-6 h-6 flex items-center justify-center rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 hover:border-purple-400 text-purple-300 transition-colors" title="Add all to Memory WordBench">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
+          </button>
         </h2>
         <p class="text-[10px] text-gray-500 mb-2">Words (6+ letters) found in Lex's responses</p>
         <div id="identified-words-list" class="flex flex-wrap gap-1.5"></div>
@@ -319,6 +353,19 @@ import '../styles/global.css';
     // Initial bind for SSR defaults
     bindQuickPrompts();
 
+    // Static keyword shortcuts — submit text to chat on click
+    // Uses data-prompt for explicit Scrabble context (avoids AI misinterpreting short labels as off-topic)
+    // Stores the display label so the chat bubble shows the short text while the AI gets the full prompt
+    let pendingDisplayLabel = '';
+    document.querySelectorAll('.static-kw').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (isStreaming) return;
+        pendingDisplayLabel = btn.textContent.trim();
+        input.value = btn.getAttribute('data-prompt') || btn.textContent.trim();
+        form.dispatchEvent(new Event('submit'));
+      });
+    });
+
     // Fetch top suggestions from chatusage and replace defaults
     (async function loadSuggestions() {
       try {
@@ -427,40 +474,180 @@ import '../styles/global.css';
     const IDENTIFIED_WORDS_KEY = 'swf-chat-identified-words';
     const identifiedWords = new Set(JSON.parse(localStorage.getItem(IDENTIFIED_WORDS_KEY) || '[]'));
 
+    // Track which words have been imported to MWB (persisted until new words arrive)
+    var importedToMwb = new Set();
+
     // Show instantly on load if words exist from previous session
     renderIdentifiedWords();
 
     function extractIdentifiedWords(text) {
-      // Match standalone ALL-CAPS words that are 6+ letters long
-      const matches = text.match(/\b[A-Z]{6,}\b/g);
-      if (!matches) return;
       let added = false;
-      matches.forEach(word => {
+
+      // 1. Match standalone ALL-CAPS words that are 6+ letters long
+      const capsMatches = text.match(/\b[A-Z]{6,}\b/g);
+      if (capsMatches) {
+        capsMatches.forEach(word => {
+          if (!identifiedWords.has(word)) {
+            identifiedWords.add(word);
+            added = true;
+          }
+        });
+      }
+
+      // 2. Match words in numbered list patterns with point values
+      //    e.g. "1. Laughed (17 points)" or "2) STAMPED (14 points)"
+      const pointsPattern = /^\d+[\.\)]\s*\**([A-Za-z]{6,})\**\s*\(\d+\s*points?\)/gm;
+      let m;
+      while ((m = pointsPattern.exec(text)) !== null) {
+        var word = m[1].toUpperCase();
         if (!identifiedWords.has(word)) {
           identifiedWords.add(word);
           added = true;
         }
-      });
-      if (added) renderIdentifiedWords();
+      }
+
+      // 3. Match bold words with points: "**LAUGHED** (17 points)" or "**Laughed** (17 points)"
+      const boldPointsPattern = /\*\*([A-Za-z]{6,})\*\*\s*\(\d+\s*points?\)/g;
+      while ((m = boldPointsPattern.exec(text)) !== null) {
+        var boldWord = m[1].toUpperCase();
+        if (!identifiedWords.has(boldWord)) {
+          identifiedWords.add(boldWord);
+          added = true;
+        }
+      }
+
+      if (added) {
+        // Reset imported state — new words arrived, show + icons for all
+        importedToMwb.clear();
+        renderIdentifiedWords();
+      }
     }
 
     function renderIdentifiedWords() {
       if (identifiedWords.size === 0) {
         identifiedWordsPanel.classList.add('hidden');
         localStorage.removeItem(IDENTIFIED_WORDS_KEY);
+        importedToMwb.clear();
         return;
       }
       identifiedWordsPanel.classList.remove('hidden');
       const wordsArr = Array.from(identifiedWords);
       identifiedWordsList.innerHTML = wordsArr
-        .map(w => `<span class="px-2 py-0.5 text-xs font-mono font-semibold rounded bg-emerald-900/40 border border-emerald-700/50 text-emerald-300">${w}</span>`)
+        .map(w => {
+          var isImported = importedToMwb.has(w);
+          var iconSvg = isImported
+            ? '<svg class="w-3 h-3 text-green-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
+            : '<svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>';
+          var iconClass = isImported
+            ? 'bg-green-900/40 border-green-500/50'
+            : 'bg-emerald-900/60 border-emerald-600/50 hover:bg-emerald-800/60 hover:border-emerald-400 cursor-pointer';
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono font-semibold rounded bg-emerald-900/40 border border-emerald-700/50 text-emerald-300">
+            ${w}
+            <span class="word-mwb-icon inline-flex items-center justify-center w-4 h-4 rounded-full ${iconClass} transition-colors" data-word="${w}" ${isImported ? 'title="Added to WordBench"' : 'title="Add to Memory WordBench"'}>${iconSvg}</span>
+          </span>`;
+        })
         .join('');
       localStorage.setItem(IDENTIFIED_WORDS_KEY, JSON.stringify(wordsArr));
     }
 
     clearIdentifiedBtn.addEventListener('click', () => {
       identifiedWords.clear();
+      importedToMwb.clear();
       renderIdentifiedWords();
+    });
+
+    // Individual word + icon click — import single word to MWB
+    identifiedWordsList.addEventListener('click', async function(e) {
+      var icon = e.target.closest('.word-mwb-icon');
+      if (!icon) return;
+      var word = icon.getAttribute('data-word');
+      if (!word || importedToMwb.has(word)) return;
+
+      // Spin while importing
+      icon.innerHTML = '<svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="8"/></svg>';
+
+      var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+      var alreadyExists = saved.some(function(a) { return a.word === word; });
+
+      if (!alreadyExists) {
+        var meaning = '';
+        try {
+          var res = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase());
+          if (res.ok) {
+            var data = await res.json();
+            var m = data[0]?.meanings?.[0];
+            var def = m?.definitions?.[0]?.definition || '';
+            var pos = m?.partOfSpeech || '';
+            meaning = pos ? '(' + pos + ') ' + def : def;
+          }
+        } catch(e) {}
+        if (!meaning) meaning = 'Scrabble-legal word (no standard definition available)';
+        saved.push({ word: word, meaning: meaning, category: 'Lex AI', dateAdded: new Date().toISOString() });
+        localStorage.setItem('scbAchievements', JSON.stringify(saved));
+
+        // Sync to server
+        var uid = localStorage.getItem('swf-uid') || '';
+        if (uid) {
+          fetch('/api/scrabble-sync/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid, achievements: saved, dictionary: 'sowpods' }) }).catch(function(){});
+        }
+      }
+
+      // Mark as imported and re-render just this icon
+      importedToMwb.add(word);
+      renderIdentifiedWords();
+    });
+
+    // Add all identified words to Memory WordBench under "Lex AI" category
+    const addToMwbBtn = document.getElementById('add-identified-to-mwb');
+    addToMwbBtn.addEventListener('click', async function() {
+      if (identifiedWords.size === 0) return;
+      var btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="8"/></svg>';
+
+      var saved = JSON.parse(localStorage.getItem('scbAchievements') || '[]');
+      var existingWords = {};
+      saved.forEach(function(a) { existingWords[a.word] = true; });
+
+      var wordsToAdd = Array.from(identifiedWords).filter(function(w) { return !existingWords[w]; });
+      var added = 0;
+
+      for (var i = 0; i < wordsToAdd.length; i++) {
+        var word = wordsToAdd[i];
+        var meaning = '';
+        try {
+          var res = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word.toLowerCase());
+          if (res.ok) {
+            var data = await res.json();
+            var m = data[0]?.meanings?.[0];
+            var def = m?.definitions?.[0]?.definition || '';
+            var pos = m?.partOfSpeech || '';
+            meaning = pos ? '(' + pos + ') ' + def : def;
+          }
+        } catch(e) {}
+        if (!meaning) meaning = 'Scrabble-legal word (no standard definition available)';
+        saved.push({ word: word, meaning: meaning, category: 'Lex AI', dateAdded: new Date().toISOString() });
+        added++;
+      }
+
+      localStorage.setItem('scbAchievements', JSON.stringify(saved));
+
+      // Sync to server
+      var uid = localStorage.getItem('swf-uid') || '';
+      if (uid) {
+        fetch('/api/scrabble-sync/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid, achievements: saved, dictionary: 'sowpods' }) }).catch(function(){});
+      }
+
+      // Visual feedback — mark all word icons as green ticks
+      identifiedWords.forEach(function(w) { importedToMwb.add(w); });
+      renderIdentifiedWords();
+      btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+      btn.title = added + ' word' + (added !== 1 ? 's' : '') + ' added to WordBench';
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>';
+        btn.title = 'Add all to Memory WordBench';
+      }, 2500);
     });
 
     // Convert markdown-style links and bare /blog/ paths to clickable HTML links
@@ -483,14 +670,105 @@ import '../styles/global.css';
       return html;
     }
 
+    // FVT-style rich rendering of AI responses
+    function formatAnswer(text) {
+      var escaped = escapeHtml(text);
+
+      // Split into paragraphs on double newlines
+      var blocks = escaped.split(/\n\n+/);
+      var htmlParts = [];
+
+      blocks.forEach(function(block) {
+        block = block.trim();
+        if (!block) return;
+
+        // Detect numbered list block (lines starting with 1. 2. 3. etc.)
+        var allLines = block.split('\n');
+        var numberedLines = allLines.filter(function(l) { return /^\d+[\.\)]\s/.test(l.trim()); });
+        if (numberedLines.length >= 2) {
+          // Extract dynamic category from non-numbered intro lines in this block
+          var introLines = allLines.filter(function(l) { return l.trim() && !/^\d+[\.\)]\s/.test(l.trim()); });
+          var categoryLabel = introLines.length > 0 ? introLines[0].replace(/[:：]+$/, '').trim() : '';
+          // If no intro line in this block, use previous paragraph block as category
+          if (!categoryLabel && htmlParts.length > 0) {
+            var prevHtml = htmlParts[htmlParts.length - 1];
+            var prevMatch = prevHtml.match(/>([^<]+)<\/p>$/);
+            if (prevMatch) categoryLabel = prevMatch[1].replace(/[:：]+$/, '').trim();
+          }
+          if (!categoryLabel) categoryLabel = 'Steps';
+          // Truncate long labels
+          if (categoryLabel.length > 50) categoryLabel = categoryLabel.substring(0, 47) + '...';
+          var stepsHtml = '<div class="my-3 p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10">';
+          stepsHtml += '<p class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-3">' + categoryLabel + '</p>';
+          stepsHtml += '<div class="space-y-2.5">';
+          numberedLines.forEach(function(line, idx) {
+            var content = line.replace(/^\d+[\.\)]\s*/, '');
+            content = applyInlineFormatting(content);
+            stepsHtml += '<div class="flex items-start gap-3"><span class="shrink-0 w-5 h-5 rounded-full bg-emerald-900/50 border border-emerald-500/40 flex items-center justify-center text-[10px] text-emerald-300 font-bold">' + (idx + 1) + '</span><p class="text-sm text-gray-300 leading-relaxed">' + content + '</p></div>';
+          });
+          stepsHtml += '</div></div>';
+          htmlParts.push(stepsHtml);
+          return;
+        }
+
+        // Detect bullet list block (lines starting with - or •)
+        var bulletLines = block.split('\n').filter(function(l) { return /^[\-•]\s/.test(l.trim()); });
+        if (bulletLines.length >= 2) {
+          var listHtml = '<div class="my-3 space-y-2">';
+          bulletLines.forEach(function(line) {
+            var content = line.replace(/^[\-•]\s*/, '');
+            content = applyInlineFormatting(content);
+            listHtml += '<div class="flex items-start gap-2.5 p-2.5 rounded-lg border border-emerald-500/20 bg-emerald-950/10"><span class="text-emerald-400 mt-0.5 shrink-0 text-xs">▶</span><p class="text-sm text-gray-300 leading-relaxed">' + content + '</p></div>';
+          });
+          listHtml += '</div>';
+          htmlParts.push(listHtml);
+          return;
+        }
+
+        // Regular paragraph — apply inline formatting
+        var paraHtml = applyInlineFormatting(block.replace(/\n/g, ' '));
+        htmlParts.push('<p class="text-sm text-gray-200 leading-relaxed mt-2">' + paraHtml + '</p>');
+      });
+
+      return htmlParts.join('');
+    }
+
+    function applyInlineFormatting(text) {
+      // Hyphenated letter words (A-D-D-S, S-A-D style): purple font + border
+      text = text.replace(/\b([A-Z](?:-[A-Z]){1,})\b/g, '<span class="inline-block px-1.5 py-0.5 rounded border border-purple-500/50 text-purple-400 font-semibold text-xs tracking-wider">$1</span>');
+      // Bold: **text** or __text__
+      text = text.replace(/\*\*(.+?)\*\*/g, '<span class="text-white font-semibold">$1</span>');
+      text = text.replace(/__(.+?)__/g, '<span class="text-white font-semibold">$1</span>');
+      // Inline code: `text`
+      text = text.replace(/`(.+?)`/g, '<code class="px-1.5 py-0.5 rounded bg-gray-700 text-emerald-300 text-xs font-mono">$1</code>');
+      // Linkify markdown links [text](url) — MUST run before bare URL regex
+      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(_, linkText, url) {
+        if (url.startsWith('/') && !url.endsWith('/') && !url.includes('.')) url += '/';
+        return '<a href="' + url + '" class="text-blue-400 hover:text-blue-300 underline">' + linkText + '</a>';
+      });
+      // Linkify bare blog paths (only if not already inside an href attribute)
+      text = text.replace(/(^|[\s(])(\/(blog|chat)\/[a-z0-9-]+\/?)(?=[\s),.]|$)/gi, function(match, prefix, url) {
+        // Skip if this URL is already part of an <a> tag (inside href="...")
+        var before = text.substring(0, text.indexOf(match));
+        if (before.match(/href="[^"]*$/)) return match;
+        if (!url.endsWith('/')) url += '/';
+        return prefix + '<a href="' + url + '" class="text-blue-400 hover:text-blue-300 underline">' + url + '</a>';
+      });
+      return text;
+    }
+
     // Form submit
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const userMessage = input.value.trim();
       if (!userMessage || isStreaming) return;
 
+      // Show the friendly label in chat bubble if available, otherwise show full message
+      const displayMessage = pendingDisplayLabel || userMessage;
+      pendingDisplayLabel = '';
+
       // Add user message to UI
-      appendMessage('user', userMessage);
+      appendMessage('user', displayMessage);
       conversationHistory.push({ role: 'user', content: userMessage });
 
       // Clear input
@@ -562,9 +840,9 @@ import '../styles/global.css';
         // Save to history and linkify the final response
         if (fullResponse) {
           conversationHistory.push({ role: 'assistant', content: fullResponse });
-          // Linkify blog references in the final rendered message
-          textEl.innerHTML = linkifyResponse(fullResponse);
-          // Extract identified words (6+ letter ALL-CAPS) from AI response
+          // Render with FVT-style rich formatting (bold, steps, bullets, links)
+          textEl.innerHTML = formatAnswer(fullResponse);
+          // Extract identified words (6+ letter words: ALL-CAPS, or in numbered list with points)
           extractIdentifiedWords(fullResponse);
           // Log chat usage (fire-and-forget)
           logChatUsage(userMessage, fullResponse, Date.now() - chatStartTime, true, '', pendingKeyword);
@@ -594,7 +872,7 @@ import '../styles/global.css';
             <img src="/lex-avatar-32.png" alt="Lex" width="20" height="20" class="rounded-full" />
           </div>
           <div class="bg-gray-800 rounded-lg rounded-tl-none px-4 py-2.5 max-w-[85%]">
-            <p class="msg-text text-sm text-gray-200 whitespace-pre-wrap">${escapeHtml(content)}</p>
+            <div class="msg-text text-sm text-gray-200">${escapeHtml(content)}</div>
           </div>`;
       } else {
         wrapper.innerHTML = `

@@ -67,13 +67,17 @@ export default defineConfig({
     },
     {
       name: 'mobile',
-      testDir: './tests/pages',
-      testMatch: /mobile/,
-      use: { ...devices['Pixel 7'] },
+      testDir: './tests/mobile',
+      use: { ...devices['Pixel 7'], browserName: 'chromium' },
     },
     {
       name: 'quick',
       testDir: './tests/quick/solver',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'quick-chat',
+      testDir: './tests/quick/chat',
       use: { ...devices['Desktop Chrome'] },
     },
     {
