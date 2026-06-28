@@ -298,3 +298,19 @@ test.describe('Solver Results & Filters', () => {
     await expect(page.locator('#results')).toContainText('words found', { timeout: 10000 });
   });
 });
+
+test.describe('Text Solver Input — Width Styling', () => {
+  test('text solver input has 20ch width class', async ({ page }) => {
+    await page.goto('/');
+    const input = page.locator('#text-solver');
+    const classAttr = await input.getAttribute('class');
+    expect(classAttr).toContain('w-[20ch]');
+  });
+
+  test('text solver input does not use old 15ch width', async ({ page }) => {
+    await page.goto('/');
+    const input = page.locator('#text-solver');
+    const classAttr = await input.getAttribute('class');
+    expect(classAttr).not.toContain('w-[15ch]');
+  });
+});

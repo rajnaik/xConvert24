@@ -1,0 +1,177 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+---
+
+<Layout title="Chat Usage — Admin Content — ScrabbleWordsFinder" description="View ScrabbleBot AI chat interaction logs" keywords="admin, chat usage, ai logs, scrabblebot">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/content/" class="hover:text-blue-400 transition-colors">Content</a>
+      <a href="/admin/content/chatusage/" class="text-emerald-400 font-medium">Chat Usage</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="flex items-center gap-3 mb-2">
+      <a href="/admin/content/" class="text-gray-400 hover:text-blue-400 text-sm transition-colors">← Content</a>
+    </div>
+    <h1 class="text-3xl font-bold text-white mb-2">🤖 Chat Usage</h1>
+    <p class="text-gray-400 mb-6">All ScrabbleBot AI chat interactions logged from the chat page.</p>
+
+    <!-- Stats summary -->
+    <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Chats</p>
+        <p id="stat-total" class="text-2xl font-bold text-emerald-400">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Successful</p>
+        <p id="stat-success" class="text-2xl font-bold text-green-400">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Failed</p>
+        <p id="stat-failed" class="text-2xl font-bold text-red-400">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 text-center">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Avg Response</p>
+        <p id="stat-avg-ms" class="text-2xl font-bold text-cyan-400">—</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm text-left" id="chatusage-table">
+        <thead class="text-xs uppercase text-gray-400 bg-gray-800/80">
+          <tr>
+            <th class="px-4 py-3">ID</th>
+            <th class="px-4 py-3">User Message</th>
+            <th class="px-4 py-3">Bot Response</th>
+            <th class="px-4 py-3">Response (ms)</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3">IP</th>
+            <th class="px-4 py-3">Date</th>
+          </tr>
+        </thead>
+        <tbody id="chatusage-tbody" class="divide-y divide-gray-800">
+          <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">Loading chat logs...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-4">
+      <p class="text-sm text-gray-500" id="pagination-info">Showing 0 of 0</p>
+      <div class="flex gap-2">
+        <button id="prev-btn" class="px-3 py-1.5 text-sm rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors" disabled>← Prev</button>
+        <button id="next-btn" class="px-3 py-1.5 text-sm rounded-lg bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors" disabled>Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    const tbody = document.getElementById('chatusage-tbody');
+    const paginationInfo = document.getElementById('pagination-info');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    const PAGE_SIZE = 50;
+    let currentOffset = 0;
+    let totalRows = 0;
+
+    // Fetch stats
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/chatusage/?stats=true');
+        if (!res.ok) return;
+        const { stats } = await res.json();
+        if (stats) {
+          document.getElementById('stat-total').textContent = Number(stats.total || 0).toLocaleString();
+          document.getElementById('stat-success').textContent = Number(stats.successful || 0).toLocaleString();
+          document.getElementById('stat-failed').textContent = Number(stats.failed || 0).toLocaleString();
+          document.getElementById('stat-avg-ms').textContent = (stats.avg_response_ms || 0) + 'ms';
+        }
+      } catch {}
+    }
+
+    // Fetch and render table
+    async function loadTable() {
+      try {
+        const res = await fetch(`/api/chatusage/?limit=${PAGE_SIZE}&offset=${currentOffset}`);
+        if (!res.ok) {
+          tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-red-400">Failed to load data</td></tr>';
+          return;
+        }
+        const { chats, total } = await res.json();
+        totalRows = total;
+
+        if (!chats || chats.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No chat interactions yet</td></tr>';
+          updatePagination();
+          return;
+        }
+
+        tbody.innerHTML = chats.map(row => `
+          <tr class="hover:bg-gray-800/40 transition-colors">
+            <td class="px-4 py-3 text-gray-500 font-mono text-xs">${row.id}</td>
+            <td class="px-4 py-3 text-gray-200 max-w-[200px] truncate" title="${escapeHtml(row.user_message)}">${escapeHtml(row.user_message.slice(0, 80))}${row.user_message.length > 80 ? '…' : ''}</td>
+            <td class="px-4 py-3 text-gray-300 max-w-[250px] truncate" title="${escapeHtml(row.bot_response || '')}">${escapeHtml((row.bot_response || '').slice(0, 100))}${(row.bot_response || '').length > 100 ? '…' : ''}</td>
+            <td class="px-4 py-3 text-cyan-400 font-mono text-xs">${row.response_ms || 0}ms</td>
+            <td class="px-4 py-3">${row.success ? '<span class="text-green-400 text-xs font-medium">✓ OK</span>' : '<span class="text-red-400 text-xs font-medium">✗ Fail</span>'}</td>
+            <td class="px-4 py-3 text-gray-500 text-xs font-mono">${row.ip_address || '—'}</td>
+            <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">${formatDate(row.created_at)}</td>
+          </tr>
+        `).join('');
+
+        updatePagination();
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-red-400">Error loading chat logs</td></tr>';
+      }
+    }
+
+    function updatePagination() {
+      const start = totalRows === 0 ? 0 : currentOffset + 1;
+      const end = Math.min(currentOffset + PAGE_SIZE, totalRows);
+      paginationInfo.textContent = `Showing ${start}–${end} of ${totalRows}`;
+      prevBtn.disabled = currentOffset === 0;
+      nextBtn.disabled = currentOffset + PAGE_SIZE >= totalRows;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+      loadTable();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentOffset + PAGE_SIZE < totalRows) {
+        currentOffset += PAGE_SIZE;
+        loadTable();
+      }
+    });
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      try {
+        const d = new Date(dateStr + 'Z');
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      } catch { return dateStr; }
+    }
+
+    loadStats();
+    loadTable();
+  })();
+  </script>
+</Layout>

@@ -11,6 +11,7 @@ When triggered:
 4. Flag any **breaking changes** or **security advisories**
 5. Recommend which to upgrade now vs defer
 6. Present the table to Raj for decisions
+7. **MANDATORY: Update the public-facing Tech Stack page** (`/tech-stack/`) to reflect any version changes — see "Post-Review: Update Tech Stack Page" section below
 
 ## Dependency Table
 
@@ -54,6 +55,8 @@ Last reviewed: **June 14, 2026**
 | **Cloudflare D1** | Database | Free | 10 DB limit |
 | **Cloudflare KV** | Session store | Free | — |
 | **Cloudflare Email** | Outbound email | Free | — |
+| **Cloudflare Vectorize** | Vector DB (RAG) | Free tier | SWF: `swf-blog-rag` index |
+| **Cloudflare Workers AI** | AI inference | Free tier | SWF: `AI` binding |
 | **Cloudflare Pages** | Static assets | Free (via Workers) | — |
 | **Google OAuth** | Admin auth | Free | — |
 | **DictionaryAPI.dev** | Word definitions | Free | Rate limited |
@@ -97,6 +100,17 @@ cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder && npm update
 cd /Users/rajeevnaik/Code/xConvert.com && npx astro build
 cd /Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder && npx astro build
 ```
+
+## Post-Review: Update Tech Stack Page (MANDATORY)
+
+After completing the review and updating this steering file, **ALWAYS update the public-facing Tech Stack page** at `scrabblewordsfinder/src/pages/tech-stack.astro` (and any equivalent in other workspaces) so users see current versions. This ensures the live site always reflects reality. **This step is non-optional** — the review is not complete until the page is updated.
+
+Steps:
+1. Compare the versions in the Dependency Table above with what's shown on `/tech-stack/`
+2. Update any stale version numbers on the page
+3. Add/remove any services that changed (e.g., new Cloudflare bindings, deprecated tools)
+4. Verify the page still builds cleanly
+5. If versions changed on the page, note it in the History table below
 
 ## Schedule
 

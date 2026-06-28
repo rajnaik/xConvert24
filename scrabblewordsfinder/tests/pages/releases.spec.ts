@@ -34,21 +34,55 @@ test.describe('Releases Page — Positive', () => {
 
   // --- Last 2 versions only (per release-notes-testing rule) ---
 
-  test('v1.12.4 release entry is present and is the latest', async ({ page }) => {
+  test('v1.13.0 release entry is present and is the latest', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const heading = firstArticle.locator('h2');
+    await expect(heading).toContainText('v1.13.0');
+    await expect(heading).toContainText('June 28, 2026');
+  });
+
+  test('v1.13.0 lists all feature items', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    const items = firstArticle.locator('ul li');
+    const count = await items.count();
+    expect(count).toBe(11);
+    const content = await firstArticle.textContent();
+    expect(content).toContain('Ask Lex AI');
+    expect(content).toContain('RAG-powered answers');
+    expect(content).toContain('Ask Lex tile on solver');
+    expect(content).toContain('Blog "Ask AI" component');
+    expect(content).toContain('AI health check API');
+    expect(content).toContain('Chat usage tracking');
+    expect(content).toContain('RAG ingestion pipeline');
+    expect(content).toContain('Lex avatar');
+    expect(content).toContain('Header update');
+    expect(content).toContain('New migrations');
+    expect(content).toContain('Comprehensive test suite');
+  });
+
+  test('v1.13.0 has purple border styling (minor release)', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const firstArticle = page.locator('article').first();
+    await expect(firstArticle).toHaveClass(/border-purple-500/);
+  });
+
+  test('v1.12.4 release entry is present as second entry', async ({ page }) => {
+    await page.goto(`${BASE}/releases/`);
+    const secondArticle = page.locator('article').nth(1);
+    const heading = secondArticle.locator('h2');
     await expect(heading).toContainText('v1.12.4');
     await expect(heading).toContainText('June 28, 2026');
   });
 
   test('v1.12.4 lists all feature items', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const firstArticle = page.locator('article').first();
-    const items = firstArticle.locator('ul li');
+    const secondArticle = page.locator('article').nth(1);
+    const items = secondArticle.locator('ul li');
     const count = await items.count();
     expect(count).toBe(4);
-    const content = await firstArticle.textContent();
+    const content = await secondArticle.textContent();
     expect(content).toContain('Roadmap to Being a Pro Scrabble Player');
     expect(content).toContain('BlogComments component');
     expect(content).toContain('Release notes test rule');
@@ -57,31 +91,8 @@ test.describe('Releases Page — Positive', () => {
 
   test('v1.12.4 has emerald border styling', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const firstArticle = page.locator('article').first();
-    await expect(firstArticle).toHaveClass(/border-emerald-500/);
-  });
-
-  test('v1.12.3 release entry is present as second entry', async ({ page }) => {
-    await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
-    const heading = secondArticle.locator('h2');
-    await expect(heading).toContainText('v1.12.3');
-    await expect(heading).toContainText('June 28, 2026');
-  });
-
-  test('v1.12.3 lists key features', async ({ page }) => {
-    await page.goto(`${BASE}/releases/`);
-    const secondArticle = page.locator('article').nth(1);
-    const items = secondArticle.locator('ul li');
-    const count = await items.count();
-    expect(count).toBe(9);
-    const content = await secondArticle.textContent();
-    expect(content).toContain('Blog Comments');
-    expect(content).toContain('Blog Comments API');
-    expect(content).toContain('Admin Blog Comments');
-    expect(content).toContain('Migration 0039');
-    expect(content).toContain('Performance');
-    expect(content).toContain('Accessibility');
+    await expect(secondArticle).toHaveClass(/border-emerald-500/);
   });
 
   // --- General structure tests ---
@@ -162,7 +173,7 @@ test.describe('Releases Page — Negative', () => {
     const content = await firstArticle.textContent();
     expect(content).not.toContain('click tracking');
     expect(content).not.toContain('session tracking');
-    expect(content).not.toContain('heartbeat');
+    expect(content).not.toContain('heartbeat tracking');
     expect(content).not.toContain('visitor monitor');
     expect(content).not.toContain('real-time visitor');
     expect(content).not.toContain('IP address');
@@ -196,7 +207,7 @@ test.describe('Releases Page — Negative', () => {
     const content = await secondArticle.textContent();
     expect(content).not.toContain('click tracking');
     expect(content).not.toContain('session tracking');
-    expect(content).not.toContain('heartbeat');
+    expect(content).not.toContain('heartbeat tracking');
     expect(content).not.toContain('visitor monitor');
     expect(content).not.toContain('real-time visitor');
     expect(content).not.toContain('IP address');

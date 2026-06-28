@@ -1,0 +1,850 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Lex — AI Scrabble Assistant | ScrabbleWordsFinder" description="Chat with Lex, your AI-powered Scrabble strategy assistant. Get instant word tips, best rack plays, strategy advice, and rules clarification for free." keywords="scrabble chat, ai scrabble helper, scrabble strategy assistant, word game ai, scrabble tips bot, lex scrabble">
+  <main class="mx-auto max-w-6xl px-4 sm:px-6 py-6">
+    <div class="flex flex-col lg:flex-row gap-6">
+    <!-- Left column: Chat panel -->
+    <div class="flex-1 min-w-0">
+    <div class="flex items-center gap-3 mb-4">
+      <a href="/" class="text-sm text-blue-400 hover:underline">← Solver</a>
+      <h1 class="text-xl font-bold text-white flex items-center gap-2">
+        <span class="relative group shrink-0">
+          <img src="/lex-avatar-128.png" alt="Lex" width="32" height="32" class="rounded-full cursor-pointer transition-transform duration-200 group-hover:scale-[3] group-hover:z-50 group-hover:relative group-hover:ring-2 group-hover:ring-cyan-400/60" />
+          <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-gray-900 border border-gray-700 text-xs text-gray-200 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">Lex AI</span>
+        </span>
+        Lex
+      </h1>
+      <span class="text-xs text-black font-semibold bg-orange-400 px-2 py-0.5 rounded-full">Your AI Assistant</span>
+      <!-- AI Binding Status Bot — Animated Cogs -->
+      <span id="ai-status-bot" class="inline-flex items-center gap-1 ml-1" title="Checking AI status...">
+        <svg id="ai-cogs-icon" width="28" height="28" viewBox="0 0 80 80" class="opacity-50" aria-hidden="true">
+          <!-- Large center cog (green when healthy, red when broken) -->
+          <g id="cog-center" style="transform-origin: 38px 42px;">
+            <path d="M38 42m-14 0a14 14 0 1 0 28 0 14 14 0 1 0-28 0" fill="none" stroke="#22c55e" stroke-width="5"/>
+            <circle cx="38" cy="42" r="5" fill="#22c55e"/>
+            <!-- Teeth -->
+            <rect x="35" y="22" width="6" height="8" rx="1" fill="#22c55e"/>
+            <rect x="35" y="54" width="6" height="8" rx="1" fill="#22c55e"/>
+            <rect x="18" y="39" width="8" height="6" rx="1" fill="#22c55e"/>
+            <rect x="50" y="39" width="8" height="6" rx="1" fill="#22c55e"/>
+            <rect x="22.5" y="27" width="6" height="7" rx="1" fill="#22c55e" transform="rotate(-45 25.5 30.5)"/>
+            <rect x="47.5" y="51" width="6" height="7" rx="1" fill="#22c55e" transform="rotate(-45 50.5 54.5)"/>
+            <rect x="47.5" y="27" width="6" height="7" rx="1" fill="#22c55e" transform="rotate(45 50.5 30.5)"/>
+            <rect x="22.5" y="51" width="6" height="7" rx="1" fill="#22c55e" transform="rotate(45 25.5 54.5)"/>
+          </g>
+          <!-- Top-right small cog (blue) -->
+          <g id="cog-top" style="transform-origin: 60px 20px;">
+            <path d="M60 20m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0" fill="none" stroke="#3b82f6" stroke-width="4"/>
+            <circle cx="60" cy="20" r="3" fill="#3b82f6"/>
+            <rect x="58" y="8" width="4" height="5" rx="1" fill="#3b82f6"/>
+            <rect x="58" y="27" width="4" height="5" rx="1" fill="#3b82f6"/>
+            <rect x="48" y="18" width="5" height="4" rx="1" fill="#3b82f6"/>
+            <rect x="67" y="18" width="5" height="4" rx="1" fill="#3b82f6"/>
+            <rect x="50" y="11" width="4" height="5" rx="1" fill="#3b82f6" transform="rotate(-45 52 13.5)"/>
+            <rect x="66" y="23" width="4" height="5" rx="1" fill="#3b82f6" transform="rotate(-45 68 25.5)"/>
+          </g>
+          <!-- Bottom-left small cog (amber/orange) -->
+          <g id="cog-bottom" style="transform-origin: 18px 64px;">
+            <path d="M18 64m-8 0a8 8 0 1 0 16 0 8 8 0 1 0-16 0" fill="none" stroke="#f59e0b" stroke-width="4"/>
+            <circle cx="18" cy="64" r="3" fill="#f59e0b"/>
+            <rect x="16" y="52" width="4" height="5" rx="1" fill="#f59e0b"/>
+            <rect x="16" y="71" width="4" height="5" rx="1" fill="#f59e0b"/>
+            <rect x="6" y="62" width="5" height="4" rx="1" fill="#f59e0b"/>
+            <rect x="25" y="62" width="5" height="4" rx="1" fill="#f59e0b"/>
+            <rect x="8" y="55" width="4" height="5" rx="1" fill="#f59e0b" transform="rotate(-45 10 57.5)"/>
+            <rect x="24" y="67" width="4" height="5" rx="1" fill="#f59e0b" transform="rotate(-45 26 69.5)"/>
+          </g>
+        </svg>
+        <span id="ai-status-text" class="text-[10px] font-bold uppercase tracking-wide text-gray-500">...</span>
+      </span>
+    </div>
+
+    <p class="text-sm text-gray-400 mb-4">Ask me about Scrabble strategy, word suggestions, rules, or enter your rack below for the best play.</p>
+
+    <!-- Ask Lex — Rack Input -->
+    <div id="ask-lex-panel" class="mb-4 p-3 bg-gray-800/60 border border-gray-700 rounded-xl">
+      <label for="rack-input" class="text-xs font-semibold text-gray-300 uppercase tracking-wide mb-2 block">Your Rack (up to 7 tiles)</label>
+      <div class="flex items-center gap-2">
+        <input
+          id="rack-input"
+          type="text"
+          maxlength="7"
+          placeholder="e.g. AEILNRT"
+          class="w-32 px-3 py-2 text-sm font-mono uppercase tracking-widest bg-gray-900 border border-gray-600 rounded-lg text-green-400 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button
+          id="ask-lex-btn"
+          type="button"
+          class="px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white transition-colors"
+        >Ask Lex</button>
+      </div>
+      <p id="rack-hint" class="text-xs text-gray-500 mt-1.5">Enter your tiles and I'll find the best word</p>
+    </div>
+
+    <!-- Chat usage counter -->
+    <p id="chat-usage" class="text-xs text-green-400 font-medium mb-3">Questions asked: <span id="chat-usage-count">—</span></p>
+
+    <!-- Chat container -->
+    <div id="chat-container" class="flex flex-col h-[60vh] min-h-[400px] bg-gray-900/50 border border-gray-700 rounded-xl overflow-hidden">
+      <!-- Messages area -->
+      <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Welcome message -->
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-900/50 flex items-center justify-center shrink-0">
+            <img src="/lex-avatar-32.png" alt="Lex" width="20" height="20" class="rounded-full" />
+          </div>
+          <div class="bg-gray-800 rounded-lg rounded-tl-none px-4 py-2.5 max-w-[85%]">
+            <p class="text-sm text-gray-200">Hey! I'm <strong>Lex</strong>, your AI Scrabble assistant. Ask me anything about Scrabble — strategy tips, word suggestions, rules questions, or enter your rack above and hit <strong>Ask Lex</strong> for the best word to play!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input area -->
+      <div class="border-t border-gray-700 p-3 bg-gray-900/80">
+        <form id="chat-form" class="flex items-end gap-2">
+          <textarea
+            id="chat-input"
+            rows="1"
+            placeholder="Ask about Scrabble strategy, words, rules..."
+            class="flex-1 resize-none rounded-lg bg-gray-800 border border-gray-600 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent max-h-32"
+            autocomplete="off"
+          ></textarea>
+          <button
+            id="mic-btn"
+            type="button"
+            class="shrink-0 w-9 h-9 rounded-lg bg-gray-700 hover:bg-gray-600 flex items-center justify-center transition-colors"
+            title="Voice input"
+          >
+            <svg id="mic-icon" class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8m-4-12a3 3 0 00-3 3v4a3 3 0 006 0V8a3 3 0 00-3-3z" />
+            </svg>
+            <svg id="mic-icon-active" class="w-4 h-4 text-red-400 hidden animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v1a7 7 0 01-14 0v-1H3v1a9 9 0 004 7.46V21H9v2h6v-2h2v-2.54A9 9 0 0021 11v-1h-2z"/>
+            </svg>
+          </button>
+          <button
+            id="send-btn"
+            type="submit"
+            class="shrink-0 w-9 h-9 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+            title="Send message"
+          >
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0l-7 7m7-7l7 7" />
+            </svg>
+          </button>
+        </form>
+        <p class="text-[10px] text-gray-600 mt-1.5 text-center">Powered by Lex AI · Responses may not always be accurate · <a href="/privacy/" class="hover:text-gray-400 underline">Privacy</a></p>
+      </div>
+    </div>
+
+    <!-- Quick prompts (dynamically populated from top chat keywords) -->
+    <div id="quick-prompts" class="mt-4 flex flex-wrap gap-2">
+      <button class="quick-prompt px-3 py-1.5 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-blue-400 hover:border-blue-500/50 transition-colors">Best 2-letter words?</button>
+      <button class="quick-prompt px-3 py-1.5 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-blue-400 hover:border-blue-500/50 transition-colors">Q without U words</button>
+      <button class="quick-prompt px-3 py-1.5 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-blue-400 hover:border-blue-500/50 transition-colors">How to manage my rack?</button>
+      <button class="quick-prompt px-3 py-1.5 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-blue-400 hover:border-blue-500/50 transition-colors">Triple word strategy</button>
+      <button class="quick-prompt px-3 py-1.5 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-blue-400 hover:border-blue-500/50 transition-colors">What is a bingo?</button>
+    </div>
+    </div><!-- end left column -->
+
+    <!-- Right column: Identified Words + Keyword History -->
+    <div class="lg:w-64 xl:w-72 shrink-0 flex flex-col gap-4">
+
+    <!-- Identified Words panel -->
+    <div id="identified-words-panel" class="hidden">
+      <div class="sticky top-6 p-4 bg-gray-900/50 border border-emerald-700/50 rounded-xl">
+        <h2 class="text-sm font-semibold text-emerald-300 mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Identified Words
+        </h2>
+        <p class="text-[10px] text-gray-500 mb-2">Words (6+ letters) found in Lex's responses</p>
+        <div id="identified-words-list" class="flex flex-wrap gap-1.5"></div>
+        <button id="clear-identified-words" class="mt-3 text-[10px] text-gray-500 hover:text-red-400 transition-colors">Clear all</button>
+      </div>
+    </div>
+
+    <!-- Your Keyword History (user's own past questions) -->
+    <div id="keyword-history" class="hidden">
+      <div class="p-4 bg-gray-900/50 border border-gray-700 rounded-xl">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-semibold text-gray-300">Your Recent Questions</h2>
+          <div class="flex items-center gap-2">
+            <button id="kh-prev" class="px-2 py-0.5 text-xs rounded bg-gray-800 border border-gray-700 text-gray-500 hover:text-white hover:border-gray-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" disabled>←</button>
+            <span id="kh-page-info" class="text-xs text-gray-500"></span>
+            <button id="kh-next" class="px-2 py-0.5 text-xs rounded bg-gray-800 border border-gray-700 text-gray-500 hover:text-white hover:border-gray-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" disabled>→</button>
+          </div>
+        </div>
+        <div id="kh-list" class="flex flex-col gap-1.5"></div>
+      </div>
+    </div>
+    </div><!-- end right column -->
+    </div><!-- end flex row -->
+  </main>
+
+  <!-- FAQ Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Lex on ScrabbleWordsFinder?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Lex is a free AI-powered Scrabble assistant that helps you find the best word from your rack, offers strategy advice, rules clarification, and game improvement tips."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can Lex suggest the best word from my rack?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Enter your 7 tiles in the rack input and click Ask Lex. The AI will suggest the highest-scoring word you can make, along with strategy tips."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Lex free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, Lex is completely free with no signup required. It runs on Cloudflare Workers AI and is available to all visitors."
+        }
+      }
+    ]
+  })}></script>
+
+  <script is:inline>
+  (function() {
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const messagesEl = document.getElementById('messages');
+    const chatUsageCount = document.getElementById('chat-usage-count');
+    const rackInput = document.getElementById('rack-input');
+    const askLexBtn = document.getElementById('ask-lex-btn');
+
+    // Fetch and display chat usage counter
+    async function refreshChatUsage() {
+      try {
+        const res = await fetch('/api/site-status/');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.chatusage !== undefined) {
+            chatUsageCount.textContent = Number(data.chatusage).toLocaleString();
+          }
+        }
+      } catch {}
+    }
+    refreshChatUsage();
+
+    // Log chat interaction to DB (fire-and-forget)
+    function logChatUsage(userMsg, botResp, responseMs, success, errorMsg, keyword) {
+      const uid = localStorage.getItem('swf-uid') || '';
+      const sid = sessionStorage.getItem('swf-session') || '';
+      fetch('/api/chatusage/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: uid,
+          user_message: userMsg,
+          bot_response: botResp,
+          response_ms: responseMs,
+          session_id: sid,
+          success: success ? 1 : 0,
+          error_message: errorMsg,
+          keyword: keyword || '',
+        }),
+      }).catch(() => {});
+    }
+
+    // Conversation history (kept in memory for session)
+    let conversationHistory = [];
+    let isStreaming = false;
+
+    // Auto-resize textarea
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 128) + 'px';
+    });
+
+    // Rack input — force uppercase, letters only + persist to localStorage
+    const RACK_KEY = 'swf-chat-rack';
+    const savedRack = localStorage.getItem(RACK_KEY) || '';
+    if (savedRack) rackInput.value = savedRack;
+
+    rackInput.addEventListener('input', () => {
+      rackInput.value = rackInput.value.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 7);
+      localStorage.setItem(RACK_KEY, rackInput.value);
+    });
+
+    // Ask Lex button handler
+    let pendingKeyword = ''; // Track the rack letters for chatusage keyword logging
+    askLexBtn.addEventListener('click', () => {
+      const rack = rackInput.value.trim().toUpperCase();
+      if (!rack || rack.length === 0 || isStreaming) return;
+      pendingKeyword = rack; // Store for logging
+      const askMsg = `I have these tiles on my rack: ${rack}. What is the best word I can play and why? Include the Scrabble score.`;
+      input.value = askMsg;
+      form.dispatchEvent(new Event('submit'));
+    });
+
+    // Enter to send (Shift+Enter for newline)
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!isStreaming && input.value.trim()) {
+          form.dispatchEvent(new Event('submit'));
+        }
+      }
+    });
+
+    // Quick prompts — dynamically populated from top chat keywords
+    const quickPromptsContainer = document.getElementById('quick-prompts');
+
+    function bindQuickPrompts() {
+      quickPromptsContainer.querySelectorAll('.quick-prompt').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (isStreaming) return;
+          input.value = btn.textContent;
+          form.dispatchEvent(new Event('submit'));
+        });
+      });
+    }
+
+    // Initial bind for SSR defaults
+    bindQuickPrompts();
+
+    // Fetch top suggestions from chatusage and replace defaults
+    (async function loadSuggestions() {
+      try {
+        const res = await fetch('/api/chatusage/?suggestions=true');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.suggestions && data.suggestions.length >= 5) {
+          const btnClass = 'quick-prompt px-3 py-1.5 text-xs rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-blue-400 hover:border-blue-500/50 transition-colors';
+          quickPromptsContainer.innerHTML = data.suggestions
+            .slice(0, 10)
+            .map(s => `<button class="${btnClass}">${s.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</button>`)
+            .join('');
+          bindQuickPrompts();
+        }
+      } catch {}
+    })();
+
+    // Keyword History — shows the user's own past questions (per-user)
+    let refreshKeywordHistory = () => {}; // Exposed for instant refresh after submit
+    (function initKeywordHistory() {
+      const uid = localStorage.getItem('swf-uid') || '';
+      if (!uid) return; // No user ID — nothing to show
+
+      const container = document.getElementById('keyword-history');
+      const listEl = document.getElementById('kh-list');
+      const prevBtn = document.getElementById('kh-prev');
+      const nextBtn = document.getElementById('kh-next');
+      const pageInfo = document.getElementById('kh-page-info');
+
+      let currentPage = 0;
+      let totalPages = 0;
+
+      // Expose refresh so it can be called after a new message is sent
+      refreshKeywordHistory = () => loadHistory(currentPage);
+
+      async function loadHistory(page) {
+        try {
+          const res = await fetch(`/api/chatusage/?suggestions=true&user_id=${encodeURIComponent(uid)}&page=${page}`);
+          if (!res.ok) return;
+          const data = await res.json();
+
+          if (data.total === 0) {
+            container.classList.add('hidden');
+            return;
+          }
+
+          container.classList.remove('hidden');
+          currentPage = data.page;
+          totalPages = data.totalPages;
+
+          // Use items (with dates) if available, fallback to suggestions
+          const items = data.items || data.suggestions.map(s => ({ message: s, last_asked: '' }));
+          listEl.innerHTML = items
+            .map(item => {
+              const dateStr = item.last_asked ? formatDate(item.last_asked) : '';
+              const escaped = item.message.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+              return `<button class="kh-item flex items-center justify-between gap-2 w-full px-2.5 py-1.5 text-xs rounded-lg bg-indigo-900/30 border border-indigo-700/50 text-indigo-300 hover:text-indigo-200 hover:border-indigo-500/60 hover:bg-indigo-800/40 cursor-pointer transition-colors text-left">
+                <span class="truncate">${escaped}</span>
+                ${dateStr ? `<span class="shrink-0 text-[10px] text-gray-500">${dateStr}</span>` : ''}
+              </button>`;
+            })
+            .join('');
+
+          // Bind click-to-ask on history items
+          listEl.querySelectorAll('.kh-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+              if (isStreaming) return;
+              input.value = btn.querySelector('span').textContent;
+              form.dispatchEvent(new Event('submit'));
+            });
+          });
+
+          // Update pagination
+          pageInfo.textContent = `${currentPage + 1} / ${totalPages}`;
+          prevBtn.disabled = currentPage === 0;
+          nextBtn.disabled = currentPage >= totalPages - 1;
+        } catch {
+          container.classList.add('hidden');
+        }
+      }
+
+      function formatDate(isoStr) {
+        try {
+          const d = new Date(isoStr);
+          const day = d.getDate();
+          const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          return `${day} ${months[d.getMonth()]}`;
+        } catch { return ''; }
+      }
+
+      prevBtn.addEventListener('click', () => {
+        if (currentPage > 0) loadHistory(currentPage - 1);
+      });
+      nextBtn.addEventListener('click', () => {
+        if (currentPage < totalPages - 1) loadHistory(currentPage + 1);
+      });
+
+      loadHistory(0);
+    })();
+
+    // Identified Words panel — extract 6+ letter ALL-CAPS words from AI responses
+    // Persisted in localStorage so they appear instantly on page load
+    const identifiedWordsPanel = document.getElementById('identified-words-panel');
+    const identifiedWordsList = document.getElementById('identified-words-list');
+    const clearIdentifiedBtn = document.getElementById('clear-identified-words');
+    const IDENTIFIED_WORDS_KEY = 'swf-chat-identified-words';
+    const identifiedWords = new Set(JSON.parse(localStorage.getItem(IDENTIFIED_WORDS_KEY) || '[]'));
+
+    // Show instantly on load if words exist from previous session
+    renderIdentifiedWords();
+
+    function extractIdentifiedWords(text) {
+      // Match standalone ALL-CAPS words that are 6+ letters long
+      const matches = text.match(/\b[A-Z]{6,}\b/g);
+      if (!matches) return;
+      let added = false;
+      matches.forEach(word => {
+        if (!identifiedWords.has(word)) {
+          identifiedWords.add(word);
+          added = true;
+        }
+      });
+      if (added) renderIdentifiedWords();
+    }
+
+    function renderIdentifiedWords() {
+      if (identifiedWords.size === 0) {
+        identifiedWordsPanel.classList.add('hidden');
+        localStorage.removeItem(IDENTIFIED_WORDS_KEY);
+        return;
+      }
+      identifiedWordsPanel.classList.remove('hidden');
+      const wordsArr = Array.from(identifiedWords);
+      identifiedWordsList.innerHTML = wordsArr
+        .map(w => `<span class="px-2 py-0.5 text-xs font-mono font-semibold rounded bg-emerald-900/40 border border-emerald-700/50 text-emerald-300">${w}</span>`)
+        .join('');
+      localStorage.setItem(IDENTIFIED_WORDS_KEY, JSON.stringify(wordsArr));
+    }
+
+    clearIdentifiedBtn.addEventListener('click', () => {
+      identifiedWords.clear();
+      renderIdentifiedWords();
+    });
+
+    // Convert markdown-style links and bare /blog/ paths to clickable HTML links
+    function linkifyResponse(text) {
+      // First, convert markdown links: [text](url) → <a> tags
+      let html = escapeHtml(text);
+      // Match escaped markdown links: [text](url)
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(_, linkText, url) {
+        // Ensure internal links have trailing slash
+        if (url.startsWith('/') && !url.endsWith('/') && !url.includes('.')) {
+          url += '/';
+        }
+        return '<a href="' + url + '" class="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener">' + linkText + '</a>';
+      });
+      // Also linkify bare blog paths like /blog/some-slug/ that weren't in markdown format
+      html = html.replace(/(^|[\s(])(\/(blog|chat)\/[a-z0-9-]+\/?)(?=[\s),.]|$)/gi, function(_, prefix, url) {
+        if (!url.endsWith('/')) url += '/';
+        return prefix + '<a href="' + url + '" class="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener">' + url + '</a>';
+      });
+      return html;
+    }
+
+    // Form submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userMessage = input.value.trim();
+      if (!userMessage || isStreaming) return;
+
+      // Add user message to UI
+      appendMessage('user', userMessage);
+      conversationHistory.push({ role: 'user', content: userMessage });
+
+      // Clear input
+      input.value = '';
+      input.style.height = 'auto';
+
+      // Disable input while streaming
+      setStreaming(true);
+
+      // Create bot message placeholder
+      const botBubble = appendMessage('assistant', '');
+      const textEl = botBubble.querySelector('.msg-text');
+      const chatStartTime = Date.now();
+
+      try {
+        const res = await fetch('/api/chat/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: conversationHistory }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Request failed' }));
+          textEl.textContent = `⚠️ ${err.error || 'Something went wrong. Please try again.'}`;
+          setStreaming(false);
+          return;
+        }
+
+        // Read SSE stream
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(data);
+                const token = parsed.response || '';
+                fullResponse += token;
+                // During streaming, show plain text (linkify at end)
+                textEl.textContent = fullResponse;
+                scrollToBottom();
+              } catch {
+                // Non-JSON line, skip
+              }
+            }
+          }
+        }
+
+        // Process any remaining buffer
+        if (buffer.startsWith('data: ') && buffer.slice(6) !== '[DONE]') {
+          try {
+            const parsed = JSON.parse(buffer.slice(6));
+            fullResponse += parsed.response || '';
+          } catch {}
+        }
+
+        // Save to history and linkify the final response
+        if (fullResponse) {
+          conversationHistory.push({ role: 'assistant', content: fullResponse });
+          // Linkify blog references in the final rendered message
+          textEl.innerHTML = linkifyResponse(fullResponse);
+          // Extract identified words (6+ letter ALL-CAPS) from AI response
+          extractIdentifiedWords(fullResponse);
+          // Log chat usage (fire-and-forget)
+          logChatUsage(userMessage, fullResponse, Date.now() - chatStartTime, true, '', pendingKeyword);
+        } else {
+          textEl.textContent = '⚠️ No response received. Please try again.';
+          logChatUsage(userMessage, '', Date.now() - chatStartTime, false, 'No response received', pendingKeyword);
+        }
+      } catch (err) {
+        textEl.textContent = '⚠️ Network error. Please check your connection and try again.';
+        logChatUsage(userMessage, '', Date.now() - chatStartTime, false, err.message || 'Network error', pendingKeyword);
+      }
+
+      pendingKeyword = ''; // Reset after logging
+      setStreaming(false);
+      scrollToBottom();
+      refreshChatUsage();
+      refreshKeywordHistory(); // Instant update of "Your Recent Questions"
+    });
+
+    function appendMessage(role, content) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'flex items-start gap-3' + (role === 'user' ? ' justify-end' : '');
+
+      if (role === 'assistant') {
+        wrapper.innerHTML = `
+          <div class="w-8 h-8 rounded-full bg-emerald-900/50 flex items-center justify-center shrink-0">
+            <img src="/lex-avatar-32.png" alt="Lex" width="20" height="20" class="rounded-full" />
+          </div>
+          <div class="bg-gray-800 rounded-lg rounded-tl-none px-4 py-2.5 max-w-[85%]">
+            <p class="msg-text text-sm text-gray-200 whitespace-pre-wrap">${escapeHtml(content)}</p>
+          </div>`;
+      } else {
+        wrapper.innerHTML = `
+          <div class="bg-blue-600/20 border border-blue-500/30 rounded-lg rounded-tr-none px-4 py-2.5 max-w-[85%]">
+            <p class="msg-text text-sm text-gray-200 whitespace-pre-wrap">${escapeHtml(content)}</p>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center shrink-0">
+            <span class="text-sm">👤</span>
+          </div>`;
+      }
+
+      messagesEl.appendChild(wrapper);
+      scrollToBottom();
+      return wrapper;
+    }
+
+    function scrollToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function setStreaming(val) {
+      isStreaming = val;
+      sendBtn.disabled = val;
+      input.disabled = val;
+      askLexBtn.disabled = val;
+      rackInput.disabled = val;
+      const micBtn = document.getElementById('mic-btn');
+      if (micBtn) micBtn.disabled = val;
+      if (!val) input.focus();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Auto-submit if ?rack= param is present (from solver Ask Lex link)
+    (function autoSubmitFromRack() {
+      const params = new URLSearchParams(window.location.search);
+      const rack = (params.get('rack') || '').trim().toUpperCase();
+      if (rack.length > 0) {
+        rackInput.value = rack;
+        localStorage.setItem(RACK_KEY, rack);
+        // Small delay to let the page fully render before auto-asking
+        setTimeout(() => { askLexBtn.click(); }, 300);
+        // Clean URL without reloading
+        window.history.replaceState({}, '', '/chat/');
+      }
+    })();
+
+    // Voice input (Web Speech API)
+    (function initVoiceInput() {
+      const micBtn = document.getElementById('mic-btn');
+      const micIcon = document.getElementById('mic-icon');
+      const micIconActive = document.getElementById('mic-icon-active');
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        // Browser doesn't support speech recognition — hide the button
+        micBtn.style.display = 'none';
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      let isListening = false;
+
+      micBtn.addEventListener('click', () => {
+        if (isStreaming) return;
+        if (isListening) {
+          recognition.stop();
+          return;
+        }
+        recognition.start();
+      });
+
+      recognition.addEventListener('start', () => {
+        isListening = true;
+        micBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+        micBtn.classList.add('bg-red-600/80', 'hover:bg-red-500');
+        micIcon.classList.add('hidden');
+        micIconActive.classList.remove('hidden');
+        micBtn.title = 'Stop listening';
+      });
+
+      recognition.addEventListener('end', () => {
+        isListening = false;
+        micBtn.classList.remove('bg-red-600/80', 'hover:bg-red-500');
+        micBtn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+        micIcon.classList.remove('hidden');
+        micIconActive.classList.add('hidden');
+        micBtn.title = 'Voice input';
+      });
+
+      recognition.addEventListener('result', (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        input.value = transcript;
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 128) + 'px';
+
+        // Auto-submit on final result
+        if (event.results[event.results.length - 1].isFinal) {
+          if (input.value.trim()) {
+            setTimeout(() => { form.dispatchEvent(new Event('submit')); }, 200);
+          }
+        }
+      });
+
+      recognition.addEventListener('error', (event) => {
+        isListening = false;
+        micBtn.classList.remove('bg-red-600/80', 'hover:bg-red-500');
+        micBtn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+        micIcon.classList.remove('hidden');
+        micIconActive.classList.add('hidden');
+        micBtn.title = 'Voice input';
+        if (event.error !== 'aborted' && event.error !== 'no-speech') {
+          console.warn('Speech recognition error:', event.error);
+        }
+      });
+    })();
+  })();
+  </script>
+
+  <!-- AI Binding Status Check -->
+  <script is:inline>
+  (function() {
+    const cogsIcon = document.getElementById('ai-cogs-icon');
+    const cogCenter = document.getElementById('cog-center');
+    const cogTop = document.getElementById('cog-top');
+    const cogBottom = document.getElementById('cog-bottom');
+    const statusBot = document.getElementById('ai-status-bot');
+    const statusText = document.getElementById('ai-status-text');
+
+    async function checkAIHealth() {
+      try {
+        const res = await fetch('/api/chat-heartbeat/');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.healthy) {
+            setHealthy();
+          } else {
+            setUnhealthy(data.reason || 'AI unavailable');
+          }
+        } else {
+          setUnhealthy('Health check failed');
+        }
+      } catch {
+        setUnhealthy('Cannot reach server');
+      }
+    }
+
+    function setHealthy() {
+      cogsIcon.classList.remove('opacity-50');
+      cogsIcon.classList.add('ai-cogs-active');
+      // Green center cog spins
+      cogCenter.querySelectorAll('path, circle, rect').forEach(el => {
+        const tag = el.tagName;
+        if (tag === 'path') el.setAttribute('stroke', '#22c55e');
+        el.setAttribute('fill', el.getAttribute('fill') === 'none' ? 'none' : '#22c55e');
+      });
+      cogCenter.classList.add('ai-cog-spin-cw');
+      cogCenter.classList.remove('ai-cog-broken');
+      // Blue top cog spins counter-clockwise
+      cogTop.classList.add('ai-cog-spin-ccw');
+      cogTop.classList.remove('ai-cog-stopped');
+      // Amber bottom cog spins clockwise slower
+      cogBottom.classList.add('ai-cog-spin-cw-slow');
+      cogBottom.classList.remove('ai-cog-stopped');
+      // Online text
+      statusText.textContent = 'online';
+      statusText.className = 'text-[10px] font-bold uppercase tracking-wide text-green-400';
+      statusBot.title = 'AI is online and ready';
+    }
+
+    function setUnhealthy(reason) {
+      cogsIcon.classList.remove('opacity-50');
+      cogsIcon.classList.add('ai-cogs-active');
+      // Center cog turns red and stutters
+      cogCenter.querySelectorAll('path, circle, rect').forEach(el => {
+        const tag = el.tagName;
+        if (tag === 'path') el.setAttribute('stroke', '#ef4444');
+        el.setAttribute('fill', el.getAttribute('fill') === 'none' ? 'none' : '#ef4444');
+      });
+      cogCenter.classList.remove('ai-cog-spin-cw');
+      cogCenter.classList.add('ai-cog-broken');
+      // Stop other cogs
+      cogTop.classList.remove('ai-cog-spin-ccw');
+      cogTop.classList.add('ai-cog-stopped');
+      cogBottom.classList.remove('ai-cog-spin-cw-slow');
+      cogBottom.classList.add('ai-cog-stopped');
+      // Offline text
+      statusText.textContent = 'offline';
+      statusText.className = 'text-[10px] font-bold uppercase tracking-wide text-red-400';
+      statusBot.title = 'AI offline: ' + reason;
+    }
+
+    checkAIHealth();
+    // Re-check every 30 seconds
+    setInterval(checkAIHealth, 30000);
+  })();
+  </script>
+
+  <style is:inline>
+    /* Cog spinning animations */
+    .ai-cog-spin-cw {
+      animation: cogSpinCW 4s linear infinite;
+    }
+    .ai-cog-spin-ccw {
+      animation: cogSpinCCW 3s linear infinite;
+    }
+    .ai-cog-spin-cw-slow {
+      animation: cogSpinCWSlow 5s linear infinite;
+    }
+    /* Broken cog — stuttering shake */
+    .ai-cog-broken {
+      animation: cogBroken 1s ease-in-out infinite;
+    }
+    /* Stopped cog — no animation, slight opacity */
+    .ai-cog-stopped {
+      opacity: 0.5;
+    }
+
+    @keyframes cogSpinCW {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes cogSpinCCW {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+    @keyframes cogSpinCWSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes cogBroken {
+      0%, 100% { transform: rotate(0deg); }
+      20% { transform: rotate(8deg); }
+      40% { transform: rotate(-5deg); }
+      60% { transform: rotate(3deg); }
+      80% { transform: rotate(-2deg); }
+    }
+
+    /* SVG cog groups need transform-origin set for rotation */
+    #cog-center { transform-origin: 38px 42px; }
+    #cog-top { transform-origin: 60px 20px; }
+    #cog-bottom { transform-origin: 18px 64px; }
+  </style>
+</Layout>

@@ -1,0 +1,214 @@
+---
+/**
+ * BlogAskAI — Floating AI chat widget for blog pages
+ * 
+ * Provides a "Ask AI" button that opens a chat panel. Users type a question
+ * about Scrabble and get AI-generated answers from our blog content via RAG.
+ * 
+ * Sources are linked back to the relevant blog posts.
+ */
+---
+
+<!-- Floating AI Chat Button + Panel -->
+<div id="rag-chat-widget" class="fixed bottom-6 right-6 z-50">
+  <!-- Toggle Button -->
+  <button
+    id="rag-toggle-btn"
+    aria-label="Ask AI about Scrabble"
+    class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center"
+  >
+    <svg id="rag-icon-chat" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+    </svg>
+    <svg id="rag-icon-close" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+
+  <!-- Chat Panel -->
+  <div
+    id="rag-panel"
+    class="hidden absolute bottom-16 right-0 w-80 sm:w-96 max-h-[500px] rounded-2xl border border-gray-700 bg-gray-900 shadow-2xl flex flex-col overflow-hidden"
+  >
+    <!-- Header -->
+    <div class="px-4 py-3 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        <h3 class="text-sm font-semibold text-white">Ask AI — Scrabble Expert</h3>
+      </div>
+      <p class="text-xs text-gray-400 mt-0.5">Ask about strategy, rules, words, or tips</p>
+    </div>
+
+    <!-- Messages Area -->
+    <div id="rag-messages" class="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[320px]">
+      <!-- Welcome message -->
+      <div class="flex gap-2">
+        <div class="shrink-0 w-7 h-7 rounded-full flex items-center justify-center overflow-hidden">
+          <img src="/lex-avatar-32.png" alt="Lex" width="28" height="28" class="rounded-full" />
+        </div>
+        <div class="bg-gray-800 rounded-xl rounded-tl-sm px-3 py-2 max-w-[85%]">
+          <p class="text-sm text-gray-300">Hi! I'm your Scrabble AI assistant. Ask me anything about strategy, word lists, scoring, or game rules.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="px-3 py-3 border-t border-gray-800 bg-gray-900/90">
+      <form id="rag-form" class="flex gap-2">
+        <input
+          id="rag-input"
+          type="text"
+          placeholder="e.g. What are the best two-letter words?"
+          maxlength="500"
+          class="flex-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30"
+        />
+        <button
+          type="submit"
+          id="rag-send-btn"
+          class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Ask
+        </button>
+      </form>
+      <p class="text-[10px] text-gray-500 mt-1.5 text-center">Powered by AI • Answers based on our blog content</p>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+(function() {
+  const toggleBtn = document.getElementById('rag-toggle-btn');
+  const panel = document.getElementById('rag-panel');
+  const iconChat = document.getElementById('rag-icon-chat');
+  const iconClose = document.getElementById('rag-icon-close');
+  const form = document.getElementById('rag-form');
+  const input = document.getElementById('rag-input');
+  const sendBtn = document.getElementById('rag-send-btn');
+  const messagesEl = document.getElementById('rag-messages');
+
+  let isOpen = false;
+  let isLoading = false;
+
+  // Toggle panel
+  toggleBtn.addEventListener('click', () => {
+    isOpen = !isOpen;
+    panel.classList.toggle('hidden', !isOpen);
+    iconChat.classList.toggle('hidden', isOpen);
+    iconClose.classList.toggle('hidden', !isOpen);
+    if (isOpen) input.focus();
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) {
+      isOpen = false;
+      panel.classList.add('hidden');
+      iconChat.classList.remove('hidden');
+      iconClose.classList.add('hidden');
+    }
+  });
+
+  // Submit question
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question || isLoading) return;
+
+    // Add user message
+    addMessage(question, 'user');
+    input.value = '';
+    isLoading = true;
+    sendBtn.disabled = true;
+
+    // Show typing indicator
+    const typingId = addTypingIndicator();
+
+    try {
+      const res = await fetch('/api/rag-query/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+
+      removeTypingIndicator(typingId);
+
+      if (res.ok) {
+        const data = await res.json();
+        addMessage(data.answer, 'ai', data.sources);
+      } else if (res.status === 429) {
+        addMessage("You've reached the question limit for this hour. Please try again later.", 'ai');
+      } else {
+        addMessage("Sorry, I couldn't process that question. Please try again.", 'ai');
+      }
+    } catch (err) {
+      removeTypingIndicator(typingId);
+      addMessage("Network error. Please check your connection and try again.", 'ai');
+    }
+
+    isLoading = false;
+    sendBtn.disabled = false;
+  });
+
+  function addMessage(text, role, sources) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex gap-2' + (role === 'user' ? ' justify-end' : '');
+
+    if (role === 'ai') {
+      const avatar = document.createElement('div');
+      avatar.className = 'shrink-0 w-7 h-7 rounded-full flex items-center justify-center overflow-hidden';
+      avatar.innerHTML = '<img src="/lex-avatar-32.png" alt="Lex" width="28" height="28" class="rounded-full" />';
+      wrapper.appendChild(avatar);
+    }
+
+    const bubble = document.createElement('div');
+    if (role === 'user') {
+      bubble.className = 'bg-blue-600 rounded-xl rounded-tr-sm px-3 py-2 max-w-[85%]';
+      bubble.innerHTML = '<p class="text-sm text-white">' + escapeHtml(text) + '</p>';
+    } else {
+      bubble.className = 'bg-gray-800 rounded-xl rounded-tl-sm px-3 py-2 max-w-[85%]';
+      bubble.innerHTML = '<p class="text-sm text-gray-300">' + escapeHtml(text) + '</p>';
+
+      // Add sources if available
+      if (sources && sources.length > 0) {
+        const srcDiv = document.createElement('div');
+        srcDiv.className = 'mt-2 pt-2 border-t border-gray-700';
+        srcDiv.innerHTML = '<p class="text-[10px] text-gray-500 mb-1">Sources:</p>';
+        sources.forEach(function(s) {
+          const link = document.createElement('a');
+          link.href = '/blog/' + s.slug + '/';
+          link.className = 'block text-xs text-blue-400 hover:text-blue-300 hover:underline truncate';
+          link.textContent = s.title || s.slug;
+          srcDiv.appendChild(link);
+        });
+        bubble.appendChild(srcDiv);
+      }
+    }
+
+    wrapper.appendChild(bubble);
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function addTypingIndicator() {
+    const id = 'typing-' + Date.now();
+    const wrapper = document.createElement('div');
+    wrapper.id = id;
+    wrapper.className = 'flex gap-2';
+    wrapper.innerHTML = '<div class="shrink-0 w-7 h-7 rounded-full flex items-center justify-center overflow-hidden"><img src="/lex-avatar-32.png" alt="Lex" width="28" height="28" class="rounded-full" /></div><div class="bg-gray-800 rounded-xl rounded-tl-sm px-3 py-2"><div class="flex gap-1 items-center h-5"><span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay:0ms"></span><span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay:150ms"></span><span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay:300ms"></span></div></div>';
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return id;
+  }
+
+  function removeTypingIndicator(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+})();
+</script>

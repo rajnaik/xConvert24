@@ -53,6 +53,17 @@ A separate Astro + Cloudflare Worker service living in `/scrabblewordsfinder/` w
 
 Config files: `scrabblewordsfinder/wrangler.jsonc` (live), `scrabblewordsfinder/wrangler.staging.jsonc` (staging).
 
+### SWF Bindings
+
+| Binding | Service | Index/Name | Notes |
+|---------|---------|------------|-------|
+| `DB` | D1 | scrabble-live / scrabble-staging | Primary database |
+| `SESSION` | KV | — | Admin session store |
+| `CACHE` | KV | — | General cache |
+| `EMAIL` | Email | — | Outbound notifications |
+| `AI` | Workers AI | — | AI inference |
+| `VECTORIZE` | Vectorize | `swf-blog-rag` | Blog RAG vector index |
+
 This is a fully independent service — its databases are NOT part of the main xConvert24 migration pipeline.
 
 ## Fixed Dev Ports (STRICT — Non-Negotiable)

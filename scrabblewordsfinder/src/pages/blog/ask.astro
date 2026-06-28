@@ -1,0 +1,226 @@
+---
+export const prerender = false;
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import '../../styles/global.css';
+---
+
+<BlogLayout
+  title="Ask AI — Scrabble Expert Assistant"
+  description="Ask our AI-powered Scrabble assistant any question about strategy, rules, word lists, bingos, and tips. Instant answers from our blog content."
+  keywords="scrabble ai, ask scrabble question, scrabble help, scrabble strategy ai, word game assistant"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Scrabble AI Assistant",
+    "description": "AI-powered Scrabble expert that answers questions about strategy, rules, and word lists.",
+    "url": "https://www.scrabblewordsfinder.com/blog/ask/",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4 py-12">
+    <article class="prose prose-invert prose-gray max-w-none">
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">Ask AI</span>
+      </nav>
+
+      <h1 class="text-3xl font-bold text-white mb-4">Ask AI — Scrabble Expert Assistant</h1>
+
+      <p class="text-lg leading-relaxed text-gray-300 mb-8">
+        Our AI assistant has read 100+ blog posts about Scrabble strategy, rules, word lists, and game tips. Ask any question and get an instant, expert answer with links to our source articles.
+      </p>
+
+      <!-- Full-page chat interface -->
+      <div id="ask-ai-full" class="not-prose">
+        <div class="rounded-2xl border border-gray-700 bg-gray-900/50 overflow-hidden">
+          <!-- Messages -->
+          <div id="ask-messages" class="p-6 space-y-4 min-h-[400px] max-h-[500px] overflow-y-auto">
+            <!-- Welcome -->
+            <div class="flex gap-3">
+              <div class="shrink-0 w-9 h-9 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center">
+                <span class="text-base">🧠</span>
+              </div>
+              <div class="bg-gray-800 rounded-xl rounded-tl-sm px-4 py-3 max-w-[85%]">
+                <p class="text-sm text-gray-300">Hi! I'm your Scrabble AI expert. I've read our entire blog library — ask me anything about:</p>
+                <ul class="mt-2 space-y-1">
+                  <li class="text-xs text-gray-400">• Strategy & tactics (openings, endgame, rack management)</li>
+                  <li class="text-xs text-gray-400">• Word lists (two-letter, three-letter, high-scoring, bingos)</li>
+                  <li class="text-xs text-gray-400">• Rules & scoring (premium squares, blanks, challenges)</li>
+                  <li class="text-xs text-gray-400">• History & tournaments (famous players, records)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input -->
+          <div class="px-4 py-4 border-t border-gray-800 bg-gray-900/80">
+            <form id="ask-form" class="flex gap-3">
+              <input
+                id="ask-input"
+                type="text"
+                placeholder="Ask about Scrabble strategy, rules, words..."
+                maxlength="500"
+                autofocus
+                class="flex-1 px-4 py-3 rounded-xl bg-gray-800 border border-gray-700 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              />
+              <button
+                type="submit"
+                id="ask-send"
+                class="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <span>Ask</span>
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+              </button>
+            </form>
+            <div class="flex items-center justify-between mt-2">
+              <p class="text-[10px] text-gray-500">Powered by Workers AI • Answers based on our 100+ blog articles</p>
+              <p id="ask-counter" class="text-[10px] text-gray-500"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggested questions -->
+        <div class="mt-6">
+          <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Try asking:</p>
+          <div class="flex flex-wrap gap-2" id="ask-suggestions">
+            <button class="ask-suggest px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-300 hover:border-blue-500 hover:text-blue-300 transition-colors">What are the best two-letter words?</button>
+            <button class="ask-suggest px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-300 hover:border-blue-500 hover:text-blue-300 transition-colors">How do I manage a vowel-heavy rack?</button>
+            <button class="ask-suggest px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-300 hover:border-blue-500 hover:text-blue-300 transition-colors">What is a bingo in Scrabble?</button>
+            <button class="ask-suggest px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-300 hover:border-blue-500 hover:text-blue-300 transition-colors">Best opening moves?</button>
+            <button class="ask-suggest px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-300 hover:border-blue-500 hover:text-blue-300 transition-colors">Q words without U?</button>
+            <button class="ask-suggest px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-300 hover:border-blue-500 hover:text-blue-300 transition-colors">Who invented Scrabble?</button>
+          </div>
+        </div>
+      </div>
+
+    </article>
+  </div>
+</BlogLayout>
+
+<script is:inline>
+(function() {
+  const form = document.getElementById('ask-form');
+  const input = document.getElementById('ask-input');
+  const sendBtn = document.getElementById('ask-send');
+  const messagesEl = document.getElementById('ask-messages');
+  const counterEl = document.getElementById('ask-counter');
+  const suggestions = document.querySelectorAll('.ask-suggest');
+
+  let isLoading = false;
+  let queryCount = 0;
+
+  // Suggestion buttons
+  suggestions.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      input.value = btn.textContent;
+      form.dispatchEvent(new Event('submit'));
+    });
+  });
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question || isLoading) return;
+
+    addMessage(question, 'user');
+    input.value = '';
+    isLoading = true;
+    sendBtn.disabled = true;
+
+    const typingId = addTypingIndicator();
+
+    try {
+      const res = await fetch('/api/rag-query/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question })
+      });
+
+      removeTypingIndicator(typingId);
+
+      if (res.ok) {
+        const data = await res.json();
+        addMessage(data.answer, 'ai', data.sources);
+        queryCount++;
+        counterEl.textContent = queryCount + '/20 questions this hour';
+      } else if (res.status === 429) {
+        addMessage("You've reached the question limit (20/hour). Please try again later.", 'ai');
+      } else {
+        addMessage("Sorry, something went wrong. Please try again.", 'ai');
+      }
+    } catch (err) {
+      removeTypingIndicator(typingId);
+      addMessage("Network error. Please check your connection.", 'ai');
+    }
+
+    isLoading = false;
+    sendBtn.disabled = false;
+    input.focus();
+  });
+
+  function addMessage(text, role, sources) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex gap-3' + (role === 'user' ? ' justify-end' : '');
+
+    if (role === 'ai') {
+      const avatar = document.createElement('div');
+      avatar.className = 'shrink-0 w-9 h-9 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center';
+      avatar.innerHTML = '<span class="text-base">🧠</span>';
+      wrapper.appendChild(avatar);
+    }
+
+    const bubble = document.createElement('div');
+    if (role === 'user') {
+      bubble.className = 'bg-blue-600 rounded-xl rounded-tr-sm px-4 py-3 max-w-[80%]';
+      bubble.innerHTML = '<p class="text-sm text-white">' + escapeHtml(text) + '</p>';
+    } else {
+      bubble.className = 'bg-gray-800 rounded-xl rounded-tl-sm px-4 py-3 max-w-[80%]';
+      bubble.innerHTML = '<p class="text-sm text-gray-300 leading-relaxed">' + escapeHtml(text) + '</p>';
+
+      if (sources && sources.length > 0) {
+        const srcDiv = document.createElement('div');
+        srcDiv.className = 'mt-3 pt-2 border-t border-gray-700';
+        srcDiv.innerHTML = '<p class="text-[10px] text-gray-500 mb-1.5 uppercase tracking-wider font-semibold">📚 Sources</p>';
+        sources.forEach(function(s) {
+          const link = document.createElement('a');
+          link.href = '/blog/' + s.slug + '/';
+          link.className = 'flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 hover:underline py-0.5';
+          link.innerHTML = '<span class="text-blue-500">→</span> ' + escapeHtml(s.title || s.slug);
+          srcDiv.appendChild(link);
+        });
+        bubble.appendChild(srcDiv);
+      }
+    }
+
+    wrapper.appendChild(bubble);
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function addTypingIndicator() {
+    const id = 'typing-' + Date.now();
+    const wrapper = document.createElement('div');
+    wrapper.id = id;
+    wrapper.className = 'flex gap-3';
+    wrapper.innerHTML = '<div class="shrink-0 w-9 h-9 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center"><span class="text-base">🧠</span></div><div class="bg-gray-800 rounded-xl rounded-tl-sm px-4 py-3"><div class="flex gap-1.5 items-center h-5"><span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay:0ms"></span><span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay:150ms"></span><span class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay:300ms"></span></div></div>';
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return id;
+  }
+
+  function removeTypingIndicator(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+})();
+</script>

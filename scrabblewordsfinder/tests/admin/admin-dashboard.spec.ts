@@ -117,11 +117,12 @@ test.describe('Admin Dashboard — Site Status Widget Structure', () => {
     await expect(page.locator('#widget-updated-by')).toBeAttached();
   });
 
-  test('widget uses 3-column grid layout on desktop', async ({ page }) => {
-    await page.goto('/admin');
+  test('widget uses responsive grid layout (2-col sm, 5-col lg)', async ({ page }) => {
+    await page.goto('/admin/');
     const grid = page.locator('#site-status-widget .grid');
     await expect(grid).toHaveClass(/grid-cols-1/);
-    await expect(grid).toHaveClass(/sm:grid-cols-3/);
+    await expect(grid).toHaveClass(/sm:grid-cols-2/);
+    await expect(grid).toHaveClass(/lg:grid-cols-5/);
   });
 });
 
@@ -273,6 +274,138 @@ test.describe('Admin Dashboard — Site Status API Integration', () => {
   });
 });
 
+test.describe('Admin Dashboard — Chat Usage / AI Heartbeat', () => {
+  test('chatusage button is present in site status widget', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#chatusage-btn')).toBeVisible();
+  });
+
+  test('chatusage button has accessible label', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#chatusage-btn')).toHaveAttribute('aria-label', 'Check AI health');
+  });
+
+  test('chatusage section has ScrabbleBot AI heading', async ({ page }) => {
+    await page.goto('/admin/');
+    const widget = page.locator('#site-status-widget');
+    await expect(widget).toContainText('ScrabbleBot AI');
+  });
+
+  test('chatusage indicator and count are shown', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#chatusage-indicator')).toBeVisible();
+    await expect(page.locator('#chatusage-count')).toBeAttached();
+  });
+
+  test('chatusage fetches /api/chat-heartbeat on page load', async ({ page }) => {
+    const apiPromise = page.waitForResponse(resp =>
+      resp.url().includes('/api/chat-heartbeat')
+    );
+    await page.goto('/admin/');
+    const response = await apiPromise;
+    expect(response.status()).toBe(200);
+  });
+
+  test('chatusage shows green button when AI is healthy', async ({ page }) => {
+    await page.route('**/api/chat-heartbeat/', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ healthy: true, chatusage: 42 }),
+      })
+    );
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('chatusage-count')?.textContent !== '—'
+    );
+
+    await expect(page.locator('#chatusage-btn')).toHaveClass(/bg-green-600/);
+    await expect(page.locator('#chatusage-count')).toHaveText('42');
+    await expect(page.locator('#chatusage-status-text')).toContainText('AI Online');
+  });
+
+  test('chatusage shows red button when AI is offline', async ({ page }) => {
+    await page.route('**/api/chat-heartbeat/', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ healthy: false, chatusage: 5, reason: 'AI binding not configured' }),
+      })
+    );
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('chatusage-count')?.textContent !== '—'
+    );
+
+    await expect(page.locator('#chatusage-btn')).toHaveClass(/bg-red-600/);
+    await expect(page.locator('#chatusage-count')).toHaveText('5');
+    await expect(page.locator('#chatusage-status-text')).toContainText('Offline');
+  });
+
+  test('clicking chatusage button re-checks AI health', async ({ page }) => {
+    let callCount = 0;
+    await page.route('**/api/chat-heartbeat/', route => {
+      callCount++;
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ healthy: true, chatusage: callCount * 10 }),
+      });
+    });
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('chatusage-count')?.textContent !== '—'
+    );
+
+    // First call happened on load
+    expect(callCount).toBe(1);
+    await expect(page.locator('#chatusage-count')).toHaveText('10');
+
+    // Click the button to trigger a re-check
+    await page.locator('#chatusage-btn').click();
+    await page.waitForFunction(() =>
+      document.getElementById('chatusage-count')?.textContent === '20'
+    );
+
+    expect(callCount).toBe(2);
+    await expect(page.locator('#chatusage-count')).toHaveText('20');
+  });
+
+  test('chatusage shows red when heartbeat API fails', async ({ page }) => {
+    await page.route('**/api/chat-heartbeat/', route => route.abort());
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('chatusage-status-text')?.textContent?.includes('failed')
+    , { timeout: 10000 });
+
+    await expect(page.locator('#chatusage-btn')).toHaveClass(/bg-red-600/);
+    await expect(page.locator('#chatusage-status-text')).toContainText('Heartbeat check failed');
+  });
+
+  test('no duplicate chatusage buttons exist on the page', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#chatusage-btn')).toHaveCount(1);
+    await expect(page.locator('#chatusage-indicator')).toHaveCount(1);
+    await expect(page.locator('#chatusage-count')).toHaveCount(1);
+  });
+
+  test('chatusage does not crash page when API returns invalid JSON', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.route('**/api/chat-heartbeat/', route =>
+      route.fulfill({ status: 200, contentType: 'text/plain', body: 'not json at all' })
+    );
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('chatusage-status-text')?.textContent !== 'Checking AI...'
+    , { timeout: 10000 });
+
+    // Should show error state, not crash
+    await expect(page.locator('#chatusage-status-text')).toContainText('Heartbeat check failed');
+    await expect(page.locator('#chatusage-btn')).toHaveClass(/bg-red-600/);
+  });
+});
+
 test.describe('Admin Dashboard — Site Status Error Handling', () => {
   test('widget shows error message when API returns 500', async ({ page }) => {
     await page.route('**/api/site-status', route =>
@@ -320,3 +453,6 @@ test.describe('Admin Dashboard — Site Status Error Handling', () => {
     await expect(page.locator('#widget-status')).toHaveClass(/text-gray-500/);
   });
 });
+
+
+

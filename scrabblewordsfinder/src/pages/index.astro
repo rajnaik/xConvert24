@@ -159,12 +159,17 @@ import '../styles/global.css';
             <a id="copy-solver" href="#" class="p-1 rounded text-gray-500 hover:text-blue-400 transition-colors opacity-30" title="Copy to clipboard"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"/></svg></a>
             <a id="paste-solver" href="#" class="p-1 rounded text-gray-500 hover:text-blue-400 transition-colors" title="Paste from clipboard"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></a>
           </div>
-          <div class="flex gap-2 sm:gap-3">
-            <input id="text-solver" type="text" maxlength="15" size="15" placeholder="Type your tiles e.g. QUARTZ" inputmode="text" autocapitalize="characters" data-track="SolverUsed" class="flex-1 h-11 px-2 sm:px-3 bg-gray-800 border border-gray-700 rounded-lg text-blue-300 text-base sm:text-lg font-mono uppercase tracking-wider sm:tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" autocomplete="off"/>
+          <div class="flex gap-2 sm:gap-3 items-center">
+            <input id="text-solver" type="text" maxlength="15" size="15" placeholder="Type your tiles e.g. QUARTZ" inputmode="text" autocapitalize="characters" data-track="SolverUsed" class="h-11 w-[20ch] px-2 sm:px-3 bg-gray-800 border border-gray-700 rounded-lg text-blue-300 text-base sm:text-lg font-mono uppercase tracking-wider sm:tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" autocomplete="off"/>
             <a id="clear-text-solver" href="#" class="flex items-center justify-center w-7 h-7 rounded-full bg-purple-600/30 border border-purple-500/50 hover:bg-purple-600/50 transition-colors self-center" title="Clear">
               <svg class="w-3 h-3 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </a>
-            <button id="text-solve-btn" class="h-11 px-5 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm ml-auto">Find Words</button>
+            <button id="text-solve-btn" class="h-11 px-3 rounded-lg bg-blue-500 text-gray-950 font-semibold hover:bg-blue-400 transition-colors text-sm whitespace-nowrap w-fit">Find Words</button>
+            <!-- Ask Lex tile -->
+            <a id="ask-lex-tile" href="/chat/" class="flex flex-col items-center justify-center px-3 py-1.5 rounded-lg border-2 border-purple-500 hover:border-purple-400 hover:bg-purple-900/20 transition-colors" title="Ask Lex AI for strategy help">
+              <img src="/lex-avatar-32.png" alt="Lex" width="20" height="20" class="rounded-full"/>
+              <span class="text-[10px] font-bold text-green-400 mt-0.5">Ask Lex</span>
+            </a>
           </div>
           <p class="mt-1.5 text-xs text-gray-500">Use <span class="text-blue-400 font-mono font-bold">?</span> for blank tiles. Up to 15 letters. Finds all words you can make.</p>
         </div>
@@ -483,6 +488,44 @@ import '../styles/global.css';
         }
       } catch (e) { /* fallback to static text */ }
     })();
+  </script>
+
+  <!-- Ask Lex tile: conditionally show when AI is online + 3+ letters -->
+  <script is:inline>
+  (function() {
+    const lexTile = document.getElementById('ask-lex-tile');
+    if (!lexTile) return;
+    const solver = document.getElementById('text-solver');
+
+    // Start hidden until both conditions are met
+    lexTile.style.display = 'none';
+    let aiHealthy = false;
+
+    // Check AI binding health
+    fetch('/api/chat-heartbeat/')
+      .then(function(r) { return r.json(); })
+      .then(function(data) { aiHealthy = !!data.healthy; updateVisibility(); })
+      .catch(function() { aiHealthy = false; updateVisibility(); });
+
+    function updateVisibility() {
+      var letters = solver ? solver.value.replace(/[^a-zA-Z?]/g, '') : '';
+      lexTile.style.display = (aiHealthy && letters.length >= 3) ? '' : 'none';
+    }
+
+    // Listen for input changes on the solver textbox
+    if (solver) {
+      solver.addEventListener('input', updateVisibility);
+    }
+
+    // Pass solver letters to chat page on click
+    lexTile.addEventListener('click', function(e) {
+      var letters = solver ? solver.value.trim().toUpperCase() : '';
+      if (letters.length > 0) {
+        e.preventDefault();
+        window.location.href = '/chat/?rack=' + encodeURIComponent(letters);
+      }
+    });
+  })();
   </script>
 </Layout>
 
