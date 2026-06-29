@@ -81,6 +81,41 @@ test.describe('Tech Stack Page — Positive', () => {
     await expect(img).toHaveAttribute('loading', 'lazy');
   });
 
+  test('has AI & RAG section with Workers AI card', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const aiLink = page.locator('a[href="https://developers.cloudflare.com/workers-ai/"]');
+    await expect(aiLink).toBeVisible();
+    await expect(aiLink.locator('p.text-sm.font-semibold')).toHaveText('Cloudflare Workers AI');
+  });
+
+  test('has AI & RAG section with Vectorize card', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const vecLink = page.locator('a[href="https://developers.cloudflare.com/vectorize/"]');
+    await expect(vecLink).toBeVisible();
+    await expect(vecLink.locator('p.text-sm.font-semibold')).toHaveText('Cloudflare Vectorize');
+  });
+
+  test('has Interactive UI section with React card', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const reactLink = page.locator('a[href="https://react.dev/"]');
+    await expect(reactLink).toBeVisible();
+    await expect(reactLink.locator('p.text-sm.font-semibold')).toHaveText('React 19');
+  });
+
+  test('has Interactive UI section with React Flow card', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const rfLink = page.locator('a[href="https://reactflow.dev/"]');
+    await expect(rfLink).toBeVisible();
+    await expect(rfLink.locator('p.text-sm.font-semibold')).toHaveText('React Flow');
+  });
+
+  test('has Interactive UI section with D3 Force card', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const d3Link = page.locator('a[href="https://d3js.org/d3-force"]');
+    await expect(d3Link).toBeVisible();
+    await expect(d3Link.locator('p.text-sm.font-semibold')).toHaveText('D3 Force');
+  });
+
   test('has Data & Dictionaries section', async ({ page }) => {
     await page.goto('/tech-stack/');
     const body = await page.textContent('body');
@@ -121,6 +156,24 @@ test.describe('Tech Stack Page — Negative', () => {
     await page.goto('/tech-stack/');
     const cards = page.locator('a[href*="peipdddkaeomnfdenmkddkapeemjomnb"]');
     expect(await cards.count()).toBe(1);
+  });
+
+  test('no duplicate AI & RAG cards', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const workersAi = page.locator('a[href="https://developers.cloudflare.com/workers-ai/"]');
+    const vectorize = page.locator('a[href="https://developers.cloudflare.com/vectorize/"]');
+    expect(await workersAi.count()).toBe(1);
+    expect(await vectorize.count()).toBe(1);
+  });
+
+  test('no duplicate Interactive UI cards', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const react = page.locator('a[href="https://react.dev/"]');
+    const reactFlow = page.locator('a[href="https://reactflow.dev/"]');
+    const d3 = page.locator('a[href="https://d3js.org/d3-force"]');
+    expect(await react.count()).toBe(1);
+    expect(await reactFlow.count()).toBe(1);
+    expect(await d3.count()).toBe(1);
   });
 
   test('no broken images (all tech cards have images or icons)', async ({ page }) => {

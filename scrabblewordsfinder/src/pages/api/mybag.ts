@@ -47,6 +47,16 @@ export const GET: APIRoute = async ({ request }) => {
     return map;
   }, {} as Record<string, { name: string; icon: string; color: string }>);
 
+  // Get all active badges ordered by diamonds_required
+  const badgesResult = await db.prepare(
+    "SELECT name, diamonds_required, image FROM badges WHERE status = 'active' ORDER BY diamonds_required ASC"
+  ).all();
+  const badges = (badgesResult.results || []).map((b: any) => ({
+    name: b.name,
+    diamonds_required: b.diamonds_required,
+    image: b.image,
+  }));
+
   return new Response(JSON.stringify({
     totals: {
       total_stars: rewards?.total_stars || 0,
@@ -59,5 +69,6 @@ export const GET: APIRoute = async ({ request }) => {
     },
     activities,
     history,
+    badges,
   }), { headers: { 'Content-Type': 'application/json' } });
 };

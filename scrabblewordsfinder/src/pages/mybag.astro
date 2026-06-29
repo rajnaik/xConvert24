@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import DiamondHuntSlot from '../components/DiamondHuntSlot.astro';
 import '../styles/global.css';
 ---
 
@@ -53,6 +54,24 @@ import '../styles/global.css';
         </div>
       </div>
 
+      <!-- My Badges -->
+      <div id="mb-badges-section">
+        <h2 class="text-lg font-semibold text-white mb-3">🏅 My Badges</h2>
+        <div id="mb-badges-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Badge Modal -->
+      <div id="mb-badge-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Badge detail">
+        <div class="relative bg-gray-900 border border-purple-500/50 rounded-2xl p-8 shadow-2xl shadow-purple-900/30 max-w-md w-full mx-4 text-center">
+          <button id="mb-badge-modal-close" class="absolute top-3 right-3 text-gray-400 hover:text-white text-xl leading-none" aria-label="Close">&times;</button>
+          <img id="mb-badge-modal-img" src="" alt="" class="w-[27rem] h-[27rem] max-w-full mx-auto mb-4" />
+          <p id="mb-badge-modal-name" class="text-lg font-semibold text-purple-300"></p>
+          <p id="mb-badge-modal-info" class="text-sm text-gray-400 mt-1"></p>
+        </div>
+      </div>
+
       <!-- Earning History Table -->
       <div class="mr-[-100px]">
         <h2 class="text-lg font-semibold text-white mb-3">Earning History</h2>
@@ -80,6 +99,29 @@ import '../styles/global.css';
       <div>
         <h2 class="text-lg font-semibold text-white mb-3">Stars by Game</h2>
         <div id="mb-game-breakdown" class="flex flex-wrap gap-2">
+        </div>
+      </div>
+
+      <!-- Diamond Leaderboard -->
+      <div id="mb-leaderboard-section">
+        <h2 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">💎 Diamond Leaderboard</h2>
+        <div class="rounded-xl border border-purple-700/40 bg-purple-950/10 overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-purple-700/30 text-left">
+                <th class="px-4 py-2.5 text-xs font-medium text-gray-400 uppercase w-12">#</th>
+                <th class="px-4 py-2.5 text-xs font-medium text-gray-400 uppercase">Player</th>
+                <th class="px-4 py-2.5 text-xs font-medium text-gray-400 uppercase text-center">💎</th>
+                <th class="px-4 py-2.5 text-xs font-medium text-gray-400 uppercase text-center">⭐</th>
+                <th class="px-4 py-2.5 text-xs font-medium text-gray-400 uppercase text-center">🔥</th>
+              </tr>
+            </thead>
+            <tbody id="mb-leaderboard-body">
+              <tr><td colspan="5" class="px-4 py-4 text-center text-gray-500 text-xs">Loading leaderboard...</td></tr>
+            </tbody>
+          </table>
+          <div id="mb-leaderboard-rank" class="hidden border-t border-purple-700/30 px-4 py-3 bg-purple-950/20 text-center text-sm">
+          </div>
         </div>
       </div>
 
@@ -155,6 +197,9 @@ import '../styles/global.css';
       </div>
     </section>
 
+    <!-- Diamond Hunt Slot — hidden until mine is active -->
+    <DiamondHuntSlot id={2} />
+
   </main>
 
   <script is:inline>
@@ -181,6 +226,7 @@ import '../styles/global.css';
           loadingEl.classList.add('hidden');
           contentEl.classList.remove('hidden');
           renderTotals(data.totals);
+          renderBadges(data.badges, data.totals.total_diamonds);
           renderHistory(data.history, data.activities);
           renderGameBreakdown(data.history, data.activities);
           // Show load more if we got the full limit back
@@ -214,6 +260,84 @@ import '../styles/global.css';
       document.getElementById('mb-best-diamond-streak').textContent = totals.best_diamond_streak;
     }
 
+    function renderBadges(badges, totalDiamonds) {
+      var grid = document.getElementById('mb-badges-grid');
+      if (!badges || badges.length === 0) {
+        grid.innerHTML = '<p class="text-gray-500 text-sm col-span-full text-center py-4">No badges available yet</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < badges.length; i++) {
+        var b = badges[i];
+        var achieved = totalDiamonds >= b.diamonds_required;
+        if (achieved) {
+          // Achieved badge — full color, glow, 3x bigger
+          html += '<div class="rounded-2xl border border-purple-500/60 bg-gradient-to-br from-purple-950/40 to-gray-900/60 p-6 text-center shadow-lg shadow-purple-900/20 cursor-pointer hover:border-purple-400/80 hover:shadow-purple-800/40 transition-all" data-badge-name="' + b.name.replace(/"/g, '&quot;') + '" data-badge-img="' + b.image + '" data-badge-info="💎 ' + b.diamonds_required + ' — Achieved">';
+          html += '<img src="' + b.image + '" alt="' + b.name + '" class="w-36 h-36 mx-auto mb-3" />';
+          html += '<p class="text-base font-semibold text-purple-300">' + b.name + '</p>';
+          html += '<p class="text-xs text-gray-400 mt-1">💎 ' + b.diamonds_required + '</p>';
+          html += '<p class="text-xs text-green-400 mt-2 flex items-center justify-center gap-1"><svg class="w-4 h-4 stroke-green-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg> Achieved</p>';
+          html += '</div>';
+        } else {
+          // Locked badge — greyed out with diamond goal, 3x bigger
+          var remaining = b.diamonds_required - totalDiamonds;
+          html += '<div class="rounded-2xl border border-gray-700/40 bg-gray-900/40 p-6 text-center opacity-50 cursor-pointer hover:opacity-70 transition-all" data-badge-name="' + b.name.replace(/"/g, '&quot;') + '" data-badge-img="' + b.image + '" data-badge-info="💎 ' + b.diamonds_required + ' needed — ' + remaining + ' more to go">';
+          html += '<img src="' + b.image + '" alt="' + b.name + '" class="w-36 h-36 mx-auto mb-3 grayscale" />';
+          html += '<p class="text-base font-medium text-gray-400">' + b.name + '</p>';
+          html += '<p class="text-xs text-gray-500 mt-1">💎 ' + b.diamonds_required + ' needed</p>';
+          html += '<p class="text-[11px] text-gray-600 mt-0.5">' + remaining + ' more to go</p>';
+          html += '</div>';
+        }
+      }
+      grid.innerHTML = html;
+
+      // Attach click handlers to open badge modal
+      var badgeCards = grid.querySelectorAll('[data-badge-name]');
+      for (var j = 0; j < badgeCards.length; j++) {
+        badgeCards[j].addEventListener('click', openBadgeModal);
+      }
+    }
+
+    // Badge modal logic
+    function openBadgeModal(e) {
+      var card = e.currentTarget;
+      var modal = document.getElementById('mb-badge-modal');
+      var img = document.getElementById('mb-badge-modal-img');
+      var name = document.getElementById('mb-badge-modal-name');
+      var info = document.getElementById('mb-badge-modal-info');
+
+      img.src = card.getAttribute('data-badge-img');
+      img.alt = card.getAttribute('data-badge-name');
+      // Remove grayscale if achieved, add if locked
+      if (card.classList.contains('opacity-50')) {
+        img.classList.add('grayscale');
+      } else {
+        img.classList.remove('grayscale');
+      }
+      name.textContent = card.getAttribute('data-badge-name');
+      info.textContent = card.getAttribute('data-badge-info');
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeBadgeModal() {
+      var modal = document.getElementById('mb-badge-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Close on X button
+    document.getElementById('mb-badge-modal-close').addEventListener('click', closeBadgeModal);
+    // Close on backdrop click
+    document.getElementById('mb-badge-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeBadgeModal();
+    });
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeBadgeModal();
+    });
+
     function renderHistory(history, activities) {
       var tbody = document.getElementById('mb-history-body');
       var emptyEl = document.getElementById('mb-empty-history');
@@ -238,7 +362,7 @@ import '../styles/global.css';
           var mDateStr = formatDate(mDate.getFullYear() + '-' + String(mDate.getMonth() + 1).padStart(2, '0') + '-' + String(mDate.getDate()).padStart(2, '0'));
           html += '<tr class="border-b border-gray-800/50 bg-red-950/10" data-missed-day>';
           html += '<td class="px-4 py-2 text-gray-500 whitespace-nowrap">' + mDateStr + '</td>';
-          html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐ stars and 💎 a diamond</td>';
+          html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐⭐⭐⭐⭐⭐⭐ (7 stars) and 💎 (a diamond)</td>';
           html += '</tr>';
         }
         if (gapFromToday > 7) {
@@ -264,7 +388,7 @@ import '../styles/global.css';
             var missedDateStr = formatDate(missedDate.getFullYear() + '-' + String(missedDate.getMonth() + 1).padStart(2, '0') + '-' + String(missedDate.getDate()).padStart(2, '0'));
             html += '<tr class="border-b border-gray-800/50 bg-red-950/10" data-missed-day>';
             html += '<td class="px-4 py-2 text-gray-500 whitespace-nowrap">' + missedDateStr + '</td>';
-            html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐ stars and 💎 a diamond</td>';
+            html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐⭐⭐⭐⭐⭐⭐ (7 stars) and 💎 (a diamond)</td>';
             html += '</tr>';
           }
           // If gap > 8 days, show a summary row
@@ -350,6 +474,47 @@ import '../styles/global.css';
         if (dateStr === yesterday) return 'Yesterday';
         return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
       } catch(e) { return dateStr; }
+    }
+
+    // Diamond Leaderboard
+    fetchLeaderboard();
+    function fetchLeaderboard() {
+      fetch('/api/diamond-leaderboard/?user_id=' + encodeURIComponent(uid))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var tbody = document.getElementById('mb-leaderboard-body');
+          var rankEl = document.getElementById('mb-leaderboard-rank');
+          if (!data.leaderboard || data.leaderboard.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500 text-xs">No diamonds earned yet. Be the first!</td></tr>';
+            return;
+          }
+          var html = '';
+          var medals = ['🥇', '🥈', '🥉'];
+          for (var i = 0; i < data.leaderboard.length; i++) {
+            var entry = data.leaderboard[i];
+            var medal = i < 3 ? medals[i] : '<span class="text-gray-500">' + entry.rank + '</span>';
+            var rowClass = entry.is_you ? 'bg-purple-900/30 border-l-2 border-l-purple-500' : 'hover:bg-gray-800/30';
+            var nameDisplay = entry.is_you ? '<span class="text-purple-300 font-semibold">You</span>' : '<span class="text-gray-300 font-mono text-xs">' + entry.user_id_short + '</span>';
+            html += '<tr class="border-b border-gray-800/30 ' + rowClass + '">';
+            html += '<td class="px-4 py-2.5 text-center">' + medal + '</td>';
+            html += '<td class="px-4 py-2.5">' + nameDisplay + '</td>';
+            html += '<td class="px-4 py-2.5 text-center text-purple-400 font-bold">' + entry.total_diamonds + '</td>';
+            html += '<td class="px-4 py-2.5 text-center text-amber-400">' + entry.total_stars + '</td>';
+            html += '<td class="px-4 py-2.5 text-center text-orange-400">' + entry.best_streak + '</td>';
+            html += '</tr>';
+          }
+          tbody.innerHTML = html;
+
+          // Show user rank if not in top 10
+          if (data.user_rank && data.user_rank > 10) {
+            rankEl.innerHTML = 'Your rank: <span class="font-bold text-purple-300">#' + data.user_rank + '</span> with <span class="font-bold text-purple-400">' + data.user_total + ' 💎</span>';
+            rankEl.classList.remove('hidden');
+          }
+        })
+        .catch(function() {
+          var tbody = document.getElementById('mb-leaderboard-body');
+          tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500 text-xs">Could not load leaderboard</td></tr>';
+        });
     }
   })();
   </script>

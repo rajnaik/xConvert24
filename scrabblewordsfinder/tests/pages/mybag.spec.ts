@@ -78,11 +78,13 @@ test.describe('MyBag Page — Positive', () => {
 
   test('earning history table structure exists', async ({ page }) => {
     await page.goto(`${BASE}/mybag/`);
-    const table = page.locator('table');
-    await expect(table).toBeAttached();
-    const headers = page.locator('table thead th');
+    const historyTbody = page.locator('#mb-history-body');
+    await expect(historyTbody).toBeAttached();
+    // The history table has 4 headers: Date, Stars Earned, Count, Diamond
+    const historyTable = page.locator('table', { has: page.locator('#mb-history-body') });
+    const headers = historyTable.locator('thead th');
     const count = await headers.count();
-    expect(count).toBe(4); // Date, Stars Earned, Count, Diamond
+    expect(count).toBe(4);
   });
 
   test('FAQPage JSON-LD schema is present', async ({ page }) => {
@@ -491,8 +493,10 @@ test.describe('MyBag — Missed Day Indicator — Positive', () => {
 
     const missedRow = page.locator('tr[data-missed-day]').first();
     await expect(missedRow).toContainText('Missed day');
-    await expect(missedRow).toContainText('stars');
-    await expect(missedRow).toContainText('diamond');
+    await expect(missedRow).toContainText('⭐⭐⭐⭐⭐⭐⭐');
+    await expect(missedRow).toContainText('(7 stars)');
+    await expect(missedRow).toContainText('💎');
+    await expect(missedRow).toContainText('(a diamond)');
   });
 
   test('missed-day row has red-tinted background styling', async ({ page }) => {
@@ -716,5 +720,590 @@ test.describe('MyBag — Missed Day Indicator — Negative', () => {
     // Missed-day rows should also exist
     const missedRows = page.locator('tr[data-missed-day]');
     expect(await missedRows.count()).toBeGreaterThan(0);
+  });
+});
+
+
+// ── DiamondHuntSlot on MyBag ──────────────────────────────────────────────────
+
+test.describe('MyBag — DiamondHuntSlot — Positive', () => {
+  test('DiamondHuntSlot element exists in DOM with correct data-diamond-id', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const slot = page.locator('.diamond-hunt-slot[data-diamond-id="2"]');
+    expect(await slot.count()).toBe(1);
+  });
+
+  test('DiamondHuntSlot has role=button and tabindex for accessibility', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const slot = page.locator('.diamond-hunt-slot[data-diamond-id="2"]');
+    await expect(slot).toHaveAttribute('role', 'button');
+    await expect(slot).toHaveAttribute('tabindex', '0');
+    await expect(slot).toHaveAttribute('aria-label', 'Claim a hidden diamond');
+  });
+
+  test('DiamondHuntSlot contains diamond emoji and claim text', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const slot = page.locator('.diamond-hunt-slot[data-diamond-id="2"]');
+    await expect(slot).toContainText('💎');
+    await expect(slot).toContainText('Hidden Diamond!');
+    await expect(slot).toContainText('remaining — click to claim');
+  });
+
+  test('DiamondHuntSlot is hidden by default before mine activation', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const slot = page.locator('.diamond-hunt-slot[data-diamond-id="2"]');
+    // The slot has class "hidden" by default — Layout script reveals it when mine is active
+    const classes = await slot.getAttribute('class') || '';
+    expect(classes).toContain('hidden');
+  });
+});
+
+test.describe('MyBag — DiamondHuntSlot — Negative', () => {
+  test('no duplicate DiamondHuntSlot elements on mybag page', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const allSlots = page.locator('.diamond-hunt-slot');
+    expect(await allSlots.count()).toBe(1);
+  });
+
+  test('DiamondHuntSlot does not use old id=1', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const oldSlot = page.locator('.diamond-hunt-slot[data-diamond-id="1"]');
+    expect(await oldSlot.count()).toBe(0);
+  });
+
+  test('DiamondHuntSlot does not cause console errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+    const diamondErrors = errors.filter(e => e.toLowerCase().includes('diamond'));
+    expect(diamondErrors).toHaveLength(0);
+  });
+
+  test('DiamondHuntSlot remaining count placeholder is present', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const remaining = page.locator('.diamond-hunt-slot[data-diamond-id="2"] .diamond-remaining');
+    expect(await remaining.count()).toBe(1);
+    const text = await remaining.textContent();
+    // Should show "?" (placeholder) or a number — never empty
+    expect((text || '').trim().length).toBeGreaterThan(0);
+  });
+});
+
+
+// ── Diamond Leaderboard ──────────────────────────────────────────────────
+
+test.describe('MyBag — Diamond Leaderboard — Positive', () => {
+  test('leaderboard section exists on page', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const section = page.locator('#mb-leaderboard-section');
+    expect(await section.count()).toBe(1);
+  });
+
+  test('leaderboard has heading with diamond emoji', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const heading = page.locator('#mb-leaderboard-section h2');
+    await expect(heading).toContainText('Diamond Leaderboard');
+    await expect(heading).toContainText('💎');
+  });
+
+  test('leaderboard table has 5 column headers', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const headers = page.locator('#mb-leaderboard-section thead th');
+    await expect(headers).toHaveCount(5);
+  });
+
+  test('leaderboard table headers are #, Player, 💎, ⭐, 🔥', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const headers = page.locator('#mb-leaderboard-section thead th');
+    await expect(headers.nth(0)).toContainText('#');
+    await expect(headers.nth(1)).toContainText('Player');
+    await expect(headers.nth(2)).toContainText('💎');
+    await expect(headers.nth(3)).toContainText('⭐');
+    await expect(headers.nth(4)).toContainText('🔥');
+  });
+
+  test('leaderboard body element exists for dynamic content', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const tbody = page.locator('#mb-leaderboard-body');
+    expect(await tbody.count()).toBe(1);
+  });
+
+  test('leaderboard shows loading state initially', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const tbody = page.locator('#mb-leaderboard-body');
+    await expect(tbody).toContainText('Loading leaderboard');
+  });
+
+  test('leaderboard rank section element exists', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const rank = page.locator('#mb-leaderboard-rank');
+    expect(await rank.count()).toBe(1);
+  });
+
+  test('leaderboard rank section is hidden by default', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const rank = page.locator('#mb-leaderboard-rank');
+    const classes = await rank.getAttribute('class') || '';
+    expect(classes).toContain('hidden');
+  });
+
+  test('leaderboard table has purple-themed border styling', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const container = page.locator('#mb-leaderboard-section .rounded-xl');
+    const classes = await container.getAttribute('class') || '';
+    expect(classes).toContain('border-purple-700/40');
+    expect(classes).toContain('bg-purple-950/10');
+  });
+});
+
+test.describe('MyBag — Diamond Leaderboard — Negative', () => {
+  test('no duplicate leaderboard sections', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const sections = page.locator('#mb-leaderboard-section');
+    expect(await sections.count()).toBe(1);
+  });
+
+  test('no duplicate leaderboard tbody elements', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const tbodies = page.locator('#mb-leaderboard-body');
+    expect(await tbodies.count()).toBe(1);
+  });
+
+  test('no duplicate leaderboard rank elements', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const ranks = page.locator('#mb-leaderboard-rank');
+    expect(await ranks.count()).toBe(1);
+  });
+
+  test('leaderboard does not cause console errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+    const leaderboardErrors = errors.filter(e => e.toLowerCase().includes('leaderboard'));
+    expect(leaderboardErrors).toHaveLength(0);
+  });
+
+  test('leaderboard heading does not appear empty', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const heading = page.locator('#mb-leaderboard-section h2');
+    const text = (await heading.textContent() || '').trim();
+    expect(text.length).toBeGreaterThan(0);
+  });
+});
+
+
+// ── My Badges Section ──────────────────────────────────────────────────
+
+test.describe('MyBag — My Badges — Positive', () => {
+  test('badges section exists on page', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const section = page.locator('#mb-badges-section');
+    expect(await section.count()).toBe(1);
+  });
+
+  test('badges section has heading with medal emoji', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const heading = page.locator('#mb-badges-section h2');
+    await expect(heading).toContainText('My Badges');
+    await expect(heading).toContainText('🏅');
+  });
+
+  test('badges grid container exists with correct id', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const grid = page.locator('#mb-badges-grid');
+    expect(await grid.count()).toBe(1);
+  });
+
+  test('badges grid uses responsive grid layout classes', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const grid = page.locator('#mb-badges-grid');
+    const classes = await grid.getAttribute('class') || '';
+    expect(classes).toContain('grid');
+    expect(classes).toContain('grid-cols-1');
+    expect(classes).toContain('sm:grid-cols-2');
+    expect(classes).toContain('md:grid-cols-3');
+  });
+
+  test('badges section appears before earning history table', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const badgesSection = page.locator('#mb-badges-section');
+    const historyBody = page.locator('#mb-history-body');
+    // Both should exist
+    await expect(badgesSection).toBeAttached();
+    await expect(historyBody).toBeAttached();
+    // Badges section should come before the history table in DOM order
+    const badgesBox = await badgesSection.boundingBox();
+    const historyBox = await historyBody.boundingBox();
+    if (badgesBox && historyBox) {
+      expect(badgesBox.y).toBeLessThan(historyBox.y);
+    }
+  });
+});
+
+test.describe('MyBag — My Badges — Negative', () => {
+  test('no duplicate badges sections on page', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const sections = page.locator('#mb-badges-section');
+    expect(await sections.count()).toBe(1);
+  });
+
+  test('no duplicate badges grid elements', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const grids = page.locator('#mb-badges-grid');
+    expect(await grids.count()).toBe(1);
+  });
+
+  test('badges section does not cause console errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+    const badgeErrors = errors.filter(e => e.toLowerCase().includes('badge'));
+    expect(badgeErrors).toHaveLength(0);
+  });
+
+  test('badges heading is not empty', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const heading = page.locator('#mb-badges-section h2');
+    const text = (await heading.textContent() || '').trim();
+    expect(text.length).toBeGreaterThan(0);
+  });
+});
+
+
+// ── Badge Modal ──────────────────────────────────────────────────
+
+test.describe('MyBag — Badge Modal — Positive', () => {
+  test('badge modal element exists in DOM', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const modal = page.locator('#mb-badge-modal');
+    expect(await modal.count()).toBe(1);
+  });
+
+  test('badge modal has correct ARIA attributes for accessibility', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const modal = page.locator('#mb-badge-modal');
+    await expect(modal).toHaveAttribute('role', 'dialog');
+    await expect(modal).toHaveAttribute('aria-modal', 'true');
+    await expect(modal).toHaveAttribute('aria-label', 'Badge detail');
+  });
+
+  test('badge modal contains close button with aria-label', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const closeBtn = page.locator('#mb-badge-modal-close');
+    expect(await closeBtn.count()).toBe(1);
+    await expect(closeBtn).toHaveAttribute('aria-label', 'Close');
+  });
+
+  test('badge modal contains image element for badge display', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const img = page.locator('#mb-badge-modal-img');
+    expect(await img.count()).toBe(1);
+    // Image should be large (27rem sizing classes)
+    const classes = await img.getAttribute('class') || '';
+    expect(classes).toContain('w-[27rem]');
+    expect(classes).toContain('h-[27rem]');
+  });
+
+  test('badge modal contains name and info paragraphs', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const name = page.locator('#mb-badge-modal-name');
+    const info = page.locator('#mb-badge-modal-info');
+    expect(await name.count()).toBe(1);
+    expect(await info.count()).toBe(1);
+  });
+
+  test('badge modal is hidden by default', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const modal = page.locator('#mb-badge-modal');
+    const classes = await modal.getAttribute('class') || '';
+    expect(classes).toContain('hidden');
+  });
+
+  test('badge modal has backdrop blur and dark overlay styling', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const modal = page.locator('#mb-badge-modal');
+    const classes = await modal.getAttribute('class') || '';
+    expect(classes).toContain('backdrop-blur-sm');
+    expect(classes).toContain('bg-black/80');
+    expect(classes).toContain('z-50');
+  });
+
+  test('badge modal inner container has purple-themed border', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const inner = page.locator('#mb-badge-modal > div');
+    const classes = await inner.getAttribute('class') || '';
+    expect(classes).toContain('border-purple-500/50');
+    expect(classes).toContain('rounded-2xl');
+    expect(classes).toContain('bg-gray-900');
+  });
+
+  test('clicking a badge opens the modal', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-badge-modal-open');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 50, total_diamonds: 5, current_streak: 3, best_streak: 5, diamond_streak: 1, best_diamond_streak: 2, last_active_date: '2026-06-29' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [{ date: '2026-06-29', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [
+            { name: 'First Diamond', image: '/badges/first-diamond.svg', diamonds_required: 1 },
+            { name: 'Five Diamonds', image: '/badges/five-diamonds.svg', diamonds_required: 5 },
+            { name: 'Ten Diamonds', image: '/badges/ten-diamonds.svg', diamonds_required: 10 },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    const firstBadge = page.locator('#mb-badges-grid [data-badge-name]').first();
+    await firstBadge.click();
+
+    const modal = page.locator('#mb-badge-modal');
+    await expect(modal).not.toHaveClass(/hidden/);
+    await expect(modal).toHaveClass(/flex/);
+  });
+
+  test('modal displays badge name and image on click', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-badge-modal-content');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 50, total_diamonds: 5, current_streak: 3, best_streak: 5, diamond_streak: 1, best_diamond_streak: 2, last_active_date: '2026-06-29' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [{ date: '2026-06-29', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [
+            { name: 'First Diamond', image: '/badges/first-diamond.svg', diamonds_required: 1 },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    await page.locator('#mb-badges-grid [data-badge-name]').first().click();
+
+    const modalName = page.locator('#mb-badge-modal-name');
+    const modalImg = page.locator('#mb-badge-modal-img');
+    await expect(modalName).toContainText('First Diamond');
+    const src = await modalImg.getAttribute('src');
+    expect(src).toContain('/badges/first-diamond.svg');
+  });
+
+  test('modal closes when X button is clicked', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-badge-modal-close-x');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 50, total_diamonds: 5, current_streak: 3, best_streak: 5, diamond_streak: 1, best_diamond_streak: 2, last_active_date: '2026-06-29' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [{ date: '2026-06-29', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [
+            { name: 'First Diamond', image: '/badges/first-diamond.svg', diamonds_required: 1 },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    await page.locator('#mb-badges-grid [data-badge-name]').first().click();
+    await expect(page.locator('#mb-badge-modal')).toHaveClass(/flex/);
+
+    await page.locator('#mb-badge-modal-close').click();
+    await expect(page.locator('#mb-badge-modal')).toHaveClass(/hidden/);
+  });
+
+  test('modal closes when backdrop is clicked', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-badge-modal-close-backdrop');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 50, total_diamonds: 5, current_streak: 3, best_streak: 5, diamond_streak: 1, best_diamond_streak: 2, last_active_date: '2026-06-29' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [{ date: '2026-06-29', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [
+            { name: 'First Diamond', image: '/badges/first-diamond.svg', diamonds_required: 1 },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    await page.locator('#mb-badges-grid [data-badge-name]').first().click();
+    await expect(page.locator('#mb-badge-modal')).toHaveClass(/flex/);
+
+    await page.locator('#mb-badge-modal').click({ position: { x: 10, y: 10 } });
+    await expect(page.locator('#mb-badge-modal')).toHaveClass(/hidden/);
+  });
+
+  test('modal closes on Escape key', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-badge-modal-close-esc');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 50, total_diamonds: 5, current_streak: 3, best_streak: 5, diamond_streak: 1, best_diamond_streak: 2, last_active_date: '2026-06-29' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [{ date: '2026-06-29', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [
+            { name: 'First Diamond', image: '/badges/first-diamond.svg', diamonds_required: 1 },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    await page.locator('#mb-badges-grid [data-badge-name]').first().click();
+    await expect(page.locator('#mb-badge-modal')).toHaveClass(/flex/);
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#mb-badge-modal')).toHaveClass(/hidden/);
+  });
+});
+
+test.describe('MyBag — Badge Modal — Negative', () => {
+  test('no duplicate badge modal elements on page', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const modals = page.locator('#mb-badge-modal');
+    expect(await modals.count()).toBe(1);
+  });
+
+  test('no duplicate close buttons in badge modal', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const closeBtns = page.locator('#mb-badge-modal-close');
+    expect(await closeBtns.count()).toBe(1);
+  });
+
+  test('badge modal does not cause console errors on page load', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+    const modalErrors = errors.filter(e => e.toLowerCase().includes('modal') || e.toLowerCase().includes('badge-modal'));
+    expect(modalErrors).toHaveLength(0);
+  });
+
+  test('badge modal image src is empty by default (not broken)', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const img = page.locator('#mb-badge-modal-img');
+    const src = await img.getAttribute('src');
+    // Should be empty string (populated by JS on click), not a broken URL
+    expect(src).toBe('');
+  });
+
+  test('badge modal name and info paragraphs are empty by default', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const name = await page.locator('#mb-badge-modal-name').textContent();
+    const info = await page.locator('#mb-badge-modal-info').textContent();
+    // These get populated dynamically — should be empty in initial DOM
+    expect((name || '').trim()).toBe('');
+    expect((info || '').trim()).toBe('');
+  });
+
+  test('clicking badge does not cause console errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-badge-modal-no-err');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 50, total_diamonds: 5, current_streak: 3, best_streak: 5, diamond_streak: 1, best_diamond_streak: 2, last_active_date: '2026-06-29' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [{ date: '2026-06-29', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [
+            { name: 'First Diamond', image: '/badges/first-diamond.svg', diamonds_required: 1 },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    await page.locator('#mb-badges-grid [data-badge-name]').first().click();
+    await page.waitForTimeout(500);
+
+    expect(errors.filter(e => e.includes('TypeError') || e.includes('ReferenceError'))).toHaveLength(0);
+  });
+
+  test('modal image does not show broken src after badge click', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-uid', 'test-badge-modal-img-src');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 50, total_diamonds: 5, current_streak: 3, best_streak: 5, diamond_streak: 1, best_diamond_streak: 2, last_active_date: '2026-06-29' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [{ date: '2026-06-29', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [
+            { name: 'First Diamond', image: '/badges/first-diamond.svg', diamonds_required: 1 },
+          ],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForSelector('#mybag-content:not(.hidden)', { timeout: 5000 });
+
+    await page.locator('#mb-badges-grid [data-badge-name]').first().click();
+
+    const imgSrc = await page.locator('#mb-badge-modal-img').getAttribute('src');
+    expect(imgSrc).not.toBe('');
+    expect(imgSrc).not.toContain('undefined');
+    expect(imgSrc).not.toContain('null');
+  });
+
+  test('modal does not open without clicking a badge', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+    const modal = page.locator('#mb-badge-modal');
+    const classes = await modal.getAttribute('class') || '';
+    expect(classes).toContain('hidden');
+    expect(classes).not.toContain('flex');
   });
 });

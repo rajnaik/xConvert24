@@ -130,6 +130,63 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
   <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">
     <Header variant="blog" />
 
+    <!-- Global storage helpers with TTL support (available to all inline scripts) -->
+    <script is:inline>
+    (function() {
+      window.__swfStore = {
+        setWithExpiry: function(key, value, expiresAt) {
+          try { localStorage.setItem(key, JSON.stringify({ value: value, expiresAt: expiresAt })); } catch(e) {}
+        },
+        getIfValid: function(key) {
+          try {
+            var raw = localStorage.getItem(key);
+            if (!raw) return null;
+            var envelope = JSON.parse(raw);
+            if (envelope && envelope.expiresAt && new Date(envelope.expiresAt).getTime() <= Date.now()) {
+              localStorage.removeItem(key);
+              return null;
+            }
+            return envelope && envelope.value !== undefined ? envelope.value : null;
+          } catch(e) { localStorage.removeItem(key); return null; }
+        },
+        setItem: function(key, value) {
+          try { localStorage.setItem(key, JSON.stringify({ value: value })); } catch(e) {}
+        },
+        getItem: function(key) { return window.__swfStore.getIfValid(key); },
+        removeItem: function(key) { try { localStorage.removeItem(key); } catch(e) {} },
+        setRaw: function(key, value) { try { localStorage.setItem(key, value); } catch(e) {} },
+        getRaw: function(key) { try { return localStorage.getItem(key); } catch(e) { return null; } },
+        purgeExpired: function() {
+          var purged = 0;
+          try {
+            for (var i = localStorage.length - 1; i >= 0; i--) {
+              var key = localStorage.key(i);
+              if (!key) continue;
+              var raw = localStorage.getItem(key);
+              if (!raw) continue;
+              try {
+                var envelope = JSON.parse(raw);
+                if (envelope && envelope.expiresAt && new Date(envelope.expiresAt).getTime() <= Date.now()) {
+                  localStorage.removeItem(key);
+                  purged++;
+                }
+              } catch(e) {}
+            }
+          } catch(e) {}
+          return purged;
+        },
+        getNextMidnightUTC: function() {
+          var t = new Date();
+          t.setUTCDate(t.getUTCDate() + 1);
+          t.setUTCHours(0, 0, 0, 0);
+          return t.toISOString();
+        },
+        has: function(key) { return window.__swfStore.getIfValid(key) !== null; }
+      };
+      // Purge expired items on every page load
+      window.__swfStore.purgeExpired();
+    })();
+    </script>
 
     <!-- Theme toggle logic -->
     <script is:inline>
@@ -430,5 +487,187 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     </script>
     <BlogAskAI />
     <CookieConsent />
+    <!-- Diamond Hunt: reveal hidden diamonds and handle claims -->
+    <script is:inline>
+    (function() {
+      if (window.location.pathname.startsWith('/admin')) return;
+      var slots = document.querySelectorAll('.diamond-hunt-slot');
+      if (!slots.length) return;
+
+      var S = window.__swfStore;
+      var uid = S && S.getRaw('swf-uid');
+      if (!uid) return;
+
+      slots.forEach(function(slot) {
+        var did = slot.getAttribute('data-diamond-id');
+        if (!did) return;
+
+        fetch('/api/diamond-hunt/?id=' + did + '&user_id=' + encodeURIComponent(uid))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.show) return;
+            slot.classList.remove('hidden');
+            var countEl = slot.querySelector('.diamond-remaining');
+            if (countEl) countEl.textContent = data.diamonds_remaining;
+
+            slot.addEventListener('click', function() {
+              slot.style.pointerEvents = 'none';
+              slot.style.opacity = '0.5';
+              fetch('/api/diamond-hunt/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: Number(did), user_id: uid })
+              })
+                .then(function(r) { return r.json(); })
+                .then(function(res) {
+                  if (res.claimed) {
+                    slot.style.display = 'none';
+                    showDiamondCelebration(res.diamonds_earned, res.badge_progress);
+                    window.dispatchEvent(new CustomEvent('swf-star-earned', { detail: { game: '_diamond_hunt' } }));
+                  } else {
+                    slot.innerHTML = '<span class="text-amber-400 text-xs">' + (res.message || 'Already claimed') + '</span>';
+                    slot.style.opacity = '1';
+                  }
+                })
+                .catch(function() { slot.style.opacity = '1'; slot.style.pointerEvents = ''; });
+            });
+          })
+          .catch(function() {});
+      });
+
+      function showDiamondCelebration(count, badgeProgress) {
+        var overlay = document.createElement('div');
+        overlay.id = 'diamond-celebration';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);animation:dhFadeIn 0.3s ease';
+
+        var particleWrap = document.createElement('div');
+        particleWrap.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none';
+
+        var emojis = ['💎', '✨', '⭐', '🔷', '💠', '🌟'];
+        for (var i = 0; i < 24; i++) {
+          var p = document.createElement('span');
+          p.textContent = emojis[i % emojis.length];
+          var angle = (i / 24) * 360;
+          var dist = 120 + Math.random() * 140;
+          var dx = Math.cos(angle * Math.PI / 180) * dist;
+          var dy = Math.sin(angle * Math.PI / 180) * dist;
+          p.style.cssText = 'position:absolute;top:50%;left:50%;font-size:' + (16 + Math.random() * 14) + 'px;opacity:0;animation:dhBurst 1.2s ease-out forwards;animation-delay:' + (i * 0.03) + 's;--dx:' + dx + 'px;--dy:' + dy + 'px';
+          particleWrap.appendChild(p);
+        }
+
+        var confettiColors = ['#a855f7', '#3b82f6', '#f59e0b', '#22c55e', '#ec4899', '#06b6d4'];
+        for (var j = 0; j < 40; j++) {
+          var c = document.createElement('div');
+          var color = confettiColors[j % confettiColors.length];
+          var xPos = Math.random() * 100;
+          var delay = Math.random() * 0.8;
+          var size = 4 + Math.random() * 6;
+          c.style.cssText = 'position:absolute;top:-10px;left:' + xPos + '%;width:' + size + 'px;height:' + (size * 2.5) + 'px;background:' + color + ';opacity:0.9;border-radius:2px;animation:dhConfetti 1.8s ease-out forwards;animation-delay:' + delay + 's;transform:rotate(' + (Math.random() * 360) + 'deg)';
+          particleWrap.appendChild(c);
+        }
+
+        overlay.appendChild(particleWrap);
+
+        var card = document.createElement('div');
+        card.style.cssText = 'position:relative;text-align:center;padding:2.5rem 3.5rem;border-radius:1.5rem;border:2px solid rgba(168,85,247,0.6);background:linear-gradient(135deg,rgba(88,28,135,0.9),rgba(30,27,75,0.95));box-shadow:0 0 60px rgba(168,85,247,0.3),0 0 120px rgba(59,130,246,0.1);animation:dhPopIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;transform:scale(0);min-width:320px;max-width:90vw';
+
+        var diamond = document.createElement('div');
+        diamond.textContent = '💎';
+        diamond.style.cssText = 'font-size:4rem;margin-bottom:0.75rem;animation:dhSpin 1s ease-in-out';
+
+        var title = document.createElement('h3');
+        title.textContent = 'Diamond Mined!';
+        title.style.cssText = 'font-size:1.5rem;font-weight:800;color:white;margin:0 0 0.5rem';
+
+        var msg = document.createElement('p');
+        msg.textContent = '+' + count + ' diamond' + (count > 1 ? 's' : '') + ' added to your bag';
+        msg.style.cssText = 'font-size:0.875rem;color:rgba(216,180,254,0.9);margin:0 0 1rem';
+
+        var sub = document.createElement('p');
+        sub.textContent = 'Keep exploring to find more hidden gems!';
+        sub.style.cssText = 'font-size:0.75rem;color:rgba(156,163,175,0.8);margin:0';
+
+        card.appendChild(diamond);
+        card.appendChild(title);
+        card.appendChild(msg);
+        card.appendChild(sub);
+
+        // Badge progress section
+        if (badgeProgress && !badgeProgress.max_badge_reached && badgeProgress.next_badge) {
+          var badgeDiv = document.createElement('div');
+          badgeDiv.style.cssText = 'margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(168,85,247,0.3);display:flex;align-items:center;gap:0.75rem;justify-content:center';
+
+          if (badgeProgress.next_badge_image) {
+            var badgeImg = document.createElement('img');
+            badgeImg.src = badgeProgress.next_badge_image;
+            badgeImg.alt = badgeProgress.next_badge + ' badge';
+            badgeImg.style.cssText = 'width:48px;height:48px;object-fit:contain;opacity:0.6;filter:grayscale(0.3);border-radius:0.5rem';
+            badgeDiv.appendChild(badgeImg);
+          }
+
+          var badgeInfo = document.createElement('div');
+          badgeInfo.style.cssText = 'text-align:left';
+
+          var badgeText = document.createElement('p');
+          badgeText.style.cssText = 'font-size:0.7rem;color:rgba(216,180,254,0.85);margin:0 0 0.2rem';
+          badgeText.textContent = badgeProgress.diamonds_needed + ' more diamond' + (badgeProgress.diamonds_needed !== 1 ? 's' : '') + ' to earn';
+
+          var badgeName = document.createElement('p');
+          badgeName.style.cssText = 'font-size:0.875rem;font-weight:700;color:#fbbf24;margin:0';
+          badgeName.textContent = '🏅 ' + badgeProgress.next_badge;
+
+          var badgeThreshold = document.createElement('p');
+          badgeThreshold.style.cssText = 'font-size:0.65rem;color:rgba(156,163,175,0.7);margin:0.15rem 0 0';
+          badgeThreshold.textContent = badgeProgress.next_badge_threshold + ' 💎 required';
+
+          badgeInfo.appendChild(badgeText);
+          badgeInfo.appendChild(badgeName);
+          badgeInfo.appendChild(badgeThreshold);
+          badgeDiv.appendChild(badgeInfo);
+          card.appendChild(badgeDiv);
+        } else if (badgeProgress && badgeProgress.max_badge_reached) {
+          var maxDiv = document.createElement('div');
+          maxDiv.style.cssText = 'margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(168,85,247,0.3);display:flex;align-items:center;gap:0.75rem;justify-content:center';
+
+          if (badgeProgress.current_badge_image) {
+            var maxImg = document.createElement('img');
+            maxImg.src = badgeProgress.current_badge_image;
+            maxImg.alt = (badgeProgress.current_badge || 'Max') + ' badge';
+            maxImg.style.cssText = 'width:48px;height:48px;object-fit:contain;border-radius:0.5rem';
+            maxDiv.appendChild(maxImg);
+          }
+
+          var maxText = document.createElement('p');
+          maxText.style.cssText = 'font-size:0.875rem;font-weight:700;color:#fbbf24;margin:0';
+          maxText.textContent = '👑 You hold the highest badge: ' + (badgeProgress.current_badge || 'Lex Legend') + '!';
+          maxDiv.appendChild(maxText);
+          card.appendChild(maxDiv);
+        }
+
+        overlay.appendChild(card);
+
+        document.body.appendChild(overlay);
+
+        function dismiss() {
+          overlay.style.animation = 'dhFadeOut 0.3s ease forwards';
+          setTimeout(function() { overlay.remove(); }, 300);
+        }
+        overlay.addEventListener('click', dismiss);
+        setTimeout(dismiss, 4000);
+      }
+
+      if (!document.getElementById('dh-celebration-css')) {
+        var style = document.createElement('style');
+        style.id = 'dh-celebration-css';
+        style.textContent = '@keyframes dhFadeIn{from{opacity:0}to{opacity:1}}' +
+          '@keyframes dhFadeOut{from{opacity:1}to{opacity:0}}' +
+          '@keyframes dhPopIn{0%{transform:scale(0) rotate(-5deg)}60%{transform:scale(1.05) rotate(1deg)}100%{transform:scale(1) rotate(0)}}' +
+          '@keyframes dhSpin{0%{transform:rotate(0) scale(1)}25%{transform:rotate(-15deg) scale(1.2)}50%{transform:rotate(15deg) scale(1.3)}75%{transform:rotate(-5deg) scale(1.1)}100%{transform:rotate(0) scale(1)}}' +
+          '@keyframes dhBurst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0.3);opacity:0}}' +
+          '@keyframes dhConfetti{0%{transform:translateY(0) rotate(0);opacity:0.9}100%{transform:translateY(calc(100vh + 40px)) rotate(720deg);opacity:0}}';
+        document.head.appendChild(style);
+      }
+    })();
+    </script>
   </body>
 </html>
