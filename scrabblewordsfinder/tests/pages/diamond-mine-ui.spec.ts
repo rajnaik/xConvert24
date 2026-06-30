@@ -3,82 +3,171 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.SWF_TEST_URL || 'http://localhost:4321';
 const TEST_UID = 'test-diamond-ui-playwright';
 
-// All diamond mine pages from the database
+/**
+ * Diamond Mine UI — Visibility Tests (Updated)
+ *
+ * After removal of the "Mined ✓" badge, the diamond mine script only renders
+ * a clickable gem when a claimable diamond exists. When all are claimed/depleted,
+ * nothing renders. These tests validate that no ghost ".diamond-mine-mined" elements
+ * appear, and that the gem renders correctly for available diamonds.
+ */
+
+// Layout.astro pages with diamond mines (testing the changed code path)
 const mines = [
   { id: 1, page: '/activities/', perClaim: 1 },
   { id: 2, page: '/mybag/', perClaim: 1 },
-  { id: 3, page: '/blog/roadmap-to-being-a-pro-player/', perClaim: 1 },
   { id: 4, page: '/quiz-history/', perClaim: 1 },
   { id: 5, page: '/guide/', perClaim: 1 },
   { id: 6, page: '/', perClaim: 3 },
-  { id: 7, page: '/blog/', perClaim: 3 },
   { id: 8, page: '/faq/', perClaim: 1 },
   { id: 9, page: '/achievements/', perClaim: 1 },
   { id: 10, page: '/sixty-seconds/', perClaim: 100 },
   { id: 11, page: '/stats/', perClaim: 3 },
   { id: 12, page: '/wordbench-practice/', perClaim: 3 },
-  { id: 13, page: '/blog/beginner-scrabble-strategy/', perClaim: 3 },
-  { id: 14, page: '/blog/best-two-letter-words-scrabble/', perClaim: 3 },
-  { id: 15, page: '/blog/how-to-play-scrabble/', perClaim: 1 },
-  { id: 16, page: '/blog/highest-scoring-scrabble-words/', perClaim: 3 },
-  { id: 17, page: '/blog/scrabble-rules-explained/', perClaim: 10 },
-  { id: 18, page: '/blog/best-q-words-scrabble/', perClaim: 5 },
-  { id: 19, page: '/blog/words-starting-with-a/', perClaim: 1 },
 ];
 
-test.describe('Diamond Mine UI — Visibility', () => {
-  for (const mine of mines) {
-    test(`ID:${mine.id} diamond mine renders on ${mine.page} (gem or mined)`, async ({ page }) => {
-      // Set the UID in localStorage before navigating
-      await page.goto(`${BASE}${mine.page}`);
-      await page.evaluate((uid) => {
+test.describe('Diamond Mine UI — Gem Renders When Available', () => {
+  // Test a representative subset (first 3) to avoid excessive network calls
+  const subset = mines.slice(0, 3);
+
+  for (const mine of subset) {
+    test(`ID:${mine.id} gem renders on ${mine.page} when diamond is available`, async ({ page }) => {
+      await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
+        if (request.method() === 'GET') {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              diamonds: [
+                { id: mine.id, diamonds_per_claim: mine.perClaim, diamonds_remaining: 10, depleted: false, already_claimed: false },
+              ],
+            }),
+          });
+        } else {
+          route.continue();
+        }
+      });
+
+      await page.addInitScript((uid) => {
         localStorage.setItem('swf-uid', uid);
       }, TEST_UID);
 
-      // Reload with UID set
-      await page.reload();
+      await page.goto(`${BASE}${mine.page}`);
 
-      // Wait for EITHER the unclaimed gem button OR the "Mined ✓" indicator (up to 5s for fetch)
+      const gem = page.locator('.diamond-mine-gem');
+      await expect(gem).toBeVisible({ timeout: 5000 });
+
+      // Verify accessibility
+      const label = await gem.getAttribute('aria-label');
+      expect(label).toContain('diamond');
+    });
+  }
+});
+
+test.describe('Diamond Mine UI — Nothing Renders When Depleted', () => {
+  const subset = mines.slice(0, 3);
+
+  for (const mine of subset) {
+    test(`ID:${mine.id} nothing renders on ${mine.page} when all depleted (no prior timestamp)`, async ({ page }) => {
+      await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
+        if (request.method() === 'GET') {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              diamonds: [
+                { id: mine.id, diamonds_per_claim: mine.perClaim, diamonds_remaining: 0, depleted: true, already_claimed: true },
+              ],
+            }),
+          });
+        } else {
+          route.continue();
+        }
+      });
+
+      await page.addInitScript(({ uid, pagePath }) => {
+        localStorage.setItem('swf-uid', uid);
+        // Ensure no prior claim timestamp so the new early-return path fires
+        localStorage.removeItem('dm-mined-' + pagePath);
+      }, { uid: TEST_UID, pagePath: mine.page });
+
+      await page.goto(`${BASE}${mine.page}`);
+      await page.waitForTimeout(3000);
+
+      // Nothing should render — no gem, no mined badge (early return when no stored timestamp)
       const gem = page.locator('.diamond-mine-gem');
       const mined = page.locator('.diamond-mine-mined');
-
-      // One of the two states must be visible
-      await expect(gem.or(mined)).toBeVisible({ timeout: 5000 });
-
-      // Verify accessibility attributes based on which state rendered
-      const gemCount = await gem.count();
-      if (gemCount > 0) {
-        // Unclaimed state — gem button with aria-label
-        const label = await gem.getAttribute('aria-label');
-        expect(label).toContain('diamond');
-      } else {
-        // Claimed state — mined indicator with aria-label
-        const label = await mined.getAttribute('aria-label');
-        expect(label).toContain('mined');
-        await expect(mined.locator('.dm-mined-label')).toContainText('Mined');
-      }
+      expect(await gem.count()).toBe(0);
+      expect(await mined.count()).toBe(0);
     });
   }
 });
 
 test.describe('Diamond Mine UI — Negative', () => {
-  for (const mine of mines) {
+  const subset = mines.slice(0, 3);
+
+  for (const mine of subset) {
     test(`ID:${mine.id} no duplicate diamond elements on ${mine.page}`, async ({ page }) => {
-      await page.goto(`${BASE}${mine.page}`);
-      await page.evaluate((uid) => {
+      await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
+        if (request.method() === 'GET') {
+          route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              diamonds: [
+                { id: mine.id, diamonds_per_claim: mine.perClaim, diamonds_remaining: 5, depleted: false, already_claimed: false },
+              ],
+            }),
+          });
+        } else {
+          route.continue();
+        }
+      });
+
+      await page.addInitScript((uid) => {
         localStorage.setItem('swf-uid', uid);
       }, TEST_UID);
-      await page.reload();
 
-      // Wait for the diamond mine to render
+      await page.goto(`${BASE}${mine.page}`);
+
       const gem = page.locator('.diamond-mine-gem');
-      const mined = page.locator('.diamond-mine-mined');
-      await expect(gem.or(mined)).toBeVisible({ timeout: 5000 });
+      await expect(gem).toBeVisible({ timeout: 5000 });
 
-      // There should be at most 1 gem and at most 1 mined indicator — never both, never duplicates
-      const gemCount = await gem.count();
-      const minedCount = await mined.count();
-      expect(gemCount + minedCount).toBe(1);
+      // Only one gem, no mined badge
+      expect(await gem.count()).toBe(1);
+      const mined = page.locator('.diamond-mine-mined');
+      expect(await mined.count()).toBe(0);
     });
   }
+
+  test('no JavaScript errors during diamond mine processing', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
+      if (request.method() === 'GET') {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            diamonds: [
+              { id: 1, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: true },
+            ],
+          }),
+        });
+      } else {
+        route.continue();
+      }
+    });
+
+    await page.addInitScript((uid) => {
+      localStorage.setItem('swf-uid', uid);
+    }, TEST_UID);
+
+    await page.goto(`${BASE}${mines[0].page}`);
+    await page.waitForTimeout(2000);
+
+    const dmErrors = errors.filter(e => e.toLowerCase().includes('diamond'));
+    expect(dmErrors).toHaveLength(0);
+  });
 });

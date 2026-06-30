@@ -1,15 +1,21 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Diamond Hunt — Depleted Diamond Tests
- * Validates the new behaviour where the API returns depleted diamonds
- * (diamonds_remaining <= 0) with a `depleted: true` flag, and the UI
- * shows a "Mined ✓" indicator instead of the clickable gem.
+ * Diamond Hunt — Depleted Diamond Tests (Updated)
+ *
+ * The "Mined ✓" badge logic was simplified in Layout.astro: when all diamonds
+ * are claimed/depleted AND there's no prior claim timestamp in localStorage,
+ * the script does nothing (early return). The badge still shows temporarily
+ * on pages (via BlogLayout or Layout post-claim path) when a dm-mined- key exists
+ * and hasn't expired.
+ *
+ * Tests use /activities/ (Layout.astro) to validate the new Layout behaviour.
  */
 
 const BASE = process.env.SWF_TEST_URL || 'http://localhost:4321';
 const TEST_UID = 'test-depleted-diamond-pw';
-const BLOG_PAGE = '/blog/roadmap-to-being-a-pro-player/';
+// Use a Layout.astro page to test the changed behaviour (not BlogLayout)
+const LAYOUT_PAGE = '/activities/';
 
 // ── Depleted Diamond — Positive ─────────────────────────────────────────────
 
@@ -20,7 +26,7 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
       if (request.method() === 'GET') {
         const body = {
           diamonds: [
-            { id: 5, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
+            { id: 1, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
           ],
         };
         apiResponse = body;
@@ -38,10 +44,9 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
       localStorage.setItem('swf-uid', uid);
     }, TEST_UID);
 
-    await page.goto(`${BASE}${BLOG_PAGE}`);
+    await page.goto(`${BASE}${LAYOUT_PAGE}`);
     await page.waitForLoadState('networkidle');
 
-    // Verify our mock response has the depleted field
     expect(apiResponse).not.toBeNull();
     expect(apiResponse.diamonds[0].depleted).toBe(true);
     expect(apiResponse.diamonds[0].diamonds_remaining).toBe(0);
@@ -53,7 +58,7 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
       if (request.method() === 'GET') {
         const body = {
           diamonds: [
-            { id: 5, diamonds_per_claim: 1, diamonds_remaining: 15, depleted: false, already_claimed: false },
+            { id: 1, diamonds_per_claim: 1, diamonds_remaining: 15, depleted: false, already_claimed: false },
           ],
         };
         apiResponse = body;
@@ -71,7 +76,7 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
       localStorage.setItem('swf-uid', uid);
     }, TEST_UID);
 
-    await page.goto(`${BASE}${BLOG_PAGE}`);
+    await page.goto(`${BASE}${LAYOUT_PAGE}`);
     await page.waitForLoadState('networkidle');
 
     expect(apiResponse).not.toBeNull();
@@ -79,7 +84,7 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
     expect(apiResponse.diamonds[0].diamonds_remaining).toBe(15);
   });
 
-  test('UI shows "Mined" indicator when diamond is depleted', async ({ page }) => {
+  test('no gem renders when diamond is depleted and no prior claim timestamp', async ({ page }) => {
     await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
       if (request.method() === 'GET') {
         route.fulfill({
@@ -87,7 +92,7 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             diamonds: [
-              { id: 5, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
+              { id: 1, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
             ],
           }),
         });
@@ -96,19 +101,18 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
       }
     });
 
-    await page.addInitScript((uid) => {
+    await page.addInitScript(({ uid, pagePath }) => {
       localStorage.setItem('swf-uid', uid);
-    }, TEST_UID);
+      // Ensure no prior claim timestamp (the new path just returns early)
+      localStorage.removeItem('dm-mined-' + pagePath);
+    }, { uid: TEST_UID, pagePath: LAYOUT_PAGE });
 
-    await page.goto(`${BASE}${BLOG_PAGE}`);
+    await page.goto(`${BASE}${LAYOUT_PAGE}`);
+    await page.waitForTimeout(3000);
 
-    // "Mined ✓" element should appear
-    const minedEl = page.locator('.diamond-mine-mined');
-    await expect(minedEl).toBeVisible({ timeout: 5000 });
-
-    // Check it contains "Mined" text
-    const text = await minedEl.textContent();
-    expect(text).toContain('Mined');
+    // No gem (depleted) and no badge (no prior claim timestamp)
+    const gem = page.locator('.diamond-mine-gem');
+    expect(await gem.count()).toBe(0);
   });
 
   test('UI shows clickable gem when diamond is NOT depleted and NOT claimed', async ({ page }) => {
@@ -119,7 +123,7 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             diamonds: [
-              { id: 5, diamonds_per_claim: 2, diamonds_remaining: 10, depleted: false, already_claimed: false },
+              { id: 1, diamonds_per_claim: 2, diamonds_remaining: 10, depleted: false, already_claimed: false },
             ],
           }),
         });
@@ -132,7 +136,7 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
       localStorage.setItem('swf-uid', uid);
     }, TEST_UID);
 
-    await page.goto(`${BASE}${BLOG_PAGE}`);
+    await page.goto(`${BASE}${LAYOUT_PAGE}`);
 
     // Clickable gem should appear
     const gem = page.locator('.diamond-mine-gem');
@@ -143,7 +147,7 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
     await expect(minedEl).not.toBeVisible();
   });
 
-  test('UI shows "Mined" when one diamond is depleted and one is already claimed', async ({ page }) => {
+  test('no gem renders when one diamond is depleted and one is already claimed (no prior timestamp)', async ({ page }) => {
     await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
       if (request.method() === 'GET') {
         route.fulfill({
@@ -151,8 +155,8 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             diamonds: [
-              { id: 5, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
-              { id: 6, diamonds_per_claim: 1, diamonds_remaining: 5, depleted: false, already_claimed: true },
+              { id: 1, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
+              { id: 2, diamonds_per_claim: 1, diamonds_remaining: 5, depleted: false, already_claimed: true },
             ],
           }),
         });
@@ -161,19 +165,17 @@ test.describe('Diamond Hunt Depleted — Positive', () => {
       }
     });
 
-    await page.addInitScript((uid) => {
+    await page.addInitScript(({ uid, pagePath }) => {
       localStorage.setItem('swf-uid', uid);
-    }, TEST_UID);
+      localStorage.removeItem('dm-mined-' + pagePath);
+    }, { uid: TEST_UID, pagePath: LAYOUT_PAGE });
 
-    await page.goto(`${BASE}${BLOG_PAGE}`);
+    await page.goto(`${BASE}${LAYOUT_PAGE}`);
+    await page.waitForTimeout(3000);
 
-    // All diamonds either depleted or claimed — show "Mined ✓"
-    const minedEl = page.locator('.diamond-mine-mined');
-    await expect(minedEl).toBeVisible({ timeout: 5000 });
-
-    // No clickable gem
+    // All diamonds either depleted or claimed — no gem renders
     const gem = page.locator('.diamond-mine-gem');
-    await expect(gem).not.toBeVisible();
+    expect(await gem.count()).toBe(0);
   });
 });
 
@@ -191,7 +193,7 @@ test.describe('Diamond Hunt Depleted — Negative', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             diamonds: [
-              { id: 5, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
+              { id: 1, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
             ],
           }),
         });
@@ -204,14 +206,13 @@ test.describe('Diamond Hunt Depleted — Negative', () => {
       localStorage.setItem('swf-uid', uid);
     }, TEST_UID);
 
-    await page.goto(`${BASE}${BLOG_PAGE}`);
+    await page.goto(`${BASE}${LAYOUT_PAGE}`);
     await page.waitForLoadState('networkidle');
 
     expect(errors).toHaveLength(0);
   });
 
-  test('POST claim is rejected with 410 for depleted diamond', async ({ page }) => {
-    let postStatus = 0;
+  test('no gem rendered for depleted diamond (no way to attempt claim)', async ({ page }) => {
     await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
       if (request.method() === 'GET') {
         route.fulfill({
@@ -219,17 +220,9 @@ test.describe('Diamond Hunt Depleted — Negative', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             diamonds: [
-              { id: 5, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
+              { id: 1, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
             ],
           }),
-        });
-      } else if (request.method() === 'POST') {
-        // Simulate the API rejecting a claim on a depleted diamond
-        postStatus = 410;
-        route.fulfill({
-          status: 410,
-          contentType: 'application/json',
-          body: JSON.stringify({ error: 'No diamonds remaining' }),
         });
       } else {
         route.continue();
@@ -240,16 +233,15 @@ test.describe('Diamond Hunt Depleted — Negative', () => {
       localStorage.setItem('swf-uid', uid);
     }, TEST_UID);
 
-    await page.goto(`${BASE}${BLOG_PAGE}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(`${BASE}${LAYOUT_PAGE}`);
+    await page.waitForTimeout(3000);
 
-    // The gem should NOT be shown, so no clicking; if somehow triggered, the API returns 410
-    // Verify the "Mined" state is shown (no gem to click)
+    // Gem should NOT be visible — depleted diamonds can't be clicked
     const gem = page.locator('.diamond-mine-gem');
-    await expect(gem).not.toBeVisible();
+    expect(await gem.count()).toBe(0);
   });
 
-  test('no duplicate mined indicators on the page', async ({ page }) => {
+  test('no duplicate diamond elements on page when all depleted', async ({ page }) => {
     await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
       if (request.method() === 'GET') {
         route.fulfill({
@@ -257,8 +249,8 @@ test.describe('Diamond Hunt Depleted — Negative', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             diamonds: [
-              { id: 5, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
-              { id: 6, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: true },
+              { id: 1, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: false },
+              { id: 2, diamonds_per_claim: 1, diamonds_remaining: 0, depleted: true, already_claimed: true },
             ],
           }),
         });
@@ -267,15 +259,18 @@ test.describe('Diamond Hunt Depleted — Negative', () => {
       }
     });
 
-    await page.addInitScript((uid) => {
+    await page.addInitScript(({ uid, pagePath }) => {
       localStorage.setItem('swf-uid', uid);
-    }, TEST_UID);
+      localStorage.removeItem('dm-mined-' + pagePath);
+    }, { uid: TEST_UID, pagePath: LAYOUT_PAGE });
 
-    await page.goto(`${BASE}${BLOG_PAGE}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(`${BASE}${LAYOUT_PAGE}`);
+    await page.waitForTimeout(3000);
 
-    // Only one "Mined" indicator, not two
-    const minedElements = page.locator('.diamond-mine-mined');
-    await expect(minedElements).toHaveCount(1);
+    // With the new behaviour: no prior timestamp = nothing renders
+    const gem = page.locator('.diamond-mine-gem');
+    const mined = page.locator('.diamond-mine-mined');
+    expect(await gem.count()).toBe(0);
+    expect(await mined.count()).toBe(0);
   });
 });

@@ -42,8 +42,7 @@ const locked = isAdmin ? [] : allWords.filter((w: any) => w.date > today);
 const avgLength = revealed.length > 0 ? Math.round(revealed.reduce((s: number, w: any) => s + w.word.length, 0) / revealed.length * 10) / 10 : 0;
 const withMeaning = revealed.filter((w: any) => w.meaning && w.meaning.trim());
 const scoredWords = revealed.map((w: any) => ({ ...w, score: w.word.split('').reduce((s: number, c: string) => s + (SCORES[c] || 0), 0) }));
-const scoredWordsSorted = [...scoredWords].sort((a: any, b: any) => b.score - a.score);
-const topScorer = scoredWordsSorted[0];
+const top5 = [...scoredWords].sort((a: any, b: any) => b.score - a.score).slice(0, 5);
 
 const title = `Word of the Day — ${monthName} ${year}`;
 const description = `Words of the Day from ${monthName} ${year} on ScrabbleWordsFinder. ${revealed.length} words revealed so far — new words unlock daily.`;
@@ -109,30 +108,24 @@ const nextSlug = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).
           <div><p class="text-xl font-bold text-amber-400">{revealed.length}</p><p class="text-xs text-gray-400">Revealed</p></div>
           <div><p class="text-xl font-bold text-gray-600">{locked.length}</p><p class="text-xs text-gray-400">Locked</p></div>
           <div><p class="text-xl font-bold text-amber-400">{avgLength || '—'}</p><p class="text-xs text-gray-400">Avg Length</p></div>
-          <div><p class="text-xl font-bold text-amber-400">{topScorer?.score || '—'}</p><p class="text-xs text-gray-400">Top Score</p></div>
+          <div><p class="text-xl font-bold text-amber-400">{top5[0]?.score || '—'}</p><p class="text-xs text-gray-400">Top Score</p></div>
         </div>
       </div>
 
       {/* Top scoring */}
-      {scoredWordsSorted.length > 0 && (
+      {top5.length > 0 && (
         <>
           <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Top Scoring Words</h2>
           <div class="not-prose my-6 grid grid-cols-1 gap-3">
-            {scoredWordsSorted.map((w: any) => {
-              const dayNum = parseInt(w.date.split('-')[2]);
-              return (
-                <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                      <span class="text-xs font-mono text-gray-500">{monthName.slice(0,3)} {dayNum}</span>
-                      <span class="text-lg font-black text-white tracking-wider">{w.word}</span>
-                    </div>
-                    <span class="text-amber-400 font-bold">{w.score} pts</span>
-                  </div>
-                  {w.meaning && <p class="text-xs text-gray-400 mt-1 italic">{w.meaning}</p>}
+            {top5.map((w: any) => (
+              <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+                <div class="flex items-center justify-between">
+                  <span class="text-lg font-black text-white tracking-wider">{w.word}</span>
+                  <span class="text-amber-400 font-bold">{w.score} pts</span>
                 </div>
-              );
-            })}
+                {w.meaning && <p class="text-xs text-gray-400 mt-1 italic">{w.meaning}</p>}
+              </div>
+            ))}
           </div>
         </>
       )}

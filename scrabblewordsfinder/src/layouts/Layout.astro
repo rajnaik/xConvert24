@@ -193,111 +193,38 @@ const showAds = !isAdmin;
     })();
     </script>
 
-    <!-- Site search bar logic (desktop + mobile) -->
+    <!-- Site search bar logic (desktop + mobile) — lazy-loads full index from /api/search-index/ -->
     <script is:inline>
     (function() {
-      // All SWF pages searchable from the header
+      // Minimal inline fallback (site pages only) — available instantly before API fetch
       var PAGES = [
-        // Site pages
         {t:'Word Solver',u:'/',d:'Find all words from your tiles'},
-        {t:'Blog',u:'/blog',d:'Scrabble tips, strategy & word lists'},
-        {t:'Guide',u:'/guide',d:'How to use the word finder'},
-        {t:'About',u:'/about',d:'About ScrabbleWordsFinder'},
-        {t:'Privacy',u:'/privacy',d:'Privacy policy & data practices'},
-        {t:'Contact',u:'/contact',d:'Get in touch or report a bug'},
-        {t:'Suggest',u:'/suggest',d:'Suggest a feature'},
-        {t:'FAQ',u:'/faq',d:'Frequently asked questions'},
-        {t:'Settings',u:'/settings',d:'Your preferences, UUID & data'},
-        {t:'Releases',u:'/releases',d:'Version changelog'},
-        {t:'Achievements',u:'/achievements',d:'Track your word-finding milestones'},
-        {t:'Activities',u:'/activities',d:'Word of the Day, Daily Rack, Anagram'},
-        {t:'Roadmap',u:'/roadmap',d:'Upcoming features'},
-        {t:'Disclaimer',u:'/disclaimer',d:'Legal disclaimer'},
-        {t:'Terms',u:'/terms',d:'Terms of use'},
-        {t:'Stats',u:'/stats',d:'Your solver statistics'},
-        {t:'60-Second Challenge',u:'/sixty-seconds',d:'Speed word-finding game'},
-        {t:'WordBench Practice',u:'/wordbench-practice',d:'Memory training for Scrabble'},
-        {t:'Tech Stack',u:'/tech-stack',d:'Built with Astro, Cloudflare Workers, D1'},
-        // Blog category landing pages
-        {t:'Beginner Guides',u:'/blog/beginner-guides',d:'Learn Scrabble from scratch'},
-        {t:'Two-Letter Words',u:'/blog/two-letter-words',d:'Essential 2-letter word guides'},
-        {t:'Three-Letter Words',u:'/blog/three-letter-words',d:'3-letter word strategy & lists'},
-        {t:'Strategy',u:'/blog/strategy',d:'Offensive, defensive & endgame tactics'},
-        {t:'High-Scoring Words',u:'/blog/high-scoring',d:'Maximum points from every play'},
-        {t:'Bingos',u:'/blog/bingos',d:'7 and 8-letter bonus words'},
-        {t:'Tournament & Competitive',u:'/blog/tournament',d:'Tournament prep & competitive play'},
-        {t:'Letter Guides',u:'/blog/letter-guides',d:'Words by starting letter, ending, or pattern'},
-        {t:'Dictionaries',u:'/blog/dictionaries',d:'SOWPODS, TWL, Collins & dictionary guides'},
-        {t:'Word of the Day Series',u:'/blog/word-of-the-day-series',d:'Daily word learning'},
-        // Popular blog posts — strategy
-        {t:'Rack Management Basics',u:'/blog/rack-management-basics',d:'Balance your rack for better plays'},
-        {t:'Rack Leave Explained',u:'/blog/rack-leave-explained',d:'What to keep after your play'},
-        {t:'Defensive Strategy',u:'/blog/defensive-scrabble-strategy',d:'Block premium squares & limit opponent'},
-        {t:'Offensive Strategy',u:'/blog/offensive-scrabble-strategy',d:'Maximize scoring opportunities'},
-        {t:'Endgame Strategy',u:'/blog/endgame-strategy',d:'Win the final turns'},
-        {t:'Midgame Strategy',u:'/blog/midgame-strategy',d:'Board control in the middle game'},
-        {t:'Opening Moves Guide',u:'/blog/opening-moves-guide',d:'Best first plays'},
-        {t:'Tile Tracking Guide',u:'/blog/tile-tracking-guide',d:'Know what tiles remain'},
-        {t:'Blocking Triple Word Squares',u:'/blog/blocking-triple-word-squares',d:'Deny your opponent the big scores'},
-        {t:'Creating Parallel Plays',u:'/blog/creating-parallel-plays',d:'Score multiple words at once'},
-        // Popular blog posts — beginner
-        {t:'What Is Scrabble',u:'/blog/what-is-scrabble',d:'Introduction to the word game'},
-        {t:'How to Play Scrabble',u:'/blog/how-to-play-scrabble',d:'Step-by-step beginners guide'},
-        {t:'Scrabble Rules Explained',u:'/blog/scrabble-rules-explained',d:'Complete rules reference'},
-        {t:'How to Win Scrabble',u:'/blog/how-to-win-scrabble',d:'Proven strategies to improve'},
-        {t:'Beginner Scrabble Strategy',u:'/blog/beginner-scrabble-strategy',d:'10 tips for new players'},
-        {t:'Common Scrabble Mistakes',u:'/blog/common-scrabble-mistakes',d:'Avoid these errors'},
-        {t:'Scrabble Scoring Guide',u:'/blog/scrabble-scoring-guide',d:'Points, values & premium squares'},
-        {t:'How Blank Tiles Work',u:'/blog/how-blank-tiles-work',d:'Rules & strategy for blanks'},
-        {t:'Understanding Premium Squares',u:'/blog/understanding-premium-squares',d:'Double & triple scoring'},
-        {t:'Scrabble Etiquette',u:'/blog/scrabble-etiquette',d:'Unwritten rules of the game'},
-        // Popular blog posts — high scoring
-        {t:'Highest Scoring Scrabble Words',u:'/blog/highest-scoring-scrabble-words',d:'Record-breaking words'},
-        {t:'High Scoring Short Words',u:'/blog/high-scoring-short-words',d:'Maximum points from few tiles'},
-        {t:'Best Q Words',u:'/blog/best-q-words-scrabble',d:'Top Q without U words'},
-        {t:'Best Z Words',u:'/blog/best-z-words-scrabble',d:'Highest scoring Z plays'},
-        {t:'Best X Words',u:'/blog/best-x-words-scrabble',d:'Highest scoring X plays'},
-        {t:'Best J Words',u:'/blog/best-j-words-scrabble',d:'Highest scoring J plays'},
-        {t:'Best Two-Letter Words',u:'/blog/best-two-letter-words-scrabble',d:'Top scoring 2-letter words'},
-        {t:'Best Three-Letter Words',u:'/blog/best-three-letter-scrabble-words',d:'High scoring 3-letter words'},
-        // Popular blog posts — word lists
-        {t:'Complete Two-Letter Words List',u:'/blog/two-letter-scrabble-words-complete-list',d:'All valid 2-letter words'},
-        {t:'Memorizing Two-Letter Words',u:'/blog/memorizing-two-letter-words',d:'Techniques to memorize them all'},
-        {t:'Q Words Without U',u:'/blog/q-words-without-u',d:'Play Q without needing U'},
-        {t:'Words Without Vowels',u:'/blog/words-without-vowels',d:'CWM, SHH, TSK and more'},
-        {t:'Longest Scrabble Words',u:'/blog/longest-scrabble-words',d:'The longest valid plays'},
-        // Popular blog posts — history & culture
-        {t:'History of Scrabble',u:'/blog/scrabble-history-origins-great-depression',d:'Origins in the Great Depression'},
-        {t:'Scrabble Dictionaries Guide',u:'/blog/scrabble-dictionaries-languages-weird-words',d:'SOWPODS, TWL & weird words'},
-        {t:'Competitive Tournament World',u:'/blog/competitive-scrabble-tournament-world',d:'Inside competitive Scrabble'},
-        // Letter guides (A-Z)
-        {t:'Words Starting With A',u:'/blog/words-starting-with-a',d:'Top scoring A words'},
-        {t:'Words Starting With B',u:'/blog/words-starting-with-b',d:'Top scoring B words'},
-        {t:'Words Starting With C',u:'/blog/words-starting-with-c',d:'Top scoring C words'},
-        {t:'Words Starting With D',u:'/blog/words-starting-with-d',d:'Top scoring D words'},
-        {t:'Words Starting With E',u:'/blog/words-starting-with-e',d:'Top scoring E words'},
-        {t:'Words Starting With F',u:'/blog/words-starting-with-f',d:'Top scoring F words'},
-        {t:'Words Starting With G',u:'/blog/words-starting-with-g',d:'Top scoring G words'},
-        {t:'Words Starting With H',u:'/blog/words-starting-with-h',d:'Top scoring H words'},
-        {t:'Words Starting With I',u:'/blog/words-starting-with-i',d:'Top scoring I words'},
-        {t:'Words Starting With J',u:'/blog/words-starting-with-j',d:'Top scoring J words'},
-        {t:'Words Starting With K',u:'/blog/words-starting-with-k',d:'Top scoring K words'},
-        {t:'Words Starting With L',u:'/blog/words-starting-with-l',d:'Top scoring L words'},
-        {t:'Words Starting With M',u:'/blog/words-starting-with-m',d:'Top scoring M words'},
-        {t:'Words Starting With N',u:'/blog/words-starting-with-n',d:'Top scoring N words'},
-        {t:'Words Starting With O',u:'/blog/words-starting-with-o',d:'Top scoring O words'},
-        {t:'Words Starting With P',u:'/blog/words-starting-with-p',d:'Top scoring P words'},
-        {t:'Words Starting With Q',u:'/blog/words-starting-with-q',d:'Top scoring Q words'},
-        {t:'Words Starting With R',u:'/blog/words-starting-with-r',d:'Top scoring R words'},
-        {t:'Words Starting With S',u:'/blog/words-starting-with-s',d:'Top scoring S words'},
-        {t:'Words Starting With T',u:'/blog/words-starting-with-t',d:'Top scoring T words'},
-        {t:'Words Starting With U',u:'/blog/words-starting-with-u',d:'Top scoring U words'},
-        {t:'Words Starting With V',u:'/blog/words-starting-with-v',d:'Top scoring V words'},
-        {t:'Words Starting With W',u:'/blog/words-starting-with-w',d:'Top scoring W words'},
-        {t:'Words Starting With X',u:'/blog/words-starting-with-x',d:'Top scoring X words'},
-        {t:'Words Starting With Y',u:'/blog/words-starting-with-y',d:'Top scoring Y words'},
-        {t:'Words Starting With Z',u:'/blog/words-starting-with-z',d:'Top scoring Z words'},
+        {t:'Blog',u:'/blog/',d:'Scrabble tips, strategy & word lists'},
+        {t:'Guide',u:'/guide/',d:'How to use the word finder'},
+        {t:'About',u:'/about/',d:'About ScrabbleWordsFinder'},
+        {t:'Contact',u:'/contact/',d:'Get in touch or report a bug'},
+        {t:'FAQ',u:'/faq/',d:'Frequently asked questions'},
+        {t:'Settings',u:'/settings/',d:'Your preferences, UUID & data'},
+        {t:'Activities',u:'/activities/',d:'Word of the Day, Daily Rack, Anagram'},
+        {t:'Achievements',u:'/achievements/',d:'Track your word-finding milestones'},
+        {t:'Stats',u:'/stats/',d:'Your solver statistics'},
+        {t:'60-Second Challenge',u:'/sixty-seconds/',d:'Speed word-finding game'},
       ];
+
+      var indexLoaded = false;
+      var indexLoading = false;
+
+      function loadFullIndex() {
+        if (indexLoaded || indexLoading) return;
+        indexLoading = true;
+        fetch('/api/search-index/')
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(data) {
+            if (data && data.length) { PAGES = data; indexLoaded = true; }
+          })
+          .catch(function() {})
+          .finally(function() { indexLoading = false; });
+      }
 
       function initSearch(inputId, findBtnId) {
         var input = document.getElementById(inputId);
@@ -337,18 +264,20 @@ const showAds = !isAdmin;
           debounce = setTimeout(doSearch, 150);
         });
 
+        // Lazy-load full index on first focus
         input.addEventListener('focus', function() {
+          loadFullIndex();
           if (input.value.trim().length >= 2) doSearch();
         });
 
-        // Find button navigates to blog with search query
+        // Find button navigates to chat with search query
         var findBtn = document.getElementById(findBtnId);
         if (findBtn) {
           findBtn.addEventListener('click', function(e) {
             var q = input.value.trim();
             if (q.length >= 2) {
               e.preventDefault();
-              window.location.href = '/blog?q=' + encodeURIComponent(q);
+              window.location.href = '/chat/?q=' + encodeURIComponent(q);
             }
           });
         }
@@ -364,7 +293,7 @@ const showAds = !isAdmin;
           if (e.key === 'Escape' && resultsBox) resultsBox.classList.add('hidden');
           if (e.key === 'Enter') {
             var q = input.value.trim();
-            if (q.length >= 2) window.location.href = '/blog?q=' + encodeURIComponent(q);
+            if (q.length >= 2) window.location.href = '/chat/?q=' + encodeURIComponent(q);
           }
         });
       }
@@ -659,22 +588,11 @@ const showAds = !isAdmin;
           if (!diamonds[i].already_claimed && !diamonds[i].depleted) { target = diamonds[i]; break; }
         }
 
-        // If all claimed or depleted, show "mined" illustration
-        if (!target) {
-          var minedEl = document.createElement('div');
-          minedEl.className = 'diamond-mine-mined';
-          minedEl.setAttribute('aria-label', 'Diamonds already mined on this page');
-          minedEl.innerHTML = '<img src="/media/diamond-mined.svg" alt="Diamonds mined" width="40" height="40" /><span class="dm-mined-label">Mined ✓</span>';
-          var minedStyle = document.createElement('style');
-          minedStyle.textContent = '.diamond-mine-mined{position:fixed;bottom:24px;left:24px;z-index:9998;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:14px;background:linear-gradient(135deg,#052e16,#14532d);border:1.5px solid rgba(34,197,94,0.4);box-shadow:0 0 12px rgba(34,197,94,0.15),0 3px 8px rgba(0,0,0,0.4);opacity:0.85;transition:opacity .3s}' +
-            '.diamond-mine-mined:hover{opacity:1}' +
-            '.dm-mined-label{color:#86efac;font-size:11px;font-weight:600;letter-spacing:0.5px}';
-          document.head.appendChild(minedStyle);
-          document.body.appendChild(minedEl);
-          return;
-        }
+        // If all claimed or depleted, do nothing (no badge)
+        if (!target) return;
 
-        // Render the diamond mine element
+        // Render the diamond mine element — mine is active, clear any stale mined timestamp
+        try { localStorage.removeItem('dm-mined-' + page); } catch(e) {}
         var el = document.createElement('div');
         el.id = 'diamond-mine-' + target.id;
         el.className = 'diamond-mine-gem';
@@ -710,6 +628,8 @@ const showAds = !isAdmin;
             body: JSON.stringify({ diamond_id: target.id, user_id: claimUid })
           }).then(function(r) { return r.json(); }).then(function(result) {
             if (result.success) {
+              // Record claim timestamp for 1h mined badge
+              try { localStorage.setItem('dm-mined-' + page, String(Date.now())); } catch(e) {}
               el.classList.add('dm-claimed');
               el.innerHTML = '<span class="dm-icon">✅</span><span class="dm-label">+' + result.diamonds_earned + ' 💎</span>';
               // Remove after 4 seconds

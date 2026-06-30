@@ -223,7 +223,7 @@ test.describe('Diamond Mine — Negative', () => {
     await expect(gem).toHaveCount(0);
   });
 
-  test('diamond mine shows "mined" indicator when all diamonds already claimed', async ({ page }) => {
+  test('no mined badge renders when all diamonds already claimed', async ({ page }) => {
     await page.goto(`${BASE}/`);
     await page.evaluate(() => localStorage.setItem('swf-uid', 'test-uid-mined'));
 
@@ -242,37 +242,18 @@ test.describe('Diamond Mine — Negative', () => {
     });
 
     await page.goto(`${BASE}/`);
+    await page.waitForTimeout(2000);
+
+    // No gem and no mined badge — feature silently exits
+    const gem = page.locator('.diamond-mine-gem');
+    await expect(gem).toHaveCount(0);
     const mined = page.locator('.diamond-mine-mined');
-    await expect(mined).toBeVisible({ timeout: 5000 });
+    await expect(mined).toHaveCount(0);
   });
 
-  test('diamond mine "mined" indicator has correct accessibility label', async ({ page }) => {
+  test('no UI renders when all diamonds are depleted', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    await page.evaluate(() => localStorage.setItem('swf-uid', 'test-uid-mined-a11y'));
-
-    await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
-      if (request.method() === 'GET') {
-        route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            diamonds: [{ id: 2, diamonds_per_claim: 3, already_claimed: true }],
-          }),
-        });
-      } else {
-        route.continue();
-      }
-    });
-
-    await page.goto(`${BASE}/`);
-    const mined = page.locator('.diamond-mine-mined');
-    await expect(mined).toBeVisible({ timeout: 5000 });
-    await expect(mined).toHaveAttribute('aria-label', 'Diamonds already mined on this page');
-  });
-
-  test('diamond mine "mined" indicator contains mined label text', async ({ page }) => {
-    await page.goto(`${BASE}/`);
-    await page.evaluate(() => localStorage.setItem('swf-uid', 'test-uid-mined-text'));
+    await page.evaluate(() => localStorage.setItem('swf-uid', 'test-uid-depleted'));
 
     await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
       if (request.method() === 'GET') {
@@ -281,8 +262,8 @@ test.describe('Diamond Mine — Negative', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             diamonds: [
-              { id: 1, diamonds_per_claim: 5, already_claimed: true },
-              { id: 2, diamonds_per_claim: 3, already_claimed: true },
+              { id: 1, diamonds_per_claim: 5, already_claimed: true, depleted: true },
+              { id: 2, diamonds_per_claim: 3, already_claimed: false, depleted: true },
             ],
           }),
         });
@@ -292,15 +273,22 @@ test.describe('Diamond Mine — Negative', () => {
     });
 
     await page.goto(`${BASE}/`);
+    await page.waitForTimeout(2000);
+
+    // No gem, no badge — silent exit for depleted diamonds
+    const gem = page.locator('.diamond-mine-gem');
+    await expect(gem).toHaveCount(0);
     const mined = page.locator('.diamond-mine-mined');
-    await expect(mined).toBeVisible({ timeout: 5000 });
-    const label = page.locator('.dm-mined-label');
-    await expect(label).toContainText('Mined');
+    await expect(mined).toHaveCount(0);
   });
 
-  test('diamond mine "mined" indicator persists and does not auto-fade', async ({ page }) => {
+  test('no stale mined localStorage key prevents future diamond display', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    await page.evaluate(() => localStorage.setItem('swf-uid', 'test-uid-mined-fade'));
+    await page.evaluate(() => {
+      localStorage.setItem('swf-uid', 'test-uid-stale-mined');
+      // Simulate leftover key from old mined badge logic
+      localStorage.setItem('dm-mined-/', String(Date.now()));
+    });
 
     await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
       if (request.method() === 'GET') {
@@ -308,7 +296,7 @@ test.describe('Diamond Mine — Negative', () => {
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            diamonds: [{ id: 1, diamonds_per_claim: 5, already_claimed: true }],
+            diamonds: [{ id: 10, diamonds_per_claim: 2, already_claimed: false }],
           }),
         });
       } else {
@@ -317,15 +305,12 @@ test.describe('Diamond Mine — Negative', () => {
     });
 
     await page.goto(`${BASE}/`);
-    const mined = page.locator('.diamond-mine-mined');
-    await expect(mined).toBeVisible({ timeout: 5000 });
-
-    // Wait 10s to confirm element persists (previously auto-faded at 8s)
-    await page.waitForTimeout(10000);
-    await expect(mined).toBeVisible();
+    const gem = page.locator('.diamond-mine-gem');
+    // Active mine clears stale mined key and renders gem normally
+    await expect(gem).toBeVisible({ timeout: 5000 });
   });
 
-  test('diamond mine "mined" indicator does NOT show on admin pages', async ({ page }) => {
+  test('diamond mine does NOT render any UI on admin pages when all claimed', async ({ page }) => {
     await page.goto(`${BASE}/`);
     await page.evaluate(() => localStorage.setItem('swf-uid', 'test-uid-mined-admin'));
 
@@ -341,6 +326,8 @@ test.describe('Diamond Mine — Negative', () => {
 
     await page.goto(`${BASE}/admin/`);
     await page.waitForTimeout(2000);
+    const gem = page.locator('.diamond-mine-gem');
+    await expect(gem).toHaveCount(0);
     const mined = page.locator('.diamond-mine-mined');
     await expect(mined).toHaveCount(0);
   });

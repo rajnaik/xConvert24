@@ -56,13 +56,14 @@ test.describe('Search Bar — Positive', () => {
     await expect(result).toBeVisible();
   });
 
-  test('pressing Enter navigates to /blog?q=query', async ({ page }) => {
+  test('pressing Enter navigates to /chat/?q=query', async ({ page }) => {
     await page.goto('/');
     const input = page.locator('#dict-search');
     await input.fill('endgame');
     await input.press('Enter');
-    await page.waitForURL(/\/blog\?q=endgame/);
-    expect(page.url()).toContain('/blog?q=endgame');
+    // Chat page reads ?q= then cleans URL via replaceState, so final URL is /chat/
+    await page.waitForURL(/\/chat\//);
+    expect(page.url()).toContain('/chat/');
   });
 });
 

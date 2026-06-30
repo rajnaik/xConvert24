@@ -73,23 +73,25 @@ test.describe('Site Search Desktop — Positive', () => {
     await expect(page).toHaveURL(/\/about/);
   });
 
-  test('pressing Enter navigates to /blog?q=<query>', async ({ page }) => {
+  test('pressing Enter navigates to /chat/?q=<query>', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(BASE_URL);
     const input = page.locator('#dict-search');
     await input.fill('tactics');
     await input.press('Enter');
-    await expect(page).toHaveURL(/\/blog\?q=tactics/);
+    // Chat page reads ?q= then cleans URL via replaceState, so final URL is /chat/
+    await expect(page).toHaveURL(/\/chat\//);
   });
 
-  test('Find button navigates to /blog?q=<query> when input has text', async ({ page }) => {
+  test('Find button navigates to /chat/?q=<query> when input has text', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(BASE_URL);
     const input = page.locator('#dict-search');
     await input.fill('premium');
     const findBtn = page.locator('#search-find-btn');
     await findBtn.click();
-    await expect(page).toHaveURL(/\/blog\?q=premium/);
+    // Chat page reads ?q= then cleans URL via replaceState, so final URL is /chat/
+    await expect(page).toHaveURL(/\/chat\//);
   });
 
   test('Escape key closes the results dropdown', async ({ page }) => {
@@ -157,15 +159,15 @@ test.describe('Site Search Desktop — Negative', () => {
     await expect(resultsBox).toBeHidden();
   });
 
-  test('Find button navigates to /blog/ without query param when input has fewer than 2 chars', async ({ page }) => {
+  test('Find button navigates to /chat/ without query param when input has fewer than 2 chars', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto(BASE_URL);
     const input = page.locator('#dict-search');
     await input.fill('x');
     const findBtn = page.locator('#search-find-btn');
     await findBtn.click();
-    // Navigates to /blog/ but without the ?q= param since input is too short
-    await expect(page).toHaveURL(/\/blog\/?$/);
+    // Navigates to /chat/ but without the ?q= param since input is too short
+    await expect(page).toHaveURL(/\/chat\/?$/);
   });
 
   test('Enter does not navigate when input has fewer than 2 chars', async ({ page }) => {
@@ -206,23 +208,25 @@ test.describe('Site Search Mobile — Positive', () => {
     await expect(resultsBox.locator('a', { hasText: 'Privacy' })).not.toHaveCount(0);
   });
 
-  test('mobile Find button navigates to /blog?q=<query>', async ({ page }) => {
+  test('mobile Find button navigates to /chat/?q=<query>', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(BASE_URL);
     const input = page.locator('#dict-search-mobile');
     await input.fill('scrabble');
     const findBtn = page.locator('#search-find-btn-mobile');
     await findBtn.click();
-    await expect(page).toHaveURL(/\/blog\?q=scrabble/);
+    // Chat page reads ?q= then cleans URL via replaceState, so final URL is /chat/
+    await expect(page).toHaveURL(/\/chat\//);
   });
 
-  test('mobile Enter key navigates to /blog?q=<query>', async ({ page }) => {
+  test('mobile Enter key navigates to /chat/?q=<query>', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto(BASE_URL);
     const input = page.locator('#dict-search-mobile');
     await input.fill('rules');
     await input.press('Enter');
-    await expect(page).toHaveURL(/\/blog\?q=rules/);
+    // Chat page reads ?q= then cleans URL via replaceState, so final URL is /chat/
+    await expect(page).toHaveURL(/\/chat\//);
   });
 });
 

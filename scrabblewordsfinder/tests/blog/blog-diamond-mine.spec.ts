@@ -125,8 +125,8 @@ test.describe('Diamond Mine BlogLayout — Positive', () => {
 });
 
 test.describe('Diamond Mine BlogLayout — Negative', () => {
-  test('no diamond gem when user has no UID on blog page', async ({ page }) => {
-    // Clear any stored UID
+  test('diamond gem still renders on blog page for user without UID (anonymous browsing)', async ({ page }) => {
+    // BlogLayout allows anonymous users to see diamonds (UID created on claim only)
     await page.goto(`${BASE}${BLOG_PAGE}`);
     await page.evaluate(() => localStorage.removeItem('swf-uid'));
 
@@ -143,8 +143,9 @@ test.describe('Diamond Mine BlogLayout — Negative', () => {
     await page.goto(`${BASE}${BLOG_PAGE}`);
     await page.waitForTimeout(2000);
 
+    // Gem should render for anonymous users on blog pages
     const gem = page.locator('.diamond-mine-gem');
-    await expect(gem).toHaveCount(0);
+    await expect(gem).toBeVisible({ timeout: 5000 });
   });
 
   test('no duplicate diamond gems on blog page', async ({ page }) => {
@@ -174,6 +175,37 @@ test.describe('Diamond Mine BlogLayout — Negative', () => {
     // Only one gem should appear (the first unclaimed)
     const gems = page.locator('.diamond-mine-gem');
     await expect(gems).toHaveCount(1);
+  });
+
+  test('no mined badge renders on blog page when all diamonds already claimed', async ({ page }) => {
+    await page.goto(`${BASE}${BLOG_PAGE}`);
+    await page.evaluate((uid) => localStorage.setItem('swf-uid', uid), TEST_UID);
+
+    await page.route('**/api/diamond-hunt-claim/**', (route, request) => {
+      if (request.method() === 'GET') {
+        route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            diamonds: [
+              { id: 310, diamonds_per_claim: 5, already_claimed: true },
+              { id: 311, diamonds_per_claim: 3, already_claimed: true },
+            ],
+          }),
+        });
+      } else {
+        route.continue();
+      }
+    });
+
+    await page.goto(`${BASE}${BLOG_PAGE}`);
+    await page.waitForTimeout(2000);
+
+    // No gem and no mined badge — feature silently exits
+    const gem = page.locator('.diamond-mine-gem');
+    await expect(gem).toHaveCount(0);
+    const mined = page.locator('.diamond-mine-mined');
+    await expect(mined).toHaveCount(0);
   });
 
   test('diamond mine handles API failure gracefully on blog page', async ({ page }) => {

@@ -58,13 +58,14 @@ test.describe('Blog Search Autocomplete — Positive', () => {
     expect(page.url()).toContain(href!);
   });
 
-  test('pressing Enter on search navigates to /blog?q= search page', async ({ page }) => {
+  test('pressing Enter on search navigates to /chat/?q= search page', async ({ page }) => {
     await page.goto(BLOG_PAGE);
     const searchInput = page.locator('#dict-search');
     await searchInput.fill('tiles');
     await searchInput.press('Enter');
     await page.waitForLoadState('domcontentloaded');
-    expect(page.url()).toContain('/blog?q=tiles');
+    // Chat page reads ?q= then cleans URL via replaceState, so final URL is /chat/
+    expect(page.url()).toContain('/chat/');
   });
 });
 
