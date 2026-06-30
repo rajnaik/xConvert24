@@ -86,6 +86,17 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
+      name: 'quick-diamond',
+      testDir: './tests/quick',
+      testMatch: /diamond-mines\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'DiamondHunt',
+      testDir: './tests/DiamondHunt',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
       name: 'smoke',
       testDir: './tests',
       testMatch: /smoke\.spec\.ts/,

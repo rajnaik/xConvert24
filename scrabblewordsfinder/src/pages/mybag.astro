@@ -22,6 +22,13 @@ import '../styles/global.css';
       <p class="text-gray-500 text-sm">Start playing games on the <a href="/activities/" class="text-blue-400 underline">Activities</a> page to earn stars and diamonds.</p>
     </div>
 
+    <!-- Error state (API failed but user exists) -->
+    <div id="mybag-error" class="hidden text-center py-12">
+      <p class="text-amber-400 text-lg mb-2">Unable to load your data</p>
+      <p class="text-gray-500 text-sm mb-4">Something went wrong fetching your earning history. Your progress is safe.</p>
+      <button id="mybag-retry-btn" class="px-4 py-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-sm font-medium text-blue-400 hover:bg-blue-600/40 transition-colors cursor-pointer">🔄 Try Again</button>
+    </div>
+
     <!-- Main content (hidden until loaded) -->
     <div id="mybag-content" class="hidden space-y-8">
 
@@ -53,9 +60,27 @@ import '../styles/global.css';
         </div>
       </div>
 
+      <!-- My Badges -->
+      <div id="mb-badges-section">
+        <h2 class="text-lg font-semibold text-white mb-3">🏅 My Badges</h2>
+        <div id="mb-badges-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Badge Modal -->
+      <div id="mb-badge-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Badge detail">
+        <div class="relative bg-gray-900 border border-purple-500/50 rounded-2xl p-8 shadow-2xl shadow-purple-900/30 max-w-md w-full mx-4 text-center">
+          <button id="mb-badge-modal-close" class="absolute top-3 right-3 text-gray-400 hover:text-white text-xl leading-none" aria-label="Close">&times;</button>
+          <img id="mb-badge-modal-img" src="" alt="" class="w-[27rem] h-[27rem] max-w-full mx-auto mb-4" />
+          <p id="mb-badge-modal-name" class="text-lg font-semibold text-purple-300"></p>
+          <p id="mb-badge-modal-info" class="text-sm text-gray-400 mt-1"></p>
+        </div>
+      </div>
+
       <!-- Earning History Table -->
       <div class="mr-[-100px]">
-        <h2 class="text-lg font-semibold text-white mb-3">Earning History</h2>
+        <h2 class="text-lg font-semibold text-white mb-3" id="mb-earning-history-heading">Earning History</h2>
         <div class="overflow-x-auto rounded-xl border border-gray-700/50 bg-gray-900/50">
           <table class="w-full text-sm">
             <thead>
@@ -160,9 +185,11 @@ import '../styles/global.css';
   <script is:inline>
   (function() {
     var S = window.__swfStore;
+    if (!S) { document.getElementById('mybag-loading').classList.add('hidden'); document.getElementById('mybag-error').classList.remove('hidden'); return; }
     var uid = S.getRaw('swf-uid') || '';
     var loadingEl = document.getElementById('mybag-loading');
     var noUserEl = document.getElementById('mybag-no-user');
+    var errorEl = document.getElementById('mybag-error');
     var contentEl = document.getElementById('mybag-content');
     var currentLimit = 30;
 
@@ -174,25 +201,42 @@ import '../styles/global.css';
 
     fetchData(currentLimit);
 
+    // Retry button
+    var retryBtn = document.getElementById('mybag-retry-btn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function() {
+        errorEl.classList.add('hidden');
+        loadingEl.classList.remove('hidden');
+        fetchData(currentLimit);
+      });
+    }
+
     function fetchData(limit) {
       fetch('/api/mybag/?user_id=' + encodeURIComponent(uid) + '&limit=' + limit)
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+          if (!r.ok) throw new Error('API returned ' + r.status);
+          return r.json();
+        })
         .then(function(data) {
+          if (!data || !data.totals) throw new Error('Invalid response data');
           loadingEl.classList.add('hidden');
+          errorEl.classList.add('hidden');
           contentEl.classList.remove('hidden');
           renderTotals(data.totals);
-          renderHistory(data.history, data.activities);
-          renderGameBreakdown(data.history, data.activities);
+          renderBadges(data.badges || []);
+          renderHistory(data.history || [], data.activities || {});
+          renderGameBreakdown(data.history || [], data.activities || {});
           // Show load more if we got the full limit back
-          if (data.history.length >= limit && limit < 90) {
+          if ((data.history || []).length >= limit && limit < 90) {
             document.getElementById('mb-load-more-wrap').classList.remove('hidden');
           } else {
             document.getElementById('mb-load-more-wrap').classList.add('hidden');
           }
         })
-        .catch(function() {
+        .catch(function(err) {
           loadingEl.classList.add('hidden');
-          noUserEl.classList.remove('hidden');
+          errorEl.classList.remove('hidden');
+          console.error('[MyBag] Failed to load data:', err);
         });
     }
 
@@ -206,13 +250,86 @@ import '../styles/global.css';
     }
 
     function renderTotals(totals) {
-      document.getElementById('mb-total-stars').textContent = totals.total_stars;
-      document.getElementById('mb-total-diamonds').textContent = totals.total_diamonds;
-      document.getElementById('mb-current-streak').textContent = totals.current_streak;
-      document.getElementById('mb-best-streak').textContent = totals.best_streak;
-      document.getElementById('mb-diamond-streak').textContent = totals.diamond_streak;
-      document.getElementById('mb-best-diamond-streak').textContent = totals.best_diamond_streak;
+      if (!totals) return;
+      document.getElementById('mb-total-stars').textContent = totals.total_stars || 0;
+      document.getElementById('mb-total-diamonds').textContent = totals.total_diamonds || 0;
+      document.getElementById('mb-current-streak').textContent = totals.current_streak || 0;
+      document.getElementById('mb-best-streak').textContent = totals.best_streak || 0;
+      document.getElementById('mb-diamond-streak').textContent = totals.diamond_streak || 0;
+      document.getElementById('mb-best-diamond-streak').textContent = totals.best_diamond_streak || 0;
+      // Update Earning History heading with total diamonds
+      var diamonds = totals.total_diamonds || 0;
+      document.getElementById('mb-earning-history-heading').textContent = 'Earning History (' + diamonds + ' 💎)';
     }
+
+    function renderBadges(badges) {
+      var grid = document.getElementById('mb-badges-grid');
+      if (!badges || badges.length === 0) {
+        grid.innerHTML = '<p class="text-gray-500 text-sm col-span-full">No badges earned yet. Keep playing to unlock badges!</p>';
+        return;
+      }
+      var html = '';
+      for (var i = 0; i < badges.length; i++) {
+        var b = badges[i];
+        var achieved = b.achieved;
+        var opacity = achieved ? '' : ' opacity-50 grayscale';
+        html += '<div class="rounded-xl border border-purple-700/40 bg-purple-950/20 p-4 flex flex-col items-center cursor-pointer hover:border-purple-500/70 transition-colors' + opacity + '"'
+          + ' data-badge-name="' + (b.name || '') + '"'
+          + ' data-badge-img="' + (b.img || '') + '"'
+          + ' data-badge-info="' + (b.info || '') + '">';
+        html += '<img src="' + (b.img || '') + '" alt="' + (b.name || '') + '" class="w-16 h-16 mb-2" />';
+        html += '<p class="text-sm font-medium text-purple-300">' + (b.name || '') + '</p>';
+        if (!achieved) html += '<p class="text-xs text-gray-500 mt-1">🔒 Locked</p>';
+        html += '</div>';
+      }
+      grid.innerHTML = html;
+
+      // Attach click listeners to badge cards for modal
+      var cards = grid.querySelectorAll('[data-badge-name]');
+      for (var j = 0; j < cards.length; j++) {
+        cards[j].addEventListener('click', openBadgeModal);
+      }
+    }
+
+    // Badge modal logic
+    function openBadgeModal(e) {
+      var card = e.currentTarget;
+      var modal = document.getElementById('mb-badge-modal');
+      var img = document.getElementById('mb-badge-modal-img');
+      var name = document.getElementById('mb-badge-modal-name');
+      var info = document.getElementById('mb-badge-modal-info');
+
+      img.src = card.getAttribute('data-badge-img');
+      img.alt = card.getAttribute('data-badge-name');
+      // Remove grayscale if achieved, add if locked
+      if (card.classList.contains('opacity-50')) {
+        img.classList.add('grayscale');
+      } else {
+        img.classList.remove('grayscale');
+      }
+      name.textContent = card.getAttribute('data-badge-name');
+      info.textContent = card.getAttribute('data-badge-info');
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeBadgeModal() {
+      var modal = document.getElementById('mb-badge-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Close on X button
+    document.getElementById('mb-badge-modal-close').addEventListener('click', closeBadgeModal);
+    // Close on backdrop click
+    document.getElementById('mb-badge-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeBadgeModal();
+    });
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeBadgeModal();
+    });
 
     function renderHistory(history, activities) {
       var tbody = document.getElementById('mb-history-body');
@@ -238,7 +355,7 @@ import '../styles/global.css';
           var mDateStr = formatDate(mDate.getFullYear() + '-' + String(mDate.getMonth() + 1).padStart(2, '0') + '-' + String(mDate.getDate()).padStart(2, '0'));
           html += '<tr class="border-b border-gray-800/50 bg-red-950/10" data-missed-day>';
           html += '<td class="px-4 py-2 text-gray-500 whitespace-nowrap">' + mDateStr + '</td>';
-          html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐ stars and 💎 a diamond</td>';
+          html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐⭐⭐⭐⭐⭐⭐ (7 stars) and 💎 (a diamond)</td>';
           html += '</tr>';
         }
         if (gapFromToday > 7) {
@@ -264,7 +381,7 @@ import '../styles/global.css';
             var missedDateStr = formatDate(missedDate.getFullYear() + '-' + String(missedDate.getMonth() + 1).padStart(2, '0') + '-' + String(missedDate.getDate()).padStart(2, '0'));
             html += '<tr class="border-b border-gray-800/50 bg-red-950/10" data-missed-day>';
             html += '<td class="px-4 py-2 text-gray-500 whitespace-nowrap">' + missedDateStr + '</td>';
-            html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐ stars and 💎 a diamond</td>';
+            html += '<td class="px-4 py-2 text-red-400/80 text-xs italic" colspan="3">⚠️ Missed day — lost a chance to earn ⭐⭐⭐⭐⭐⭐⭐ (7 stars) and 💎 (a diamond)</td>';
             html += '</tr>';
           }
           // If gap > 8 days, show a summary row

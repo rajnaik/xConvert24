@@ -125,6 +125,7 @@ export const blogCategories: Record<string, string> = {
   'risk-management-scrabble': 'strategy',
   'science-words-scrabble': 'letter-guides',
   'scrabble-and-brain-health': 'beginner-guides',
+  'scrabble-badges-progression-guide': 'beginner-guides',
   'scrabble-and-mathematics': 'beginner-guides',
   'scrabble-and-memory-training': 'beginner-guides',
   'scrabble-and-vocabulary-growth': 'beginner-guides',

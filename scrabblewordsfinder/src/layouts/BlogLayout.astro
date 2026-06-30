@@ -430,5 +430,101 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     </script>
     <BlogAskAI />
     <CookieConsent />
+    <!-- Diamond Mine — hidden collectible diamonds on pages -->
+    <script is:inline>
+    (function() {
+      if (window.location.pathname.startsWith('/admin')) return;
+
+      var S = window.__swfStore;
+      var page = window.location.pathname;
+      var uid = S ? S.getRaw('swf-uid') : localStorage.getItem('swf-uid');
+
+      function getOrCreateUid() {
+        var u = S ? S.getRaw('swf-uid') : localStorage.getItem('swf-uid');
+        if (!u) {
+          u = 'swf-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+          try { localStorage.setItem('swf-uid', u); } catch(e) {}
+        }
+        return u;
+      }
+
+      var url = '/api/diamond-hunt-claim/?page=' + encodeURIComponent(page) + (uid ? '&user_id=' + encodeURIComponent(uid) : '');
+      fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+        var diamonds = data.diamonds || [];
+        if (diamonds.length === 0) return;
+
+        var target = null;
+        for (var i = 0; i < diamonds.length; i++) {
+          if (!diamonds[i].already_claimed && !diamonds[i].depleted) { target = diamonds[i]; break; }
+        }
+
+        // If all claimed or depleted, show "mined" illustration
+        if (!target) {
+          var minedEl = document.createElement('div');
+          minedEl.className = 'diamond-mine-mined';
+          minedEl.setAttribute('aria-label', 'Diamonds already mined on this page');
+          minedEl.innerHTML = '<img src="/media/diamond-mined.svg" alt="Diamonds mined" width="40" height="40" /><span class="dm-mined-label">Mined ✓</span>';
+          var minedStyle = document.createElement('style');
+          minedStyle.textContent = '.diamond-mine-mined{position:fixed;bottom:24px;left:24px;z-index:9998;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:14px;background:linear-gradient(135deg,#052e16,#14532d);border:1.5px solid rgba(34,197,94,0.4);box-shadow:0 0 12px rgba(34,197,94,0.15),0 3px 8px rgba(0,0,0,0.4);opacity:0.85;transition:opacity .3s}' +
+            '.diamond-mine-mined:hover{opacity:1}' +
+            '.dm-mined-label{color:#86efac;font-size:11px;font-weight:600;letter-spacing:0.5px}';
+          document.head.appendChild(minedStyle);
+          document.body.appendChild(minedEl);
+          return;
+        }
+
+        var el = document.createElement('div');
+        el.id = 'diamond-mine-' + target.id;
+        el.className = 'diamond-mine-gem';
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', 'Hidden diamond — click to claim ' + target.diamonds_per_claim + ' diamonds');
+        el.setAttribute('tabindex', '0');
+        el.innerHTML = '<span class="dm-icon">💎</span><span class="dm-label">Find!</span>';
+        el.title = 'You found a hidden diamond! Click to claim ' + target.diamonds_per_claim + ' 💎';
+
+        var style = document.createElement('style');
+        style.textContent = '.diamond-mine-gem{position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;align-items:center;gap:6px;padding:10px 16px;border-radius:16px;background:linear-gradient(135deg,#1a0533,#2d1b69);border:2px solid rgba(168,85,247,0.6);box-shadow:0 0 20px rgba(168,85,247,0.3),0 4px 12px rgba(0,0,0,0.5);cursor:pointer;transition:all .3s;animation:dm-pulse 2s infinite}' +
+          '.diamond-mine-gem:hover{transform:scale(1.1);border-color:rgba(168,85,247,0.9);box-shadow:0 0 30px rgba(168,85,247,0.5),0 6px 16px rgba(0,0,0,0.6)}' +
+          '.dm-icon{font-size:24px;animation:dm-sparkle 1.5s ease-in-out infinite}' +
+          '.dm-label{color:#c4b5fd;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px}' +
+          '@keyframes dm-pulse{0%,100%{box-shadow:0 0 20px rgba(168,85,247,0.3),0 4px 12px rgba(0,0,0,0.5)}50%{box-shadow:0 0 30px rgba(168,85,247,0.5),0 6px 16px rgba(0,0,0,0.6)}}' +
+          '@keyframes dm-sparkle{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.15) rotate(5deg)}}' +
+          '.dm-claimed{animation:none!important;border-color:rgba(34,197,94,0.6)!important;background:linear-gradient(135deg,#052e16,#14532d)!important;box-shadow:0 0 20px rgba(34,197,94,0.3),0 4px 12px rgba(0,0,0,0.5)!important}' +
+          '.dm-claimed .dm-icon{animation:none!important}';
+        document.head.appendChild(style);
+        document.body.appendChild(el);
+
+        function claimDiamond() {
+          el.removeEventListener('click', claimDiamond);
+          el.removeEventListener('keydown', claimKeyHandler);
+          el.innerHTML = '<span class="dm-icon">⏳</span><span class="dm-label">Claiming...</span>';
+
+          var claimUid = getOrCreateUid();
+          fetch('/api/diamond-hunt-claim/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ diamond_id: target.id, user_id: claimUid })
+          }).then(function(r) { return r.json(); }).then(function(result) {
+            if (result.success) {
+              el.classList.add('dm-claimed');
+              el.innerHTML = '<span class="dm-icon">✅</span><span class="dm-label">+' + result.diamonds_earned + ' 💎</span>';
+              setTimeout(function() { el.remove(); }, 4000);
+            } else {
+              el.innerHTML = '<span class="dm-icon">❌</span><span class="dm-label">' + (result.error || 'Failed') + '</span>';
+              setTimeout(function() { el.remove(); }, 3000);
+            }
+          }).catch(function() {
+            el.innerHTML = '<span class="dm-icon">❌</span><span class="dm-label">Error</span>';
+            setTimeout(function() { el.remove(); }, 3000);
+          });
+        }
+
+        function claimKeyHandler(e) { if (e.key === 'Enter' || e.key === ' ') claimDiamond(); }
+
+        el.addEventListener('click', claimDiamond);
+        el.addEventListener('keydown', claimKeyHandler);
+      }).catch(function() {});
+    })();
+    </script>
   </body>
 </html>

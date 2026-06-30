@@ -1,0 +1,311 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Diamond Hunt — Admin" description="Manage diamond hunt locations and claims" keywords="admin, diamond hunt, diamonds, rewards">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/diamond-hunt/" class="text-purple-400 font-medium">Diamond Hunt</a>
+      <a href="/admin/stars-and-diamonds/" class="hover:text-blue-400 transition-colors">Stars</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-white mb-1">💎 Diamond Hunt</h1>
+        <p class="text-gray-400 text-sm">Manage hidden diamonds across the site. Users find and claim them.</p>
+      </div>
+      <button id="create-btn" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-500 transition-colors">+ New Diamond</button>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-purple-400" id="stat-total">—</p>
+        <p class="text-xs text-gray-400">Total Diamonds</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-green-400" id="stat-active">—</p>
+        <p class="text-xs text-gray-400">Active</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-gray-500" id="stat-inactive">—</p>
+        <p class="text-xs text-gray-400">Inactive</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-claims">—</p>
+        <p class="text-xs text-gray-400">Total Claims</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="rounded-xl border border-gray-800 bg-gray-900/50 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-800 bg-gray-800/40">
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">ID</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Location</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Remaining</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Per Claim</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Claims</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">End Date</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Created</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="diamonds-table">
+            <tr><td colspan="9" class="px-4 py-8 text-center text-gray-500 italic">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
+    <div class="bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl w-full max-w-md mx-4">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="modal-title" class="text-lg font-semibold text-white">New Diamond</h3>
+        <button id="modal-close" class="text-gray-400 hover:text-gray-200">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="diamond-form" class="space-y-4">
+        <input type="hidden" id="form-id" />
+        <div>
+          <label for="form-dom-loc" class="block text-xs font-medium text-gray-400 mb-1">Page Location (dom_loc)</label>
+          <input id="form-dom-loc" type="text" required placeholder="/activities/" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="form-remaining" class="block text-xs font-medium text-gray-400 mb-1">Diamonds Remaining</label>
+            <input id="form-remaining" type="number" min="0" value="10" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+          </div>
+          <div>
+            <label for="form-per-claim" class="block text-xs font-medium text-gray-400 mb-1">Per Claim</label>
+            <input id="form-per-claim" type="number" min="1" value="1" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="form-status" class="block text-xs font-medium text-gray-400 mb-1">Status</label>
+            <select id="form-status" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div>
+            <label for="form-end-date" class="block text-xs font-medium text-gray-400 mb-1">End Date (optional)</label>
+            <input id="form-end-date" type="date" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+          </div>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="submit" id="form-submit" class="flex-1 h-10 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-500 transition-colors text-sm">Create</button>
+          <button type="button" id="form-cancel" class="flex-1 h-10 bg-gray-700 text-gray-200 font-semibold rounded-lg hover:bg-gray-600 transition-colors text-sm">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Claims Modal -->
+  <div id="claims-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
+    <div class="bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl w-full max-w-lg mx-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="claims-modal-title" class="text-lg font-semibold text-white">Claims</h3>
+        <button id="claims-modal-close" class="text-gray-400 hover:text-gray-200">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="claims-list" class="max-h-80 overflow-y-auto">
+        <p class="text-gray-500 text-sm italic text-center py-4">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let diamonds: any[] = [];
+
+    async function loadDiamonds() {
+      try {
+        const res = await fetch('/api/diamond-hunt/');
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+        diamonds = data.diamonds || [];
+
+        document.getElementById('stat-total')!.textContent = String(data.summary.total);
+        document.getElementById('stat-active')!.textContent = String(data.summary.active);
+        document.getElementById('stat-inactive')!.textContent = String(data.summary.inactive);
+        document.getElementById('stat-claims')!.textContent = String(data.summary.totalClaims);
+
+        renderTable();
+      } catch {
+        document.getElementById('diamonds-table')!.innerHTML = '<tr><td colspan="9" class="px-4 py-8 text-center text-red-400">Failed to load</td></tr>';
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('diamonds-table')!;
+      if (diamonds.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-8 text-center text-gray-500 italic">No diamonds yet. Click "+ New Diamond" to create one.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = diamonds.map((d: any) => `
+        <tr class="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+          <td class="px-4 py-3 text-gray-300 font-mono text-xs">${d.id}</td>
+          <td class="px-4 py-3 text-blue-400 font-mono text-sm">${d.dom_loc || '—'}</td>
+          <td class="px-4 py-3 text-center font-bold ${d.diamonds_remaining === 0 ? 'text-red-400' : 'text-purple-400'}">${d.diamonds_remaining}</td>
+          <td class="px-4 py-3 text-center text-gray-300">${d.diamonds_per_claim}</td>
+          <td class="px-4 py-3 text-center">
+            <button class="view-claims-btn text-amber-400 hover:underline font-medium" data-id="${d.id}">${d.claim_count || 0}</button>
+          </td>
+          <td class="px-4 py-3 text-center">
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${d.status === 'active' ? 'bg-green-900/40 text-green-400 border border-green-700/50' : 'bg-gray-800 text-gray-500 border border-gray-700'}">${d.status}</span>
+          </td>
+          <td class="px-4 py-3 text-gray-400 text-xs">${d.end_date || '—'}</td>
+          <td class="px-4 py-3 text-gray-500 text-xs">${d.created_at ? d.created_at.split(' ')[0] : '—'}</td>
+          <td class="px-4 py-3 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button class="edit-btn text-blue-400 hover:text-blue-300 text-xs font-medium" data-id="${d.id}">Edit</button>
+              <button class="delete-btn text-red-400 hover:text-red-300 text-xs font-medium" data-id="${d.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      // Bind edit buttons
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => editDiamond(Number((btn as HTMLElement).dataset.id)));
+      });
+
+      // Bind delete buttons
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteDiamond(Number((btn as HTMLElement).dataset.id)));
+      });
+
+      // Bind claims view buttons
+      document.querySelectorAll('.view-claims-btn').forEach(btn => {
+        btn.addEventListener('click', () => viewClaims(Number((btn as HTMLElement).dataset.id)));
+      });
+    }
+
+    // Modal helpers
+    function showModal() { document.getElementById('modal')!.classList.remove('hidden'); document.getElementById('modal')!.classList.add('flex'); }
+    function hideModal() { document.getElementById('modal')!.classList.add('hidden'); document.getElementById('modal')!.classList.remove('flex'); }
+    function showClaimsModal() { document.getElementById('claims-modal')!.classList.remove('hidden'); document.getElementById('claims-modal')!.classList.add('flex'); }
+    function hideClaimsModal() { document.getElementById('claims-modal')!.classList.add('hidden'); document.getElementById('claims-modal')!.classList.remove('flex'); }
+
+    // Create new
+    document.getElementById('create-btn')!.addEventListener('click', () => {
+      document.getElementById('modal-title')!.textContent = 'New Diamond';
+      document.getElementById('form-submit')!.textContent = 'Create';
+      (document.getElementById('form-id') as HTMLInputElement).value = '';
+      (document.getElementById('form-dom-loc') as HTMLInputElement).value = '';
+      (document.getElementById('form-remaining') as HTMLInputElement).value = '10';
+      (document.getElementById('form-per-claim') as HTMLInputElement).value = '1';
+      (document.getElementById('form-status') as HTMLSelectElement).value = 'active';
+      (document.getElementById('form-end-date') as HTMLInputElement).value = '';
+      showModal();
+    });
+
+    // Edit
+    function editDiamond(id: number) {
+      const d = diamonds.find((x: any) => x.id === id);
+      if (!d) return;
+      document.getElementById('modal-title')!.textContent = `Edit Diamond #${id}`;
+      document.getElementById('form-submit')!.textContent = 'Update';
+      (document.getElementById('form-id') as HTMLInputElement).value = String(id);
+      (document.getElementById('form-dom-loc') as HTMLInputElement).value = d.dom_loc || '';
+      (document.getElementById('form-remaining') as HTMLInputElement).value = String(d.diamonds_remaining);
+      (document.getElementById('form-per-claim') as HTMLInputElement).value = String(d.diamonds_per_claim);
+      (document.getElementById('form-status') as HTMLSelectElement).value = d.status;
+      (document.getElementById('form-end-date') as HTMLInputElement).value = d.end_date || '';
+      showModal();
+    }
+
+    // Delete
+    async function deleteDiamond(id: number) {
+      if (!confirm(`Delete diamond #${id} and all its claims?`)) return;
+      try {
+        const res = await fetch(`/api/diamond-hunt/?id=${id}`, { method: 'DELETE' });
+        if (res.ok) loadDiamonds();
+        else alert('Delete failed');
+      } catch { alert('Delete error'); }
+    }
+
+    // View claims
+    async function viewClaims(id: number) {
+      document.getElementById('claims-modal-title')!.textContent = `Claims — Diamond #${id}`;
+      document.getElementById('claims-list')!.innerHTML = '<p class="text-gray-500 text-sm italic text-center py-4">Loading...</p>';
+      showClaimsModal();
+      try {
+        const res = await fetch(`/api/diamond-hunt/?id=${id}`);
+        const data = await res.json();
+        const claims = data.claims || [];
+        if (claims.length === 0) {
+          document.getElementById('claims-list')!.innerHTML = '<p class="text-gray-500 text-sm italic text-center py-4">No claims yet</p>';
+          return;
+        }
+        document.getElementById('claims-list')!.innerHTML = `
+          <table class="w-full text-sm">
+            <thead><tr class="border-b border-gray-700 text-xs text-gray-400">
+              <th class="py-2 text-left">User ID</th>
+              <th class="py-2 text-center">Diamonds Earned</th>
+              <th class="py-2 text-right">Claimed At</th>
+            </tr></thead>
+            <tbody>${claims.map((c: any) => `
+              <tr class="border-b border-gray-800/50">
+                <td class="py-2 text-blue-400 font-mono text-xs">${c.user_id}</td>
+                <td class="py-2 text-center text-purple-400 font-bold">${c.diamonds_earned}</td>
+                <td class="py-2 text-right text-gray-400 text-xs">${c.claimed_at || '—'}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`;
+      } catch {
+        document.getElementById('claims-list')!.innerHTML = '<p class="text-red-400 text-sm text-center py-4">Failed to load claims</p>';
+      }
+    }
+
+    // Form submit (create or update)
+    document.getElementById('diamond-form')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = (document.getElementById('form-id') as HTMLInputElement).value;
+      const body = {
+        id: id ? Number(id) : undefined,
+        dom_loc: (document.getElementById('form-dom-loc') as HTMLInputElement).value,
+        diamonds_remaining: Number((document.getElementById('form-remaining') as HTMLInputElement).value),
+        diamonds_per_claim: Number((document.getElementById('form-per-claim') as HTMLInputElement).value),
+        status: (document.getElementById('form-status') as HTMLSelectElement).value,
+        end_date: (document.getElementById('form-end-date') as HTMLInputElement).value || null,
+      };
+      const method = id ? 'PUT' : 'POST';
+      try {
+        const res = await fetch('/api/diamond-hunt/', {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) { hideModal(); loadDiamonds(); }
+        else alert('Save failed');
+      } catch { alert('Save error'); }
+    });
+
+    // Close modals
+    document.getElementById('modal-close')!.addEventListener('click', hideModal);
+    document.getElementById('form-cancel')!.addEventListener('click', hideModal);
+    document.getElementById('claims-modal-close')!.addEventListener('click', hideClaimsModal);
+
+    // Load on page ready
+    loadDiamonds();
+  </script>
+</Layout>

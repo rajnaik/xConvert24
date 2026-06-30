@@ -33,6 +33,24 @@ export const GET: APIRoute = async ({ request }) => {
   let rewards = await db.prepare('SELECT * FROM user_rewards WHERE user_id = ?').bind(userId).first() as any;
   if (!rewards) rewards = { total_stars: 0, total_diamonds: 0, current_streak: 0, best_streak: 0, diamond_streak: 0, best_diamond_streak: 0, theme_unlocked: '[]', perks_unlocked: '[]' };
 
+  // Total diamonds = earned (daily_progress) + bonus (bonus_diamonds) + mined (diamond_claims)
+  const diamondCountResult = await db.prepare(
+    'SELECT COUNT(*) as count FROM daily_progress WHERE user_id = ? AND diamond = 1'
+  ).bind(userId).first() as any;
+  const earnedDiamonds = diamondCountResult?.count || 0;
+
+  const bonusCountResult = await db.prepare(
+    'SELECT COUNT(*) as count FROM bonus_diamonds WHERE user_id = ?'
+  ).bind(userId).first() as any;
+  const bonusDiamonds = bonusCountResult?.count || 0;
+
+  const minedCountResult = await db.prepare(
+    'SELECT COALESCE(SUM(diamonds_earned), 0) as total FROM diamond_claims WHERE user_id = ?'
+  ).bind(userId).first() as any;
+  const minedDiamonds = minedCountResult?.total || 0;
+
+  const totalDiamonds = earnedDiamonds + bonusDiamonds + minedDiamonds;
+
   // Count lost diamonds (days with all stars earned but diamond not claimed, in the past)
   const lostResult = await db.prepare(
     'SELECT COUNT(*) as count FROM daily_progress WHERE user_id = ? AND date < ? AND stars_total >= (SELECT COUNT(*) FROM activities WHERE active = 1) AND diamond = 0'
@@ -70,7 +88,9 @@ export const GET: APIRoute = async ({ request }) => {
     },
     lifetime: {
       total_stars: rewards.total_stars,
-      total_diamonds: rewards.total_diamonds,
+      total_diamonds: totalDiamonds,
+      diamonds_earned: earnedDiamonds + bonusDiamonds,
+      diamonds_mined: minedDiamonds,
       diamonds_lost: diamondsLost,
       near_misses: nearMisses,
       avg_stars_week: avgWeek,
@@ -111,11 +131,13 @@ export const POST: APIRoute = async ({ request }) => {
   // Check if already earned
   if (starsEarned.includes(game)) {
     const rewards = await db.prepare('SELECT * FROM user_rewards WHERE user_id = ?').bind(user_id).first() as any;
+    // Single source of truth: count diamonds from daily_progress
+    const diamondCount = await db.prepare('SELECT COUNT(*) as count FROM daily_progress WHERE user_id = ? AND diamond = 1').bind(user_id).first() as any;
     return new Response(JSON.stringify({
       star_awarded: game,
       already_earned: true,
       today: { stars_earned: starsEarned, stars_total: starsEarned.length, diamond: todayRow?.diamond || 0 },
-      lifetime: { total_stars: rewards?.total_stars || 0, total_diamonds: rewards?.total_diamonds || 0, current_streak: rewards?.current_streak || 0, diamond_streak: rewards?.diamond_streak || 0 },
+      lifetime: { total_stars: rewards?.total_stars || 0, total_diamonds: diamondCount?.count || 0, current_streak: rewards?.current_streak || 0, diamond_streak: rewards?.diamond_streak || 0 },
     }), { headers: { 'Content-Type': 'application/json' } });
   }
 
@@ -149,8 +171,8 @@ export const POST: APIRoute = async ({ request }) => {
   if (!existing) {
     const diamondStreak = earnedDiamond ? 1 : 0;
     await db.prepare(
-      'INSERT INTO user_rewards (user_id, total_stars, total_diamonds, current_streak, best_streak, diamond_streak, best_diamond_streak, last_active_date, last_diamond_date) VALUES (?, 1, ?, 1, 1, ?, ?, ?, ?)'
-    ).bind(user_id, earnedDiamond ? 1 : 0, diamondStreak, diamondStreak, today, earnedDiamond ? today : '').run();
+      'INSERT INTO user_rewards (user_id, total_stars, total_diamonds, current_streak, best_streak, diamond_streak, best_diamond_streak, last_active_date, last_diamond_date) VALUES (?, 1, 0, 1, 1, ?, ?, ?, ?)'
+    ).bind(user_id, diamondStreak, diamondStreak, today, earnedDiamond ? today : '').run();
   } else {
     let newStreak = existing.current_streak;
     if (existing.last_active_date === yesterday) newStreak = existing.current_streak + 1;
@@ -165,16 +187,19 @@ export const POST: APIRoute = async ({ request }) => {
     const bestDiamondStreak = Math.max(diamondStreak, existing.best_diamond_streak);
 
     await db.prepare(
-      "UPDATE user_rewards SET total_stars = total_stars + 1, total_diamonds = total_diamonds + ?, current_streak = ?, best_streak = ?, diamond_streak = ?, best_diamond_streak = ?, last_active_date = ?, last_diamond_date = CASE WHEN ? = 1 THEN ? ELSE last_diamond_date END, updated_at = datetime('now') WHERE user_id = ?"
-    ).bind(earnedDiamond ? 1 : 0, newStreak, bestStreak, diamondStreak, bestDiamondStreak, today, earnedDiamond ? 1 : 0, today, user_id).run();
+      "UPDATE user_rewards SET total_stars = total_stars + 1, current_streak = ?, best_streak = ?, diamond_streak = ?, best_diamond_streak = ?, last_active_date = ?, last_diamond_date = CASE WHEN ? = 1 THEN ? ELSE last_diamond_date END, updated_at = datetime('now') WHERE user_id = ?"
+    ).bind(newStreak, bestStreak, diamondStreak, bestDiamondStreak, today, earnedDiamond ? 1 : 0, today, user_id).run();
   }
 
   const updatedRewards = await db.prepare('SELECT * FROM user_rewards WHERE user_id = ?').bind(user_id).first() as any;
+
+  // Single source of truth: count diamonds from daily_progress
+  const postDiamondCount = await db.prepare('SELECT COUNT(*) as count FROM daily_progress WHERE user_id = ? AND diamond = 1').bind(user_id).first() as any;
 
   return new Response(JSON.stringify({
     star_awarded: game,
     diamond_earned: earnedDiamond,
     today: { stars_earned: starsEarned, stars_total: starsEarned.length, diamond: earnedDiamond ? 1 : (todayRow?.diamond || 0) },
-    lifetime: { total_stars: updatedRewards?.total_stars || 0, total_diamonds: updatedRewards?.total_diamonds || 0, current_streak: updatedRewards?.current_streak || 0, diamond_streak: updatedRewards?.diamond_streak || 0 },
+    lifetime: { total_stars: updatedRewards?.total_stars || 0, total_diamonds: postDiamondCount?.count || 0, current_streak: updatedRewards?.current_streak || 0, diamond_streak: updatedRewards?.diamond_streak || 0 },
   }), { headers: { 'Content-Type': 'application/json' } });
 };

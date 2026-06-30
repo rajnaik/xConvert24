@@ -65,11 +65,11 @@ test.describe('Diamond Claimed Message Styling — Positive', () => {
     await page.goto(ACTIVITIES_URL);
     await page.waitForFunction(() => {
       const el = document.getElementById('sb-diamond-msg');
-      return el && !el.classList.contains('hidden') && el.textContent!.includes('Diamond claimed');
+      return el && !el.classList.contains('hidden') && el.textContent!.includes('Diamond earned');
     }, { timeout: 8000 });
 
     const msgEl = page.locator('#sb-diamond-msg');
-    await expect(msgEl).toContainText('Diamond claimed! Come back tomorrow!');
+    await expect(msgEl).toContainText('Diamond earned! Come back tomorrow!');
 
     const classAttr = await msgEl.getAttribute('class');
     expect(classAttr).toContain('border-purple-500/50');
@@ -78,7 +78,7 @@ test.describe('Diamond Claimed Message Styling — Positive', () => {
     expect(classAttr).toContain('text-[11px]');
   });
 
-  test('diamond claimed text does NOT contain diamond emoji', async ({ page }) => {
+  test('diamond earned text contains diamond emoji', async ({ page }) => {
     const { cacheKey, cacheData, starsLsKey } = buildDiamondCache();
 
     await page.addInitScript(({ key, data, starsKey }) => {
@@ -103,11 +103,11 @@ test.describe('Diamond Claimed Message Styling — Positive', () => {
     await page.goto(ACTIVITIES_URL);
     await page.waitForFunction(() => {
       const el = document.getElementById('sb-diamond-msg');
-      return el && !el.classList.contains('hidden') && el.textContent!.includes('Diamond claimed');
+      return el && !el.classList.contains('hidden') && el.textContent!.includes('Diamond earned');
     }, { timeout: 8000 });
 
     const text = await page.locator('#sb-diamond-msg').textContent();
-    expect(text).not.toContain('💎');
+    expect(text).toContain('💎');
   });
 
   test('sb-message is hidden when diamond is claimed', async ({ page }) => {
@@ -135,7 +135,7 @@ test.describe('Diamond Claimed Message Styling — Positive', () => {
     await page.goto(ACTIVITIES_URL);
     await page.waitForFunction(() => {
       const el = document.getElementById('sb-diamond-msg');
-      return el && !el.classList.contains('hidden');
+      return el && !el.classList.contains('hidden') && el.textContent!.includes('Diamond earned');
     }, { timeout: 8000 });
 
     // The normal sb-message should be hidden

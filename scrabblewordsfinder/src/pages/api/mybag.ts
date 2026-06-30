@@ -23,6 +23,19 @@ export const GET: APIRoute = async ({ request }) => {
     'SELECT total_stars, total_diamonds, current_streak, best_streak, diamond_streak, best_diamond_streak, last_active_date FROM user_rewards WHERE user_id = ?'
   ).bind(userId).first() as any;
 
+  // Compute actual earned diamonds (daily_progress diamond days + bonus_diamonds)
+  const earnedCountResult = await db.prepare(
+    'SELECT COUNT(*) as count FROM daily_progress WHERE user_id = ? AND diamond = 1'
+  ).bind(userId).first() as any;
+  const earnedDiamonds = earnedCountResult?.count || 0;
+
+  const bonusCountResult = await db.prepare(
+    'SELECT COUNT(*) as count FROM bonus_diamonds WHERE user_id = ?'
+  ).bind(userId).first() as any;
+  const bonusDiamonds = bonusCountResult?.count || 0;
+
+  const totalEarnedDiamonds = earnedDiamonds + bonusDiamonds;
+
   // Get earning history from daily_progress (most recent first)
   const historyResult = await db.prepare(
     'SELECT date, stars_earned, stars_total, diamond FROM daily_progress WHERE user_id = ? ORDER BY date DESC LIMIT ?'
@@ -47,10 +60,29 @@ export const GET: APIRoute = async ({ request }) => {
     return map;
   }, {} as Record<string, { name: string; icon: string; color: string }>);
 
+  // Compute badge progression from total earned diamonds
+  const totalDiamonds = totalEarnedDiamonds;
+  const BADGE_TIERS = [
+    { name: 'Word Maker', img: '/badges/word-maker.svg', threshold: 25 },
+    { name: 'Word Smith', img: '/badges/word-smith.svg', threshold: 100 },
+    { name: 'Word Master', img: '/badges/word-master.svg', threshold: 250 },
+    { name: 'Word Wizard', img: '/badges/word-wizard.svg', threshold: 500 },
+    { name: 'Grand Lexicon', img: '/badges/grand-lexicon.svg', threshold: 1000 },
+    { name: 'Scrabble Sage', img: '/badges/scrabble-sage.svg', threshold: 2500 },
+    { name: 'Lex Legend', img: '/badges/lex-legend.svg', threshold: 5000 },
+  ];
+
+  const badges = BADGE_TIERS.map((tier) => ({
+    name: tier.name,
+    img: tier.img,
+    info: tier.threshold + ' diamonds required',
+    achieved: totalDiamonds >= tier.threshold,
+  }));
+
   return new Response(JSON.stringify({
     totals: {
       total_stars: rewards?.total_stars || 0,
-      total_diamonds: rewards?.total_diamonds || 0,
+      total_diamonds: totalEarnedDiamonds,
       current_streak: rewards?.current_streak || 0,
       best_streak: rewards?.best_streak || 0,
       diamond_streak: rewards?.diamond_streak || 0,
@@ -59,5 +91,6 @@ export const GET: APIRoute = async ({ request }) => {
     },
     activities,
     history,
+    badges,
   }), { headers: { 'Content-Type': 'application/json' } });
 };

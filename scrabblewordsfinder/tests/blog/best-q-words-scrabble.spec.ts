@@ -237,6 +237,52 @@ test.describe('Best Q Words — Related Articles & CTA — Positive', () => {
   });
 });
 
+test.describe('Best Q Words — Diamond Mine Indicator — Positive', () => {
+
+  test('diamond mine indicator is visible on page', async ({ page }) => {
+    await page.goto(PAGE);
+    const indicator = page.locator('.border-purple-500\\/50.bg-purple-950\\/30');
+    await expect(indicator).toBeVisible();
+  });
+
+  test('diamond mine indicator shows correct reward text', async ({ page }) => {
+    await page.goto(PAGE);
+    const indicator = page.locator('.border-purple-500\\/50.bg-purple-950\\/30');
+    await expect(indicator).toContainText('Mined');
+    await expect(indicator).toContainText('5 diamonds per claim');
+  });
+
+  test('diamond mine indicator has diamond emoji', async ({ page }) => {
+    await page.goto(PAGE);
+    const indicator = page.locator('.border-purple-500\\/50.bg-purple-950\\/30');
+    await expect(indicator).toContainText('💎');
+  });
+});
+
+test.describe('Best Q Words — Diamond Mine Indicator — Negative', () => {
+
+  test('only one diamond mine indicator exists on page', async ({ page }) => {
+    await page.goto(PAGE);
+    const indicators = page.locator('.border-purple-500\\/50.bg-purple-950\\/30');
+    await expect(indicators).toHaveCount(1);
+  });
+
+  test('diamond mine indicator text is not empty', async ({ page }) => {
+    await page.goto(PAGE);
+    const text = page.locator('.border-purple-500\\/50.bg-purple-950\\/30 p');
+    const content = await text.textContent();
+    expect(content?.trim().length).toBeGreaterThan(0);
+  });
+
+  test('diamond mine indicator does not expose mine ID or page path', async ({ page }) => {
+    await page.goto(PAGE);
+    const indicator = page.locator('.border-purple-500\\/50.bg-purple-950\\/30');
+    const text = await indicator.textContent();
+    expect(text).not.toContain('Mine #');
+    expect(text).not.toContain('/blog/best-q-words-scrabble/');
+  });
+});
+
 test.describe('Best Q Words — Negative', () => {
 
   test('no console errors on page load', async ({ page }) => {

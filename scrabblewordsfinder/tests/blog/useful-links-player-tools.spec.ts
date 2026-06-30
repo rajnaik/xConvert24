@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
  * Tests the #player-tools section on /blog/useful-links/.
  * 
  * Change: Player Statistics link (/stats/) was disabled (commented out).
- * Remaining links: Achievements, Profile Data, WordBench Practice, Workbench Data.
+ * Links: Achievements, MyBag, Badges & Progression Guide, Profile Data, WordBench Practice, Workbench Data.
  */
 
 test.describe('Useful Links — Player Tools — Positive', () => {
@@ -36,6 +36,28 @@ test.describe('Useful Links — Player Tools — Positive', () => {
     const link = section.locator('a[href="/profile-data/"]');
     await expect(link).toBeVisible();
     await expect(link).toContainText('Profile Data');
+  });
+
+  test('badges & progression guide link is visible and correct', async ({ page }) => {
+    await page.goto('/blog/useful-links/');
+    const section = page.locator('#player-tools');
+    const link = section.locator('a[href="/blog/scrabble-badges-progression-guide/"]');
+    await expect(link).toBeVisible();
+    await expect(link).toContainText('Badges & Progression Guide');
+  });
+
+  test('badges & progression guide card has correct description', async ({ page }) => {
+    await page.goto('/blog/useful-links/');
+    const section = page.locator('#player-tools');
+    const link = section.locator('a[href="/blog/scrabble-badges-progression-guide/"]');
+    await expect(link).toContainText('How tiered badges track your growth as a player');
+  });
+
+  test('badges & progression guide card has book emoji icon', async ({ page }) => {
+    await page.goto('/blog/useful-links/');
+    const section = page.locator('#player-tools');
+    const link = section.locator('a[href="/blog/scrabble-badges-progression-guide/"]');
+    await expect(link).toContainText('📖');
   });
 });
 
@@ -74,5 +96,12 @@ test.describe('Useful Links — Player Tools — Negative', () => {
     }
     const duplicates = hrefs.filter((item, index) => hrefs.indexOf(item) !== index);
     expect(duplicates).toHaveLength(0);
+  });
+
+  test('badges & progression guide link appears exactly once', async ({ page }) => {
+    await page.goto('/blog/useful-links/');
+    const section = page.locator('#player-tools');
+    const links = section.locator('a[href="/blog/scrabble-badges-progression-guide/"]');
+    await expect(links).toHaveCount(1);
   });
 });

@@ -32,7 +32,7 @@ test.describe('StarBar MyBag Link — Positive', () => {
 
   test('MyBag label text is present (hidden on small screens)', async ({ page }) => {
     await page.goto(ACTIVITIES_URL);
-    const labelSpan = page.locator('#sb-mybag-link span');
+    const labelSpan = page.locator('#sb-mybag-link span.hidden.sm\\:inline');
     await expect(labelSpan).toHaveText('MyBag');
   });
 });

@@ -1,0 +1,212 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Diamond Hunt — Find Hidden Diamonds | ScrabbleWordsFinder" description="Explore all diamond mines scattered across ScrabbleWordsFinder. Visit pages, find hidden gems, and claim diamonds to grow your collection." keywords="diamond hunt, scrabble diamonds, hidden collectibles, word game rewards, diamond mine, scrabble challenges">
+
+  <main class="mx-auto max-w-4xl px-4 sm:px-6 pb-20 pt-4">
+    <div class="flex items-center justify-between mb-2 flex-wrap gap-3">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white"><span class="text-purple-400 text-4xl">💎</span> Diamond Hunt</h1>
+      <a href="/activities/" class="px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/30 text-xs font-medium text-blue-400 hover:bg-blue-600/40 transition-colors">🎯 Activities</a>
+    </div>
+    <p class="text-sm text-gray-400 mb-8">Hidden diamonds are scattered across the site. Visit a page with an active mine and claim your 💎 reward!</p>
+
+    <!-- Loading state -->
+    <div id="dh-loading" class="text-center py-12">
+      <p class="text-gray-400 text-sm animate-pulse">Loading diamond mines...</p>
+    </div>
+
+    <!-- No user state -->
+    <div id="dh-no-user" class="hidden text-center py-12">
+      <p class="text-gray-400 text-lg mb-2">Play a game first to get started</p>
+      <p class="text-gray-500 text-sm">Visit the <a href="/activities/" class="text-blue-400 underline">Activities</a> page and play any game — then come back to hunt diamonds!</p>
+    </div>
+
+    <!-- Main content (hidden until loaded) -->
+    <div id="dh-content" class="hidden">
+
+      <!-- Stats Summary -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <div class="rounded-xl border border-purple-700/40 bg-purple-950/20 px-4 py-3 text-center">
+          <p class="text-2xl font-bold text-purple-400" id="dh-total-mines">0</p>
+          <p class="text-xs text-gray-400 mt-1">Active Mines</p>
+        </div>
+        <div class="rounded-xl border border-green-700/40 bg-green-950/20 px-4 py-3 text-center">
+          <p class="text-2xl font-bold text-green-400" id="dh-claimed-count">0</p>
+          <p class="text-xs text-gray-400 mt-1">You Claimed</p>
+        </div>
+        <div class="rounded-xl border border-amber-700/40 bg-amber-950/20 px-4 py-3 text-center">
+          <p class="text-2xl font-bold text-amber-400" id="dh-diamonds-earned">0</p>
+          <p class="text-xs text-gray-400 mt-1">💎 Earned (Hunt)</p>
+        </div>
+        <div class="rounded-xl border border-rose-700/40 bg-rose-950/20 px-4 py-3 text-center">
+          <p class="text-2xl font-bold text-rose-400" id="dh-unclaimed">0</p>
+          <p class="text-xs text-gray-400 mt-1">Still Available</p>
+        </div>
+      </div>
+
+      <!-- Today's Claims -->
+      <div id="dh-today-section" class="hidden mb-8">
+        <h2 class="text-lg font-semibold text-white mb-3">Today's Claims</h2>
+        <div id="dh-today-list" class="space-y-2"></div>
+      </div>
+
+      <!-- Mine List -->
+      <h2 class="text-lg font-semibold text-white mb-4">All Diamond Mines</h2>
+      <div id="dh-mine-list" class="space-y-3"></div>
+
+    </div>
+  </main>
+
+  <script is:inline>
+  (function() {
+    var S = window.__swfStore;
+    var uid = S ? S.getRaw('swf-uid') : localStorage.getItem('swf-uid');
+
+    var loadingEl = document.getElementById('dh-loading');
+    var noUserEl = document.getElementById('dh-no-user');
+    var contentEl = document.getElementById('dh-content');
+
+    if (!uid) {
+      loadingEl.classList.add('hidden');
+      noUserEl.classList.remove('hidden');
+      return;
+    }
+
+    // Fetch all mines and user claims
+    Promise.all([
+      fetch('/api/diamond-hunt/').then(function(r) { return r.json(); }),
+      fetch('/api/diamond-hunt-user/?user_id=' + encodeURIComponent(uid)).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+      var mineData = results[0];
+      var userData = results[1];
+
+      loadingEl.classList.add('hidden');
+      contentEl.classList.remove('hidden');
+
+      var mines = mineData.diamonds || [];
+      var claims = userData.claims || [];
+      var claimedIds = claims.map(function(c) { return c.diamond_id; });
+      var todayClaims = userData.today_claims || [];
+
+      // Stats
+      var activeMines = mines.filter(function(m) { return m.status === 'active'; });
+      var claimedCount = 0;
+      var totalEarned = 0;
+      activeMines.forEach(function(m) {
+        if (claimedIds.indexOf(m.id) !== -1) {
+          claimedCount++;
+          var claim = claims.find(function(c) { return c.diamond_id === m.id; });
+          totalEarned += (claim ? claim.diamonds_earned : m.diamonds_per_claim);
+        }
+      });
+      var unclaimed = activeMines.length - claimedCount;
+
+      document.getElementById('dh-total-mines').textContent = activeMines.length;
+      document.getElementById('dh-claimed-count').textContent = claimedCount;
+      document.getElementById('dh-diamonds-earned').textContent = totalEarned;
+      document.getElementById('dh-unclaimed').textContent = unclaimed;
+
+      // Today's claims
+      if (todayClaims.length > 0) {
+        var todaySection = document.getElementById('dh-today-section');
+        todaySection.classList.remove('hidden');
+        var todayList = document.getElementById('dh-today-list');
+        todayClaims.forEach(function(tc) {
+          var mine = mines.find(function(m) { return m.id === tc.diamond_id; });
+          var div = document.createElement('div');
+          div.className = 'flex items-center justify-between px-4 py-2 rounded-lg border border-green-700/30 bg-green-950/10';
+          div.innerHTML = '<span class="text-sm text-green-300">✅ Claimed <strong>' + tc.diamonds_earned + ' 💎</strong> from <code class="text-xs bg-gray-800 px-1.5 py-0.5 rounded text-green-200">' + (mine ? mine.dom_loc : 'Unknown') + '</code></span>' +
+            '<span class="text-xs text-gray-500">' + formatTime(tc.claimed_at) + '</span>';
+          todayList.appendChild(div);
+        });
+      }
+
+      // Render mine list
+      var listEl = document.getElementById('dh-mine-list');
+      activeMines.forEach(function(mine) {
+        var isClaimed = claimedIds.indexOf(mine.id) !== -1;
+        var card = document.createElement('a');
+        card.href = mine.dom_loc;
+        card.className = 'block rounded-xl border px-4 py-3 transition-all hover:scale-[1.01] ' +
+          (isClaimed
+            ? 'border-green-700/40 bg-green-950/10 hover:bg-green-950/20'
+            : 'border-purple-700/40 bg-purple-950/10 hover:bg-purple-950/20 hover:border-purple-500/60');
+
+        var statusBadge = isClaimed
+          ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-900/50 text-green-400 border border-green-700/40">✅ Claimed</span>'
+          : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-purple-900/50 text-purple-300 border border-purple-700/40 animate-pulse">⛏️ Available</span>';
+
+        var rewardText = mine.diamonds_per_claim === 1 ? '1 💎' : mine.diamonds_per_claim + ' 💎';
+
+        card.innerHTML =
+          '<div class="flex items-center justify-between gap-3 flex-wrap">' +
+            '<div class="flex items-center gap-3 min-w-0">' +
+              '<span class="text-2xl flex-shrink-0">' + (isClaimed ? '✅' : '💎') + '</span>' +
+              '<div class="min-w-0">' +
+                '<p class="text-sm font-medium ' + (isClaimed ? 'text-green-300' : 'text-purple-200') + ' truncate">' + getPageLabel(mine.dom_loc) + '</p>' +
+                '<p class="text-xs text-gray-500 truncate">' + mine.dom_loc + '</p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-center gap-3">' +
+              '<span class="text-xs text-gray-400 font-medium">' + rewardText + '</span>' +
+              statusBadge +
+            '</div>' +
+          '</div>';
+
+        listEl.appendChild(card);
+      });
+
+    }).catch(function(err) {
+      loadingEl.classList.add('hidden');
+      contentEl.classList.remove('hidden');
+      document.getElementById('dh-mine-list').innerHTML = '<p class="text-amber-400 text-sm text-center py-4">Unable to load diamond mines. Please try again later.</p>';
+    });
+
+    function getPageLabel(path) {
+      var labels = {
+        '/': 'Homepage',
+        '/activities/': 'Activities',
+        '/mybag/': 'MyBag',
+        '/guide/': 'Player Guide',
+        '/faq/': 'FAQ',
+        '/achievements/': 'Achievements',
+        '/sixty-seconds/': '60-Second Challenge',
+        '/stats/': 'Your Stats',
+        '/quiz-history/': 'Quiz History',
+        '/wordbench-practice/': 'WordBench Practice',
+        '/blog/': 'Blog Index'
+      };
+      if (labels[path]) return labels[path];
+      // Blog posts: extract slug
+      if (path.startsWith('/blog/')) {
+        var slug = path.replace('/blog/', '').replace(/\/$/, '');
+        return slug.split('-').map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+      }
+      return path;
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      try {
+        var d = new Date(isoStr);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } catch(e) { return ''; }
+    }
+  })();
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is Diamond Hunt on ScrabbleWordsFinder?", "acceptedAnswer": { "@type": "Answer", "text": "Diamond Hunt is a collectible game where hidden diamonds are placed across various pages on ScrabbleWordsFinder. Visit a page with an active mine, find the hidden gem, and click it to claim diamonds for your collection." } },
+      { "@type": "Question", "name": "How do I find hidden diamonds?", "acceptedAnswer": { "@type": "Answer", "text": "Visit the Diamond Hunt page to see all active mines and which pages contain diamonds. Navigate to any unclaimed page, and the diamond will appear as a floating gem. Click it to claim your reward." } },
+      { "@type": "Question", "name": "How many diamonds can I earn from Diamond Hunt?", "acceptedAnswer": { "@type": "Answer", "text": "Each mine offers different rewards ranging from 1 to 100 diamonds per claim. Visit as many pages as you can to maximize your diamond collection." } }
+    ]
+  }
+  </script>
+
+</Layout>
