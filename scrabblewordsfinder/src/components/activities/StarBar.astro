@@ -2,7 +2,7 @@
       <div id="star-bar" class="col-span-1 lg:col-span-2 rounded-xl border border-amber-800/50 bg-gradient-to-r from-amber-950/20 via-gray-900/50 to-purple-950/20 p-4">
         <div class="flex items-center justify-between flex-wrap gap-3">
           <!-- Stars -->
-          <div class="flex items-end gap-2 flex-wrap">
+          <div class="flex items-end gap-2">
             <div class="flex flex-col items-center gap-0.5">
               <span class="text-[9px] text-gray-500 leading-none">WOTD</span>
               <span id="sb-wotd" class="w-8 h-8 rounded-lg flex items-center justify-center text-lg border border-gray-700 bg-gray-800/50 opacity-40 transition-all cursor-help" title="📖 Word of the Day — Add word to Memory WordBench + Lookup meaning">📖</span>
@@ -34,27 +34,22 @@
             <span class="text-gray-600 mx-1 mb-1">→</span>
             <div class="flex flex-col items-center gap-0.5">
               <span class="text-[9px] text-gray-500 leading-none">💎</span>
-              <span id="sb-diamond" class="w-9 h-9 rounded-lg flex items-center justify-center text-xl border-2 border-gray-700 bg-gray-800/50 opacity-30 transition-all cursor-help" title="💎 Diamond — Earn all 6 stars, then click Redeem!">💎</span>
+              <span id="sb-diamond" class="w-9 h-9 rounded-lg flex items-center justify-center text-xl border-2 border-gray-700 bg-gray-800/50 opacity-30 transition-all cursor-help" title="💎 Diamond — Earn all stars to unlock!">💎</span>
             </div>
-            <span id="sb-diamond-msg" class="hidden ml-2 mb-1 text-[11px] text-purple-300 font-medium px-3 py-1.5 rounded-lg border border-purple-500/50 bg-purple-900/20 whitespace-nowrap sm:whitespace-nowrap basis-full sm:basis-auto mt-2 sm:mt-0 text-center sm:text-left"></span>
+            <span id="sb-diamond-msg" class="hidden ml-2 mb-1 text-[11px] text-purple-300 font-medium px-3 py-1.5 rounded-lg border border-purple-500/50 bg-purple-900/20 whitespace-nowrap"></span>
           </div>
           <!-- Stats — single line with counts in () -->
           <div class="flex items-center gap-4 text-xs">
             <span class="text-gray-400">🔥 Streak (<span id="sb-streak" class="text-amber-400 font-bold">0</span>)</span>
             <span class="text-gray-400">⭐ Total (<span id="sb-total-stars" class="text-amber-400 font-bold">0</span>)</span>
             <span class="text-gray-400">💎 Total (<span id="sb-total-diamonds" class="text-purple-400 font-bold">0</span>)</span>
-            <a href="/mybag/" id="sb-mybag-link" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-amber-700/40 bg-amber-950/30 hover:bg-amber-900/40 hover:border-amber-500/60 text-amber-400 hover:text-amber-300 transition-all" title="MyBag — View your star & diamond earnings">🎒 <span class="hidden sm:inline">MyBag</span></a>
+            <a href="/mybag/" id="sb-mybag-link" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-amber-700/40 bg-amber-950/30 hover:bg-amber-900/40 hover:border-amber-500/60 text-amber-400 hover:text-amber-300 transition-all" title="MyBag — View your star & diamond earnings">🎒 <span class="hidden sm:inline">MyBag</span><span id="sb-mybag-count" class="hidden text-[10px] font-bold text-amber-300 ml-0.5"></span></a>
+            <a href="/diamond-hunt/" id="sb-diamond-hunt-link" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-purple-700/40 bg-purple-950/30 hover:bg-purple-900/40 hover:border-purple-500/60 text-purple-400 hover:text-purple-300 transition-all" title="Diamond Hunt — Find hidden diamonds across the site">
+              <span class="text-lg leading-none">💎</span> <span class="hidden sm:inline">Diamond Hunt</span><span id="sb-hunt-count" class="hidden text-[10px] font-bold text-purple-300 ml-0.5"></span>
+            </a>
           </div>
         </div>
-        <div class="flex justify-center mt-2">
-          <p id="sb-message" class="text-xs text-gray-400 text-center font-medium"></p>
-        </div>
-        <!-- Redeem Diamond button — appears when all stars earned but diamond not claimed -->
-        <div id="sb-redeem-wrap" class="hidden mt-3 text-center">
-          <button id="sb-redeem-btn" class="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-bold shadow-lg shadow-purple-900/40 animate-pulse transition-all">
-            💎 Redeem your Diamond
-          </button>
-        </div>
+        <p id="sb-message" class="text-xs text-gray-400 font-medium mt-1"></p>
       </div>
 
 <script is:inline>
@@ -156,50 +151,33 @@
     var threshold = data.diamond_threshold || games.length || 6;
     var allStarsEarned = stars.length >= threshold;
     var diamondClaimed = data.today && data.today.diamond;
-    if (diamondClaimed) {
+    // Diamond is auto-awarded when all stars earned — light it up immediately
+    if (allStarsEarned || diamondClaimed) {
       var dEl = document.getElementById('sb-diamond');
       if (dEl) { dEl.classList.remove('opacity-30', 'border-gray-700', 'bg-gray-800/50'); dEl.classList.add('opacity-100', 'border-purple-500', 'bg-purple-900/30'); }
     }
-    if (allStarsEarned && !diamondClaimed) { document.getElementById('sb-redeem-wrap').classList.remove('hidden'); }
-    else { document.getElementById('sb-redeem-wrap').classList.add('hidden'); }
     var lt = data.lifetime || {};
     document.getElementById('sb-streak').textContent = lt.current_streak || 0;
     document.getElementById('sb-total-stars').textContent = lt.total_stars || 0;
     document.getElementById('sb-total-diamonds').textContent = lt.total_diamonds || 0;
+    // Show diamond counts on MyBag and Diamond Hunt buttons
+    var mybagCount = document.getElementById('sb-mybag-count');
+    var huntCount = document.getElementById('sb-hunt-count');
+    if (mybagCount && (lt.diamonds_earned || 0) > 0) { mybagCount.textContent = '- ' + lt.diamonds_earned; mybagCount.classList.remove('hidden'); }
+    if (huntCount && (lt.diamonds_mined || 0) > 0) { huntCount.textContent = '- ' + lt.diamonds_mined; huntCount.classList.remove('hidden'); }
     var earned = stars.length; var remaining = threshold - earned; var msg = '';
     var msgEl = document.getElementById('sb-message');
     var diamondMsgEl = document.getElementById('sb-diamond-msg');
-    if (diamondClaimed) {
-      msgEl.textContent = ''; msgEl.className = 'hidden';
-      diamondMsgEl.textContent = 'Diamond claimed! Come back tomorrow!'; diamondMsgEl.classList.remove('hidden');
+    if (allStarsEarned || diamondClaimed) {
+      msgEl.textContent = '';
+      diamondMsgEl.textContent = '💎 Diamond earned! Come back tomorrow!'; diamondMsgEl.classList.remove('hidden');
     } else {
       diamondMsgEl.textContent = ''; diamondMsgEl.classList.add('hidden');
-      if (allStarsEarned) { msg = '🎉 All stars earned! Redeem your diamond!'; msgEl.className = 'text-xs text-gray-400 text-center font-medium'; }
-      else if (earned > 0) { msg = earned + '/' + threshold + ' stars — ' + remaining + ' more for 💎'; msgEl.className = 'text-xs text-gray-400 text-center font-medium'; }
-      else { msg = 'Play any game to earn your first ⭐ today'; msgEl.className = 'text-xs text-gray-400 text-center font-medium'; }
+      if (earned > 0) { msg = earned + '/' + threshold + ' stars — ' + remaining + ' more for 💎'; }
+      else { msg = 'Play any game to earn your first ⭐ today'; }
       msgEl.textContent = msg;
     }
   }
-
-  // Redeem diamond button
-  document.getElementById('sb-redeem-btn').addEventListener('click', function() {
-    var btn = this; btn.textContent = '✨ Claiming...'; btn.disabled = true;
-    setTimeout(function() {
-      var dEl = document.getElementById('sb-diamond');
-      if (dEl) { dEl.classList.remove('opacity-30', 'border-gray-700', 'bg-gray-800/50'); dEl.classList.add('opacity-100', 'border-purple-500', 'bg-purple-900/30'); }
-      document.getElementById('sb-redeem-wrap').classList.add('hidden');
-      var msgEl = document.getElementById('sb-message');
-      msgEl.textContent = ''; msgEl.className = 'hidden';
-      var diamondMsgEl = document.getElementById('sb-diamond-msg');
-      diamondMsgEl.textContent = 'Diamond claimed! Come back tomorrow!'; diamondMsgEl.classList.remove('hidden');
-      var cached = S.getRaw(cacheKey);
-      if (cached) { try { var d = JSON.parse(cached); d.today.diamond = 1; S.setRaw(cacheKey, JSON.stringify(d)); } catch(e) {} }
-      fetch('/api/daily-progress/?user_id=' + encodeURIComponent(uid))
-        .then(function(r) { return r.json(); })
-        .then(function(data) { S.setRaw(cacheKey, JSON.stringify(data)); renderStarBar(data); })
-        .catch(function() {});
-    }, 800);
-  });
 
   window.addEventListener('swf-star-earned', function(e) {
     var detail = (e && e.detail) ? e.detail : {};
