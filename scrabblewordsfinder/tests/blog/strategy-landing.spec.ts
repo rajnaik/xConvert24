@@ -49,8 +49,8 @@ test.describe('Strategy Landing Page — Positive', () => {
     await page.goto('/blog/strategy/');
     const blogLinks = page.locator('.max-w-3xl a[href*="/blog/"]');
     const count = await blogLinks.count();
-    // Strategy category has 16 posts, expect most of them linked
-    expect(count).toBeGreaterThanOrEqual(10);
+    // Strategy category has 40+ posts after expansion, expect most linked
+    expect(count).toBeGreaterThanOrEqual(33);
   });
 
   test('rack management basics post is linked', async ({ page }) => {
@@ -106,7 +106,6 @@ test.describe('Strategy Landing Page — Positive', () => {
     const statStrip = page.locator('.border-emerald-500\\/30.bg-emerald-950\\/10').first();
     await expect(statStrip).toBeVisible();
     const text = await statStrip.textContent();
-    expect(text).toContain('16');
     expect(text).toContain('Guides');
   });
 
@@ -187,6 +186,176 @@ test.describe('Strategy Landing Page — Positive', () => {
   test('beginner scrabble strategy post is linked', async ({ page }) => {
     await page.goto('/blog/strategy/');
     await expect(page.locator('a[href="/blog/beginner-scrabble-strategy/"]')).toBeVisible();
+  });
+
+  test('best consonant-heavy words post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/best-consonant-heavy-words/"]')).toBeVisible();
+  });
+
+  test('best vowel-heavy words post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/best-vowel-heavy-words/"]')).toBeVisible();
+  });
+
+  test('best words for triple letter squares post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/best-words-for-triple-letter-squares/"]')).toBeVisible();
+  });
+
+  test('best scrabble words with blank post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/best-scrabble-words-with-blank/"]')).toBeVisible();
+  });
+
+  test('board position solvers post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/board-position-solvers/"]')).toBeVisible();
+  });
+
+  test('probability of drawing blank post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/probability-of-drawing-blank/"]')).toBeVisible();
+  });
+
+  test('blank tile probability post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/probability-of-drawing-blank-tiles/"]')).toBeVisible();
+  });
+
+  test('probability of drawing Q post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/probability-of-drawing-q/"]')).toBeVisible();
+  });
+
+  test('scrabble probability calculators post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-probability-calculators/"]')).toBeVisible();
+  });
+
+  test('triple-triple words post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/triple-triple-words/"]')).toBeVisible();
+  });
+
+  test('words with triple letters post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/words-with-triple-letters/"]')).toBeVisible();
+  });
+
+  test('board control strategy post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-board-control-strategy/"]')).toBeVisible();
+  });
+
+  test('parallel plays post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-parallel-plays/"]')).toBeVisible();
+  });
+
+  test('exchange tiles strategy post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-exchange-tiles-strategy/"]')).toBeVisible();
+  });
+
+  test('triple word score strategy post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-triple-word-score-strategy/"]')).toBeVisible();
+  });
+
+  test('advanced endgame strategy post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-endgame-strategy/"]')).toBeVisible();
+  });
+
+  test('consonant-heavy rack strategy post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/consonant-heavy-rack-strategy/"]')).toBeVisible();
+  });
+
+  test('vowel-heavy rack solutions post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/vowel-heavy-rack-solutions/"]')).toBeVisible();
+  });
+
+  test('best opening words post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/best-scrabble-opening-words/"]')).toBeVisible();
+  });
+
+  test('best words for premium squares post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/best-words-for-premium-squares/"]')).toBeVisible();
+  });
+
+  test('strategies for families post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-strategies-for-families/"]')).toBeVisible();
+  });
+
+  test('comeback strategies post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-comeback-strategies/"]')).toBeVisible();
+  });
+
+  test('first move advantages post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-first-move-advantages/"]')).toBeVisible();
+  });
+
+  test('premium square strategy post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-premium-square-strategy/"]')).toBeVisible();
+  });
+
+  test('double/triple word combos post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-double-triple-word-combos/"]')).toBeVisible();
+  });
+
+  test('setup plays and traps post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-setup-plays-traps/"]')).toBeVisible();
+  });
+
+  test('hotspots and board positions post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-hotspots-board-positions/"]')).toBeVisible();
+  });
+
+  test('leave analysis guide post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-leave-analysis-guide/"]')).toBeVisible();
+  });
+
+  test('bluffing and challenges post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-bluffing-challenges/"]')).toBeVisible();
+  });
+
+  test('anagram finding techniques post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-anagram-finding-techniques/"]')).toBeVisible();
+  });
+
+  test('mental math scoring post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-mental-math-scoring/"]')).toBeVisible();
+  });
+
+  test('tile tracking methods post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-tile-tracking-methods/"]')).toBeVisible();
+  });
+
+  test('time pressure tips post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-time-pressure-tips/"]')).toBeVisible();
+  });
+
+  test('vowel-consonant balance post is linked', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    await expect(page.locator('a[href="/blog/scrabble-vowel-consonant-balance/"]')).toBeVisible();
   });
 
   test('CTA box linking to word finder is present', async ({ page }) => {
@@ -272,5 +441,24 @@ test.describe('Strategy Landing Page — Negative', () => {
     await expect(mainContainer).toBeVisible();
     const height = await mainContainer.evaluate(el => el.getBoundingClientRect().height);
     expect(height).toBeGreaterThan(500);
+  });
+
+  test('no duplicate blog post links in the listing section', async ({ page }) => {
+    await page.goto('/blog/strategy/');
+    const links = await page.locator('.max-w-3xl a[href*="/blog/"]').all();
+    const hrefs: string[] = [];
+    for (const link of links) {
+      const href = await link.getAttribute('href');
+      if (href) hrefs.push(href);
+    }
+    const seen = new Set<string>();
+    const duplicates: string[] = [];
+    for (const href of hrefs) {
+      if (seen.has(href)) duplicates.push(href);
+      seen.add(href);
+    }
+    // Some links may appear in multiple sections (e.g. hero + listing) — allow up to 2 occurrences
+    const trueDuplicates = duplicates.filter(d => hrefs.filter(h => h === d).length > 2);
+    expect(trueDuplicates, `Links appearing more than twice: ${trueDuplicates.join(', ')}`).toHaveLength(0);
   });
 });

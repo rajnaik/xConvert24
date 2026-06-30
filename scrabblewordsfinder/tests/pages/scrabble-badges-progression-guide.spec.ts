@@ -102,6 +102,14 @@ test.describe('Badges Progression Guide Blog — Positive', () => {
     await expect(badgesLink).toContainText('Diamond Badges');
   });
 
+  test('Badges Visual Milestones section has inline link to /badges/', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-badges-progression-guide/`);
+    const section = page.locator('h2:has-text("Badges: Visual Milestones") + p');
+    const inlineLink = section.locator('a[href="/badges/"]');
+    await expect(inlineLink).toBeVisible();
+    await expect(inlineLink).toContainText('View all badge tiers');
+  });
+
   test('Dig Deeper badges link mentions all 7 tiers', async ({ page }) => {
     await page.goto(`${BASE}/blog/scrabble-badges-progression-guide/`);
     const digDeeper = page.locator('.not-prose', { hasText: 'Dig Deeper' });
@@ -142,6 +150,15 @@ test.describe('Badges Progression Guide Blog — Negative', () => {
     expect(await badgesLinks.count()).toBe(1);
   });
 
+  test('inline badges link in Visual Milestones has trailing slash and correct href', async ({ page }) => {
+    await page.goto(`${BASE}/blog/scrabble-badges-progression-guide/`);
+    const section = page.locator('h2:has-text("Badges: Visual Milestones") + p');
+    const inlineLink = section.locator('a[href="/badges/"]');
+    const href = await inlineLink.getAttribute('href');
+    expect(href).toBe('/badges/');
+    expect(href).toMatch(/\/$/);
+  });
+
   test('no broken internal links', async ({ page }) => {
     await page.goto(`${BASE}/blog/scrabble-badges-progression-guide/`);
     const links = page.locator('article a[href^="/"]');
@@ -150,7 +167,7 @@ test.describe('Badges Progression Guide Blog — Negative', () => {
       const href = await links.nth(i).getAttribute('href');
       expect(href).not.toContain('undefined');
       expect(href).not.toContain('null');
-      expect(href).toMatch(/\/$/); // trailing slash
+      expect(href).toMatch(/\/(#.*)?$/); // trailing slash (allows hash fragments)
     }
   });
 

@@ -128,6 +128,13 @@ test.describe('Bingos Landing Page — Positive', () => {
     }
   });
 
+  test('More Bingo Guides section includes 10-Letter Words link', async ({ page }) => {
+    await page.goto(`${BASE_URL}/blog/bingos/`);
+    const link = page.locator('a[href="/blog/scrabble-10-letter-words/"]');
+    await expect(link).toBeVisible();
+    await expect(link).toContainText('10-Letter Words');
+  });
+
   test('back to blog link is present and correct', async ({ page }) => {
     await page.goto(`${BASE_URL}/blog/bingos/`);
     const backLink = page.locator('a:has-text("Back to all articles")');
@@ -186,6 +193,13 @@ test.describe('Bingos Landing Page — Negative', () => {
     const h1s = page.locator('.max-w-3xl h1');
     const count = await h1s.count();
     expect(count).toBe(1);
+  });
+
+  test('10-Letter Words link has correct href with trailing slash', async ({ page }) => {
+    await page.goto(`${BASE_URL}/blog/bingos/`);
+    const link = page.locator('a[href="/blog/scrabble-10-letter-words/"]');
+    const href = await link.getAttribute('href');
+    expect(href).toBe('/blog/scrabble-10-letter-words/');
   });
 
   test('no duplicate post links on the page', async ({ page }) => {

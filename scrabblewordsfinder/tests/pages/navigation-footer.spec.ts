@@ -119,6 +119,37 @@ test.describe('Version Stamp', () => {
   });
 });
 
+test.describe('Admin Dot Link — Positive', () => {
+  test('admin-dot element exists in DOM with trailing slash href', async ({ page }) => {
+    await page.goto('/');
+    const adminDot = page.locator('#admin-dot');
+    await expect(adminDot).toBeAttached();
+    await expect(adminDot).toHaveAttribute('href', '/admin/');
+  });
+
+  test('admin-dot is hidden by default (display:none)', async ({ page }) => {
+    await page.goto('/');
+    const adminDot = page.locator('#admin-dot');
+    await expect(adminDot).toBeHidden();
+  });
+});
+
+test.describe('Admin Dot Link — Negative', () => {
+  test('admin-dot href does not lack trailing slash', async ({ page }) => {
+    await page.goto('/');
+    const adminDot = page.locator('#admin-dot');
+    const href = await adminDot.getAttribute('href');
+    expect(href).not.toBe('/admin');
+    expect(href).toBe('/admin/');
+  });
+
+  test('no duplicate admin-dot elements', async ({ page }) => {
+    await page.goto('/');
+    const dots = page.locator('#admin-dot');
+    await expect(dots).toHaveCount(1);
+  });
+});
+
 test.describe('Cross-Page Navigation Flow', () => {
   test('can navigate from home to settings and back', async ({ page }) => {
     await page.goto('/');

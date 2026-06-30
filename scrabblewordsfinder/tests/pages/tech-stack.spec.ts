@@ -41,21 +41,43 @@ test.describe('Tech Stack Page — Positive', () => {
     await page.goto('/tech-stack/');
     const cfLink = page.locator('a[href="https://cloudflare.com/"]');
     await expect(cfLink).toBeVisible();
-    await expect(cfLink.locator('p.text-sm.font-semibold')).toHaveText('Cloudflare');
+    await expect(cfLink.locator('p.text-sm.font-semibold')).toContainText('Cloudflare');
   });
 
-  test('has Frameworks & Runtime section with Astro card', async ({ page }) => {
+  test('has Frameworks & Runtime section with Astro card showing version', async ({ page }) => {
     await page.goto('/tech-stack/');
     const astroLink = page.locator('a[href="https://astro.build/"]');
     await expect(astroLink).toBeVisible();
-    await expect(astroLink.locator('p.text-sm.font-semibold')).toHaveText('Astro 6');
+    await expect(astroLink.locator('p.text-sm.font-semibold')).toHaveText('Astro 6.4.4');
+  });
+
+  test('has Tailwind CSS card with version number', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const tailwindLink = page.locator('a[href="https://tailwindcss.com/"]');
+    await expect(tailwindLink).toBeVisible();
+    await expect(tailwindLink.locator('p.text-sm.font-semibold')).toHaveText('Tailwind CSS 4.3.0');
+  });
+
+  test('has TypeScript card with version number', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const tsLink = page.locator('a[href="https://www.typescriptlang.org/"]');
+    await expect(tsLink).toBeVisible();
+    await expect(tsLink.locator('p.text-sm.font-semibold')).toHaveText('TypeScript 6.0.3');
+  });
+
+  test('has @astrojs/react card linking to react.dev', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const reactLink = page.locator('a[href="https://react.dev/"]');
+    await expect(reactLink).toBeVisible();
+    await expect(reactLink.locator('p.text-sm.font-semibold')).toHaveText('@astrojs/react 6.0.0');
+    await expect(reactLink.locator('img')).toHaveAttribute('alt', 'React');
   });
 
   test('has Testing & Quality section with Playwright card', async ({ page }) => {
     await page.goto('/tech-stack/');
     const pwLink = page.locator('a[href="https://playwright.dev/"]');
     await expect(pwLink).toBeVisible();
-    await expect(pwLink.locator('p.text-sm.font-semibold')).toHaveText('Playwright');
+    await expect(pwLink.locator('p.text-sm.font-semibold')).toContainText('Playwright');
   });
 
   test('has Mobile Simulator Pro card in Testing & Quality', async ({ page }) => {
@@ -121,6 +143,12 @@ test.describe('Tech Stack Page — Negative', () => {
     await page.goto('/tech-stack/');
     const cards = page.locator('a[href*="peipdddkaeomnfdenmkddkapeemjomnb"]');
     expect(await cards.count()).toBe(1);
+  });
+
+  test('no duplicate React cards', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const reactCards = page.locator('a[href="https://react.dev/"]');
+    expect(await reactCards.count()).toBe(1);
   });
 
   test('no broken images (all tech cards have images or icons)', async ({ page }) => {

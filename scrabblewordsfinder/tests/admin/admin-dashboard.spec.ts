@@ -502,3 +502,74 @@ test.describe('Admin Dashboard — Site Status Error Handling', () => {
 
 
 
+
+
+test.describe('Admin Dashboard — Badges Card Positive', () => {
+  test('has Badges card linking to /admin/badges/', async ({ page }) => {
+    await page.goto('/admin/');
+    const card = page.locator('a[href="/admin/badges/"]');
+    await expect(card).toBeVisible();
+    await expect(card.locator('h2')).toContainText('Badges');
+  });
+
+  test('Badges card shows description text', async ({ page }) => {
+    await page.goto('/admin/');
+    const card = page.locator('a[href="/admin/badges/"]');
+    await expect(card).toContainText('Manage badge tiers, thresholds, themes, and track earner progression');
+  });
+
+  test('Badges card has stats grid with 3 columns', async ({ page }) => {
+    await page.goto('/admin/');
+    const statsGrid = page.locator('#badges-admin-stats');
+    await expect(statsGrid).toBeVisible();
+    await expect(statsGrid).toHaveClass(/grid-cols-3/);
+  });
+
+  test('Badges card shows Total Tiers stat placeholder', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#badges-a-total')).toBeAttached();
+    await expect(page.locator('#badges-a-total')).toHaveText('-');
+  });
+
+  test('Badges card shows Active stat placeholder', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#badges-a-active')).toBeAttached();
+    await expect(page.locator('#badges-a-active')).toHaveText('-');
+  });
+
+  test('Badges card shows Users w/ Badge stat placeholder', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#badges-a-earners')).toBeAttached();
+    await expect(page.locator('#badges-a-earners')).toHaveText('-');
+  });
+
+  test('Badges card has rose border styling', async ({ page }) => {
+    await page.goto('/admin/');
+    const card = page.locator('a[href="/admin/badges/"]');
+    await expect(card).toHaveClass(/border-rose-800/);
+    await expect(card).toHaveClass(/hover:border-rose-700/);
+  });
+});
+
+test.describe('Admin Dashboard — Badges Card Negative', () => {
+  test('no duplicate Badges cards exist on the page', async ({ page }) => {
+    await page.goto('/admin/');
+    const cards = page.locator('a[href="/admin/badges/"]');
+    await expect(cards).toHaveCount(1);
+  });
+
+  test('Badges card does not cause page errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto('/admin/');
+    await expect(page.locator('a[href="/admin/badges/"]')).toBeVisible();
+    expect(errors.filter(e => e.toLowerCase().includes('badge'))).toHaveLength(0);
+  });
+
+  test('Badges stats IDs are unique (no collision with other cards)', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#badges-a-total')).toHaveCount(1);
+    await expect(page.locator('#badges-a-active')).toHaveCount(1);
+    await expect(page.locator('#badges-a-earners')).toHaveCount(1);
+  });
+});

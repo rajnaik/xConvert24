@@ -15,6 +15,7 @@ const ADMIN_PAGES = [
   '/admin/telemetry/',
   '/admin/environments/',
   '/admin/banner-management/',
+  '/admin/banner-clicks/',
 ];
 
 const PUBLIC_PAGES = [

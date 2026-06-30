@@ -850,3 +850,79 @@ test.describe('Per-Guess Time Splits (guessed_at) — Negative', () => {
     expect(criticalErrors).toHaveLength(0);
   });
 });
+
+
+// ── About Anagram History Section — Positive ─────────────────────────────
+
+test.describe('About Anagram History Section — Positive', () => {
+  test('about section heading exists and is visible', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const heading = page.locator('section h2', { hasText: 'About Anagram History' });
+    await expect(heading).toBeVisible();
+  });
+
+  test('about section contains four paragraphs of content', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const section = page.locator('section.prose', { has: page.locator('h2', { hasText: 'About Anagram History' }) });
+    const paragraphs = section.locator('p');
+    await expect(paragraphs).toHaveCount(4);
+  });
+
+  test('about section mentions pattern recognition as a core skill', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const section = page.locator('section.prose', { has: page.locator('h2', { hasText: 'About Anagram History' }) });
+    await expect(section).toContainText('pattern recognition');
+  });
+
+  test('about section explains colour-coded feedback (green, yellow, grey)', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const section = page.locator('section.prose', { has: page.locator('h2', { hasText: 'About Anagram History' }) });
+    await expect(section).toContainText('green indicates a correct letter');
+    await expect(section).toContainText('yellow means the letter is in the word but misplaced');
+    await expect(section).toContainText('grey means the letter is not present');
+  });
+
+  test('about section mentions streak counter', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const section = page.locator('section.prose', { has: page.locator('h2', { hasText: 'About Anagram History' }) });
+    await expect(section).toContainText('streak counter');
+  });
+
+  test('about section mentions free and no sign-up', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const section = page.locator('section.prose', { has: page.locator('h2', { hasText: 'About Anagram History' }) });
+    await expect(section).toContainText('completely free, no sign-up required');
+  });
+});
+
+// ── About Anagram History Section — Negative ─────────────────────────────
+
+test.describe('About Anagram History Section — Negative', () => {
+  test('no duplicate about sections exist on the page', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const aboutHeadings = page.locator('h2', { hasText: 'About Anagram History' });
+    await expect(aboutHeadings).toHaveCount(1);
+  });
+
+  test('about section does not contain broken HTML or unclosed tags', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const section = page.locator('section.prose', { has: page.locator('h2', { hasText: 'About Anagram History' }) });
+    // All paragraphs should have meaningful text content (not empty)
+    const paragraphs = section.locator('p');
+    const count = await paragraphs.count();
+    for (let i = 0; i < count; i++) {
+      const text = await paragraphs.nth(i).textContent();
+      expect(text!.trim().length).toBeGreaterThan(50);
+    }
+  });
+
+  test('about section does not expose any sensitive or admin information', async ({ page }) => {
+    await page.goto(HISTORY_URL);
+    const section = page.locator('section.prose', { has: page.locator('h2', { hasText: 'About Anagram History' }) });
+    const text = await section.textContent();
+    expect(text).not.toContain('admin');
+    expect(text).not.toContain('API');
+    expect(text).not.toContain('database');
+    expect(text).not.toContain('endpoint');
+  });
+});

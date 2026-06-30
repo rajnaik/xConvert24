@@ -77,6 +77,54 @@ test.describe('Two-Letter Words Landing Page — Positive', () => {
       expect(text!.length, `Description missing for ${href}`).toBeGreaterThan(20);
     }
   });
+
+  test('Two-Letter Words With J link is visible with correct href', async ({ page }) => {
+    await page.goto('/blog/two-letter-words/');
+    const link = page.locator('a[href="/blog/two-letter-words-with-j/"]');
+    await expect(link).toBeVisible();
+    const text = await link.textContent();
+    expect(text).toContain('Two-Letter Words With J');
+  });
+
+  test('Two-Letter Words With K link is visible with correct href', async ({ page }) => {
+    await page.goto('/blog/two-letter-words/');
+    const link = page.locator('a[href="/blog/two-letter-words-with-k/"]');
+    await expect(link).toBeVisible();
+    const text = await link.textContent();
+    expect(text).toContain('Two-Letter Words With K');
+  });
+
+  test('Two-Letter Words With V link is visible with correct href', async ({ page }) => {
+    await page.goto('/blog/two-letter-words/');
+    const link = page.locator('a[href="/blog/two-letter-words-with-v/"]');
+    await expect(link).toBeVisible();
+    const text = await link.textContent();
+    expect(text).toContain('Two-Letter Words With V');
+  });
+
+  test('Complete Two-Letter Word Strategy link is visible with correct href', async ({ page }) => {
+    await page.goto('/blog/two-letter-words/');
+    const link = page.locator('a[href="/blog/two-letter-words-complete-strategy/"]');
+    await expect(link).toBeVisible();
+    const text = await link.textContent();
+    expect(text).toContain('Complete Two-Letter Word Strategy');
+  });
+
+  test('all 4 newly added letter/strategy cards have description text', async ({ page }) => {
+    await page.goto('/blog/two-letter-words/');
+    const newLinks = [
+      '/blog/two-letter-words-with-j/',
+      '/blog/two-letter-words-with-k/',
+      '/blog/two-letter-words-with-v/',
+      '/blog/two-letter-words-complete-strategy/',
+    ];
+    for (const href of newLinks) {
+      const link = page.locator(`a[href="${href}"]`);
+      const description = link.locator('p.text-sm');
+      const text = await description.textContent();
+      expect(text!.length, `Description missing for ${href}`).toBeGreaterThan(20);
+    }
+  });
 });
 
 test.describe('Two-Letter Words Landing Page — Negative', () => {
@@ -105,6 +153,21 @@ test.describe('Two-Letter Words Landing Page — Negative', () => {
     }
   });
 
+  test('no duplicate links for newly added J/K/V/Strategy cards', async ({ page }) => {
+    await page.goto('/blog/two-letter-words/');
+    const newLinks = [
+      '/blog/two-letter-words-with-j/',
+      '/blog/two-letter-words-with-k/',
+      '/blog/two-letter-words-with-v/',
+      '/blog/two-letter-words-complete-strategy/',
+    ];
+    for (const href of newLinks) {
+      const links = page.locator(`a[href="${href}"]`);
+      const count = await links.count();
+      expect(count, `Duplicate links found for ${href}`).toBe(1);
+    }
+  });
+
   test('all new word card links have trailing slash', async ({ page }) => {
     await page.goto('/blog/two-letter-words/');
     const newLinks = [
@@ -113,6 +176,10 @@ test.describe('Two-Letter Words Landing Page — Negative', () => {
       '/blog/is-ox-a-scrabble-word/',
       '/blog/is-xi-a-scrabble-word/',
       '/blog/is-xu-a-scrabble-word/',
+      '/blog/two-letter-words-with-j/',
+      '/blog/two-letter-words-with-k/',
+      '/blog/two-letter-words-with-v/',
+      '/blog/two-letter-words-complete-strategy/',
     ];
     for (const href of newLinks) {
       const link = page.locator(`a[href="${href}"]`);

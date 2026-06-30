@@ -1,0 +1,322 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Badges Management — Admin" description="Manage badge tiers, thresholds, themes and track earner progression" keywords="admin, badges, tiers, diamond badges">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/badges/" class="text-rose-400 font-medium">Badges</a>
+      <a href="/admin/stars-and-diamonds/" class="hover:text-blue-400 transition-colors">Stars & Diamonds</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-2">
+      <h1 class="text-3xl font-bold text-white">🏅 Badges Management</h1>
+      <button id="add-badge-btn" class="rounded-lg bg-rose-600 hover:bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition-colors">+ Add Badge</button>
+    </div>
+    <p class="text-gray-400 mb-8">Manage badge tiers, diamond thresholds, themes, and activation status.</p>
+
+    <!-- Summary Stats -->
+    <div id="summary-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-rose-400" id="stat-total">—</p>
+        <p class="text-xs text-gray-400">Total Tiers</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-green-400" id="stat-active">—</p>
+        <p class="text-xs text-gray-400">Active</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-gray-400" id="stat-inactive">—</p>
+        <p class="text-xs text-gray-400">Inactive</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-earners">—</p>
+        <p class="text-xs text-gray-400">Users w/ Badge</p>
+      </div>
+    </div>
+
+    <!-- Badges Table -->
+    <div class="rounded-xl border border-gray-800 bg-gray-900/50 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-800 text-gray-300">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold">ID</th>
+              <th class="px-4 py-3 text-left font-semibold">Badge</th>
+              <th class="px-4 py-3 text-left font-semibold">Name</th>
+              <th class="px-4 py-3 text-center font-semibold">Diamonds Required</th>
+              <th class="px-4 py-3 text-left font-semibold">Theme</th>
+              <th class="px-4 py-3 text-center font-semibold">Status</th>
+              <th class="px-4 py-3 text-center font-semibold">Earners</th>
+              <th class="px-4 py-3 text-center font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="badges-tbody" class="divide-y divide-gray-800">
+            <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="text-xs text-gray-500 mt-4" id="load-time"></p>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="badge-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70" role="dialog" aria-modal="true" aria-label="Badge form">
+    <div class="w-full max-w-md rounded-2xl border border-gray-700 bg-gray-900 p-6 shadow-2xl">
+      <h2 id="modal-title" class="text-xl font-bold text-white mb-4">Add Badge</h2>
+      <form id="badge-form" class="space-y-4">
+        <input type="hidden" id="form-id" />
+        <div>
+          <label for="form-name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+          <input id="form-name" type="text" required class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white text-sm focus:border-rose-500 focus:outline-none" placeholder="e.g. Word Maker" />
+        </div>
+        <div>
+          <label for="form-diamonds" class="block text-sm font-medium text-gray-300 mb-1">Diamonds Required</label>
+          <input id="form-diamonds" type="number" min="1" required class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white text-sm focus:border-rose-500 focus:outline-none" placeholder="e.g. 25" />
+        </div>
+        <div>
+          <label for="form-image" class="block text-sm font-medium text-gray-300 mb-1">Image Path</label>
+          <input id="form-image" type="text" required class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white text-sm focus:border-rose-500 focus:outline-none" placeholder="e.g. /badges/word-maker.svg" />
+        </div>
+        <div>
+          <label for="form-theme" class="block text-sm font-medium text-gray-300 mb-1">Theme</label>
+          <input id="form-theme" type="text" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white text-sm focus:border-rose-500 focus:outline-none" placeholder="e.g. Beginner" />
+        </div>
+        <div>
+          <label for="form-status" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
+          <select id="form-status" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white text-sm focus:border-rose-500 focus:outline-none">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-3 pt-2">
+          <button type="submit" class="flex-1 rounded-lg bg-rose-600 hover:bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition-colors">Save</button>
+          <button type="button" id="modal-cancel" class="flex-1 rounded-lg bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm font-semibold text-gray-300 transition-colors">Cancel</button>
+        </div>
+      </form>
+      <p id="form-error" class="mt-3 text-sm text-red-400 hidden"></p>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70" role="dialog" aria-modal="true" aria-label="Confirm delete">
+    <div class="w-full max-w-sm rounded-2xl border border-gray-700 bg-gray-900 p-6 shadow-2xl text-center">
+      <h2 class="text-xl font-bold text-white mb-2">Delete Badge?</h2>
+      <p class="text-gray-400 text-sm mb-4">This will permanently remove <span id="delete-badge-name" class="text-rose-400 font-semibold"></span>.</p>
+      <input type="hidden" id="delete-badge-id" />
+      <div class="flex items-center gap-3">
+        <button id="delete-confirm" class="flex-1 rounded-lg bg-red-600 hover:bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors">Delete</button>
+        <button id="delete-cancel" class="flex-1 rounded-lg bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm font-semibold text-gray-300 transition-colors">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 z-50 rounded-xl border border-gray-700 bg-gray-900 px-5 py-3 shadow-xl text-sm text-white transition-all"></div>
+
+  <script is:inline>
+    let badges = [];
+
+    function showToast(msg, success = true) {
+      const t = document.getElementById('toast');
+      t.textContent = (success ? '✅ ' : '❌ ') + msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('badges-tbody');
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No badges found. Add your first badge tier.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(b => `
+        <tr class="hover:bg-gray-800/50 transition-colors">
+          <td class="px-4 py-3 text-gray-400 text-xs">${b.id}</td>
+          <td class="px-4 py-3"><img src="${b.image}" alt="${b.name}" class="w-10 h-10 rounded-lg bg-gray-800 p-1" /></td>
+          <td class="px-4 py-3 font-medium text-white">${b.name}</td>
+          <td class="px-4 py-3 text-center text-amber-400 font-bold">${Number(b.diamonds_required).toLocaleString()}</td>
+          <td class="px-4 py-3 text-gray-300">${b.theme || '—'}</td>
+          <td class="px-4 py-3 text-center">
+            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${b.status === 'active' ? 'bg-green-900/50 text-green-400' : 'bg-gray-800 text-gray-500'}">${b.status}</span>
+          </td>
+          <td class="px-4 py-3 text-center text-blue-400 font-semibold">${b.earners || 0}</td>
+          <td class="px-4 py-3 text-center">
+            <button onclick="editBadge(${b.id})" class="text-blue-400 hover:text-blue-300 text-xs font-medium mr-2">Edit</button>
+            <button onclick="deleteBadge(${b.id}, '${b.name.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 text-xs font-medium">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadBadges() {
+      const start = performance.now();
+      try {
+        const res = await fetch('/api/badges/');
+        if (!res.ok) throw new Error('API error: ' + res.status);
+        const data = await res.json();
+
+        // Update stats
+        document.getElementById('stat-total').textContent = String(data.stats.totalBadges);
+        document.getElementById('stat-active').textContent = String(data.stats.activeBadges);
+        document.getElementById('stat-inactive').textContent = String(data.stats.inactiveBadges);
+        document.getElementById('stat-earners').textContent = String(data.stats.usersWithBadge);
+
+        badges = data.badges || [];
+        renderTable(badges);
+
+        const elapsed = Math.round(performance.now() - start);
+        document.getElementById('load-time').textContent = 'Loaded ' + badges.length + ' badges in ' + elapsed + 'ms';
+      } catch (err) {
+        document.getElementById('badges-tbody').innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-red-400">Failed to load: ' + err.message + '</td></tr>';
+      }
+    }
+
+    // Modal logic
+    function openModal(badge) {
+      const modal = document.getElementById('badge-modal');
+      const title = document.getElementById('modal-title');
+      document.getElementById('form-error').classList.add('hidden');
+
+      if (badge) {
+        title.textContent = 'Edit Badge';
+        document.getElementById('form-id').value = badge.id;
+        document.getElementById('form-name').value = badge.name;
+        document.getElementById('form-diamonds').value = badge.diamonds_required;
+        document.getElementById('form-image').value = badge.image;
+        document.getElementById('form-theme').value = badge.theme || '';
+        document.getElementById('form-status').value = badge.status;
+      } else {
+        title.textContent = 'Add Badge';
+        document.getElementById('form-id').value = '';
+        document.getElementById('badge-form').reset();
+        document.getElementById('form-status').value = 'active';
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('form-name').focus();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('badge-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    window.editBadge = function(id) {
+      const badge = badges.find(b => b.id === id);
+      if (badge) openModal(badge);
+    };
+
+    window.deleteBadge = function(id, name) {
+      document.getElementById('delete-badge-id').value = id;
+      document.getElementById('delete-badge-name').textContent = name;
+      const modal = document.getElementById('delete-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    function closeDeleteModal() {
+      const modal = document.getElementById('delete-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Event listeners
+    document.getElementById('add-badge-btn').addEventListener('click', () => openModal(null));
+    document.getElementById('modal-cancel').addEventListener('click', closeModal);
+    document.getElementById('delete-cancel').addEventListener('click', closeDeleteModal);
+
+    // Close modals on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        closeDeleteModal();
+      }
+    });
+
+    // Close modals on backdrop click
+    document.getElementById('badge-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.getElementById('delete-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeDeleteModal();
+    });
+
+    // Form submit (create or update)
+    document.getElementById('badge-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('form-error');
+      errorEl.classList.add('hidden');
+
+      const id = document.getElementById('form-id').value;
+      const payload = {
+        name: document.getElementById('form-name').value.trim(),
+        diamonds_required: Number(document.getElementById('form-diamonds').value),
+        image: document.getElementById('form-image').value.trim(),
+        theme: document.getElementById('form-theme').value.trim(),
+        status: document.getElementById('form-status').value,
+      };
+
+      if (!payload.name || !payload.diamonds_required || !payload.image) {
+        errorEl.textContent = 'Name, diamonds required, and image are required.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const method = id ? 'PUT' : 'POST';
+        const body = id ? { id: Number(id), ...payload } : payload;
+        const res = await fetch('/api/badges/', {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Request failed');
+        }
+        closeModal();
+        showToast(id ? 'Badge updated' : 'Badge created');
+        await loadBadges();
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.remove('hidden');
+      }
+    });
+
+    // Delete confirm
+    document.getElementById('delete-confirm').addEventListener('click', async () => {
+      const id = Number(document.getElementById('delete-badge-id').value);
+      try {
+        const res = await fetch('/api/badges/', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!res.ok) throw new Error('Delete failed');
+        closeDeleteModal();
+        showToast('Badge deleted');
+        await loadBadges();
+      } catch (err) {
+        closeDeleteModal();
+        showToast('Failed to delete badge', false);
+      }
+    });
+
+    // Init
+    loadBadges();
+  </script>
+</Layout>

@@ -145,6 +145,143 @@ test.describe('Chat API — Chatusage Counter', () => {
   });
 });
 
+test.describe('Chat API — Dictionary Enrichment (Positive)', () => {
+  test('word definition query (define X) does not error', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'define quixotic' }],
+      },
+    });
+    // Should succeed (200 streaming) or 503 (AI unavailable) — never 400/500
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('Q without U query is accepted and processed', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What are the best Q without U words?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('N-letter words query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'Show me some 5-letter words' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('words starting with prefix query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'words starting with QI' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('words ending with suffix query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'words ending in ZA' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('highest scoring words query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What are the highest scoring words?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('bingo words query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'Tell me about bingo words' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('two-letter words query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'List all two letter words' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('random word / teach me a word query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'teach me a word' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('words with specific letter query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'best Z words' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+});
+
+test.describe('Chat API — Dictionary Enrichment (Negative)', () => {
+  test('non-word query does not trigger dictionary enrichment and still works', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What are the rules of Scrabble?' }],
+      },
+    });
+    // Should still succeed — non-word queries just skip enrichment
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('empty user content does not crash dictionary enrichment', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: '' }],
+      },
+    });
+    // Empty content may be rejected by validation (400) or pass through — should not 500
+    expect([200, 400, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('very long message does not crash dictionary enrichment', async ({ request }) => {
+    const longMsg = 'define ' + 'a'.repeat(500);
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: longMsg }],
+      },
+    });
+    // Should not 500 — regex patterns should handle gracefully
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('special characters in word query do not cause server error', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: "define <script>alert('xss')</script>" }],
+      },
+    });
+    // Should not 500 — input is used in parameterized queries
+    expect(response.status()).not.toBe(500);
+  });
+});
+
 test.describe('Chat Page — Positive', () => {
   test('chat page loads with Lex heading', async ({ page }) => {
     await page.goto('/chat/');

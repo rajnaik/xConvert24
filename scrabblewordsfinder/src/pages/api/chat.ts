@@ -96,6 +96,164 @@ TOOLS:
 - / — Free word solver (homepage)
 - /chat/ — Lex AI assistant (this chat)`;
 
+/**
+ * Dictionary enrichment — detect word-related queries and inject real data
+ * from the dictionary table so Lex answers with verified words + scores.
+ */
+async function getDictionaryContext(userMessage: string, db: any): Promise<string> {
+  if (!db || !userMessage) return '';
+
+  const msg = userMessage.toLowerCase();
+  const queries: string[] = [];
+  const results: any[] = [];
+
+  try {
+    // Pattern: "define X" or "what does X mean" or "meaning of X"
+    const defineMatch = msg.match(/(?:define|meaning of|what does|what is|look up|lookup)\s+([a-z]+)/i);
+    if (defineMatch) {
+      const word = defineMatch[1].toUpperCase();
+      const row = await db.prepare(
+        'SELECT word, meaning, points, fun_fact, origin, spelling_tip FROM dictionary WHERE word = ? COLLATE NOCASE'
+      ).bind(word).first();
+      if (row) {
+        results.push(`WORD LOOKUP — ${row.word}: ${row.meaning} (${row.points} points)${row.origin ? '. Origin: ' + row.origin : ''}${row.spelling_tip ? '. Spelling tip: ' + row.spelling_tip : ''}${row.fun_fact ? '. Fun fact: ' + row.fun_fact : ''}`);
+      }
+    }
+
+    // Pattern: bingo words / 7-letter words
+    if (msg.match(/\bbingo\b|7.?letter|seven.?letter/)) {
+      const { results: rows } = await db.prepare(
+        'SELECT word, meaning, points FROM dictionary WHERE LENGTH(word) >= 7 ORDER BY points DESC LIMIT 10'
+      ).bind().all();
+      if (rows?.length) {
+        results.push('BINGO WORDS (7+ letters, from dictionary):\n' +
+          rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+      }
+    }
+
+    // Pattern: Q without U / Q no U
+    if (msg.match(/q\s*(without|no|w\/o)\s*u|q-no-u|q.without.u/i)) {
+      const { results: rows } = await db.prepare(
+        "SELECT word, meaning, points FROM dictionary WHERE word LIKE '%Q%' AND word NOT LIKE '%QU%' ORDER BY points DESC LIMIT 15"
+      ).bind().all();
+      if (rows?.length) {
+        results.push('Q-WITHOUT-U WORDS (from dictionary):\n' +
+          rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+      }
+    }
+
+    // Pattern: "N-letter words" or "words with N letters"
+    const lengthMatch = msg.match(/(\d+).?letter\s*word|words?\s*(?:with|of)\s*(\d+)\s*letter/i);
+    if (lengthMatch && !msg.match(/bingo/)) {
+      const len = Number(lengthMatch[1] || lengthMatch[2]);
+      if (len >= 2 && len <= 15) {
+        // Check if also filtering by letter
+        const letterFilter = msg.match(/with\s+([a-z])\b|containing\s+([a-z])\b|have\s+([a-z])\b/i);
+        let query: string;
+        let bindings: any[];
+
+        if (letterFilter) {
+          const letter = (letterFilter[1] || letterFilter[2] || letterFilter[3]).toUpperCase();
+          query = "SELECT word, meaning, points FROM dictionary WHERE LENGTH(word) = ? AND word LIKE ? ORDER BY points DESC LIMIT 10";
+          bindings = [len, `%${letter}%`];
+        } else {
+          query = "SELECT word, meaning, points FROM dictionary WHERE LENGTH(word) = ? ORDER BY points DESC LIMIT 10";
+          bindings = [len];
+        }
+
+        const { results: rows } = await db.prepare(query).bind(...bindings).all();
+        if (rows?.length) {
+          const letterNote = letterFilter ? ` containing ${(letterFilter[1] || letterFilter[2] || letterFilter[3]).toUpperCase()}` : '';
+          results.push(`${len}-LETTER WORDS${letterNote} (from dictionary):\n` +
+            rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+        }
+      }
+    }
+
+    // Pattern: words with specific letter (e.g. "words with Z", "Z words", "words containing X")
+    const letterMatch = msg.match(/\b(?:words?\s*(?:with|containing|that\s*(?:have|contain|use))\s+(?:the\s+letter\s+)?|best\s+)([a-z])\s*words?\b|([a-z])\s*words?\b/i);
+    if (letterMatch && !lengthMatch && !msg.match(/bingo|q\s*(?:without|no)/i)) {
+      const letter = (letterMatch[1] || letterMatch[2]).toUpperCase();
+      if (letter.length === 1) {
+        const { results: rows } = await db.prepare(
+          "SELECT word, meaning, points FROM dictionary WHERE word LIKE ? ORDER BY points DESC LIMIT 10"
+        ).bind(`%${letter}%`).all();
+        if (rows?.length) {
+          results.push(`TOP WORDS WITH ${letter} (from dictionary):\n` +
+            rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+        }
+      }
+    }
+
+    // Pattern: "highest scoring" / "top scoring" / "best words" / "most points"
+    if (msg.match(/highest.?scor|top.?scor|best\s*words|most\s*points|highest\s*point/i) && !letterMatch && !lengthMatch) {
+      const { results: rows } = await db.prepare(
+        'SELECT word, meaning, points FROM dictionary ORDER BY points DESC LIMIT 10'
+      ).bind().all();
+      if (rows?.length) {
+        results.push('HIGHEST-SCORING WORDS (from dictionary):\n' +
+          rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+      }
+    }
+
+    // Pattern: "2-letter words" / "two letter words" / "all two letter"
+    if (msg.match(/\b(?:two|2).?letter\s*word|all\s*(?:two|2).?letter/i)) {
+      const { results: rows } = await db.prepare(
+        'SELECT word, meaning, points FROM dictionary WHERE LENGTH(word) = 2 ORDER BY points DESC LIMIT 20'
+      ).bind().all();
+      if (rows?.length) {
+        results.push('TWO-LETTER WORDS (from dictionary):\n' +
+          rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+      }
+    }
+
+    // Pattern: "words starting with X" / "words beginning with X"
+    const startsMatch = msg.match(/words?\s*(?:starting|beginning)\s*with\s+([a-z]+)/i);
+    if (startsMatch) {
+      const prefix = startsMatch[1].toUpperCase();
+      const { results: rows } = await db.prepare(
+        'SELECT word, meaning, points FROM dictionary WHERE word LIKE ? ORDER BY points DESC LIMIT 10'
+      ).bind(`${prefix}%`).all();
+      if (rows?.length) {
+        results.push(`WORDS STARTING WITH ${prefix} (from dictionary):\n` +
+          rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+      }
+    }
+
+    // Pattern: "words ending with X"
+    const endsMatch = msg.match(/words?\s*ending\s*(?:with|in)\s+([a-z]+)/i);
+    if (endsMatch) {
+      const suffix = endsMatch[1].toUpperCase();
+      const { results: rows } = await db.prepare(
+        'SELECT word, meaning, points FROM dictionary WHERE word LIKE ? ORDER BY points DESC LIMIT 10'
+      ).bind(`%${suffix}`).all();
+      if (rows?.length) {
+        results.push(`WORDS ENDING WITH ${suffix} (from dictionary):\n` +
+          rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+      }
+    }
+
+    // Pattern: random word / word of the day / teach me a word
+    if (msg.match(/random\s*word|word\s*of\s*the\s*day|teach\s*me\s*a\s*word|surprise\s*me/i)) {
+      const row = await db.prepare(
+        'SELECT word, meaning, points, fun_fact, origin, spelling_tip FROM dictionary ORDER BY RANDOM() LIMIT 1'
+      ).bind().first();
+      if (row) {
+        results.push(`RANDOM WORD — ${row.word}: ${row.meaning} (${row.points} points)${row.origin ? '. Origin: ' + row.origin : ''}${row.spelling_tip ? '. Spelling tip: ' + row.spelling_tip : ''}${row.fun_fact ? '. Fun fact: ' + row.fun_fact : ''}`);
+      }
+    }
+
+  } catch {
+    // Non-fatal — if dictionary lookup fails, AI still responds without enrichment
+  }
+
+  if (results.length === 0) return '';
+
+  return '\n\n---\n📖 DICTIONARY DATA (use this verified data in your answer — these are real words with correct scores from our database):\n\n' +
+    results.join('\n\n') +
+    '\n\n---\nIMPORTANT: Use the dictionary data above as the primary source for your answer. Present these words with their exact meanings and point values. You may add strategy tips around them.';
+}
+
 export const POST: APIRoute = async ({ request }) => {
   let body: any;
   try {
@@ -124,10 +282,25 @@ export const POST: APIRoute = async ({ request }) => {
     db.prepare('UPDATE site_status SET chatusage = chatusage + 1 WHERE id = 1').run().catch(() => {});
   }
 
+  // Get the latest user message for dictionary enrichment
+  const lastUserMsg = trimmedMessages.filter((m: any) => m.role === 'user').pop();
+  const userText = lastUserMsg?.content || '';
+
+  // Enrich with dictionary data if the query is word-related
+  let dictionaryContext = '';
+  if (db && userText) {
+    dictionaryContext = await getDictionaryContext(userText, db);
+  }
+
+  // Build system prompt — inject dictionary data if found
+  const enrichedSystemPrompt = dictionaryContext
+    ? SYSTEM_PROMPT + dictionaryContext
+    : SYSTEM_PROMPT;
+
   try {
     const response = await AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: enrichedSystemPrompt },
         ...trimmedMessages,
       ],
       max_tokens: 512,

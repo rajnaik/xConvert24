@@ -21,12 +21,35 @@ test.describe('MyBag Page — Positive', () => {
     await expect(activitiesLink.first()).toBeVisible();
   });
 
-  test('Activities link has left margin spacing from heading', async ({ page }) => {
+  test('header nav links are wrapped in a flex container with gap', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const wrapper = page.locator('.flex.items-center.justify-between .flex.items-center.gap-2');
+    await expect(wrapper).toBeVisible();
+  });
+
+  test('has Badges link in header area', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const badgesLink = page.locator('a[href="/badges/"]');
+    await expect(badgesLink.first()).toBeVisible();
+    await expect(badgesLink.first()).toContainText('Badges');
+  });
+
+  test('Badges link has purple styling', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const badgesLink = page.locator('.flex.items-center.justify-between a[href="/badges/"]');
+    await expect(badgesLink).toBeVisible();
+    const classes = await badgesLink.getAttribute('class') || '';
+    expect(classes).toContain('bg-purple-600/20');
+    expect(classes).toContain('text-purple-400');
+  });
+
+  test('Activities link has blue styling', async ({ page }) => {
     await page.goto(`${BASE}/mybag/`);
     const activitiesLink = page.locator('.flex.items-center.justify-between a[href="/activities/"]');
     await expect(activitiesLink).toBeVisible();
     const classes = await activitiesLink.getAttribute('class') || '';
-    expect(classes).toContain('ml-[100px]');
+    expect(classes).toContain('bg-blue-600/20');
+    expect(classes).toContain('text-blue-400');
   });
 
   test('shows loading state or no-user state without uid', async ({ page }) => {
@@ -126,6 +149,21 @@ test.describe('MyBag Page — Negative', () => {
     expect(mainContent).not.toContain('AKIA');
     expect(mainContent).not.toContain('@gmail.com');
     expect(mainContent).not.toContain('rajeev');
+  });
+
+  test('no duplicate Badges links in header', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const badgesLinks = page.locator('.flex.items-center.justify-between a[href="/badges/"]');
+    expect(await badgesLinks.count()).toBe(1);
+  });
+
+  test('Badges link does not have broken href', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const badgesLink = page.locator('.flex.items-center.justify-between a[href="/badges/"]');
+    const href = await badgesLink.getAttribute('href');
+    expect(href).toBe('/badges/');
+    expect(href).not.toContain('undefined');
+    expect(href).not.toContain('null');
   });
 
   test('no duplicate summary cards', async ({ page }) => {

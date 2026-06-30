@@ -90,6 +90,69 @@ test.describe('Achievements Page — Positive', () => {
   });
 });
 
+test.describe('Achievements Page — FAQPage Schema', () => {
+  async function getFaqSchema(page: any) {
+    const schemas = page.locator('script[type="application/ld+json"]');
+    const count = await schemas.count();
+    for (let i = 0; i < count; i++) {
+      const text = await schemas.nth(i).textContent();
+      const json = JSON.parse(text!);
+      if (json['@type'] === 'FAQPage') return json;
+    }
+    return null;
+  }
+
+  test('FAQPage JSON-LD schema is present', async ({ page }) => {
+    await page.goto(`${BASE}/achievements/`);
+    const faq = await getFaqSchema(page);
+    expect(faq).not.toBeNull();
+    expect(faq['@context']).toBe('https://schema.org');
+    expect(faq['@type']).toBe('FAQPage');
+  });
+
+  test('FAQPage schema has exactly 3 questions', async ({ page }) => {
+    await page.goto(`${BASE}/achievements/`);
+    const faq = await getFaqSchema(page);
+    expect(faq).not.toBeNull();
+    expect(faq.mainEntity).toHaveLength(3);
+  });
+
+  test('FAQPage questions have correct structure', async ({ page }) => {
+    await page.goto(`${BASE}/achievements/`);
+    const faq = await getFaqSchema(page);
+    expect(faq).not.toBeNull();
+    for (const entity of faq.mainEntity) {
+      expect(entity['@type']).toBe('Question');
+      expect(entity.name).toBeTruthy();
+      expect(entity.acceptedAnswer['@type']).toBe('Answer');
+      expect(entity.acceptedAnswer.text).toBeTruthy();
+    }
+  });
+
+  test('FAQPage contains expected question topics', async ({ page }) => {
+    await page.goto(`${BASE}/achievements/`);
+    const faq = await getFaqSchema(page);
+    expect(faq).not.toBeNull();
+    const questions = faq.mainEntity.map((e: any) => e.name);
+    expect(questions).toContain('What are achievements on ScrabbleWordsFinder?');
+    expect(questions).toContain('How do I earn achievements?');
+    expect(questions).toContain('Are my achievements saved permanently?');
+  });
+
+  test('no duplicate FAQPage schemas on the page', async ({ page }) => {
+    await page.goto(`${BASE}/achievements/`);
+    const schemas = page.locator('script[type="application/ld+json"]');
+    const count = await schemas.count();
+    let faqCount = 0;
+    for (let i = 0; i < count; i++) {
+      const text = await schemas.nth(i).textContent();
+      const json = JSON.parse(text!);
+      if (json['@type'] === 'FAQPage') faqCount++;
+    }
+    expect(faqCount).toBe(1);
+  });
+});
+
 test.describe('Achievements Page — Negative', () => {
   test('no console errors on page load', async ({ page }) => {
     const errors: string[] = [];

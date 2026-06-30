@@ -34,65 +34,64 @@ test.describe('Releases Page — Positive', () => {
 
   // --- Last 2 versions only (per release-notes-testing rule) ---
 
-  test('v1.13.0 release entry is present and is the latest', async ({ page }) => {
+  test('v1.14.1 release entry is present and is the latest', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const heading = firstArticle.locator('h2');
-    await expect(heading).toContainText('v1.13.0');
-    await expect(heading).toContainText('June 28, 2026');
+    await expect(heading).toContainText('v1.14.1');
+    await expect(heading).toContainText('June 30, 2026');
   });
 
-  test('v1.13.0 lists all feature items', async ({ page }) => {
+  test('v1.14.1 lists all feature items', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(11);
+    expect(count).toBe(9);
     const content = await firstArticle.textContent();
-    expect(content).toContain('Ask Lex AI');
-    expect(content).toContain('RAG-powered answers');
-    expect(content).toContain('Ask Lex tile on solver');
-    expect(content).toContain('Blog "Ask AI" component');
-    expect(content).toContain('AI health check API');
-    expect(content).toContain('Chat usage tracking');
-    expect(content).toContain('RAG ingestion pipeline');
-    expect(content).toContain('Lex avatar');
-    expect(content).toContain('Header update');
-    expect(content).toContain('New migrations');
-    expect(content).toContain('Comprehensive test suite');
+    expect(content).toContain('Ask Lex');
+    expect(content).toContain('Dictionary API');
+    expect(content).toContain('Badges theme');
+    expect(content).toContain('Admin Badges');
+    expect(content).toContain('Thematic Words');
+    expect(content).toContain('Pagemap generator');
+    expect(content).toContain('Blog cross-links');
+    expect(content).toContain('Cleanup');
+    expect(content).toContain('Test suite');
   });
 
-  test('v1.13.0 has purple border styling (minor release)', async ({ page }) => {
+  test('v1.14.1 has emerald border styling', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
-    await expect(firstArticle).toHaveClass(/border-purple-500/);
+    await expect(firstArticle).toHaveClass(/border-emerald-500/);
   });
 
-  test('v1.12.4 release entry is present as second entry', async ({ page }) => {
+  test('v1.14.0 release entry is present as second entry', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
     const heading = secondArticle.locator('h2');
-    await expect(heading).toContainText('v1.12.4');
-    await expect(heading).toContainText('June 28, 2026');
+    await expect(heading).toContainText('v1.14.0');
+    await expect(heading).toContainText('June 30, 2026');
   });
 
-  test('v1.12.4 lists all feature items', async ({ page }) => {
+  test('v1.14.0 lists key features', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
     const items = secondArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(4);
+    expect(count).toBe(11);
     const content = await secondArticle.textContent();
-    expect(content).toContain('Roadmap to Being a Pro Scrabble Player');
-    expect(content).toContain('BlogComments component');
-    expect(content).toContain('Release notes test rule');
-    expect(content).toContain('Version bump to v1.12.4');
+    expect(content).toContain('Diamond Hunt');
+    expect(content).toContain('Badges & Progression');
+    expect(content).toContain('Achievements upgrade');
+    expect(content).toContain('StarBar progress message');
+    expect(content).toContain('MyBag badges section');
   });
 
-  test('v1.12.4 has emerald border styling', async ({ page }) => {
+  test('v1.14.0 has amber border styling', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
-    await expect(secondArticle).toHaveClass(/border-emerald-500/);
+    await expect(secondArticle).toHaveClass(/border-amber-500/);
   });
 
   // --- General structure tests ---
@@ -119,10 +118,18 @@ test.describe('Releases Page — Positive', () => {
 
   test('FAQPage JSON-LD schema is present', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
-    const schema = page.locator('script[type="application/ld+json"]');
-    const content = await schema.textContent();
-    expect(content).toContain('"FAQPage"');
-    expect(content).toContain('How often is ScrabbleWordsFinder updated');
+    const schemas = page.locator('script[type="application/ld+json"]');
+    const count = await schemas.count();
+    let hasFAQ = false;
+    for (let i = 0; i < count; i++) {
+      const content = await schemas.nth(i).textContent();
+      if (content && content.includes('"FAQPage"')) {
+        hasFAQ = true;
+        expect(content).toContain('How often is ScrabbleWordsFinder updated');
+        break;
+      }
+    }
+    expect(hasFAQ).toBe(true);
   });
 });
 

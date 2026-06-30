@@ -4,6 +4,7 @@ import '../../styles/global.css';
 ---
 
 <Layout title="Admin — ScrabbleWordsFinder" description="Admin dashboard for ScrabbleWordsFinder.com" keywords="admin, dashboard, scrabble word finder">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
   <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
     <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
       <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
@@ -304,6 +305,16 @@ import '../../styles/global.css';
           <div><p class="text-sm font-bold text-amber-400" id="dh-a-claims">-</p><p class="text-[10px] text-gray-500">Claims</p></div>
         </div>
       </a>
+      <!-- Badges Card -->
+      <a href="/admin/badges/" class="block rounded-xl border border-rose-800/50 bg-gray-900/50 p-6 hover:border-rose-700 transition-colors group">
+        <h2 class="text-xl font-semibold text-white mb-2 group-hover:text-rose-400 transition-colors">🏅 Badges</h2>
+        <p class="text-gray-400 text-sm">Manage badge tiers, thresholds, themes, and track earner progression.</p>
+        <div id="badges-admin-stats" class="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div><p class="text-sm font-bold text-rose-400" id="badges-a-total">-</p><p class="text-[10px] text-gray-500">Total Tiers</p></div>
+          <div><p class="text-sm font-bold text-green-400" id="badges-a-active">-</p><p class="text-[10px] text-gray-500">Active</p></div>
+          <div><p class="text-sm font-bold text-amber-400" id="badges-a-earners">-</p><p class="text-[10px] text-gray-500">Users w/ Badge</p></div>
+        </div>
+      </a>
     </div>
 
   </div>
@@ -512,6 +523,13 @@ import '../../styles/global.css';
       document.getElementById('dh-a-total')!.textContent = String(d.summary.total);
       document.getElementById('dh-a-active')!.textContent = String(d.summary.active);
       document.getElementById('dh-a-claims')!.textContent = String(d.summary.totalClaims);
+    }).catch(() => {});
+
+    // Badges stats
+    fetch('/api/badges/?stats=true').then(r => r.json()).then(d => {
+      document.getElementById('badges-a-total')!.textContent = String(d.stats.totalBadges);
+      document.getElementById('badges-a-active')!.textContent = String(d.stats.activeBadges);
+      document.getElementById('badges-a-earners')!.textContent = String(d.stats.usersWithBadge);
     }).catch(() => {});
 
     // Users stats

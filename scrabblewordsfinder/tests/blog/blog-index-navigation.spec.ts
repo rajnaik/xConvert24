@@ -30,7 +30,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     expect(classes).toContain('lg:grid-cols-5');
   });
 
-  test('all 25 category/activity tiles are present', async ({ page }) => {
+  test('all 29 category/activity tiles are present', async ({ page }) => {
     await page.goto('/blog/');
     const expectedLabels = [
       'Beginner',
@@ -43,11 +43,14 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
       'High-Scoring',
       'Letter Guides',
       'Dictionaries',
+      'Word Validity',
+      'Thematic Words',
       'Containing',
       'Endings',
       'Prefixes',
       'Patterns',
       'Vocabulary',
+      'Ask Lex AI',
       'Tools',
       'History',
       'Fun Facts',
@@ -58,6 +61,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
       'Daily Rack',
       'Anagram',
       '60-Second',
+      'Badges',
     ];
     const navGrid = page.locator(NAV_GRID).first();
     for (const label of expectedLabels) {
@@ -69,7 +73,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
   test('category group labels are present', async ({ page }) => {
     await page.goto('/blog/');
     const navGrid = page.locator(NAV_GRID).first();
-    const groupLabels = ['Learn & Strategy', 'Word Lists', 'Word Patterns', 'Resources', 'Activities'];
+    const groupLabels = ['Learn & Strategy', 'Word Lists', 'Word Validity & Themes', 'Word Patterns', 'Resources', 'Activities'];
     for (const label of groupLabels) {
       const groupHeader = navGrid.locator(`p.col-span-full:has-text("${label}")`);
       await expect(groupHeader, `Group label "${label}" should be present`).toHaveCount(1);
@@ -80,7 +84,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     await page.goto('/blog/');
     const navGrid = page.locator(NAV_GRID).first();
     const tiles = await navGrid.locator('a').all();
-    expect(tiles.length).toBe(25);
+    expect(tiles.length).toBe(29);
     for (const tile of tiles) {
       // Each tile should have two spans: emoji icon + label text
       const spans = await tile.locator('span').count();
@@ -158,6 +162,59 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     const classes = await tile.getAttribute('class');
     expect(classes).toContain('border-emerald-500/30');
     expect(classes).toContain('bg-emerald-950/20');
+  });
+
+  test('Ask Lex AI tile points to /chat/', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Ask Lex AI")`).first();
+    await expect(tile).toBeVisible();
+    await expect(tile).toHaveAttribute('href', '/chat/');
+  });
+
+  test('Ask Lex AI tile has purple theming', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Ask Lex AI")`).first();
+    const classes = await tile.getAttribute('class');
+    expect(classes).toContain('border-purple-500/30');
+    expect(classes).toContain('bg-purple-950/20');
+  });
+
+  test('Ask Lex AI tile has robot emoji icon', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Ask Lex AI")`).first();
+    const emojiSpan = tile.locator('span').first();
+    const text = await emojiSpan.textContent();
+    expect(text?.trim()).toBe('🤖');
+  });
+
+  test('Word Validity tile points to /blog/word-validity/', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Word Validity")`).first();
+    await expect(tile).toBeVisible();
+    await expect(tile).toHaveAttribute('href', '/blog/word-validity/');
+  });
+
+  test('Word Validity tile has violet theming', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Word Validity")`).first();
+    const classes = await tile.getAttribute('class');
+    expect(classes).toContain('border-violet-500/30');
+    expect(classes).toContain('bg-violet-950/20');
+  });
+
+  test('Thematic Words tile points to /blog/thematic-words/', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Thematic Words")`).first();
+    await expect(tile).toBeVisible();
+    await expect(tile).toHaveAttribute('href', '/blog/thematic-words/');
+  });
+
+  test('Thematic Words tile has orange theming', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Thematic Words")`).first();
+    const classes = await tile.getAttribute('class');
+    expect(classes).toContain('border-orange-500/30');
+    expect(classes).toContain('bg-orange-950/20');
   });
 
   test('blog category tiles use rounded-xl styling', async ({ page }) => {

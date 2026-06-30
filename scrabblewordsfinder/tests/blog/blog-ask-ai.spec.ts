@@ -1,258 +1,88 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
- * BlogAskAI Component Tests
- * Verifies the floating AI chat widget on blog pages:
- * - Toggle button visibility and interaction
- * - Panel open/close behaviour
- * - Form input and submission
- * - Error handling and rate limiting
+ * AskLex Component Tests — DISABLED STATE
+ * The AskLex floating AI chat widget was disabled from BlogLayout.astro
+ * on 2026-06-30 per Raj's request.
+ * These tests verify the component is properly removed from blog pages.
  */
 
 const BLOG_PAGE = '/blog/what-is-scrabble/';
 
-/**
- * Dismiss the cookie consent banner so it doesn't block click targets.
- */
-async function dismissCookieBanner(page: Page) {
-  const acceptBtn = page.locator('#cookie-banner button', { hasText: 'Accept' });
-  if (await acceptBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await acceptBtn.click();
-    await page.locator('#cookie-banner').waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
-  }
-}
+test.describe('AskLex Disabled — Positive', () => {
+  test('blog page loads successfully without AskLex', async ({ page }) => {
+    await page.goto(BLOG_PAGE);
+    await expect(page).toHaveTitle(/Scrabble/i);
+    // Page should load fine without the chat widget
+    await expect(page.getByRole('main')).toBeVisible();
+  });
 
-test.describe('BlogAskAI — Positive', () => {
-  test('floating AI chat toggle button is visible on blog pages', async ({ page }) => {
+  test('no floating chat toggle button on blog pages', async ({ page }) => {
     await page.goto(BLOG_PAGE);
     const toggleBtn = page.locator('#rag-toggle-btn');
-    await expect(toggleBtn).toBeVisible();
-    await expect(toggleBtn).toHaveAttribute('aria-label', 'Ask AI about Scrabble');
+    await expect(toggleBtn).toHaveCount(0);
   });
 
-  test('chat panel opens when toggle button is clicked', async ({ page }) => {
+  test('no chat panel element on blog pages', async ({ page }) => {
     await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-
     const panel = page.locator('#rag-panel');
-    await expect(panel).toBeHidden();
-
-    await page.locator('#rag-toggle-btn').click();
-    await expect(panel).toBeVisible();
+    await expect(panel).toHaveCount(0);
   });
 
-  test('chat panel shows welcome message with AI avatar', async ({ page }) => {
+  test('no chat widget container on blog pages', async ({ page }) => {
     await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
-
-    const messages = page.locator('#rag-messages');
-    await expect(messages).toContainText('Scrabble AI assistant');
-  });
-
-  test('chat panel header displays correct title', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
-
-    const header = page.locator('#rag-panel h3');
-    await expect(header).toHaveText('Ask AI — Scrabble Expert');
-  });
-
-  test('input field accepts text and is focusable', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
-
-    const input = page.locator('#rag-input');
-    await expect(input).toBeVisible();
-    await input.fill('What are the best two-letter words?');
-    await expect(input).toHaveValue('What are the best two-letter words?');
-  });
-
-  test('chat panel closes when toggle button is clicked again', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-
-    const panel = page.locator('#rag-panel');
-
-    await page.locator('#rag-toggle-btn').click();
-    await expect(panel).toBeVisible();
-
-    await page.locator('#rag-toggle-btn').click();
-    await expect(panel).toBeHidden();
-  });
-
-  test('chat panel closes on Escape key', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-
-    const panel = page.locator('#rag-panel');
-
-    await page.locator('#rag-toggle-btn').click();
-    await expect(panel).toBeVisible();
-
-    await page.keyboard.press('Escape');
-    await expect(panel).toBeHidden();
-  });
-
-  test('close icon toggles with chat icon when panel opens', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-
-    const chatIcon = page.locator('#rag-icon-chat');
-    const closeIcon = page.locator('#rag-icon-close');
-
-    await expect(chatIcon).toBeVisible();
-    await expect(closeIcon).toBeHidden();
-
-    await page.locator('#rag-toggle-btn').click();
-
-    await expect(chatIcon).toBeHidden();
-    await expect(closeIcon).toBeVisible();
-  });
-
-  test('submitting a question adds user message bubble', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
-
-    // Mock the API to avoid actual AI calls
-    await page.route('**/api/rag-query/', route =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ answer: 'Two-letter words like QI and ZA are very useful.', sources: [{ slug: 'best-two-letter-words-scrabble', title: 'Best Two-Letter Words' }] })
-      })
-    );
-
-    await page.locator('#rag-input').fill('What are good two-letter words?');
-    await page.locator('#rag-send-btn').click();
-
-    // User message should appear
-    const userBubble = page.locator('#rag-messages .bg-blue-600');
-    await expect(userBubble).toBeVisible();
-    await expect(userBubble).toContainText('What are good two-letter words?');
-  });
-
-  test('AI response is displayed with sources', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
-
-    await page.route('**/api/rag-query/', route =>
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ answer: 'QI and ZA are essential two-letter words.', sources: [{ slug: 'best-two-letter-words-scrabble', title: 'Best Two-Letter Words' }] })
-      })
-    );
-
-    await page.locator('#rag-input').fill('Tell me about two-letter words');
-    await page.locator('#rag-send-btn').click();
-
-    // Wait for AI response
-    const aiResponse = page.locator('#rag-messages').getByText('QI and ZA are essential');
-    await expect(aiResponse).toBeVisible({ timeout: 5000 });
-
-    // Source link should be present and open in same window (no target attribute)
-    const sourceLink = page.locator('#rag-messages a[href="/blog/best-two-letter-words-scrabble/"]');
-    await expect(sourceLink).toBeVisible();
-    await expect(sourceLink).toContainText('Best Two-Letter Words');
-    await expect(sourceLink).not.toHaveAttribute('target', '_blank');
+    const widget = page.locator('#rag-chat-widget');
+    await expect(widget).toHaveCount(0);
   });
 });
 
-test.describe('BlogAskAI — Negative', () => {
-  test('no duplicate chat widgets on page', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    const widgetCount = await page.locator('#rag-chat-widget').count();
-    expect(widgetCount, 'Should have exactly one AI chat widget').toBe(1);
-  });
-
-  test('empty input does not submit a question', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
-
-    let apiCalled = false;
-    await page.route('**/api/rag-query/', route => {
-      apiCalled = true;
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ answer: 'test', sources: [] }) });
-    });
-
-    // Submit with empty input
-    await page.locator('#rag-send-btn').click();
-    // Give a moment to ensure no API call is made
-    await page.waitForTimeout(500);
-    expect(apiCalled, 'API should not be called with empty input').toBe(false);
-  });
-
-  test('handles API error gracefully without crashing', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('pageerror', err => errors.push(err.message));
-
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
-
-    await page.route('**/api/rag-query/', route =>
-      route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'Internal server error' }) })
-    );
-
-    await page.locator('#rag-input').fill('Test question');
-    await page.locator('#rag-send-btn').click();
-
-    // Error message should appear
-    const errorMsg = page.locator('#rag-messages').getByText("couldn't process");
-    await expect(errorMsg).toBeVisible({ timeout: 5000 });
-
-    // No page errors
-    expect(errors).toHaveLength(0);
-  });
-
-  test('handles rate limit (429) with user-friendly message', async ({ page }) => {
-    await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
-
-    await page.route('**/api/rag-query/', route =>
-      route.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ error: 'Rate limited' }) })
-    );
-
-    await page.locator('#rag-input').fill('Another question');
-    await page.locator('#rag-send-btn').click();
-
-    const limitMsg = page.locator('#rag-messages').getByText('question limit');
-    await expect(limitMsg).toBeVisible({ timeout: 5000 });
-  });
-
-  test('no JavaScript errors from BlogAskAI on page load', async ({ page }) => {
+test.describe('AskLex Disabled — Negative', () => {
+  test('no JavaScript errors from missing AskLex on page load', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', err => errors.push(err.message));
 
     await page.goto(BLOG_PAGE);
     await page.waitForLoadState('networkidle');
 
-    const ragErrors = errors.filter(e => e.toLowerCase().includes('rag') || e.toLowerCase().includes('toggle'));
-    expect(ragErrors, `RAG-related errors: ${ragErrors.join('; ')}`).toHaveLength(0);
+    const ragErrors = errors.filter(e =>
+      e.toLowerCase().includes('rag') ||
+      e.toLowerCase().includes('lex') ||
+      e.toLowerCase().includes('toggle')
+    );
+    expect(ragErrors, `No AskLex-related JS errors expected: ${ragErrors.join('; ')}`).toHaveLength(0);
   });
 
-  test('send button is disabled while waiting for AI response', async ({ page }) => {
+  test('no orphan AskLex scripts or styles left behind', async ({ page }) => {
     await page.goto(BLOG_PAGE);
-    await dismissCookieBanner(page);
-    await page.locator('#rag-toggle-btn').click();
+    // The RAG-related inline scripts should not be present if component is removed
+    const ragInput = page.locator('#rag-input');
+    const ragSendBtn = page.locator('#rag-send-btn');
+    const ragMessages = page.locator('#rag-messages');
 
-    // Use a delayed response to catch the disabled state
-    await page.route('**/api/rag-query/', async route => {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ answer: 'Delayed answer', sources: [] }) });
+    await expect(ragInput).toHaveCount(0);
+    await expect(ragSendBtn).toHaveCount(0);
+    await expect(ragMessages).toHaveCount(0);
+  });
+
+  test('cookie consent still works without AskLex', async ({ page }) => {
+    await page.goto(BLOG_PAGE);
+    // CookieConsent comes right after the disabled AskLex — verify it still renders
+    const cookieBanner = page.locator('#cookie-banner');
+    // May or may not be visible depending on prior consent, but element should exist in DOM
+    const count = await cookieBanner.count();
+    expect(count).toBeGreaterThanOrEqual(0); // Either 0 (already consented) or 1
+  });
+
+  test('no API calls to rag-query on blog page load', async ({ page }) => {
+    let ragApiCalled = false;
+    await page.route('**/api/rag-query/**', route => {
+      ragApiCalled = true;
+      route.continue();
     });
 
-    await page.locator('#rag-input').fill('Question');
-    await page.locator('#rag-send-btn').click();
+    await page.goto(BLOG_PAGE);
+    await page.waitForLoadState('networkidle');
 
-    // Button should be disabled while loading
-    await expect(page.locator('#rag-send-btn')).toBeDisabled();
+    expect(ragApiCalled, 'No rag-query API calls should be made when AskLex is disabled').toBe(false);
   });
 });

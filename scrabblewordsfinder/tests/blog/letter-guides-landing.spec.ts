@@ -142,6 +142,113 @@ test.describe('Letter Guides Landing Page — Positive', () => {
     await expect(page.locator('a[href="/blog/strategy/"]')).toBeVisible();
   });
 
+  test('Double Letter Strategy section has all 16 links (BB through ZZ + Overview)', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const heading = page.locator('h3:has-text("Double Letter Strategy")');
+    await expect(heading).toBeVisible();
+    const expectedLinks = [
+      '/blog/scrabble-words-with-double-b/',
+      '/blog/scrabble-words-with-double-c/',
+      '/blog/scrabble-words-with-double-d/',
+      '/blog/scrabble-words-with-double-e/',
+      '/blog/scrabble-words-with-double-f/',
+      '/blog/scrabble-words-with-double-g/',
+      '/blog/scrabble-words-with-double-l/',
+      '/blog/scrabble-words-with-double-m/',
+      '/blog/scrabble-words-with-double-n/',
+      '/blog/scrabble-words-with-double-o/',
+      '/blog/scrabble-words-with-double-p/',
+      '/blog/scrabble-words-with-double-r/',
+      '/blog/scrabble-words-with-double-s/',
+      '/blog/scrabble-words-with-double-t/',
+      '/blog/scrabble-words-with-double-z/',
+      '/blog/scrabble-words-with-double-letters-strategy/',
+    ];
+    for (const href of expectedLinks) {
+      await expect(page.locator(`a[href="${href}"]`), `Missing double letter strategy link: ${href}`).toBeVisible();
+    }
+  });
+
+  test('Double Letter Strategy Overview link has correct label', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const overviewLink = page.locator('a[href="/blog/scrabble-words-with-double-letters-strategy/"]');
+    await expect(overviewLink).toBeVisible();
+    const text = await overviewLink.textContent();
+    expect(text).toContain('Overview');
+  });
+
+  test('Special Combinations section includes new QU (no U next) link', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const link = page.locator('a[href="/blog/scrabble-words-with-qu-not-u-next/"]');
+    await expect(link).toBeVisible();
+    const text = await link.textContent();
+    expect(text).toContain('QU (no U next)');
+  });
+
+  test('Best Words for DWS link is present in Word Patterns section', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const link = page.locator('a[href="/blog/best-words-for-double-word-squares/"]');
+    await expect(link).toBeVisible();
+    const text = await link.textContent();
+    expect(text).toContain('Best Words for DWS');
+    expect(text).toContain('double word score squares');
+  });
+
+  test('More Prefix Guides section heading is visible with correct count', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const heading = page.locator('h2:has-text("More Prefix Guides")');
+    await expect(heading).toBeVisible();
+    const desc = page.locator('text=16 additional prefix guides');
+    await expect(desc).toBeVisible();
+  });
+
+  test('More Prefix Guides section has all 16 links', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const morePrefixLinks = [
+      '/blog/words-beginning-with-dis/',
+      '/blog/words-beginning-with-inter/',
+      '/blog/words-beginning-with-mis/',
+      '/blog/words-beginning-with-over/',
+      '/blog/words-beginning-with-pre/',
+      '/blog/words-beginning-with-re/',
+      '/blog/words-beginning-with-sub/',
+      '/blog/words-beginning-with-trans/',
+      '/blog/words-beginning-with-un/',
+      '/blog/words-beginning-with-under/',
+      '/blog/words-starting-with-back/',
+      '/blog/words-starting-with-co/',
+      '/blog/words-starting-with-de/',
+      '/blog/words-starting-with-post/',
+      '/blog/words-starting-with-trans/',
+      '/blog/words-starting-with-under/',
+    ];
+    for (const href of morePrefixLinks) {
+      const link = page.locator(`a[href="${href}"]`);
+      await expect(link, `Missing More Prefix link: ${href}`).toBeVisible();
+    }
+  });
+
+  test('More Prefix Guides links display correct uppercase labels with trailing hyphen', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const disLink = page.locator('a[href="/blog/words-beginning-with-dis/"]');
+    const disText = await disLink.textContent();
+    expect(disText).toContain('DIS-');
+    const preLink = page.locator('a[href="/blog/words-beginning-with-pre/"]');
+    const preText = await preLink.textContent();
+    expect(preText).toContain('PRE-');
+    const reLink = page.locator('a[href="/blog/words-beginning-with-re/"]');
+    const reText = await reLink.textContent();
+    expect(reText).toContain('RE-');
+  });
+
+  test('Words Ending In (Specific Endings) section includes ...EST link', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const link = page.locator('a[href="/blog/words-ending-in-est/"]');
+    await expect(link).toBeVisible();
+    const text = await link.textContent();
+    expect(text).toContain('...EST');
+  });
+
   test('CTA box with word finder link is present', async ({ page }) => {
     await page.goto('/blog/letter-guides/');
     const cta = page.locator('a:has-text("Open Word Finder")');
@@ -234,6 +341,68 @@ test.describe('Letter Guides Landing Page — Negative', () => {
     expect(visibleText).not.toContain('undefined');
     expect(visibleText).not.toContain('${');
     expect(visibleText).not.toContain('NaN');
+  });
+
+  test('no duplicate double-letter strategy links exist', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const doubleLetters = ['b', 'c', 'd', 'e', 'f', 'g', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'z'];
+    for (const letter of doubleLetters) {
+      const links = page.locator(`a[href="/blog/scrabble-words-with-double-${letter}/"]`);
+      const count = await links.count();
+      expect(count, `Duplicate double-letter strategy link for ${letter.toUpperCase()}`).toBe(1);
+    }
+    const overviewLinks = page.locator('a[href="/blog/scrabble-words-with-double-letters-strategy/"]');
+    const overviewCount = await overviewLinks.count();
+    expect(overviewCount, 'Duplicate Overview link').toBe(1);
+  });
+
+  test('no duplicate More Prefix Guides links exist', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const morePrefixes = [
+      'words-beginning-with-dis',
+      'words-beginning-with-inter',
+      'words-beginning-with-mis',
+      'words-beginning-with-over',
+      'words-beginning-with-pre',
+      'words-beginning-with-re',
+      'words-beginning-with-sub',
+      'words-beginning-with-trans',
+      'words-beginning-with-un',
+      'words-beginning-with-under',
+    ];
+    for (const slug of morePrefixes) {
+      const links = page.locator(`a[href="/blog/${slug}/"]`);
+      const count = await links.count();
+      expect(count, `Duplicate link for ${slug}`).toBe(1);
+    }
+  });
+
+  test('no duplicate QU-related links in Special Combinations section', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const quLinks = [
+      '/blog/words-containing-qu/',
+      '/blog/words-containing-qu-no-u-after/',
+      '/blog/scrabble-words-with-qu-not-u-next/',
+    ];
+    for (const href of quLinks) {
+      const links = page.locator(`a[href="${href}"]`);
+      const count = await links.count();
+      expect(count, `Duplicate link found: ${href}`).toBe(1);
+    }
+  });
+
+  test('no duplicate words-ending-in-est link exists', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const links = page.locator('a[href="/blog/words-ending-in-est/"]');
+    const count = await links.count();
+    expect(count, 'Expected exactly 1 ...EST link').toBe(1);
+  });
+
+  test('no duplicate Best Words for DWS link exists', async ({ page }) => {
+    await page.goto('/blog/letter-guides/');
+    const links = page.locator('a[href="/blog/best-words-for-double-word-squares/"]');
+    const count = await links.count();
+    expect(count, 'Expected exactly 1 Best Words for DWS link').toBe(1);
   });
 
   test('no unclosed HTML causing layout collapse', async ({ page }) => {

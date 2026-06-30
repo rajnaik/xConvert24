@@ -99,6 +99,7 @@ test.describe('Chat Page — Positive', () => {
     const messages = page.locator('#messages');
     const text = await messages.textContent();
     expect(text).toContain('Lex');
+    expect(text).toContain('AI Scrabble Coach');
   });
 
   test('FAQPage schema is present', async ({ page }) => {
@@ -230,6 +231,13 @@ test.describe('Chat Page — Negative', () => {
     const rightCol = page.locator('.lg\\:w-64.xl\\:w-72');
     const cls = await rightCol.getAttribute('class');
     expect(cls).not.toContain('mt-[190px]');
+  });
+
+  test('welcome message does not use old "assistant" wording (regression)', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const messages = page.locator('#messages');
+    const text = await messages.textContent();
+    expect(text).not.toContain('AI Scrabble assistant');
   });
 
   test('no sensitive data exposed on chat page', async ({ page }) => {
