@@ -12,7 +12,7 @@ import '../styles/global.css';
       <a href="/" class="text-sm text-blue-400 hover:underline">← Solver</a>
       <h1 class="text-xl font-bold text-white flex items-center gap-2">
         <span class="relative group shrink-0">
-          <img src="/lex-avatar-128.png" alt="Lex" width="32" height="32" class="rounded-full cursor-pointer transition-transform duration-200 group-hover:scale-[3] group-hover:z-50 group-hover:relative group-hover:ring-2 group-hover:ring-cyan-400/60" />
+          <img src="/lex-avatar.webp" alt="Lex" width="32" height="32" class="rounded-full cursor-pointer transition-transform duration-200 group-hover:scale-[3] group-hover:z-50 group-hover:relative group-hover:ring-2 group-hover:ring-cyan-400/60" />
           <span class="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 rounded bg-gray-900 border border-gray-700 text-xs text-gray-200 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">Lex AI</span>
         </span>
         Lex
@@ -934,6 +934,115 @@ import '../styles/global.css';
         // Clean URL without reloading
         window.history.replaceState({}, '', '/chat/');
       }
+    })();
+
+    // Auto-submit if ?context=quiz is present (from Quiz Panel Lex link)
+    (function autoSubmitFromQuizContext() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('context') !== 'quiz') return;
+
+      // Clean URL immediately
+      window.history.replaceState({}, '', '/chat/');
+
+      const uid = localStorage.getItem('swf-uid') || '';
+      if (!uid) {
+        input.value = '[QUIZ COACHING REQUEST]\n\nHere is my Word Quiz performance data. Please analyze it and give me personalized coaching advice.\n\n--- MY QUIZ STATS ---\nTotal rounds played: 0\nOverall accuracy: N/A (no games played yet)\nPerfect scores: 0\nTimed out: 0\n\nI am a first-time quiz player with no history. Please welcome me and share some Scrabble vocabulary wisdom to get me started.';
+        setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        return;
+      }
+
+      // Fetch quiz history and build a coaching request
+      (async function() {
+        try {
+          const res = await fetch('/api/quiz-scores/?user_id=' + encodeURIComponent(uid));
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          const scores = data.scores || [];
+
+          if (scores.length === 0) {
+            input.value = '[QUIZ COACHING REQUEST]\n\nHere is my Word Quiz performance data. Please analyze it and give me personalized coaching advice.\n\n--- MY QUIZ STATS ---\nTotal rounds played: 0\nOverall accuracy: N/A (no games played yet)\nPerfect scores: 0\nTimed out: 0\n\nI am a first-time quiz player with no history. Please welcome me and share some Scrabble vocabulary wisdom to get me started.';
+            setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+            return;
+          }
+
+          // Build a summary of quiz history for the AI to analyze
+          const totalGames = scores.length;
+          const totalCorrect = scores.reduce((s, q) => s + q.score, 0);
+          const totalQuestions = scores.reduce((s, q) => s + q.total, 0);
+          const avgAccuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+          const perfectGames = scores.filter(q => q.score === q.total).length;
+          const timedOutGames = scores.filter(q => q.timed_out === 1).length;
+          const completedGames = scores.filter(q => !q.timed_out);
+          const avgTime = completedGames.length > 0
+            ? (completedGames.reduce((s, q) => s + q.time_used, 0) / completedGames.length).toFixed(1)
+            : 0;
+          const fastestGame = completedGames.length > 0
+            ? completedGames.reduce((min, q) => q.time_used < min ? q.time_used : min, 9999)
+            : 0;
+          const slowestGame = completedGames.length > 0
+            ? completedGames.reduce((max, q) => q.time_used > max ? q.time_used : max, 0)
+            : 0;
+
+          // Analyze per-question timing from recent games (last 5)
+          const recentGames = scores.slice(0, 5);
+          let splitAnalysis = '';
+          let totalSplits = 0;
+          let fastSplits = 0; // < 3 seconds
+          let slowSplits = 0; // > 10 seconds
+          let wrongWords = [];
+
+          recentGames.forEach(game => {
+            let details = [];
+            try { details = game.details ? JSON.parse(game.details) : []; } catch {}
+            if (Array.isArray(details)) {
+              details.forEach(d => {
+                totalSplits++;
+                if (d.split_time < 3) fastSplits++;
+                if (d.split_time > 10) slowSplits++;
+                if (!d.correct && d.word) wrongWords.push(d.word);
+              });
+            }
+          });
+
+          // Get common timer durations used
+          const timerCounts = {};
+          scores.forEach(q => { timerCounts[q.timer_limit] = (timerCounts[q.timer_limit] || 0) + 1; });
+          const preferredTimer = Object.entries(timerCounts).sort((a, b) => b[1] - a[1])[0];
+
+          // Build the coaching message
+          let msg = '[QUIZ COACHING REQUEST]\n\n';
+          msg += 'Here is my Word Quiz performance data. Please analyze it and give me personalized coaching advice.\n\n';
+          msg += '--- MY QUIZ STATS ---\n';
+          msg += 'Total rounds played: ' + totalGames + '\n';
+          msg += 'Overall accuracy: ' + avgAccuracy + '% (' + totalCorrect + '/' + totalQuestions + ' correct)\n';
+          msg += 'Perfect scores: ' + perfectGames + ' out of ' + totalGames + ' games\n';
+          msg += 'Timed out: ' + timedOutGames + ' times\n';
+          msg += 'Average time per round: ' + avgTime + 's\n';
+          msg += 'Fastest round: ' + (fastestGame < 9999 ? fastestGame + 's' : 'N/A') + '\n';
+          msg += 'Slowest round: ' + (slowestGame > 0 ? slowestGame + 's' : 'N/A') + '\n';
+          msg += 'Preferred timer: ' + (preferredTimer ? preferredTimer[0] + 's (used ' + preferredTimer[1] + ' times)' : 'N/A') + '\n';
+
+          if (totalSplits > 0) {
+            msg += '\n--- ANSWER SPEED ANALYSIS (last 5 games) ---\n';
+            msg += 'Total questions answered: ' + totalSplits + '\n';
+            msg += 'Very fast answers (< 3s): ' + fastSplits + ' (' + Math.round(fastSplits/totalSplits*100) + '%)\n';
+            msg += 'Slow answers (> 10s): ' + slowSplits + ' (' + Math.round(slowSplits/totalSplits*100) + '%)\n';
+          }
+
+          if (wrongWords.length > 0) {
+            msg += '\n--- WORDS I GOT WRONG RECENTLY ---\n';
+            msg += wrongWords.slice(0, 10).join(', ') + '\n';
+          }
+
+          msg += '\nPlease give me specific, actionable coaching tips based on this data.';
+
+          input.value = msg;
+          setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        } catch {
+          input.value = 'I\'ve been playing the Word Quiz. Can you analyze my performance and give me tips to improve?';
+          setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        }
+      })();
     })();
 
     // Voice input (Web Speech API)

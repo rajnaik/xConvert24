@@ -80,15 +80,17 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     }
   });
 
-  test('each tile has an emoji icon and a text label', async ({ page }) => {
+  test('each tile has an icon (emoji span or img) and a text label', async ({ page }) => {
     await page.goto('/blog/');
     const navGrid = page.locator(NAV_GRID).first();
     const tiles = await navGrid.locator('a').all();
     expect(tiles.length).toBe(29);
     for (const tile of tiles) {
-      // Each tile should have two spans: emoji icon + label text
+      // Each tile should have either 2 spans (emoji + label) or 1 img + 1 span (for Ask Lex AI)
       const spans = await tile.locator('span').count();
-      expect(spans, 'Each tile should contain 2 spans (icon + label)').toBe(2);
+      const imgs = await tile.locator('img').count();
+      const hasIcon = spans === 2 || (spans === 1 && imgs === 1);
+      expect(hasIcon, 'Each tile should contain icon + label').toBe(true);
     }
   });
 
@@ -179,12 +181,12 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     expect(classes).toContain('bg-purple-950/20');
   });
 
-  test('Ask Lex AI tile has robot emoji icon', async ({ page }) => {
+  test('Ask Lex AI tile has avatar image icon', async ({ page }) => {
     await page.goto('/blog/');
     const tile = page.locator(`${NAV_GRID} a:has-text("Ask Lex AI")`).first();
-    const emojiSpan = tile.locator('span').first();
-    const text = await emojiSpan.textContent();
-    expect(text?.trim()).toBe('🤖');
+    const img = tile.locator('img');
+    await expect(img).toBeVisible();
+    await expect(img).toHaveAttribute('src', '/lex-avatar.webp');
   });
 
   test('Word Validity tile points to /blog/word-validity/', async ({ page }) => {

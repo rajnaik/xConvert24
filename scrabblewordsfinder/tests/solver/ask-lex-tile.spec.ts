@@ -43,10 +43,10 @@ test.describe('Ask Lex AI Tile — Positive', () => {
     await expect(hoverAvatar).toHaveAttribute('alt', 'Lex AI');
   });
 
-  test('hover avatar uses lex-avatar-128.png source', async ({ page }) => {
+  test('hover avatar uses lex-avatar-lg.webp source', async ({ page }) => {
     await page.goto(`${BASE}/`);
     const hoverAvatar = page.locator('#ask-lex-tile img[width="160"]');
-    await expect(hoverAvatar).toHaveAttribute('src', '/lex-avatar-128.png');
+    await expect(hoverAvatar).toHaveAttribute('src', '/lex-avatar-lg.webp');
   });
 
   test('hover avatar has pointer-events-none class', async ({ page }) => {

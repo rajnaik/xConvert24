@@ -80,7 +80,7 @@ test.describe('Blog Index — Useful Links Panel — Positive', () => {
     await page.locator('#useful-links-toggle').click();
     const content = page.locator('#useful-links-content');
     const toolsSection = content.locator('.border-blue-500\\/20');
-    await expect(toolsSection.locator('a')).toHaveCount(3);
+    await expect(toolsSection.locator('a')).toHaveCount(4);
     await expect(toolsSection).toContainText('Achievements');
     await expect(toolsSection).toContainText('Settings');
   });
@@ -90,7 +90,7 @@ test.describe('Blog Index — Useful Links Panel — Positive', () => {
     await page.locator('#useful-links-toggle').click();
     const content = page.locator('#useful-links-content');
     const infoSection = content.locator('.border-amber-500\\/20');
-    await expect(infoSection.locator('a')).toHaveCount(5);
+    await expect(infoSection.locator('a')).toHaveCount(6);
     await expect(infoSection).toContainText('About Us');
     await expect(infoSection).toContainText('User Guide');
     await expect(infoSection).toContainText('Suggest a Feature');
@@ -101,10 +101,9 @@ test.describe('Blog Index — Useful Links Panel — Positive', () => {
     await page.locator('#useful-links-toggle').click();
     const content = page.locator('#useful-links-content');
     const legalSection = content.locator('.border-gray-600\\/30');
-    await expect(legalSection.locator('a')).toHaveCount(4);
+    await expect(legalSection.locator('a')).toHaveCount(3);
     await expect(legalSection).toContainText('Privacy Policy');
     await expect(legalSection).toContainText('Terms of Use');
-    await expect(legalSection).toContainText('Contact Us');
   });
 
   test('full page link at bottom points to /blog/useful-links/', async ({ page }) => {

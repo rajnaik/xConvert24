@@ -77,3 +77,32 @@ test.describe('Activities Grid Layout — Negative', () => {
     expect(box!.height).toBeGreaterThan(100);
   });
 });
+
+// ── Quiz Panel Lex Link — Positive ────────────────────────────
+
+test.describe('Quiz Panel Lex Link — Positive', () => {
+  test('Lex AI link is visible in the Word Quiz panel', async ({ page }) => {
+    await page.goto(ACTIVITIES_URL);
+    const lexLink = page.locator('a[href="/chat/"]', { hasText: 'Lex' });
+    await expect(lexLink.first()).toBeVisible();
+  });
+
+  test('Lex link has correct href with trailing slash', async ({ page }) => {
+    await page.goto(ACTIVITIES_URL);
+    const lexLink = page.locator('a[href="/chat/"]', { hasText: 'Lex' });
+    await expect(lexLink.first()).toHaveAttribute('href', '/chat/');
+  });
+});
+
+// ── Quiz Panel Lex Link — Negative ────────────────────────────
+
+test.describe('Quiz Panel Lex Link — Negative', () => {
+  test('Lex link in quiz panel is not duplicated', async ({ page }) => {
+    await page.goto(ACTIVITIES_URL);
+    // Within the quiz panel specifically (the one with quiz-start-btn)
+    const quizPanel = page.locator('#quiz-start-btn').locator('..').locator('..');
+    const lexLinks = quizPanel.locator('a[href="/chat/"]');
+    const count = await lexLinks.count();
+    expect(count).toBeLessThanOrEqual(1);
+  });
+});

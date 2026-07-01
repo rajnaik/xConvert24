@@ -18,10 +18,11 @@ test.describe('Blog Index — Ask Lex AI Resource Link — Positive', () => {
     await expect(link).toBeVisible();
   });
 
-  test('Ask Lex AI tile has robot emoji', async ({ page }) => {
+  test('Ask Lex AI tile has Lex avatar image', async ({ page }) => {
     await page.goto(`${BASE}/blog/`);
     const link = page.locator('a[href="/chat/"]', { hasText: 'Ask Lex AI' });
-    await expect(link.locator('span').first()).toContainText('\u{1F916}');
+    const avatar = link.locator('img[alt="Lex"]');
+    await expect(avatar).toBeVisible();
   });
 
   test('Ask Lex AI tile has purple border styling', async ({ page }) => {

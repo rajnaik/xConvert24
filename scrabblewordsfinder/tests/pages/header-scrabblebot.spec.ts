@@ -17,7 +17,7 @@ test.describe('Header Lex AI — Positive', () => {
   test('lex ai button has avatar image instead of emoji', async ({ page }) => {
     await page.goto('/');
     const link = page.locator(lexAiSelector);
-    const img = link.locator('img[src="/lex-avatar-128.png"]');
+    const img = link.locator('img[src="/lex-avatar.webp"]');
     await expect(img).toBeVisible();
     await expect(img).toHaveAttribute('alt', 'Lex AI');
     await expect(img).toHaveAttribute('width', '24');

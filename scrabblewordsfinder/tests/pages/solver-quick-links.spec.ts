@@ -5,11 +5,41 @@ const BASE_URL = process.env.SWF_TEST_URL || 'https://www.scrabblewordsfinder.co
 // ── Solver Quick Links — Positive (desktop only) ───────────────────────────
 
 test.describe('Solver Quick Links — Positive', () => {
-  test('all 5 activity link icons are visible on desktop', async ({ page }) => {
+  test('all 6 quick link icons are visible on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(BASE_URL);
     const quickLinks = page.locator('main .items-center.gap-2.ml-auto a');
-    await expect(quickLinks).toHaveCount(5);
+    await expect(quickLinks).toHaveCount(6);
+  });
+
+  test('Diamond Hunt link points to /diamond-hunt/', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(BASE_URL);
+    const diamondLink = page.locator('main .items-center.gap-2.ml-auto a[href="/diamond-hunt/"]');
+    await expect(diamondLink).toBeVisible();
+    await expect(diamondLink).toHaveAttribute('href', '/diamond-hunt/');
+  });
+
+  test('Diamond Hunt link has purple styling', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(BASE_URL);
+    const diamondLink = page.locator('main .items-center.gap-2.ml-auto a[href="/diamond-hunt/"]');
+    await expect(diamondLink).toHaveClass(/bg-purple-600/);
+    await expect(diamondLink).toHaveClass(/border-purple-500/);
+  });
+
+  test('Diamond Hunt link has correct title attribute', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(BASE_URL);
+    const diamondLink = page.locator('main .items-center.gap-2.ml-auto a[href="/diamond-hunt/"]');
+    await expect(diamondLink).toHaveAttribute('title', /Diamond Hunt/);
+  });
+
+  test('Diamond Hunt link is the first quick link icon', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(BASE_URL);
+    const firstLink = page.locator('main .items-center.gap-2.ml-auto a').first();
+    await expect(firstLink).toHaveAttribute('href', '/diamond-hunt/');
   });
 
   test('Word Quiz link points to /activities/', async ({ page }) => {
@@ -73,6 +103,21 @@ test.describe('Solver Quick Links — Positive', () => {
 // ── Solver Quick Links — Negative ──────────────────────────────────────────
 
 test.describe('Solver Quick Links — Negative', () => {
+  test('Diamond Hunt emoji span has no inline style attribute', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(BASE_URL);
+    const emojiSpan = page.locator('main .items-center.gap-2.ml-auto a[href="/diamond-hunt/"] span');
+    const style = await emojiSpan.getAttribute('style');
+    expect(style).toBeNull();
+  });
+
+  test('no duplicate Diamond Hunt links in quick links', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(BASE_URL);
+    const diamondLinks = page.locator('main .items-center.gap-2.ml-auto a[href="/diamond-hunt/"]');
+    await expect(diamondLinks).toHaveCount(1);
+  });
+
   test('no old small w-7 icon links remain in quick links', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(BASE_URL);

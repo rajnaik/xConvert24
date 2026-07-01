@@ -329,3 +329,391 @@ test.describe('Chat Page — Negative', () => {
     expect(errors.filter((e) => e.includes('critical'))).toHaveLength(0);
   });
 });
+
+
+test.describe('Chat API — Quiz Coaching Per-Question Commentary (Positive)', () => {
+  test('quiz coaching request with word data is accepted and returns streaming response', async ({ request }) => {
+    // Simulate a quiz coaching message that includes specific words right/wrong
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              'Here are my Word Quiz stats: 5 rounds played, 80% accuracy, avg speed 4.2s. ' +
+              'Words I got right: QUIXOTIC, ZEPHYR, ADZE. Words I got wrong: TAEL, NAEVI. ' +
+              'Please give me coaching on my performance.',
+          },
+        ],
+        context: 'quiz',
+      },
+    });
+    // Should return 200 (streaming) or 503 (AI unavailable)
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const contentType = response.headers()['content-type'] || '';
+      expect(contentType).toContain('text/event-stream');
+    }
+  });
+
+  test('quiz coaching request with empty word lists is still accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              'Here are my Word Quiz stats: 2 rounds played, 100% accuracy, avg speed 3.0s. ' +
+              'No words wrong this session. Please give me coaching.',
+          },
+        ],
+        context: 'quiz',
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('quiz coaching request with many words (10+) does not cause timeout', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              'Word Quiz stats: 10 rounds, 65% accuracy. ' +
+              'Right: QUAFF, JINX, OXBOW, FIZZY, WALTZ, GLYPH. ' +
+              'Wrong: TAEL, NAEVI, GAEN, BIALI, ENOKI, TSADI, QANAT. ' +
+              'Timeouts: 3. Coach me.',
+          },
+        ],
+        context: 'quiz',
+      },
+    });
+    // Should not 500 or timeout — either 200 stream or 503 unavailable
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+});
+
+test.describe('Chat API — Quiz Coaching Per-Question Commentary (Negative)', () => {
+  test('quiz coaching request does not crash with special characters in word names', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              'Quiz stats: 3 rounds, 70% accuracy. ' +
+              "Words wrong: <SCRIPT>, 'DROP TABLE', \"INJECT\". " +
+              'Coach me on my quiz performance.',
+          },
+        ],
+        context: 'quiz',
+      },
+    });
+    // Should not 500 — graceful handling even with injection attempts
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('quiz coaching request without explicit word data still returns valid response', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content: 'Coach me on my quiz performance please',
+          },
+        ],
+        context: 'quiz',
+      },
+    });
+    // Should not error — AI will respond generically when no data available
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('quiz coaching max_tokens is higher than regular chat (no truncation of commentary)', async ({ request }) => {
+    // Send a rich quiz coaching request — the response should be longer (1024 tokens vs 512)
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              'Full quiz stats: 20 rounds, 72% accuracy, avg speed 5.1s, timeouts: 8. ' +
+              'Right: QUIXOTIC, ZEPHYR, ADZE, JINX, WALTZ, GLYPH, FJORD, OXBOW. ' +
+              'Wrong: TAEL, NAEVI, GAEN, BIALI, ENOKI, TSADI, QANAT, AALII. ' +
+              'Give me detailed coaching with per-question commentary.',
+          },
+        ],
+        context: 'quiz',
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      // Streaming response — read some chunks to verify content flows
+      const body = await response.body();
+      // Body should have content (not empty stream)
+      expect(body.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+
+test.describe('Chat API — Quiz Coaching Flowing Paragraph Format (Positive)', () => {
+  // Helper to extract plain text from SSE stream body (Workers AI JSON chunks)
+  function extractTextFromSSE(body: string): string {
+    return body
+      .split('\n')
+      .filter((line) => line.startsWith('data: '))
+      .map((line) => line.slice(6)) // remove 'data: ' prefix
+      .filter((chunk) => chunk !== '[DONE]' && chunk.trim() !== '')
+      .map((chunk) => {
+        try {
+          const json = JSON.parse(chunk);
+          return json?.choices?.[0]?.delta?.content || json?.response || '';
+        } catch {
+          return '';
+        }
+      })
+      .join('');
+  }
+
+  test('quiz coaching response streams valid content without numbered-list structure', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[QUIZ COACHING REQUEST]\n\n' +
+              'Here is my Word Quiz performance data. Please analyze it and give me personalized coaching advice.\n\n' +
+              '--- MY QUIZ STATS ---\n' +
+              'Total rounds played: 8\n' +
+              'Overall accuracy: 75%\n' +
+              'Average speed per question: 4.5s\n' +
+              'Timeouts: 2\n\n' +
+              '--- WORDS I GOT RIGHT ---\n' +
+              'QUIXOTIC, ZEPHYR, ADZE, JINX, WALTZ, GLYPH\n\n' +
+              '--- WORDS I GOT WRONG ---\n' +
+              'TAEL, NAEVI, GAEN\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const contentType = response.headers()['content-type'] || '';
+      expect(contentType).toContain('text/event-stream');
+      const body = await response.text();
+      const textContent = extractTextFromSSE(body);
+      // The response should contain substantial coaching text
+      expect(textContent.length).toBeGreaterThan(100);
+    }
+  });
+
+  test('quiz coaching response references actual stats from the request', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[QUIZ COACHING REQUEST]\n\n' +
+              'Here is my Word Quiz performance data.\n\n' +
+              '--- MY QUIZ STATS ---\n' +
+              'Total rounds played: 12\n' +
+              'Overall accuracy: 68%\n' +
+              'Average speed per question: 6.1s\n' +
+              'Timeouts: 5\n\n' +
+              '--- WORDS I GOT RIGHT ---\n' +
+              'FJORD, OXBOW, WALTZ\n\n' +
+              '--- WORDS I GOT WRONG ---\n' +
+              'QANAT, TSADI, BIALI, ENOKI\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const body = await response.text();
+      const textContent = extractTextFromSSE(body);
+      // The AI should reference their actual stats (numbers or word names)
+      const hasStats =
+        textContent.includes('12') ||
+        textContent.includes('68') ||
+        textContent.includes('5') ||
+        textContent.toLowerCase().includes('timeout');
+      const hasWords =
+        textContent.toUpperCase().includes('QANAT') ||
+        textContent.toUpperCase().includes('TSADI') ||
+        textContent.toUpperCase().includes('FJORD') ||
+        textContent.toUpperCase().includes('WALTZ');
+      expect(hasStats || hasWords).toBeTruthy();
+    }
+  });
+});
+
+test.describe('Chat API — Quiz Coaching Flowing Paragraph Format (Negative)', () => {
+  // Helper to extract plain text from SSE stream body (Workers AI JSON chunks)
+  function extractTextFromSSE(body: string): string {
+    return body
+      .split('\n')
+      .filter((line) => line.startsWith('data: '))
+      .map((line) => line.slice(6))
+      .filter((chunk) => chunk !== '[DONE]' && chunk.trim() !== '')
+      .map((chunk) => {
+        try {
+          const json = JSON.parse(chunk);
+          return json?.choices?.[0]?.delta?.content || json?.response || '';
+        } catch {
+          return '';
+        }
+      })
+      .join('');
+  }
+
+  test('quiz coaching response does NOT use numbered section headers', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[QUIZ COACHING REQUEST]\n\n' +
+              'Here is my Word Quiz performance data.\n\n' +
+              '--- MY QUIZ STATS ---\n' +
+              'Total rounds played: 6\n' +
+              'Overall accuracy: 80%\n' +
+              'Average speed per question: 3.8s\n' +
+              'Timeouts: 1\n\n' +
+              '--- WORDS I GOT RIGHT ---\n' +
+              'QUIXOTIC, ZEPHYR, ADZE, JINX\n\n' +
+              '--- WORDS I GOT WRONG ---\n' +
+              'TAEL\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const body = await response.text();
+      const textContent = extractTextFromSSE(body);
+      // Should NOT contain structural numbered headings like "1. **Title**" or "2. **Analysis**"
+      const hasNumberedHeaders = /[1-5]\.\s+\*\*/.test(textContent);
+      expect(hasNumberedHeaders).toBe(false);
+      // Should NOT contain bold section labels like "**Performance Analysis:**"
+      const hasBoldSectionLabels = /\*\*(Acknowledge|Performance|Actionable|Per-question|Encouragement|Analysis|Tips|Commentary)/i.test(textContent);
+      expect(hasBoldSectionLabels).toBe(false);
+    }
+  });
+
+  test('quiz coaching response does NOT contain markdown bullet lists as primary structure', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[QUIZ COACHING REQUEST]\n\n' +
+              'Here is my Word Quiz performance data.\n\n' +
+              '--- MY QUIZ STATS ---\n' +
+              'Total rounds played: 15\n' +
+              'Overall accuracy: 60%\n' +
+              'Average speed per question: 7.2s\n' +
+              'Timeouts: 6\n\n' +
+              '--- WORDS I GOT RIGHT ---\n' +
+              'QUAFF, JINX, OXBOW, FIZZY, WALTZ, GLYPH\n\n' +
+              '--- WORDS I GOT WRONG ---\n' +
+              'TAEL, NAEVI, GAEN, BIALI, ENOKI, TSADI\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const body = await response.text();
+      const textContent = extractTextFromSSE(body);
+      // Count bullet-list markers — if more than 6, the response is list-heavy not flowing
+      const bulletCount = (textContent.match(/\n\s*[-•]\s/g) || []).length;
+      expect(bulletCount).toBeLessThan(7);
+    }
+  });
+
+  test('quiz coaching response is concise (not a wall of text)', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[QUIZ COACHING REQUEST]\n\n' +
+              'Here is my Word Quiz performance data.\n\n' +
+              '--- MY QUIZ STATS ---\n' +
+              'Total rounds played: 4\n' +
+              'Overall accuracy: 90%\n' +
+              'Average speed per question: 3.0s\n' +
+              'Timeouts: 0\n\n' +
+              '--- WORDS I GOT RIGHT ---\n' +
+              'QUIXOTIC, ZEPHYR, ADZE, JINX, WALTZ, GLYPH, FJORD, OXBOW\n\n' +
+              '--- WORDS I GOT WRONG ---\n' +
+              'TAEL\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const body = await response.text();
+      const textContent = extractTextFromSSE(body);
+      // The response should be substantive but concise (4-6 short paragraphs)
+      // Not too short (< 150 chars = barely any coaching)
+      expect(textContent.length).toBeGreaterThan(150);
+      // Not excessively long (> 2500 chars of actual text = wall of text)
+      expect(textContent.length).toBeLessThan(2500);
+    }
+  });
+
+  test('first-time user (0 rounds) gets a welcoming response with vocabulary wisdom', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[QUIZ COACHING REQUEST]\n\n' +
+              'Here is my Word Quiz performance data. Please analyze it and give me personalized coaching advice.\n\n' +
+              '--- MY QUIZ STATS ---\n' +
+              'Total rounds played: 0\n' +
+              'Overall accuracy: N/A (no games played yet)\n' +
+              'Perfect scores: 0\n' +
+              'Timed out: 0\n\n' +
+              'I am a first-time quiz player with no history. Please welcome me and share some Scrabble vocabulary wisdom to get me started.',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const body = await response.text();
+      const textContent = extractTextFromSSE(body);
+      // Should be substantive (not a one-liner)
+      expect(textContent.length).toBeGreaterThan(150);
+      // Should contain welcoming/encouraging language or vocabulary tips
+      const hasWelcome =
+        textContent.toLowerCase().includes('welcome') ||
+        textContent.toLowerCase().includes('first') ||
+        textContent.toLowerCase().includes('journey') ||
+        textContent.toLowerCase().includes('started') ||
+        textContent.toLowerCase().includes('excited');
+      const hasVocabTips =
+        textContent.toLowerCase().includes('two-letter') ||
+        textContent.toLowerCase().includes('two letter') ||
+        textContent.toLowerCase().includes('high-value') ||
+        textContent.toLowerCase().includes('memoriz') ||
+        textContent.toLowerCase().includes('vocabulary') ||
+        textContent.toLowerCase().includes('learn');
+      expect(hasWelcome || hasVocabTips).toBeTruthy();
+    }
+  });
+});

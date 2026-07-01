@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 /**
  * Chat Page — Lex Avatar Image Tests
- * The Lex icon in the chat header uses /lex-avatar-128.png for crisp
- * 3× hover enlargement (128px source → 96px effective at scale-[3]).
+ * The Lex icon in the chat header uses /lex-avatar.webp (48px WebP)
+ * for crisp 3× hover enlargement at the 32px display size.
  */
 
 const BASE = process.env.SWF_TEST_URL || 'http://localhost:4321';
@@ -18,7 +18,7 @@ test.describe('Chat Lex Avatar — Positive', () => {
   test('Lex avatar has correct src attribute', async ({ page }) => {
     await page.goto(`${BASE}/chat/`);
     const avatar = page.locator('h1 img[alt="Lex"]');
-    await expect(avatar).toHaveAttribute('src', '/lex-avatar-128.png');
+    await expect(avatar).toHaveAttribute('src', '/lex-avatar.webp');
   });
 
   test('Lex avatar has correct dimensions (32x32)', async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe('Chat Lex Avatar — Positive', () => {
   });
 
   test('Lex avatar image file returns 200', async ({ request }) => {
-    const res = await request.get(`${BASE}/lex-avatar-128.png`);
+    const res = await request.get(`${BASE}/lex-avatar.webp`);
     expect(res.status()).toBe(200);
   });
 

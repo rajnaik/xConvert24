@@ -38,10 +38,10 @@ test.describe('Header — Positive', () => {
     await expect(page.locator('a[title="Achievements"]')).toBeVisible();
   });
 
-  test('purple line visible in header', async ({ page }) => {
+  test('no purple border line in header (removed)', async ({ page }) => {
     await page.goto(BASE_URL);
     const line = page.locator('.col-span-full.border-t');
-    await expect(line).toBeVisible();
+    await expect(line).toHaveCount(0);
   });
 });
 

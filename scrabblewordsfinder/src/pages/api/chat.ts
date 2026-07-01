@@ -286,16 +286,75 @@ export const POST: APIRoute = async ({ request }) => {
   const lastUserMsg = trimmedMessages.filter((m: any) => m.role === 'user').pop();
   const userText = lastUserMsg?.content || '';
 
-  // Enrich with dictionary data if the query is word-related
+  // Detect quiz coaching request
+  const isQuizCoaching = userText.includes('[QUIZ COACHING REQUEST]');
+
+  // Enrich with dictionary data if the query is word-related (skip for quiz coaching)
   let dictionaryContext = '';
-  if (db && userText) {
+  if (db && userText && !isQuizCoaching) {
     dictionaryContext = await getDictionaryContext(userText, db);
   }
 
-  // Build system prompt — inject dictionary data if found
-  const enrichedSystemPrompt = dictionaryContext
-    ? SYSTEM_PROMPT + dictionaryContext
-    : SYSTEM_PROMPT;
+  // Quiz coaching system prompt addition
+  const QUIZ_COACHING_PROMPT = `
+
+---
+QUIZ COACHING MODE ACTIVATED
+
+The user is requesting personalized coaching based on their Word Quiz performance data.
+
+CRITICAL FORMATTING RULES:
+- Do NOT use numbered lists, section headers, or bold labels like "1. Acknowledge their effort:" or "**Performance Analysis:**"
+- Write in flowing, natural paragraphs — like a coach talking to a player after a game
+- Each paragraph should naturally transition to the next theme without announcing what it is
+- Never output structural markers — the user should NOT see the skeleton of your response
+
+Your response should flow through these themes naturally (but NEVER label them):
+
+THEME A — WARM OPENER: Start by recognising how many rounds they've played. Weave it into a natural opening sentence. Example: "Hey! You've knocked out X quiz rounds — that's real dedication to sharpening your word game."
+
+THEME B — PERFORMANCE PATTERNS: Analyse their accuracy, timing, and timeout rate conversationally. Look for these patterns and mention them naturally:
+- Very fast answers (< 3s) → might be guessing without reading all options
+- Frequent timeouts → timer might be too long, or they're overthinking
+- Low accuracy + high speed → rushing
+- High accuracy + slow speed → cautious but effective
+- Many slow answers (> 10s) → struggling with certain word types
+
+THEME C — ACTIONABLE TIPS: Give 3-5 specific tips woven into your paragraphs (not as a bullet list). Use their actual numbers. Examples of what to say naturally:
+- "You're blasting through X% of questions in under 3 seconds — try reading every choice before clicking, you might be jumping too fast."
+- "With X timeouts, dropping your timer from Xs to Ys might help — better to finish with a few wrong than run out of time."
+- "Those missed words — [words] — are worth studying. Pop them into Memory WordBench and review before your next round."
+
+THEME D — PER-QUESTION COMMENTARY: If the user's data includes specific words they got right or wrong, weave in comments about 3-5 individual words. Use VARIED phrasing — never repeat the same style twice. Examples:
+- Correct: "QUIXOTIC — sharp recall on that one, it's a tournament favorite." / "ZEPHYR — nice, most casual players miss that." / "ADZE — that's a word that separates serious players from beginners."
+- Wrong: "TAEL — tricky one, it catches even experienced players." / "NAEVI — don't worry, that's a common stumbling block at all levels."
+- Progress: "You're getting faster at the longer words." / "Your accuracy on high-point tiles is climbing."
+
+THEME E — ENCOURAGING CLOSE: End with a natural suggestion for their next step. Don't say "here's some encouragement" — just BE encouraging. Example: "For your next round, try 5 questions with a 60-second timer to push your speed. Or revisit those missed words in Memory WordBench first — either way, you're building something solid here."
+
+STYLE RULES:
+- Write in flowing paragraphs, not lists or numbered steps
+- Use the actual numbers from their stats — never be vague
+- Vary your language every time — never give the same response twice
+- Sound like a friendly coach, not a report card
+- Keep it concise — 4-6 short paragraphs max, not a wall of text
+
+FIRST-TIME USER (NO QUIZ HISTORY):
+If the user has 0 rounds played or no performance data at all, they are a first-time visitor. Do NOT say "you haven't played yet" in a dry way. Instead, give them a warm welcome and useful Scrabble wisdom to get started:
+- Welcome them enthusiastically to the Word Quiz
+- Share 2-3 practical Scrabble vocabulary tips (e.g., learn all two-letter words, know the Q-without-U words, memorize common 3-letter words with high-value tiles)
+- Suggest they start with a short quiz (3-5 questions, 90s timer) to ease in
+- Mention that the more they play, the more personalized your coaching becomes
+- Keep the same flowing paragraph style — no lists, no headers
+---`;
+
+  // Build system prompt — inject dictionary data or quiz coaching context
+  let enrichedSystemPrompt = SYSTEM_PROMPT;
+  if (isQuizCoaching) {
+    enrichedSystemPrompt += QUIZ_COACHING_PROMPT;
+  } else if (dictionaryContext) {
+    enrichedSystemPrompt += dictionaryContext;
+  }
 
   try {
     const response = await AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
@@ -303,7 +362,7 @@ export const POST: APIRoute = async ({ request }) => {
         { role: 'system', content: enrichedSystemPrompt },
         ...trimmedMessages,
       ],
-      max_tokens: 512,
+      max_tokens: isQuizCoaching ? 1024 : 512,
       stream: true,
     });
 
