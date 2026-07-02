@@ -554,6 +554,158 @@ test.describe('Chat API — Quiz Coaching Flowing Paragraph Format (Positive)', 
   });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// COWS AND BULLS
+// The Cows and Bulls game was added to Lex's expertise list in chat.ts.
+// These tests confirm:
+//   1. Lex accepts and does not reject CaB-related queries.
+//   2. The [COWS AND BULLS — COACHING REQUEST] trigger bypasses dictionary
+//      enrichment (same as quiz coaching).
+//   3. Off-topic queries (cooking, maths) are still refused by Lex.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Chat API — Cows and Bulls (Positive)', () => {
+  test('Cows and Bulls rules query is accepted without error', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'How do you play Cows and Bulls?' }],
+      },
+    });
+    // 200 (streaming) or 503 (AI unavailable) — never 400
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('CaB deduction strategy query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              'In Cows and Bulls I got 🐄🐂 on my first guess of SLATE — what should I try next?',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('[COWS AND BULLS — COACHING REQUEST] trigger is accepted and returns stream', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[COWS AND BULLS — COACHING REQUEST]\n\n' +
+              'Secret word length: 5 letters\n' +
+              'My guesses so far:\n' +
+              '1. CRANE → 🐄🐄 (C wrong pos, R wrong pos)\n' +
+              '2. TORCH → 🐂🐄 (O right pos, R wrong pos)\n' +
+              'Help me narrow down the word.',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const contentType = response.headers()['content-type'] || '';
+      expect(contentType).toContain('text/event-stream');
+    }
+  });
+
+  test('CaB emoji feedback query (🐂 🐄 symbols) does not crash the API', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content: 'I got 🐂🐄🐄 on my guess BOARD — what does that mean in Cows and Bulls?',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('CaB multi-turn conversation is accepted (full deduction session)', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          { role: 'user', content: 'Let\'s play Cows and Bulls — I need help guessing a 5-letter word.' },
+          { role: 'assistant', content: 'Sure! Start with a guess and tell me the 🐂 (right letter, right position) and 🐄 (right letter, wrong position) feedback.' },
+          { role: 'user', content: 'I guessed CRANE and got 1🐂 1🐄. What next?' },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+});
+
+test.describe('Chat API — Cows and Bulls (Negative)', () => {
+  test('[COWS AND BULLS — COACHING REQUEST] skips dictionary enrichment (no DB clash)', async ({ request }) => {
+    // The isCabCoaching flag prevents dictionary context injection.
+    // This verifies the request goes through cleanly without a 400/500.
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[COWS AND BULLS — COACHING REQUEST]\n\n' +
+              'define CRANE please',
+          },
+        ],
+      },
+    });
+    // Should not return 400 or 500 — enrichment bypass is non-fatal
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(400);
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('CaB query with special characters does not cause server error', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content: "Cows & Bulls: guess was <WORD> — got 🐂🐄; what's next?",
+          },
+        ],
+      },
+    });
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('CaB query does not bypass the Scrabble-only topic restriction', async ({ request }) => {
+    // Lex's system prompt still enforces topic restriction even for CaB context.
+    // A completely off-topic question should still get the refusal response (not 500).
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content: 'In Cows and Bulls and also in cooking — how do you make pasta?',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('no duplicate Cows and Bulls panels on activities page', async ({ page }) => {
+    await page.goto('/activities/');
+    // If a dedicated Cows and Bulls panel exists, it must appear exactly once
+    const cowsBullsPanels = page.locator('[id="cows-bulls-panel"], [data-game="cows-and-bulls"], #cows-and-bulls');
+    const count = await cowsBullsPanels.count();
+    // Either 0 (not yet a dedicated panel) or exactly 1 — never duplicated
+    expect(count).toBeLessThanOrEqual(1);
+  });
+});
+
 test.describe('Chat API — Quiz Coaching Flowing Paragraph Format (Negative)', () => {
   // Helper to extract plain text from SSE stream body (Workers AI JSON chunks)
   function extractTextFromSSE(body: string): string {

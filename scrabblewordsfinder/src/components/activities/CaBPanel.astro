@@ -2,11 +2,16 @@
       <div class="rounded-xl border border-orange-800/50 bg-gray-900/50 p-4 sm:p-6" id="cab">
         <div class="flex items-center justify-between mb-2">
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🐄</span> Cows and Bulls <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="cab" title="⭐ Earn star: Solve 1 game">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="cab">✅</span></h2>
-          <!-- History icon (shown only when user has 1+ rounds) -->
-          <div id="cab-history-btn-wrap" class="hidden">
-            <button id="cab-history-btn" class="p-1.5 rounded-lg text-orange-300 hover:bg-orange-800/30 hover:text-orange-200 transition-colors cursor-pointer" title="View history">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <div class="flex items-center gap-2">
+            <button id="LexCandB" type="button" class="px-2 py-1 rounded-lg bg-cyan-600/20 border border-cyan-500/30 text-xs text-cyan-300 hover:bg-cyan-600/40 transition-colors flex items-center gap-1 cursor-pointer" title="Get AI coaching on your Cows and Bulls skills">
+              <img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" /> Lex Cows and Bulls Coach
             </button>
+            <!-- History icon (shown only when user has 1+ rounds) -->
+            <div id="cab-history-btn-wrap" class="hidden">
+              <button id="cab-history-btn" class="p-1.5 rounded-lg text-orange-300 hover:bg-orange-800/30 hover:text-orange-200 transition-colors cursor-pointer" title="View history">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </button>
+            </div>
           </div>
         </div>
         <p class="text-xs text-gray-500 mb-4">Guess the secret word! 🐄 = right letter, wrong spot. 🐂 = right letter, right spot.</p>
@@ -770,4 +775,411 @@
     25% { transform: translateX(-4px); }
     75% { transform: translateX(4px); }
   }
+  /* Lex Modal */
+  #cab-lex-modal {
+    backdrop-filter: blur(4px);
+  }
+  #cab-lex-modal .lex-msg-bot {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid rgba(6, 182, 212, 0.25);
+  }
+  #cab-lex-modal .lex-msg-user {
+    background: rgba(30, 58, 138, 0.4);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+  #cab-lex-modal .lex-typing span {
+    animation: lex-dot 1.4s infinite both;
+  }
+  #cab-lex-modal .lex-typing span:nth-child(2) { animation-delay: 0.2s; }
+  #cab-lex-modal .lex-typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes lex-dot {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.1); }
+  }
 </style>
+
+<!-- Lex AI Coach Modal (Cows & Bulls) -->
+<div id="cab-lex-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
+  <div class="relative w-full max-w-lg max-h-[80vh] flex flex-col bg-gray-900 border border-cyan-700/50 rounded-2xl shadow-2xl overflow-hidden">
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700/60 bg-gray-900/95">
+      <div class="flex items-center gap-2">
+        <img src="/lex-avatar-32.png" alt="Lex" width="24" height="24" class="rounded-full" />
+        <span class="text-sm font-bold text-white">Lex</span>
+        <span class="text-[10px] text-black font-semibold bg-orange-400 px-1.5 py-0.5 rounded-full">AI Coach</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="/diamond-hunt/" class="w-7 h-7 flex items-center justify-center rounded-full bg-purple-900/40 border border-purple-600/40 hover:border-purple-400 hover:bg-purple-800/50 text-purple-300 transition-colors" title="Diamond Hunt — Find hidden diamonds across the site">
+          <span class="text-sm">💎</span>
+        </a>
+        <button id="cab-lex-close" type="button" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-800 border border-gray-600 hover:border-red-500 hover:bg-red-900/40 text-gray-400 hover:text-red-300 transition-colors cursor-pointer" title="Close Lex">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="cab-lex-messages" class="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px]">
+      <div class="flex items-start gap-2">
+        <div class="w-6 h-6 rounded-full bg-cyan-900/50 flex items-center justify-center shrink-0 mt-0.5">
+          <img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" />
+        </div>
+        <div class="lex-msg-bot rounded-lg rounded-tl-none px-3 py-2 max-w-[85%]">
+          <p class="text-sm text-gray-200">Hey! I'm Lex, your Scrabble AI Coach. Ask me anything about Cows & Bulls strategy — opening guesses, elimination techniques, or request a coaching review of your game history!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="border-t border-gray-700/60 p-3 bg-gray-900/95">
+      <form id="cab-lex-form" class="flex items-end gap-2">
+        <textarea id="cab-lex-input" rows="1" placeholder="Ask about Cows & Bulls strategy..." class="flex-1 resize-none rounded-lg bg-gray-800 border border-gray-600 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent max-h-24" autocomplete="off"></textarea>
+        <button id="cab-lex-send" type="submit" class="shrink-0 w-9 h-9 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer" title="Send">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0l-7 7m7-7l7 7"/></svg>
+        </button>
+      </form>
+      <div class="flex items-center justify-between mt-2">
+        <div class="flex items-center gap-2">
+          <button id="cab-lex-coach-btn" type="button" class="text-[11px] px-2 py-1 rounded-full bg-orange-900/30 border border-orange-700/40 text-orange-300 hover:bg-orange-800/40 hover:border-orange-500/60 transition-colors cursor-pointer">🧠 Coach me on my games</button>
+          <button id="cab-lex-diamond-btn" type="button" class="text-[11px] px-2 py-1 rounded-full bg-purple-900/30 border border-purple-700/40 text-purple-300 hover:bg-purple-800/40 hover:border-purple-500/60 transition-colors cursor-pointer">💎 Diamond Hunt - Details</button>
+        </div>
+        <p class="text-[10px] text-gray-600">Powered by Lex AI</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+(function() {
+  var modal = document.getElementById('cab-lex-modal');
+  var openBtn = document.getElementById('LexCandB');
+  var closeBtn = document.getElementById('cab-lex-close');
+  var form = document.getElementById('cab-lex-form');
+  var input = document.getElementById('cab-lex-input');
+  var messagesEl = document.getElementById('cab-lex-messages');
+  var coachBtn = document.getElementById('cab-lex-coach-btn');
+
+  var diamondBtn = document.getElementById('cab-lex-diamond-btn');
+
+  var conversationHistory = [];
+  var isStreaming = false;
+  var hasAutoCoached = false;
+
+  // Open modal — auto-coach on first click if user has game history
+  openBtn.addEventListener('click', function() {
+    modal.classList.remove('hidden');
+    input.focus();
+
+    // On first click, auto-trigger coaching if user has played
+    if (!hasAutoCoached && !isStreaming) {
+      hasAutoCoached = true;
+      var S = window.__swfStore;
+      var uid = S ? S.getRaw('swf-uid') : (localStorage.getItem('swf-uid') || '');
+      if (uid) {
+        coachBtn.textContent = '⏳ Loading...';
+        coachBtn.disabled = true;
+        fetch('/api/cab/?user_id=' + encodeURIComponent(uid))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            coachBtn.textContent = '🧠 Coach me on my games';
+            coachBtn.disabled = false;
+            var rounds = data.rounds || [];
+            if (rounds.length === 0) return; // No history — don't auto-send
+            var count = data.count || 0;
+            var solved = rounds.filter(function(r) { return r.solved; }).length;
+            var totalAttempts = rounds.reduce(function(sum, r) { return sum + (r.attempts || 0); }, 0);
+            var avgAttempts = count > 0 ? (totalAttempts / count).toFixed(1) : 0;
+
+            var prompt = '[COWS AND BULLS — COACHING REQUEST]\n\n';
+            prompt += 'Player stats: ' + count + ' games played, ' + solved + ' solved (' + (count > 0 ? Math.round(solved/count*100) : 0) + '% solve rate), average ' + avgAttempts + ' attempts per game.\n';
+            if (rounds.length > 0) {
+              prompt += 'Recent games:\n';
+              rounds.slice(0, 5).forEach(function(r) {
+                prompt += '- ' + (r.word || '???') + ' (' + r.length + ' letters) — ' + (r.solved ? 'Solved in ' + r.attempts + ' attempts' : 'Not solved') + (r.timer_duration ? ', timer: ' + r.timer_duration + 's' : '') + (r.split_time != null && r.solved ? ', ' + r.split_time + 's left' : '') + '\n';
+              });
+            }
+            prompt += '\nPlease coach me on my Cows and Bulls performance based on these stats.';
+
+            input.value = prompt;
+            form.dispatchEvent(new Event('submit'));
+          })
+          .catch(function() {
+            coachBtn.textContent = '🧠 Coach me on my games';
+            coachBtn.disabled = false;
+          });
+      }
+    }
+  });
+
+  // Close modal
+  closeBtn.addEventListener('click', function() {
+    modal.classList.add('hidden');
+  });
+
+  // Close on backdrop click
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) modal.classList.add('hidden');
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      modal.classList.add('hidden');
+    }
+  });
+
+  // Auto-resize textarea
+  input.addEventListener('input', function() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 96) + 'px';
+  });
+
+  // Enter to send
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!isStreaming && input.value.trim()) {
+        form.dispatchEvent(new Event('submit'));
+      }
+    }
+  });
+
+  // Coach button — gather stats and ask for coaching
+  coachBtn.addEventListener('click', function() {
+    if (isStreaming) return;
+    var S = window.__swfStore;
+    var uid = S ? S.getRaw('swf-uid') : (localStorage.getItem('swf-uid') || '');
+    if (!uid) {
+      input.value = 'Can you give me tips for Cows and Bulls?';
+      form.dispatchEvent(new Event('submit'));
+      return;
+    }
+    // Fetch user's CaB history for coaching context
+    coachBtn.textContent = '⏳ Loading...';
+    coachBtn.disabled = true;
+    fetch('/api/cab/?user_id=' + encodeURIComponent(uid))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        coachBtn.textContent = '🧠 Coach me on my games';
+        coachBtn.disabled = false;
+        var rounds = data.rounds || [];
+        var count = data.count || 0;
+        var solved = rounds.filter(function(r) { return r.solved; }).length;
+        var totalAttempts = rounds.reduce(function(sum, r) { return sum + (r.attempts || 0); }, 0);
+        var avgAttempts = count > 0 ? (totalAttempts / count).toFixed(1) : 0;
+
+        var prompt = '[COWS AND BULLS — COACHING REQUEST]\n\n';
+        prompt += 'Player stats: ' + count + ' games played, ' + solved + ' solved (' + (count > 0 ? Math.round(solved/count*100) : 0) + '% solve rate), average ' + avgAttempts + ' attempts per game.\n';
+        if (rounds.length > 0) {
+          prompt += 'Recent games:\n';
+          rounds.slice(0, 5).forEach(function(r) {
+            prompt += '- ' + (r.word || '???') + ' (' + r.length + ' letters) — ' + (r.solved ? 'Solved in ' + r.attempts + ' attempts' : 'Not solved') + (r.timer_duration ? ', timer: ' + r.timer_duration + 's' : '') + (r.split_time != null && r.solved ? ', ' + r.split_time + 's left' : '') + '\n';
+          });
+        }
+        prompt += '\nPlease coach me on my Cows and Bulls performance based on these stats.';
+
+        input.value = prompt;
+        form.dispatchEvent(new Event('submit'));
+      })
+      .catch(function() {
+        coachBtn.textContent = '🧠 Coach me on my games';
+        coachBtn.disabled = false;
+        input.value = 'Can you give me tips for Cows and Bulls?';
+        form.dispatchEvent(new Event('submit'));
+      });
+  });
+
+  // Diamond Hunt Details button — ask Lex to explain Diamond Hunt + Badges
+  diamondBtn.addEventListener('click', function() {
+    if (isStreaming) return;
+    var prompt = '[DIAMOND HUNT — DETAILS REQUEST]\n\n';
+    prompt += 'Please tell me everything about the Diamond Hunt feature and the Badges system on ScrabbleWordsFinder.com.\n\n';
+    prompt += 'Include:\n';
+    prompt += '1. How Diamond Hunt works (finding mines, claiming diamonds, reward tiers)\n';
+    prompt += '2. How the Badges/Achievements system works (word scoring milestones, categories)\n';
+    prompt += '3. How diamonds from Diamond Hunt relate to the Star Bar daily system\n';
+    prompt += '4. Tips for maximising diamond earnings\n\n';
+    prompt += 'Please also provide links to explore these features:\n';
+    prompt += '- /diamond-hunt/ — Diamond Hunt page\n';
+    prompt += '- /achievements/ — Achievements & Badges\n';
+    prompt += '- /mybag/ — MyBag (star & diamond earnings)\n';
+    prompt += '- /activities/ — All daily games\n';
+
+    input.value = prompt;
+    form.dispatchEvent(new Event('submit'));
+  });
+
+  // Diamond Hunt - Details button
+  if (diamondBtn) {
+    diamondBtn.addEventListener('click', function() {
+      if (isStreaming) return;
+      var prompt = '[DIAMOND HUNT — DETAILS REQUEST]\n\n';
+      prompt += 'Please explain the Diamond Hunt and Badges system on ScrabbleWordsFinder in detail. Include:\n';
+      prompt += '1. How Diamond Hunt works (hidden diamonds on pages, claiming them)\n';
+      prompt += '2. How to earn diamonds (complete all 7 daily activities in a single day)\n';
+      prompt += '3. The badge progression tiers (Word Maker at 25 diamonds through Grand Word Deity at 1,000,000)\n';
+      prompt += '4. How the 7 daily activities contribute (WOTD, Quiz, Memory WordBench, Daily Rack, Daily Anagram, 60-Second Challenge, Cows & Bulls)\n';
+      prompt += '5. Where to check progress (MyBag page)\n\n';
+      prompt += 'Include these links for the user to explore:\n';
+      prompt += '- Diamond Hunt page: /diamond-hunt/\n';
+      prompt += '- Badges & Tiers: /badges/\n';
+      prompt += '- Activities hub: /activities/\n';
+      prompt += '- MyBag (progress): /mybag/\n\n';
+      prompt += 'Format your response clearly with sections and links.';
+
+      input.value = prompt;
+      form.dispatchEvent(new Event('submit'));
+    });
+  }
+
+  // Submit form
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var text = input.value.trim();
+    if (!text || isStreaming) return;
+
+    // Add user message
+    addMessage('user', text);
+    conversationHistory.push({ role: 'user', content: text });
+    input.value = '';
+    input.style.height = 'auto';
+
+    // Stream response
+    streamResponse();
+  });
+
+  function addMessage(role, content) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'flex items-start gap-2' + (role === 'user' ? ' flex-row-reverse' : '');
+
+    if (role === 'user') {
+      var bubble = document.createElement('div');
+      bubble.className = 'lex-msg-user rounded-lg rounded-tr-none px-3 py-2 max-w-[85%]';
+      // Show shortened version for long coaching prompts
+      var displayText = content.length > 100
+        ? (content.indexOf('DIAMOND HUNT') !== -1 ? '💎 Tell me about Diamond Hunt & Badges' : '🧠 Coach me on my Cows & Bulls games')
+        : content;
+      bubble.innerHTML = '<p class="text-sm text-gray-200">' + escapeHtml(displayText) + '</p>';
+      wrapper.appendChild(bubble);
+    } else {
+      var avatar = document.createElement('div');
+      avatar.className = 'w-6 h-6 rounded-full bg-cyan-900/50 flex items-center justify-center shrink-0 mt-0.5';
+      avatar.innerHTML = '<img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" />';
+
+      var bubble = document.createElement('div');
+      bubble.className = 'lex-msg-bot rounded-lg rounded-tl-none px-3 py-2 max-w-[85%]';
+      bubble.innerHTML = '<p class="text-sm text-gray-200 whitespace-pre-wrap">' + formatContent(content) + '</p>';
+
+      wrapper.appendChild(avatar);
+      wrapper.appendChild(bubble);
+    }
+
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return wrapper;
+  }
+
+  function addTypingIndicator() {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'flex items-start gap-2';
+    wrapper.id = 'cab-lex-typing';
+
+    var avatar = document.createElement('div');
+    avatar.className = 'w-6 h-6 rounded-full bg-cyan-900/50 flex items-center justify-center shrink-0 mt-0.5';
+    avatar.innerHTML = '<img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" />';
+
+    var bubble = document.createElement('div');
+    bubble.className = 'lex-msg-bot rounded-lg rounded-tl-none px-3 py-2';
+    bubble.innerHTML = '<div class="lex-typing flex gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span><span class="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span><span class="w-2 h-2 rounded-full bg-cyan-400 inline-block"></span></div>';
+
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(bubble);
+    messagesEl.appendChild(wrapper);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function removeTypingIndicator() {
+    var el = document.getElementById('cab-lex-typing');
+    if (el) el.remove();
+  }
+
+  function streamResponse() {
+    isStreaming = true;
+    addTypingIndicator();
+
+    fetch('/api/chat/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: conversationHistory })
+    })
+      .then(function(response) {
+        if (!response.ok) throw new Error('AI unavailable');
+        var reader = response.body.getReader();
+        var decoder = new TextDecoder();
+        var fullText = '';
+        var botWrapper = null;
+
+        function read() {
+          reader.read().then(function(result) {
+            if (result.done) {
+              isStreaming = false;
+              if (fullText) {
+                conversationHistory.push({ role: 'assistant', content: fullText });
+              }
+              return;
+            }
+
+            var chunk = decoder.decode(result.value, { stream: true });
+            var lines = chunk.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+              var line = lines[i].trim();
+              if (!line.startsWith('data:')) continue;
+              var jsonStr = line.slice(5).trim();
+              if (jsonStr === '[DONE]') continue;
+              try {
+                var parsed = JSON.parse(jsonStr);
+                var token = parsed.response || '';
+                if (token) {
+                  if (!botWrapper) {
+                    removeTypingIndicator();
+                    botWrapper = addMessage('bot', '');
+                  }
+                  fullText += token;
+                  var p = botWrapper.querySelector('p');
+                  if (p) p.innerHTML = formatContent(fullText);
+                  messagesEl.scrollTop = messagesEl.scrollHeight;
+                }
+              } catch(e) {}
+            }
+            read();
+          }).catch(function() {
+            isStreaming = false;
+            removeTypingIndicator();
+          });
+        }
+        read();
+      })
+      .catch(function(err) {
+        isStreaming = false;
+        removeTypingIndicator();
+        addMessage('bot', 'Sorry, I couldn\'t connect to the AI service. Please try again later.');
+      });
+  }
+
+  function formatContent(text) {
+    // Basic markdown-like formatting
+    var html = escapeHtml(text);
+    // Bold
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>');
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-cyan-400 underline hover:text-cyan-300" target="_blank">$1</a>');
+    return html;
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+})();
+</script>

@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Ask Lex Tile Visibility — Conditional Display on Solver Page
+ * Ask Lex Tile Visibility — Always Visible (no conditional hiding)
  *
- * The Ask Lex tile should only be visible when:
- * 1. The AI binding is healthy (chat-heartbeat returns healthy: true)
- * 2. The solver textbox has 3 or more letters
+ * As of v1.13, the Ask Lex tile is ALWAYS visible on the homepage
+ * regardless of AI health status or solver input length.
+ * The conditional hiding (heartbeat check + 3-letter minimum) was removed.
  *
  * File changed: src/pages/index.astro
  */
@@ -13,133 +13,92 @@ import { test, expect } from '@playwright/test';
 const BASE = process.env.SWF_TEST_URL || 'http://localhost:4321';
 
 test.describe('Ask Lex Tile Visibility — Positive', () => {
-  test('tile appears when AI is healthy and 3+ letters typed', async ({ page }) => {
-    // Mock heartbeat as healthy
-    await page.route('**/api/chat-heartbeat/', async (route) => {
-      await route.fulfill({ json: { healthy: true, chatusage: 5 } });
-    });
-
+  test('tile is visible immediately on page load without any input', async ({ page }) => {
     await page.goto(`${BASE}/`);
     const lexTile = page.locator('#ask-lex-tile');
-
-    // Initially hidden (no letters)
-    await expect(lexTile).toBeHidden();
-
-    // Type 3 letters
-    const solver = page.locator('#text-solver');
-    await solver.fill('ABC');
-    await solver.dispatchEvent('input');
-
-    // Now visible
     await expect(lexTile).toBeVisible();
   });
 
-  test('tile stays visible as more letters are added', async ({ page }) => {
-    await page.route('**/api/chat-heartbeat/', async (route) => {
-      await route.fulfill({ json: { healthy: true, chatusage: 0 } });
-    });
-
+  test('tile remains visible with empty solver input', async ({ page }) => {
     await page.goto(`${BASE}/`);
     const solver = page.locator('#text-solver');
-    const lexTile = page.locator('#ask-lex-tile');
+    await solver.fill('');
+    await solver.dispatchEvent('input');
 
+    const lexTile = page.locator('#ask-lex-tile');
+    await expect(lexTile).toBeVisible();
+  });
+
+  test('tile remains visible with letters typed in solver', async ({ page }) => {
+    await page.goto(`${BASE}/`);
+    const solver = page.locator('#text-solver');
     await solver.fill('QUARTZ');
     await solver.dispatchEvent('input');
 
-    await expect(lexTile).toBeVisible();
-  });
-
-  test('tile navigates to /chat/?rack= with letters on click', async ({ page }) => {
-    await page.route('**/api/chat-heartbeat/', async (route) => {
-      await route.fulfill({ json: { healthy: true, chatusage: 0 } });
-    });
-    // Intercept navigation to /chat/
-    await page.route('**/chat/**', async (route) => {
-      await route.fulfill({ body: '<html><body>Chat Page</body></html>' });
-    });
-
-    await page.goto(`${BASE}/`);
-    const solver = page.locator('#text-solver');
-    await solver.fill('AEILNRT');
-    await solver.dispatchEvent('input');
-
     const lexTile = page.locator('#ask-lex-tile');
     await expect(lexTile).toBeVisible();
-
-    await lexTile.click();
-    await page.waitForURL(/\/chat\/\?rack=AEILNRT/);
-  });
-});
-
-test.describe('Ask Lex Tile Visibility — Negative', () => {
-  test('tile is hidden when AI is offline (healthy: false)', async ({ page }) => {
-    await page.route('**/api/chat-heartbeat/', async (route) => {
-      await route.fulfill({ json: { healthy: false, chatusage: 0, reason: 'AI binding not configured' } });
-    });
-
-    await page.goto(`${BASE}/`);
-    const solver = page.locator('#text-solver');
-    await solver.fill('ABCDEFG');
-    await solver.dispatchEvent('input');
-
-    const lexTile = page.locator('#ask-lex-tile');
-    await expect(lexTile).toBeHidden();
   });
 
-  test('tile is hidden when heartbeat fetch fails (network error)', async ({ page }) => {
+  test('tile is visible even if chat-heartbeat API fails', async ({ page }) => {
+    // Block heartbeat endpoint to simulate AI being down
     await page.route('**/api/chat-heartbeat/', async (route) => {
       await route.abort('connectionrefused');
     });
 
     await page.goto(`${BASE}/`);
-    const solver = page.locator('#text-solver');
-    await solver.fill('HELLO');
-    await solver.dispatchEvent('input');
-
     const lexTile = page.locator('#ask-lex-tile');
-    await expect(lexTile).toBeHidden();
+    await expect(lexTile).toBeVisible();
+  });
+});
+
+test.describe('Ask Lex Tile Visibility — Negative', () => {
+  test('tile does not have display:none style on load', async ({ page }) => {
+    await page.goto(`${BASE}/`);
+    const lexTile = page.locator('#ask-lex-tile');
+    const display = await lexTile.evaluate((el) => window.getComputedStyle(el).display);
+    expect(display).not.toBe('none');
   });
 
-  test('tile is hidden when fewer than 3 letters even with healthy AI', async ({ page }) => {
+  test('no heartbeat fetch is made for visibility purposes', async ({ page }) => {
+    let heartbeatCalled = false;
     await page.route('**/api/chat-heartbeat/', async (route) => {
-      await route.fulfill({ json: { healthy: true, chatusage: 0 } });
+      heartbeatCalled = true;
+      await route.fulfill({ json: { healthy: false, chatusage: 0 } });
     });
 
+    await page.goto(`${BASE}/`);
+    const lexTile = page.locator('#ask-lex-tile');
+    await expect(lexTile).toBeVisible();
+
+    // Tile visibility should NOT depend on heartbeat anymore
+    // (heartbeat may still be called for other purposes, but tile shouldn't hide)
+    expect(heartbeatCalled).toBe(false);
+  });
+
+  test('tile does not hide when solver has fewer than 3 letters', async ({ page }) => {
     await page.goto(`${BASE}/`);
     const solver = page.locator('#text-solver');
     const lexTile = page.locator('#ask-lex-tile');
 
-    // 0 letters
-    await expect(lexTile).toBeHidden();
-
-    // 1 letter
+    // 1 letter — tile should stay visible
     await solver.fill('A');
-    await solver.dispatchEvent('input');
-    await expect(lexTile).toBeHidden();
-
-    // 2 letters
-    await solver.fill('AB');
-    await solver.dispatchEvent('input');
-    await expect(lexTile).toBeHidden();
-  });
-
-  test('tile hides again when letters are cleared below 3', async ({ page }) => {
-    await page.route('**/api/chat-heartbeat/', async (route) => {
-      await route.fulfill({ json: { healthy: true, chatusage: 0 } });
-    });
-
-    await page.goto(`${BASE}/`);
-    const solver = page.locator('#text-solver');
-    const lexTile = page.locator('#ask-lex-tile');
-
-    // Type enough to show
-    await solver.fill('HELLO');
     await solver.dispatchEvent('input');
     await expect(lexTile).toBeVisible();
 
-    // Clear to 2 letters
-    await solver.fill('HE');
+    // 2 letters — tile should stay visible
+    await solver.fill('AB');
     await solver.dispatchEvent('input');
-    await expect(lexTile).toBeHidden();
+    await expect(lexTile).toBeVisible();
+  });
+
+  test('no page errors caused by the Ask Lex tile script', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+
+    await page.goto(`${BASE}/`);
+    const lexTile = page.locator('#ask-lex-tile');
+    await expect(lexTile).toBeVisible();
+
+    expect(errors.filter((e) => e.toLowerCase().includes('lex'))).toHaveLength(0);
   });
 });

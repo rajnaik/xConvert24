@@ -665,9 +665,11 @@ const showAds = !isAdmin;
       document.addEventListener("click",function(e){
         var t=e.target;
         var name=t.getAttribute("data-track")||(t.closest("[data-track]")||{}).getAttribute&&t.closest("[data-track]")&&t.closest("[data-track]").getAttribute("data-track")||(t.closest("a")||{textContent:""}).textContent&&t.closest("a")&&t.closest("a").textContent.trim().slice(0,60)||(t.closest("button")||{textContent:""}).textContent&&t.closest("button")&&t.closest("button").textContent.trim().slice(0,60)||t.tagName;
-        // Skip refresh/poll-related clicks
-        if(name==="🔄 Refresh"||name==="refresh"||name==="Refresh"||name==="SPAN"||name==="DIV"||name==="IMG"||name==="P"||name==="INPUT")return;
-        fetch("/api/clicks",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:getUserId(),ui_element:name,url:window.location.pathname,session_id:getSessionId(),screen_width:window.screen.width,screen_height:window.screen.height,viewport_width:window.innerWidth,viewport_height:window.innerHeight,click_x:e.clientX,click_y:e.clientY,page_title:document.title,device_type:getDevice(),browser:getBrowser(),os:getOS()})}).catch(function(){});
+        // Skip refresh/poll-related clicks and noise elements
+        if(name==="🔄 Refresh"||name==="refresh"||name==="Refresh"||name==="SPAN"||name==="DIV"||name==="IMG"||name==="P"||name==="INPUT"||name==="TEXTAREA"||name==="svg"||name==="path"||name==="SVG"||name==="LABEL"||name===">"||name==="✕")return;
+        // Append current solver word to SolverUsed events
+        if(name==="SolverUsed"){var sw=document.getElementById("text-solver");if(sw&&sw.value.trim())name="SolverUsed-"+sw.value.trim().toUpperCase();}
+        fetch("/api/clicks/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:getUserId(),ui_element:name,url:window.location.pathname,session_id:getSessionId(),screen_width:window.screen.width,screen_height:window.screen.height,viewport_width:window.innerWidth,viewport_height:window.innerHeight,click_x:e.clientX,click_y:e.clientY,page_title:document.title,device_type:getDevice(),browser:getBrowser(),os:getOS()})}).catch(function(){});
       });
     })();
     </script>

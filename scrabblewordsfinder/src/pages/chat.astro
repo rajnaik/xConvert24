@@ -118,7 +118,7 @@ import '../styles/global.css';
             <img src="/lex-avatar-32.png" alt="Lex" width="20" height="20" class="rounded-full" />
           </div>
           <div class="bg-gray-800 rounded-lg rounded-tl-none px-4 py-2.5 max-w-[85%]">
-            <p class="text-sm text-gray-200">Hey! I'm <strong>Lex</strong>, your AI Scrabble Coach. Ask me anything about Scrabble — strategy tips, word suggestions, rules questions, or enter your rack above and hit <strong>Ask Lex</strong> for the best word to play!</p>
+            <p class="text-sm text-gray-200">I'm <strong>Lex</strong>, your Scrabble AI Coach. Ask me anything about Scrabble — strategy tips, word suggestions, rules questions, or enter your rack above and hit <strong>Ask Lex</strong> for the best word to play!</p>
           </div>
         </div>
       </div>
@@ -1040,6 +1040,325 @@ import '../styles/global.css';
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         } catch {
           input.value = 'I\'ve been playing the Word Quiz. Can you analyze my performance and give me tips to improve?';
+          setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        }
+      })();
+    })();
+
+    // Auto-submit if ?context=rack is present (from Daily Rack Challenge Lex link)
+    (function autoSubmitFromRackContext() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('context') !== 'rack') return;
+
+      // Clean URL immediately
+      window.history.replaceState({}, '', '/chat/');
+
+      const uid = localStorage.getItem('swf-uid') || '';
+
+      // Build the coaching prompt from history data
+      function buildRackPrompt(history, racks, todayRack, todayBest) {
+        let msg = '[DAILY RACK CHALLENGE — COACHING REQUEST]\n\n';
+        msg += 'I have been playing the Daily Rack Challenge on ScrabbleWordsFinder.com.\n';
+        msg += 'Every day everyone gets the same 7-tile Scrabble rack and tries to find the highest-scoring valid word from those tiles.\n';
+        msg += 'Please analyse my play history below and give me personalised coaching: what I\'m doing well, where I can improve, and tips for spotting high-scoring words faster.\n\n';
+
+        if (todayRack) {
+          msg += '--- TODAY\'S RACK ---\n';
+          msg += 'Tiles: ' + todayRack + '\n';
+          if (todayBest) msg += 'My best word today: ' + todayBest + '\n';
+          msg += '\n';
+        }
+
+        if (!history || history.length === 0) {
+          msg += '--- MY HISTORY ---\n';
+          msg += 'I have not played yet. Please welcome me and explain the best strategies for finding high-scoring words from a 7-tile rack.\n';
+          return msg;
+        }
+
+        // Summary stats
+        const totalWords = history.length;
+        const totalScore = history.reduce((s, h) => s + (h.score || 0), 0);
+        const avgScore = totalWords > 0 ? Math.round(totalScore / totalWords) : 0;
+        const bingos = history.filter(h => h.word && h.word.length === 7).length;
+        const highWord = history.reduce((best, h) => (!best || h.score > best.score) ? h : best, null);
+        const uniqueDays = new Set(history.map(h => h.submitted_at ? h.submitted_at.split(/[T ]/)[0] : null).filter(Boolean)).size;
+
+        // Score distribution
+        const below10 = history.filter(h => h.score < 10).length;
+        const tenTo20 = history.filter(h => h.score >= 10 && h.score < 20).length;
+        const above20 = history.filter(h => h.score >= 20).length;
+
+        msg += '--- MY RACK CHALLENGE STATS ---\n';
+        msg += 'Total words submitted: ' + totalWords + '\n';
+        msg += 'Days played: ' + uniqueDays + '\n';
+        msg += 'Average word score: ' + avgScore + ' pts\n';
+        msg += 'Total points accumulated: ' + totalScore + '\n';
+        msg += 'Bingos (7-letter words): ' + bingos + '\n';
+        if (highWord) msg += 'Best word ever: ' + highWord.word + ' (' + highWord.score + ' pts)' + (highWord.meaning ? ' — ' + highWord.meaning : '') + '\n';
+
+        msg += '\n--- SCORE DISTRIBUTION ---\n';
+        msg += 'Under 10 pts: ' + below10 + ' words\n';
+        msg += '10–19 pts: ' + tenTo20 + ' words\n';
+        msg += '20+ pts: ' + above20 + ' words\n';
+
+        // Recent plays (last 10)
+        const recent = history.slice(0, 10);
+        msg += '\n--- RECENT PLAYS (last ' + recent.length + ') ---\n';
+        recent.forEach(h => {
+          const date = h.submitted_at ? h.submitted_at.split(/[T ]/)[0] : '?';
+          const rack = racks && racks[date] ? ' (rack: ' + racks[date] + ')' : '';
+          const meaning = h.meaning ? ' — ' + h.meaning : '';
+          msg += date + rack + ': ' + (h.word || '?') + ' = ' + (h.score || 0) + ' pts' + meaning + '\n';
+        });
+
+        msg += '\nPlease give me specific, actionable coaching tips based on this data. Focus on rack management, spotting bingos, and using high-value tiles (Q, Z, X, J) effectively.';
+        return msg;
+      }
+
+      if (!uid) {
+        // No user ID — no history, send a first-timer prompt
+        const msg = buildRackPrompt([], {}, null, null);
+        input.value = msg;
+        setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        return;
+      }
+
+      (async function() {
+        try {
+          // Fetch rack history
+          const res = await fetch('/api/rack-history/?user_id=' + encodeURIComponent(uid));
+          if (!res.ok) throw new Error('Failed to fetch rack history');
+          const data = await res.json();
+          const history = data.history || [];
+          const racks = data.racks || {};
+
+          // Try to get today's rack + the user's best word today
+          let todayRack = null;
+          let todayBest = null;
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            todayRack = racks[today] || null;
+            const todayWords = history.filter(h => h.submitted_at && h.submitted_at.startsWith(today));
+            if (todayWords.length > 0) {
+              todayBest = todayWords.reduce((b, h) => (!b || h.score > b.score) ? h : b, null);
+              todayBest = todayBest ? todayBest.word + ' (' + todayBest.score + ' pts)' : null;
+            }
+            // If todayRack not in history racks, fetch from daily_rack API
+            if (!todayRack) {
+              const drcRes = await fetch('/api/daily-rack/');
+              if (drcRes.ok) {
+                const drcData = await drcRes.json();
+                todayRack = drcData.rack || null;
+              }
+            }
+          } catch { /* non-critical */ }
+
+          input.value = buildRackPrompt(history, racks, todayRack, todayBest);
+          setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        } catch {
+          input.value = 'I\'ve been playing the Daily Rack Challenge. Can you analyse my play history and give me tips to improve my Scrabble rack skills?';
+          setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        }
+      })();
+    })();
+
+    // Auto-submit if ?context=anagram is present (from Daily Anagram Lex link)
+    (function autoSubmitFromAnagramContext() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('context') !== 'anagram') return;
+
+      // Clean URL immediately
+      window.history.replaceState({}, '', '/chat/');
+
+      const uid = localStorage.getItem('swf-uid') || '';
+
+      // Build the coaching prompt from anagram history data
+      function buildAnagramPrompt(history, puzzles, stats, todayPuzzle) {
+        let msg = '[DAILY ANAGRAM — COACHING REQUEST]\n\n';
+        msg += 'I have been playing the Daily Anagram puzzle on ScrabbleWordsFinder.com.\n';
+        msg += 'Every day everyone gets the same scrambled word and tries to unscramble it in 5 guesses or fewer.\n';
+        msg += 'Please analyse my play history below and give me personalised coaching: what I\'m doing well, where I can improve, and tips for unscrambling words faster.\n\n';
+
+        if (todayPuzzle) {
+          msg += '--- TODAY\'S PUZZLE ---\n';
+          msg += 'Scrambled: ' + todayPuzzle.scrambled + '\n';
+          msg += 'Word length: ' + todayPuzzle.word_length + ' letters\n';
+          if (todayPuzzle.hint) msg += 'Hint: ' + todayPuzzle.hint + '\n';
+          msg += '\n';
+        }
+
+        if (!history || history.length === 0) {
+          msg += '--- MY HISTORY ---\n';
+          msg += 'I have not played yet. Please welcome me and explain the best strategies for unscrambling words quickly.\n';
+          return msg;
+        }
+
+        // Summary stats
+        const totalGames = stats.totalGames || history.length;
+        const totalSolved = stats.totalSolved || history.filter(h => h.solved === 1).length;
+        const solveRate = stats.solveRate || (totalGames > 0 ? Math.round((totalSolved / totalGames) * 100) : 0);
+        const avgAttempts = stats.avgAttempts || 0;
+        const streak = stats.streak || 0;
+
+        // Attempt distribution
+        const in1 = history.filter(h => h.solved === 1 && h.attempts === 1).length;
+        const in2 = history.filter(h => h.solved === 1 && h.attempts === 2).length;
+        const in3 = history.filter(h => h.solved === 1 && h.attempts === 3).length;
+        const in4 = history.filter(h => h.solved === 1 && h.attempts === 4).length;
+        const in5 = history.filter(h => h.solved === 1 && h.attempts === 5).length;
+        const failed = history.filter(h => h.solved !== 1).length;
+
+        msg += '--- MY ANAGRAM STATS ---\n';
+        msg += 'Total puzzles played: ' + totalGames + '\n';
+        msg += 'Puzzles solved: ' + totalSolved + ' (' + solveRate + '%)\n';
+        msg += 'Average attempts when solved: ' + avgAttempts + '\n';
+        msg += 'Current streak: ' + streak + ' days\n';
+
+        msg += '\n--- ATTEMPT DISTRIBUTION ---\n';
+        msg += 'Solved in 1: ' + in1 + '\n';
+        msg += 'Solved in 2: ' + in2 + '\n';
+        msg += 'Solved in 3: ' + in3 + '\n';
+        msg += 'Solved in 4: ' + in4 + '\n';
+        msg += 'Solved in 5: ' + in5 + '\n';
+        msg += 'Failed (6+ attempts): ' + failed + '\n';
+
+        // Recent plays (last 10)
+        const recent = history.slice(0, 10);
+        msg += '\n--- RECENT PLAYS (last ' + recent.length + ') ---\n';
+        recent.forEach(h => {
+          const puzzle = puzzles && puzzles[h.date] ? puzzles[h.date] : null;
+          const word = puzzle ? puzzle.word : '?';
+          const scrambled = puzzle ? ' (scrambled: ' + puzzle.scrambled + ')' : '';
+          const result = h.solved === 1 ? 'solved in ' + h.attempts + ' attempt' + (h.attempts === 1 ? '' : 's') : 'failed';
+          msg += h.date + scrambled + ': ' + word + ' — ' + result + '\n';
+        });
+
+        msg += '\nPlease give me specific, actionable coaching tips based on this data. Focus on pattern recognition, common letter combinations, and strategies for solving harder scrambles.';
+        return msg;
+      }
+
+      if (!uid) {
+        // No user ID — first-timer prompt
+        const msg = buildAnagramPrompt([], {}, {}, null);
+        input.value = msg;
+        setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        return;
+      }
+
+      (async function() {
+        try {
+          // Fetch anagram history
+          const res = await fetch('/api/anagram-history/?user_id=' + encodeURIComponent(uid));
+          if (!res.ok) throw new Error('Failed to fetch anagram history');
+          const data = await res.json();
+          const history = data.history || [];
+          const puzzles = data.puzzles || {};
+          const stats = data.stats || {};
+
+          // Try to get today's puzzle
+          let todayPuzzle = null;
+          try {
+            const today = new Date().toISOString().split('T')[0];
+            if (puzzles[today]) {
+              todayPuzzle = { ...puzzles[today], word_length: puzzles[today].word ? puzzles[today].word.length : 0 };
+            } else {
+              const daRes = await fetch('/api/daily-anagram/');
+              if (daRes.ok) {
+                const daData = await daRes.json();
+                todayPuzzle = daData || null;
+              }
+            }
+          } catch { /* non-critical */ }
+
+          input.value = buildAnagramPrompt(history, puzzles, stats, todayPuzzle);
+          setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        } catch {
+          input.value = 'I\'ve been playing the Daily Anagram puzzle. Can you analyse my play history and give me tips to improve my unscrambling skills?';
+          setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        }
+      })();
+    })();
+
+    // Auto-submit if ?context=cab is present (from Cows and Bulls Lex link)
+    (function autoSubmitFromCabContext() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('context') !== 'cab') return;
+
+      // Clean URL immediately
+      window.history.replaceState({}, '', '/chat/');
+
+      const uid = localStorage.getItem('swf-uid') || '';
+
+      function buildCabPrompt(rounds) {
+        let msg = '[COWS AND BULLS — COACHING REQUEST]\n\n';
+        msg += 'I have been playing Cows and Bulls on ScrabbleWordsFinder.com.\n';
+        msg += 'In Cows and Bulls you guess a secret word: 🐂 = right letter, right position; 🐄 = right letter, wrong position.\n';
+        msg += 'Please analyse my play history and give me personalised coaching: what I\'m doing well, where I can improve, and tips for deduction strategies.\n\n';
+
+        if (!rounds || rounds.length === 0) {
+          msg += '--- MY HISTORY ---\n';
+          msg += 'I have not played yet. Please welcome me and explain the best strategies for solving Cows and Bulls efficiently.\n';
+          return msg;
+        }
+
+        const totalGames = rounds.length;
+        const totalSolved = rounds.filter(r => r.solved === 1).length;
+        const solveRate = totalGames > 0 ? Math.round((totalSolved / totalGames) * 100) : 0;
+        const solvedRounds = rounds.filter(r => r.solved === 1 && r.attempts > 0);
+        const avgAttempts = solvedRounds.length > 0
+          ? (solvedRounds.reduce((s, r) => s + r.attempts, 0) / solvedRounds.length).toFixed(1)
+          : 'N/A';
+        const quickSolves = solvedRounds.filter(r => r.attempts <= 3).length;
+        const lengthCounts = {};
+        rounds.forEach(r => { lengthCounts[r.length] = (lengthCounts[r.length] || 0) + 1; });
+        const preferredLength = Object.entries(lengthCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0];
+
+        msg += '--- MY COWS & BULLS STATS ---\n';
+        msg += 'Total games played: ' + totalGames + '\n';
+        msg += 'Games solved: ' + totalSolved + ' (' + solveRate + '%)\n';
+        msg += 'Average attempts (solved games): ' + avgAttempts + '\n';
+        msg += 'Solved in 3 or fewer guesses: ' + quickSolves + '\n';
+        if (preferredLength) msg += 'Most played word length: ' + preferredLength[0] + ' letters (' + preferredLength[1] + ' games)\n';
+
+        // Attempt distribution
+        const dist = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6+': 0 };
+        solvedRounds.forEach(r => {
+          const k = r.attempts <= 5 ? String(r.attempts) : '6+';
+          dist[k]++;
+        });
+        msg += '\n--- ATTEMPT DISTRIBUTION (solved games) ---\n';
+        Object.entries(dist).forEach(([k, v]) => { if (Number(v) > 0) msg += 'Solved in ' + k + ': ' + v + '\n'; });
+
+        // Recent 10 games
+        const recent = rounds.slice(0, 10);
+        msg += '\n--- RECENT GAMES (last ' + recent.length + ') ---\n';
+        recent.forEach(r => {
+          const date = r.startDatetime ? r.startDatetime.split(/[T ]/)[0] : '?';
+          const result = r.solved === 1 ? 'solved in ' + r.attempts + ' guess' + (r.attempts === 1 ? '' : 'es') : 'not solved';
+          const timeInfo = r.split_time ? ' · time: ' + r.split_time + 's' : '';
+          const len = r.length ? ' · ' + r.length + '-letter word' : '';
+          msg += date + len + ': ' + result + timeInfo + '\n';
+        });
+
+        msg += '\nPlease give me specific, actionable tips based on this data. Cover opening strategies, letter elimination, and how to tackle different word lengths.';
+        return msg;
+      }
+
+      if (!uid) {
+        input.value = buildCabPrompt([]);
+        setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        return;
+      }
+
+      (async function() {
+        try {
+          const res = await fetch('/api/cab/?user_id=' + encodeURIComponent(uid));
+          if (!res.ok) throw new Error('Failed to fetch CaB history');
+          const data = await res.json();
+          input.value = buildCabPrompt(data.rounds || []);
+          setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
+        } catch {
+          input.value = 'I\'ve been playing Cows and Bulls. Can you analyse my history and give me tips to improve my deduction skills?';
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         }
       })();

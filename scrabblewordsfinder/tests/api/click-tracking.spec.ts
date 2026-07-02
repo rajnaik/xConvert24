@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
  *
  * UID key: 'swf-uid' (generates u_<timestamp><random> format)
  * Element description priority: aria-label → data-track → title → textContent(60) → id → name → tagName
- * Skipped elements: "Refresh"/"🔄 Refresh", generic tags (SPAN, DIV, IMG, P)
+ * Skipped elements: "Refresh"/"🔄 Refresh", generic tags (SPAN, DIV, IMG, P, INPUT, TEXTAREA, svg, path, SVG, LABEL), symbols (">", "✕")
  */
 
 test.describe('Global Click Tracker — Positive', () => {
@@ -285,7 +285,7 @@ test.describe('Global Click Tracker — Negative', () => {
     expect(refreshClicks).toHaveLength(0);
   });
 
-  test('skips generic tag-only elements (SPAN, DIV, IMG, P)', async ({ page }) => {
+  test('skips generic tag-only elements (SPAN, DIV, IMG, P, INPUT)', async ({ page }) => {
     const payloads: any[] = [];
     await page.route('/api/clicks', async route => {
       if (route.request().method() === 'POST') {
@@ -299,24 +299,165 @@ test.describe('Global Click Tracker — Negative', () => {
     await page.goto('/');
     await page.waitForTimeout(500);
 
-    // Add a button with only SPAN as text content (edge case where describeElement might return "SPAN")
+    // Add standalone elements that resolve to generic tagNames
     await page.evaluate(() => {
-      const btn = document.createElement('button');
-      btn.id = 'test-span-btn';
-      // Remove all describable attributes so it falls through to tagName
+      const div = document.createElement('div');
+      div.id = 'test-noise-div';
+      div.style.width = '50px';
+      div.style.height = '50px';
+      div.style.background = 'red';
+      document.body.appendChild(div);
+
       const span = document.createElement('span');
-      span.textContent = ''; // empty span
-      btn.appendChild(span);
-      document.body.appendChild(btn);
+      span.id = 'test-noise-span';
+      span.style.display = 'inline-block';
+      span.style.width = '50px';
+      span.style.height = '50px';
+      document.body.appendChild(span);
     });
 
-    // This button should still be tracked (tagName fallback returns "button" not "SPAN")
-    await page.locator('#test-span-btn').click();
+    await page.locator('#test-noise-div').click({ force: true });
+    await page.waitForTimeout(300);
+    await page.locator('#test-noise-span').click({ force: true });
     await page.waitForTimeout(500);
 
-    // "button" is not in the skip list, so it should be tracked
-    const btnClicks = payloads.filter(p => p.ui_element === 'button');
-    expect(btnClicks.length).toBeGreaterThanOrEqual(1);
+    // Both DIV and SPAN are in the skip list — no clicks should be tracked
+    const noiseClicks = payloads.filter(p =>
+      p.ui_element === 'DIV' || p.ui_element === 'SPAN'
+    );
+    expect(noiseClicks).toHaveLength(0);
+  });
+
+  test('skips TEXTAREA clicks (noise filter)', async ({ page }) => {
+    const payloads: any[] = [];
+    await page.route('/api/clicks', async route => {
+      if (route.request().method() === 'POST') {
+        payloads.push(JSON.parse(route.request().postData() || '{}'));
+        await route.fulfill({ json: { success: true } });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    // Add a visible textarea with no data-track or parent link/button
+    await page.evaluate(() => {
+      const ta = document.createElement('textarea');
+      ta.id = 'test-noise-textarea';
+      ta.style.width = '100px';
+      ta.style.height = '50px';
+      document.body.appendChild(ta);
+    });
+
+    await page.locator('#test-noise-textarea').click({ force: true });
+    await page.waitForTimeout(500);
+
+    const textareaClicks = payloads.filter(p => p.ui_element === 'TEXTAREA');
+    expect(textareaClicks).toHaveLength(0);
+  });
+
+  test('skips SVG/svg/path element clicks (noise filter)', async ({ page }) => {
+    const payloads: any[] = [];
+    await page.route('/api/clicks', async route => {
+      if (route.request().method() === 'POST') {
+        payloads.push(JSON.parse(route.request().postData() || '{}'));
+        await route.fulfill({ json: { success: true } });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    // Add an SVG element without a parent link/button
+    await page.evaluate(() => {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.id = 'test-noise-svg';
+      svg.setAttribute('width', '50');
+      svg.setAttribute('height', '50');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M10 10 H 40 V 40 H 10 Z');
+      svg.appendChild(path);
+      document.body.appendChild(svg);
+    });
+
+    await page.locator('#test-noise-svg').click({ force: true });
+    await page.waitForTimeout(500);
+
+    const svgClicks = payloads.filter(p =>
+      p.ui_element === 'svg' || p.ui_element === 'SVG' || p.ui_element === 'path'
+    );
+    expect(svgClicks).toHaveLength(0);
+  });
+
+  test('skips LABEL element clicks (noise filter)', async ({ page }) => {
+    const payloads: any[] = [];
+    await page.route('/api/clicks', async route => {
+      if (route.request().method() === 'POST') {
+        payloads.push(JSON.parse(route.request().postData() || '{}'));
+        await route.fulfill({ json: { success: true } });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    // Add a visible standalone label (not inside a link or button)
+    await page.evaluate(() => {
+      const label = document.createElement('label');
+      label.id = 'test-noise-label';
+      label.textContent = ' ';
+      label.style.display = 'block';
+      label.style.padding = '10px';
+      document.body.appendChild(label);
+    });
+
+    await page.locator('#test-noise-label').click({ force: true });
+    await page.waitForTimeout(500);
+
+    const labelClicks = payloads.filter(p => p.ui_element === 'LABEL');
+    expect(labelClicks).toHaveLength(0);
+  });
+
+  test('skips ">" and "✕" text clicks (noise filter)', async ({ page }) => {
+    const payloads: any[] = [];
+    await page.route('/api/clicks', async route => {
+      if (route.request().method() === 'POST') {
+        payloads.push(JSON.parse(route.request().postData() || '{}'));
+        await route.fulfill({ json: { success: true } });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    // Add buttons with ">" and "✕" text
+    await page.evaluate(() => {
+      const btn1 = document.createElement('button');
+      btn1.id = 'test-noise-chevron';
+      btn1.textContent = '>';
+      document.body.appendChild(btn1);
+
+      const btn2 = document.createElement('button');
+      btn2.id = 'test-noise-close';
+      btn2.textContent = '✕';
+      document.body.appendChild(btn2);
+    });
+
+    await page.locator('#test-noise-chevron').click({ force: true });
+    await page.waitForTimeout(300);
+    await page.locator('#test-noise-close').click({ force: true });
+    await page.waitForTimeout(500);
+
+    const noiseClicks = payloads.filter(p => p.ui_element === '>' || p.ui_element === '✕');
+    expect(noiseClicks).toHaveLength(0);
   });
 
   test('does not crash when fetch fails', async ({ page }) => {
@@ -454,6 +595,113 @@ test.describe('Solver Focus Tracker — Negative', () => {
 
     const solverEvents = payloads.filter(p => p.ui_element === 'Solver');
     expect(solverEvents).toHaveLength(0);
+  });
+});
+
+test.describe('SolverUsed Word Tracking — Positive', () => {
+  test('clicking solver input with a word appends it to SolverUsed', async ({ page }) => {
+    const payloads: any[] = [];
+    await page.route('**/api/clicks/**', async route => {
+      if (route.request().method() === 'POST') {
+        payloads.push(JSON.parse(route.request().postData() || '{}'));
+        await route.fulfill({ json: { success: true } });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    // Type a word into the solver input
+    await page.locator('#text-solver').fill('QUARTZ');
+    await page.waitForTimeout(200);
+
+    // Click on the solver input — triggers click event with data-track="SolverUsed"
+    await page.locator('#text-solver').click({ force: true });
+    await page.waitForTimeout(500);
+
+    const solverClick = payloads.find(p => p.ui_element && p.ui_element.startsWith('SolverUsed-'));
+    expect(solverClick).toBeTruthy();
+    expect(solverClick.ui_element).toBe('SolverUsed-QUARTZ');
+  });
+
+  test('SolverUsed word is uppercased', async ({ page }) => {
+    const payloads: any[] = [];
+    await page.route('**/api/clicks/**', async route => {
+      if (route.request().method() === 'POST') {
+        payloads.push(JSON.parse(route.request().postData() || '{}'));
+        await route.fulfill({ json: { success: true } });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    await page.locator('#text-solver').fill('hello');
+    await page.waitForTimeout(200);
+    await page.locator('#text-solver').click({ force: true });
+    await page.waitForTimeout(500);
+
+    const solverClick = payloads.find(p => p.ui_element && p.ui_element.startsWith('SolverUsed-'));
+    expect(solverClick).toBeTruthy();
+    expect(solverClick.ui_element).toBe('SolverUsed-HELLO');
+  });
+});
+
+test.describe('SolverUsed Word Tracking — Negative', () => {
+  test('clicking solver input with empty value sends plain SolverUsed', async ({ page }) => {
+    const payloads: any[] = [];
+    await page.route('**/api/clicks/**', async route => {
+      if (route.request().method() === 'POST') {
+        payloads.push(JSON.parse(route.request().postData() || '{}'));
+        await route.fulfill({ json: { success: true } });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    // Ensure solver is empty
+    await page.locator('#text-solver').fill('');
+    await page.waitForTimeout(200);
+    await page.locator('#text-solver').click({ force: true });
+    await page.waitForTimeout(500);
+
+    const solverClick = payloads.find(p => p.ui_element === 'SolverUsed');
+    expect(solverClick).toBeTruthy();
+    // Should NOT have a dash suffix when empty
+    const withWord = payloads.find(p => p.ui_element && p.ui_element.startsWith('SolverUsed-'));
+    expect(withWord).toBeFalsy();
+  });
+
+  test('clicking solver input with whitespace-only sends plain SolverUsed', async ({ page }) => {
+    const payloads: any[] = [];
+    await page.route('**/api/clicks/**', async route => {
+      if (route.request().method() === 'POST') {
+        payloads.push(JSON.parse(route.request().postData() || '{}'));
+        await route.fulfill({ json: { success: true } });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await page.goto('/');
+    await page.waitForTimeout(500);
+
+    await page.locator('#text-solver').fill('   ');
+    await page.waitForTimeout(200);
+    await page.locator('#text-solver').click({ force: true });
+    await page.waitForTimeout(500);
+
+    const solverClick = payloads.find(p => p.ui_element === 'SolverUsed');
+    expect(solverClick).toBeTruthy();
+    const withWord = payloads.find(p => p.ui_element && p.ui_element.startsWith('SolverUsed-'));
+    expect(withWord).toBeFalsy();
   });
 });
 

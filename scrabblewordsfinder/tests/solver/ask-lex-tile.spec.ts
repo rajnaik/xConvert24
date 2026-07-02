@@ -16,10 +16,11 @@ test.describe('Ask Lex AI Tile — Positive', () => {
     await expect(tile).toHaveCount(1);
   });
 
-  test('Ask Lex AI tile links to /chat/', async ({ page }) => {
+  test('Ask Lex AI tile is a button that opens modal (not a link)', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    const tile = page.locator('#ask-lex-tile');
-    await expect(tile).toHaveAttribute('href', '/chat/');
+    const tile = page.locator('button#ask-lex-tile');
+    await expect(tile).toHaveCount(1);
+    await expect(tile).toHaveAttribute('type', 'button');
   });
 
   test('Ask Lex AI tile has correct label text', async ({ page }) => {
@@ -70,6 +71,12 @@ test.describe('Ask Lex AI Tile — Positive', () => {
     const classes = await hoverAvatar.getAttribute('class');
     expect(classes).toContain('bottom-full');
   });
+
+  test('tile has data-track attribute for click tracking', async ({ page }) => {
+    await page.goto(`${BASE}/`);
+    const tile = page.locator('#ask-lex-tile');
+    await expect(tile).toHaveAttribute('data-track', 'Ask Lex AI');
+  });
 });
 
 test.describe('Ask Lex AI Tile — Negative', () => {
@@ -77,6 +84,13 @@ test.describe('Ask Lex AI Tile — Negative', () => {
     await page.goto(`${BASE}/`);
     const tiles = page.locator('#ask-lex-tile');
     await expect(tiles).toHaveCount(1);
+  });
+
+  test('tile is not an anchor link (no href attribute)', async ({ page }) => {
+    await page.goto(`${BASE}/`);
+    const tile = page.locator('#ask-lex-tile');
+    const href = await tile.getAttribute('href');
+    expect(href).toBeNull();
   });
 
   test('hover avatar does not have old 80px width (regression)', async ({ page }) => {

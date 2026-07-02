@@ -22,6 +22,37 @@ test.describe('Solver data-track Attribute — Positive', () => {
   });
 });
 
+test.describe('Ask Lex AI data-track Attribute — Positive', () => {
+  test('ask lex tile has data-track="Ask Lex AI" attribute', async ({ page }) => {
+    await page.goto('/');
+    const btn = page.locator('#ask-lex-tile');
+    await expect(btn).toHaveAttribute('data-track', 'Ask Lex AI');
+  });
+
+  test('ask lex tile is visible and clickable on homepage', async ({ page }) => {
+    await page.goto('/');
+    const btn = page.locator('#ask-lex-tile');
+    await expect(btn).toBeVisible();
+    await expect(btn).toBeEnabled();
+  });
+});
+
+test.describe('Ask Lex AI data-track Attribute — Negative', () => {
+  test('data-track attribute does not prevent modal from opening', async ({ page }) => {
+    await page.goto('/');
+    const btn = page.locator('#ask-lex-tile');
+    await btn.click();
+    const modal = page.locator('#lex-solver-modal');
+    await expect(modal).toBeVisible();
+  });
+
+  test('no duplicate ask-lex-tile elements on homepage', async ({ page }) => {
+    await page.goto('/');
+    const count = await page.locator('#ask-lex-tile').count();
+    expect(count).toBe(1);
+  });
+});
+
 test.describe('Solver data-track Attribute — Negative', () => {
   test('data-track attribute does not break text input functionality', async ({ page }) => {
     await page.goto('/');

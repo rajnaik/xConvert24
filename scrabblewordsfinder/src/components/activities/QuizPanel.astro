@@ -3,9 +3,9 @@
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🧠</span> Word Quiz <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="quiz" title="⭐ Earn star: Complete 1 quiz round">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="quiz">✅</span></h2>
           <div class="flex items-center gap-2">
-            <a href="/chat/?context=quiz" class="px-2 py-1 rounded-lg bg-cyan-600/20 border border-cyan-500/30 text-xs text-cyan-300 hover:bg-cyan-600/40 transition-colors flex items-center gap-1" title="Get AI coaching on your quiz performance">
-              <img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" /> Lex
-            </a>
+            <button id="LexQuiz" type="button" class="px-2 py-1 rounded-lg bg-cyan-600/20 border border-cyan-500/30 text-xs text-cyan-300 hover:bg-cyan-600/40 transition-colors flex items-center gap-1 cursor-pointer" title="Get AI coaching on your quiz performance">
+              <img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" /> Lex Quiz Coach
+            </button>
             <a id="quiz-history-btn" href="/quiz-history/" class="hidden px-2 py-1 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs text-purple-300 hover:bg-purple-600/40 transition-colors flex items-center gap-1">
               <span>📊</span><span id="quiz-history-count">0</span>
             </a>
@@ -99,6 +99,121 @@
           </div>
         </div>
       </div>
+
+<!-- Lex Quiz Coach Modal -->
+<div id="lex-quiz-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="lex-quiz-modal-title">
+  <div id="lex-quiz-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <div class="relative w-full max-w-md rounded-2xl border border-cyan-500/30 bg-gray-900 shadow-2xl shadow-cyan-500/10 overflow-hidden">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-900/30 to-gray-900">
+      <div class="flex items-center gap-3">
+        <img src="/lex-avatar-32.png" alt="Lex" width="28" height="28" class="rounded-full ring-2 ring-cyan-400/50" />
+        <div>
+          <h3 id="lex-quiz-modal-title" class="text-sm font-bold text-cyan-300">Lex Quiz Coach</h3>
+          <p class="text-[10px] text-gray-400">AI-powered analysis of your quiz performance</p>
+        </div>
+      </div>
+      <button id="lex-quiz-close" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors" aria-label="Close">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <!-- Body -->
+    <div id="lex-quiz-body" class="px-5 py-5 max-h-[60vh] overflow-y-auto">
+      <div id="lex-quiz-loading" class="flex flex-col items-center gap-3 py-6">
+        <div class="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs text-gray-400">Lex is analysing your quizzes...</p>
+      </div>
+      <div id="lex-quiz-result" class="hidden">
+        <!-- Stats bar (shown when history exists) -->
+        <div id="lex-quiz-stats-bar" class="hidden mb-4">
+          <div class="grid grid-cols-3 gap-2 mb-2">
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="lex-quiz-stat-games" class="text-lg font-bold text-white">0</p>
+              <p class="text-[10px] text-gray-500">Quizzes</p>
+            </div>
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="lex-quiz-stat-accuracy" class="text-lg font-bold text-green-400">0%</p>
+              <p class="text-[10px] text-gray-500">Accuracy</p>
+            </div>
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="lex-quiz-stat-perfect" class="text-lg font-bold text-amber-400">0</p>
+              <p class="text-[10px] text-gray-500">Perfect</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="lex-quiz-stat-fastest" class="text-lg font-bold text-cyan-400">—</p>
+              <p class="text-[10px] text-gray-500">Fastest</p>
+            </div>
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="lex-quiz-stat-slowest" class="text-lg font-bold text-orange-400">—</p>
+              <p class="text-[10px] text-gray-500">Slowest</p>
+            </div>
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="lex-quiz-stat-avgtime" class="text-lg font-bold text-purple-400">—</p>
+              <p class="text-[10px] text-gray-500">Avg Time</p>
+            </div>
+          </div>
+        </div>
+        <!-- Performance Graph -->
+        <div id="lex-quiz-graph-section" class="hidden mb-4">
+          <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Performance Over Time</p>
+          <div class="relative rounded-lg bg-gray-800/60 border border-gray-700/50 p-3">
+            <canvas id="lex-quiz-graph" width="400" height="180" class="w-full h-auto"></canvas>
+            <div class="flex items-center justify-center gap-4 mt-2">
+              <span class="flex items-center gap-1 text-[10px] text-green-400"><span class="inline-block w-3 h-0.5 bg-green-400 rounded"></span> Accuracy %</span>
+              <span class="flex items-center gap-1 text-[10px] text-cyan-400"><span class="inline-block w-3 h-0.5 bg-cyan-400 rounded"></span> Time Used (s)</span>
+            </div>
+          </div>
+          <!-- Time Usage Commentary -->
+          <div id="lex-quiz-time-commentary" class="hidden mt-3 px-3 py-2 rounded-lg bg-gray-800/40 border border-gray-700/40">
+            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">⏱ Time Insights</p>
+            <p id="lex-quiz-time-commentary-text" class="text-xs text-gray-300 leading-relaxed"></p>
+          </div>
+        </div>
+        <!-- AI analysis text -->
+        <div id="lex-quiz-analysis-text" class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap"></div>
+        <!-- Game-by-Game Analysis Section -->
+        <div id="lex-quiz-games" class="hidden mt-5 pt-4 border-t border-gray-700/50">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Game-by-Game Analysis</p>
+            <span id="lex-quiz-games-count" class="text-[10px] text-gray-500"></span>
+          </div>
+          <div id="lex-quiz-games-list" class="space-y-3 max-h-[40vh] overflow-y-auto pr-1"></div>
+        </div>
+        <!-- Useful links for further exploration -->
+        <div id="lex-quiz-links" class="mt-5 pt-4 border-t border-gray-700/50">
+          <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Further Exploration</p>
+          <div class="grid gap-2">
+            <a href="/blog/best-scrabble-training-tools/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
+              <span class="text-sm" aria-hidden="true">🛠️</span>
+              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Best Scrabble Training Tools</span>
+            </a>
+            <a href="/blog/how-to-memorize-scrabble-words/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
+              <span class="text-sm" aria-hidden="true">🧠</span>
+              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">How to Memorize Scrabble Words</span>
+            </a>
+            <a href="/blog/highest-scoring-scrabble-words/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
+              <span class="text-sm" aria-hidden="true">🏆</span>
+              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Highest Scoring Scrabble Words</span>
+            </a>
+            <a href="/blog/rack-management-basics/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
+              <span class="text-sm" aria-hidden="true">📖</span>
+              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Rack Management Basics</span>
+            </a>
+            <a href="/quiz-history/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
+              <span class="text-sm" aria-hidden="true">📊</span>
+              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Your Quiz History</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div id="lex-quiz-error" class="hidden text-center py-4">
+        <p class="text-sm text-red-400">Something went wrong. Try again later.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script is:inline>
 (function() {
@@ -223,7 +338,11 @@
       var idx = Math.floor(Math.random() * quizState.fakes.length);
       if (!usedFakes.has(idx) && quizState.fakes[idx] !== q.meaning) { options.push({ text: quizState.fakes[idx], correct: false }); usedFakes.add(idx); }
     }
-    options.sort(function() { return Math.random() - 0.5; });
+    // Fisher-Yates shuffle for unbiased option ordering
+    for (var i = options.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = options[i]; options[i] = options[j]; options[j] = tmp;
+    }
 
     var container = document.getElementById('quiz-options');
     container.innerHTML = options.map(function(opt) {
@@ -445,6 +564,355 @@
       detailsEl.appendChild(row);
     }
   }
+
+  // ── Lex Quiz Coach Modal ──
+  (function lexQuizCoach() {
+    var modal = document.getElementById('lex-quiz-modal');
+    var backdrop = document.getElementById('lex-quiz-backdrop');
+    var closeBtn = document.getElementById('lex-quiz-close');
+    var loadingEl = document.getElementById('lex-quiz-loading');
+    var resultEl = document.getElementById('lex-quiz-result');
+    var errorEl = document.getElementById('lex-quiz-error');
+    var statsBar = document.getElementById('lex-quiz-stats-bar');
+    var analysisText = document.getElementById('lex-quiz-analysis-text');
+    var lexBtn = document.getElementById('LexQuiz');
+
+    function openModal() {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      // Reset state
+      loadingEl.classList.remove('hidden');
+      resultEl.classList.add('hidden');
+      errorEl.classList.add('hidden');
+      // Fetch coaching
+      fetchCoaching();
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function fetchCoaching() {
+      var userId = window.__swfStore.getRaw('swf-uid') || '';
+      fetch('/api/lex-quiz-coach/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        loadingEl.classList.add('hidden');
+        if (data.error) {
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        resultEl.classList.remove('hidden');
+
+        // Show stats bar if history exists
+        if (data.hasHistory && data.stats) {
+          statsBar.classList.remove('hidden');
+          document.getElementById('lex-quiz-stat-games').textContent = data.stats.totalGames;
+          document.getElementById('lex-quiz-stat-accuracy').textContent = data.stats.accuracy + '%';
+          document.getElementById('lex-quiz-stat-perfect').textContent = data.stats.totalPerfect;
+          // Populate extended stats from gameAnalysis
+          var games = data.gameAnalysis || [];
+          if (games.length > 0) {
+            var times = games.map(function(g) { return g.timeUsed; });
+            var fastest = Math.min.apply(null, times);
+            var slowest = Math.max.apply(null, times);
+            var avgTime = Math.round(times.reduce(function(a, b) { return a + b; }, 0) / times.length);
+            document.getElementById('lex-quiz-stat-fastest').textContent = fastest + 's';
+            document.getElementById('lex-quiz-stat-slowest').textContent = slowest + 's';
+            document.getElementById('lex-quiz-stat-avgtime').textContent = avgTime + 's';
+          } else {
+            document.getElementById('lex-quiz-stat-fastest').textContent = data.stats.avgTime ? data.stats.avgTime + 's' : '—';
+            document.getElementById('lex-quiz-stat-slowest').textContent = '—';
+            document.getElementById('lex-quiz-stat-avgtime').textContent = data.stats.avgTime ? data.stats.avgTime + 's' : '—';
+          }
+        } else {
+          statsBar.classList.add('hidden');
+        }
+
+        analysisText.textContent = data.analysis || 'No analysis available.';
+
+        // Render performance graph
+        renderPerformanceGraph(data.gameAnalysis || []);
+
+        // Render time commentary
+        renderTimeCommentary(data.gameAnalysis || [], data.stats || {});
+
+        // Render game-by-game analysis
+        renderGameAnalysis(data.gameAnalysis || []);
+      })
+      .catch(function() {
+        loadingEl.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+      });
+    }
+
+    function renderPerformanceGraph(games) {
+      var section = document.getElementById('lex-quiz-graph-section');
+      var canvas = document.getElementById('lex-quiz-graph');
+      if (!section || !canvas || !games || games.length < 2) {
+        if (section) section.classList.add('hidden');
+        return;
+      }
+
+      // Sort games chronologically (gameNumber ascending)
+      var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+
+      section.classList.remove('hidden');
+      var ctx = canvas.getContext('2d');
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth;
+      var h = canvas.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+
+      // Layout
+      var pad = { top: 16, right: 40, bottom: 28, left: 36 };
+      var plotW = w - pad.left - pad.right;
+      var plotH = h - pad.top - pad.bottom;
+      var n = sorted.length;
+
+      // Data
+      var accuracies = sorted.map(function(g) { return g.accuracy; });
+      var times = sorted.map(function(g) { return g.timeUsed; });
+      var maxTime = Math.max.apply(null, times) || 1;
+      // Round up maxTime to nearest 10 for clean axis
+      maxTime = Math.ceil(maxTime / 10) * 10;
+
+      // Clear
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw grid lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (var i = 0; i <= 4; i++) {
+        var y = pad.top + (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+      }
+
+      // Y-axis labels (left = accuracy 0-100%)
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(74,222,128,0.7)';
+      for (var i = 0; i <= 4; i++) {
+        var val = 100 - i * 25;
+        var y = pad.top + (plotH / 4) * i;
+        ctx.fillText(val + '%', pad.left - 6, y + 3);
+      }
+
+      // Y-axis labels (right = time 0-maxTime)
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(34,211,238,0.7)';
+      for (var i = 0; i <= 4; i++) {
+        var val = Math.round(maxTime - (maxTime / 4) * i);
+        var y = pad.top + (plotH / 4) * i;
+        ctx.fillText(val + 's', w - pad.right + 6, y + 3);
+      }
+
+      // X-axis labels (game numbers)
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      var labelStep = Math.max(1, Math.floor(n / 8));
+      for (var i = 0; i < n; i += labelStep) {
+        var x = pad.left + (plotW / (n - 1)) * i;
+        ctx.fillText('#' + sorted[i].gameNumber, x, h - pad.bottom + 14);
+      }
+      // Always label last game
+      if ((n - 1) % labelStep !== 0) {
+        var x = pad.left + plotW;
+        ctx.fillText('#' + sorted[n - 1].gameNumber, x, h - pad.bottom + 14);
+      }
+
+      // Helper to get x,y for a data point
+      function getXY(index, value, maxVal) {
+        var x = pad.left + (plotW / (n - 1)) * index;
+        var y = pad.top + plotH - (value / maxVal) * plotH;
+        return { x: x, y: y };
+      }
+
+      // Draw accuracy line (green)
+      ctx.strokeStyle = 'rgba(74,222,128,0.9)';
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (var i = 0; i < n; i++) {
+        var pt = getXY(i, accuracies[i], 100);
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+
+      // Draw accuracy dots
+      ctx.fillStyle = 'rgba(74,222,128,1)';
+      for (var i = 0; i < n; i++) {
+        var pt = getXY(i, accuracies[i], 100);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw time line (cyan)
+      ctx.strokeStyle = 'rgba(34,211,238,0.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (var i = 0; i < n; i++) {
+        var pt = getXY(i, times[i], maxTime);
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+
+      // Draw time dots
+      ctx.fillStyle = 'rgba(34,211,238,1)';
+      for (var i = 0; i < n; i++) {
+        var pt = getXY(i, times[i], maxTime);
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function renderTimeCommentary(games, stats) {
+      var container = document.getElementById('lex-quiz-time-commentary');
+      var textEl = document.getElementById('lex-quiz-time-commentary-text');
+      if (!container || !textEl || !games || games.length < 2) {
+        if (container) container.classList.add('hidden');
+        return;
+      }
+
+      var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+      var times = sorted.map(function(g) { return g.timeUsed; });
+      var fastest = Math.min.apply(null, times);
+      var slowest = Math.max.apply(null, times);
+      var avg = Math.round(times.reduce(function(a, b) { return a + b; }, 0) / times.length);
+
+      // Find the game with fastest/slowest
+      var fastestGame = sorted.find(function(g) { return g.timeUsed === fastest; });
+      var slowestGame = sorted.find(function(g) { return g.timeUsed === slowest; });
+
+      // Time trend: compare last 2 games
+      var recent = sorted[sorted.length - 1];
+      var prev = sorted[sorted.length - 2];
+      var timeDiff = recent.timeUsed - prev.timeUsed;
+      var trendText = '';
+      if (timeDiff < -10) trendText = 'You\'re getting faster — ' + Math.abs(timeDiff) + 's quicker than your previous round.';
+      else if (timeDiff > 10) trendText = 'You took ' + timeDiff + 's longer this round — maybe tougher words or more careful answers.';
+      else trendText = 'Your pace is consistent between recent rounds.';
+
+      // Build commentary
+      var parts = [];
+      parts.push('Fastest: ' + fastest + 's (Game #' + fastestGame.gameNumber + ') · Slowest: ' + slowest + 's (Game #' + slowestGame.gameNumber + ') · Avg: ' + avg + 's.');
+      parts.push(trendText);
+
+      // Speed vs accuracy insight
+      if (fastest === recent.timeUsed && recent.accuracy >= 80) {
+        parts.push('Your fastest round was also highly accurate — great speed + precision combo.');
+      } else if (slowest === recent.timeUsed && recent.accuracy < 60) {
+        parts.push('Slower round with lower accuracy — could indicate harder vocabulary.');
+      }
+
+      container.classList.remove('hidden');
+      textEl.textContent = parts.join(' ');
+    }
+
+    function renderGameAnalysis(games) {
+      var container = document.getElementById('lex-quiz-games');
+      var list = document.getElementById('lex-quiz-games-list');
+      var countEl = document.getElementById('lex-quiz-games-count');
+      if (!container || !list || !games || games.length === 0) return;
+
+      container.classList.remove('hidden');
+      countEl.textContent = games.length + ' game' + (games.length === 1 ? '' : 's');
+
+      var ratingColors = {
+        perfect: { border: 'border-green-500/40', bg: 'bg-green-900/10', badge: 'bg-green-600/30 text-green-300', icon: '🏆' },
+        great: { border: 'border-blue-500/40', bg: 'bg-blue-900/10', badge: 'bg-blue-600/30 text-blue-300', icon: '⚡' },
+        good: { border: 'border-amber-500/40', bg: 'bg-amber-900/10', badge: 'bg-amber-600/30 text-amber-300', icon: '✅' },
+        fair: { border: 'border-orange-500/40', bg: 'bg-orange-900/10', badge: 'bg-orange-600/30 text-orange-300', icon: '📚' },
+        weak: { border: 'border-red-500/40', bg: 'bg-red-900/10', badge: 'bg-red-600/30 text-red-300', icon: '⚠️' }
+      };
+
+      var html = '';
+      for (var i = 0; i < games.length; i++) {
+        var g = games[i];
+        var colors = ratingColors[g.rating] || ratingColors.fair;
+        var dateStr = g.date ? new Date(g.date + 'Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+
+        // Weaknesses HTML
+        var weakHtml = '';
+        if (g.weaknesses && g.weaknesses.length > 0) {
+          weakHtml = '<div class="mt-2"><p class="text-[10px] font-semibold text-red-400 uppercase tracking-wide mb-1">⚠ Weaknesses</p>';
+          for (var w = 0; w < g.weaknesses.length; w++) {
+            weakHtml += '<p class="text-[11px] text-red-300/80 pl-3 border-l-2 border-red-500/30 mb-1">' + g.weaknesses[w] + '</p>';
+          }
+          weakHtml += '</div>';
+        }
+
+        // Improvements HTML
+        var impHtml = '';
+        if (g.improvements && g.improvements.length > 0) {
+          impHtml = '<div class="mt-2"><p class="text-[10px] font-semibold text-green-400 uppercase tracking-wide mb-1">✓ Strengths</p>';
+          for (var s = 0; s < g.improvements.length; s++) {
+            impHtml += '<p class="text-[11px] text-green-300/80 pl-3 border-l-2 border-green-500/30 mb-1">' + g.improvements[s] + '</p>';
+          }
+          impHtml += '</div>';
+        }
+
+        // Missed words HTML
+        var missedHtml = '';
+        if (g.missedWords && g.missedWords.length > 0) {
+          missedHtml = '<div class="mt-2 flex flex-wrap gap-1">';
+          for (var m = 0; m < g.missedWords.length; m++) {
+            missedHtml += '<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-red-900/30 border border-red-700/40 text-red-300">' + g.missedWords[m] + '</span>';
+          }
+          missedHtml += '</div>';
+        }
+
+        html += '<div class="rounded-xl ' + colors.border + ' ' + colors.bg + ' border p-3">' +
+          '<div class="flex items-center justify-between mb-1">' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="text-base">' + colors.icon + '</span>' +
+              '<span class="text-xs font-bold text-white">Game #' + g.gameNumber + '</span>' +
+              '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' + colors.badge + '">' + g.rating.toUpperCase() + '</span>' +
+            '</div>' +
+            '<span class="text-[10px] text-gray-500">' + dateStr + '</span>' +
+          '</div>' +
+          '<div class="flex items-center gap-3 text-[11px] text-gray-400 mb-1">' +
+            '<span>Score: <b class="text-white">' + g.score + '/' + g.total + '</b> (' + g.accuracy + '%)</span>' +
+            '<span>Time: <b class="text-white">' + g.timeUsed + 's</b>/' + g.timerLimit + 's</span>' +
+            (g.timedOut ? '<span class="text-red-400 font-semibold">⏰ Timed Out</span>' : '') +
+          '</div>' +
+          impHtml + weakHtml + missedHtml +
+        '</div>';
+      }
+
+      list.innerHTML = html;
+    }
+
+    // Event listeners
+    lexBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      openModal();
+    });
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+  })();
 
 })();
 </script>

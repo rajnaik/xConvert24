@@ -21,6 +21,9 @@
               <p id="wotd-usage" class="text-xs text-gray-400"><span class="text-blue-400 font-semibold">Example:</span> <span class="wotd-usage-text italic"></span></p>
               <p id="wotd-spelling" class="text-xs text-gray-400"><span class="text-green-400 font-semibold">Spelling tip:</span> <span class="wotd-spelling-text"></span></p>
               <p id="wotd-cultural" class="text-xs text-gray-400"><span class="text-amber-400 font-semibold">Did you know?</span> <span class="wotd-cultural-text"></span></p>
+              <div id="wotd-languages" class="hidden">
+                <p class="text-xs text-gray-400"><span class="text-cyan-400 font-semibold">🌍 In other languages:</span> <span class="wotd-languages-text italic"></span></p>
+              </div>
             </div>
             <div class="flex items-center justify-center gap-3">
               <button id="wotd-prev" class="w-8 h-8 flex items-center justify-center rounded-full border border-purple-600/50 bg-purple-900/20 hover:bg-purple-600/30 hover:border-purple-400 text-purple-300 transition-all text-lg font-bold" title="Previous day">&lsaquo;</button>
@@ -32,6 +35,11 @@
               </button>
               <button id="wotd-next" class="w-8 h-8 flex items-center justify-center rounded-full border border-purple-600/50 bg-purple-900/20 hover:bg-purple-600/30 hover:border-purple-400 text-purple-300 transition-all text-lg font-bold" title="Next day">&rsaquo;</button>
             </div>
+            <!-- Memorised checkbox -->
+            <label id="wotd-memorised-label" class="flex items-center justify-center gap-2 mt-3 cursor-pointer select-none group">
+              <input id="wotd-memorised-checkbox" type="checkbox" class="w-4 h-4 rounded border-2 border-amber-500/50 bg-gray-800 text-amber-500 focus:ring-amber-400 focus:ring-offset-0 cursor-pointer accent-amber-500" />
+              <span class="text-xs text-amber-300 group-hover:text-amber-200 transition-colors">Memorised</span>
+            </label>
           </div>
           <div class="mt-4 pt-4 border-t border-gray-800">
             <p class="text-xs text-center"><span id="wotd-date" class="hidden"></span><span id="wotd-cache-status" class="hidden"></span><span id="wotd-countdown" class="text-purple-400 font-mono"></span></p>
@@ -133,6 +141,45 @@
     }
   }
 
+  // ── Fetch and display multilingual translations (GLM-4.7-flash) ──
+  function fetchWotdLanguages() {
+    var word = document.getElementById('wotd-word').textContent;
+    if (!word || word === '—') return;
+    var langEl = document.getElementById('wotd-languages');
+    var langText = langEl ? langEl.querySelector('.wotd-languages-text') : null;
+    if (!langEl || !langText) return;
+
+    // Check localStorage cache first (keyed by word)
+    var cacheKey = 'swf-wotd-lang:' + word;
+    var cached = S.getRaw(cacheKey);
+    if (cached) {
+      try {
+        var cachedData = JSON.parse(cached);
+        if (cachedData && cachedData.length > 0) {
+          langText.textContent = cachedData.map(function(t) { return t.translation + ' (' + t.language + ')'; }).join(' · ');
+          langEl.classList.remove('hidden');
+          return;
+        }
+      } catch(e) {}
+    }
+
+    // Fetch from API
+    langText.textContent = 'Loading...';
+    langEl.classList.remove('hidden');
+    fetch('/api/wotd-languages/?word=' + encodeURIComponent(word))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.translations && data.translations.length > 0) {
+          langText.textContent = data.translations.map(function(t) { return t.translation + ' (' + t.language + ')'; }).join(' · ');
+          // Cache for this word
+          S.setRaw(cacheKey, JSON.stringify(data.translations));
+        } else {
+          langEl.classList.add('hidden');
+        }
+      })
+      .catch(function() { langEl.classList.add('hidden'); });
+  }
+
   function renderWotd(word) {
     document.getElementById('wotd-word').textContent = word.word || '—';
     document.getElementById('wotd-meaning').textContent = word.meaning || 'Tap "Lookup" to fetch the meaning';
@@ -141,7 +188,10 @@
     var enrichedEl = document.getElementById('wotd-enriched');
     var exploreBtn = document.getElementById('wotd-explore-btn');
     var hasEnriched = word.origin || word.usage_example || word.spelling_tip || word.cultural_note || word.fun_fact;
-    if (hasEnriched && enrichedEl) {
+    // Always show the Explore button — even without traditional enriched data,
+    // we can fetch multilingual translations for any word
+    var hasAnyContent = hasEnriched || true;
+    if (hasAnyContent && enrichedEl) {
       // Populate the enriched fields
       var factEl = enrichedEl.querySelector('.wotd-fact-text');
       var originEl = enrichedEl.querySelector('.wotd-origin-text');
@@ -166,6 +216,8 @@
         // Already explored today — show enriched content, hide button
         enrichedEl.classList.remove('hidden');
         if (exploreBtn) exploreBtn.classList.add('hidden');
+        // Also fetch translations since enriched is visible
+        fetchWotdLanguages();
       } else {
         // Not explored yet — show button, hide enriched
         if (exploreBtn) exploreBtn.classList.remove('hidden');
@@ -242,6 +294,9 @@
         var exploreBtn = document.getElementById('wotd-explore-btn');
         var enrichedEl = document.getElementById('wotd-enriched');
         if (enrichedEl) enrichedEl.classList.add('hidden');
+        // Hide languages section until re-explored
+        var langEl = document.getElementById('wotd-languages');
+        if (langEl) langEl.classList.add('hidden');
         checkWotdInMwb(d.word.word);
       }
     }).catch(function() {}).finally(function() {
@@ -306,6 +361,8 @@
       // Store the WOTD date (keyed by URL) so the button stays hidden until the next day's word
       var wotdDate = document.getElementById('wotd-date').textContent || new Date().toISOString().split('T')[0];
       S.setRaw('swf-wotd-explored:' + window.location.pathname, wotdDate);
+      // Fetch multilingual translations
+      fetchWotdLanguages();
     }
   });
 
@@ -440,6 +497,88 @@
       window.__awardStar && window.__awardStar('wotd');
       // Re-render history to show the new word
       renderWotdHistory();
+    });
+  }
+
+  // ── Memorised Checkbox ──
+  var memorisedCheckbox = document.getElementById('wotd-memorised-checkbox');
+  var memorisedLabel = document.getElementById('wotd-memorised-label');
+
+  // Load memorised words for this user on init
+  var memorisedWordsSet = new Set();
+  (function loadMemorisedWords() {
+    if (!uid) return;
+    fetch('/api/memorised-words/?userid=' + encodeURIComponent(uid))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        (data.words || []).forEach(function(w) { memorisedWordsSet.add(w.word); });
+        // Check current word
+        syncMemorisedCheckbox();
+      }).catch(function() {});
+  })();
+
+  function syncMemorisedCheckbox() {
+    if (!memorisedCheckbox) return;
+    var word = document.getElementById('wotd-word').textContent;
+    if (!word || word === '—') {
+      memorisedCheckbox.checked = false;
+      memorisedCheckbox.disabled = true;
+      return;
+    }
+    memorisedCheckbox.disabled = false;
+    memorisedCheckbox.checked = memorisedWordsSet.has(word.toUpperCase());
+  }
+
+  // Sync checkbox when WOTD changes (navigation, initial load)
+  var origRenderWotd = renderWotd;
+  renderWotd = function(word) {
+    origRenderWotd(word);
+    syncMemorisedCheckbox();
+  };
+
+  if (memorisedCheckbox) {
+    memorisedCheckbox.addEventListener('change', function() {
+      var word = document.getElementById('wotd-word').textContent;
+      if (!word || word === '—' || !uid) return;
+
+      var checked = memorisedCheckbox.checked;
+      memorisedCheckbox.disabled = true;
+
+      if (checked) {
+        // Add to memorised
+        fetch('/api/memorised-words/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userid: uid, word: word })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (data.success) {
+            memorisedWordsSet.add(word.toUpperCase());
+          } else {
+            memorisedCheckbox.checked = false;
+          }
+        }).catch(function() {
+          memorisedCheckbox.checked = false;
+        }).finally(function() {
+          memorisedCheckbox.disabled = false;
+        });
+      } else {
+        // Remove from memorised
+        fetch('/api/memorised-words/', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userid: uid, word: word })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+          if (data.success) {
+            memorisedWordsSet.delete(word.toUpperCase());
+          } else {
+            memorisedCheckbox.checked = true;
+          }
+        }).catch(function() {
+          memorisedCheckbox.checked = true;
+        }).finally(function() {
+          memorisedCheckbox.disabled = false;
+        });
+      }
     });
   }
 
