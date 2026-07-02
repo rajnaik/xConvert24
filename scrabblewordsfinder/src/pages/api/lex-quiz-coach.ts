@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
+import { buildQuizCoachPrompt } from '../../lib/coaching-prompts';
 
 const getDB = () => (env as any).DB;
 const getAI = () => (env as any).AI;
@@ -200,35 +201,17 @@ Phase Progression (${totalGames} games split into thirds chronologically):
   }
 
   // Build prompt for AI
-  const prompt = `You are Lex, a friendly and encouraging AI word coach for a Scrabble vocabulary quiz game. Analyze this player's Word Quiz performance and give short, actionable coaching advice.
-
-The Word Quiz tests vocabulary: players are shown a word and must pick the correct meaning from 4 options within a time limit.
-
-Player Stats (${totalGames} games total):
-- Overall accuracy: ${accuracy}% (avg ${avgScore}/${avgTotal} per game)
-- Perfect rounds: ${totalPerfect}/${totalGames}
-- Times ran out of time: ${totalTimedOut}/${totalGames}
-- Average time used: ${avgTime}s out of ${avgTimerLimit}s limit (${timeUsagePct}% of timer consumed)
-- Average seconds per word: ${avgSecondsPerWord}s
-- Last 5 games accuracy: ${recent5Accuracy}%
-- Timer settings tried: ${timerLimitsUsed.join('s, ')}s
-- Word counts tried: ${wordCountsUsed.join(', ')} words per round
-${missedWords.length > 0 ? `- Recently missed words: ${missedWords.slice(0, 8).join(', ')}` : ''}
-${timeSuggestion ? `\nTime & Settings Insight: ${timeSuggestion}` : ''}
-${phasePromptSection}
-Give a brief coaching response (max ${phases ? '220' : '170'} words) that:
-1. Acknowledges their performance (be encouraging, not patronizing)
-2. Identifies one specific strength or pattern
-${phases ? '3. Comments on their progression journey — are they improving, stable, or slipping? Reference the phase data specifically.\n4. Gives one tip to improve based on the trend' : '3. Gives one tip to improve vocabulary recall or speed'}
-${phases ? '5' : '4'}. Comments on their time usage — are they rushing, using time wisely, or cutting it too close? Suggest whether they should try a different timer setting or word count per round (e.g., "try 10 words with a 60s timer" or "push yourself with 15 words")
-${phases ? '6' : '5'}. Ends with a short motivational line
-
-Keep the tone warm, concise, and game-focused. Use 1-2 relevant emoji. Do NOT use markdown headers or bullet points — write in short conversational paragraphs.`;
+  const prompt = buildQuizCoachPrompt({
+    totalGames, accuracy, avgScore, avgTotal, totalPerfect, totalTimedOut,
+    avgTime, avgTimerLimit, timeUsagePct, avgSecondsPerWord,
+    timerLimitsUsed, wordCountsUsed, missedWords, recent5Accuracy,
+    timeSuggestion, phasePromptSection, hasPhases: !!phases,
+  });
 
   try {
     const aiResponse = await ai.run('@cf/meta/llama-3.1-8b-instruct', {
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 250,
+      max_tokens: 450,
       temperature: 0.7,
     });
 
