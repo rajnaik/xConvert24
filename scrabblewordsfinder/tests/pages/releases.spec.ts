@@ -34,65 +34,69 @@ test.describe('Releases Page — Positive', () => {
 
   // --- Last 2 versions only (per release-notes-testing rule) ---
 
-  test('v1.14.4 release entry is present and is the latest', async ({ page }) => {
+  test('v1.16.0 release entry is present and is the latest', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const heading = firstArticle.locator('h2');
-    await expect(heading).toContainText('v1.14.4');
+    await expect(heading).toContainText('v1.16.0');
     await expect(heading).toContainText('July 2, 2026');
   });
 
-  test('v1.14.4 lists all feature items', async ({ page }) => {
+  test('v1.16.0 lists all feature items', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
     const items = firstArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(10);
+    expect(count).toBe(14);
     const content = await firstArticle.textContent();
-    expect(content).toContain('Lex AI Solver modal');
-    expect(content).toContain('Lex coaching across all activities');
-    expect(content).toContain('Quiz timing stats');
-    expect(content).toContain('Quiz performance graph');
-    expect(content).toContain('WOTD multilingual');
-    expect(content).toContain('WOTD memorised');
-    expect(content).toContain('Chat context routing');
-    expect(content).toContain('Lex system prompt expanded');
-    expect(content).toContain('New APIs');
+    expect(content).toContain('Player Avatars');
+    expect(content).toContain('Welcome Banner');
+    expect(content).toContain('Avatar Swap');
+    expect(content).toContain('Avatar Collage');
+    expect(content).toContain('Leaderboard');
+    expect(content).toContain('60-Second Challenge leaderboard');
+    expect(content).toContain('Daily Duel panel');
+    expect(content).toContain('MyBag avatar display');
+    expect(content).toContain('Settings avatar preview');
+    expect(content).toContain('Admin avatars dashboard');
+    expect(content).toContain('Blog');
+    expect(content).toContain('Chat improvements');
+    expect(content).toContain('UI polish');
     expect(content).toContain('Test suite');
   });
 
-  test('v1.14.4 has purple border styling', async ({ page }) => {
+  test('v1.16.0 has teal border styling', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const firstArticle = page.locator('article').first();
-    await expect(firstArticle).toHaveClass(/border-purple-500/);
+    await expect(firstArticle).toHaveClass(/border-teal-500/);
   });
 
-  test('v1.14.3 release entry is present as second entry', async ({ page }) => {
+  test('v1.15.0 release entry is present as second entry', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
     const heading = secondArticle.locator('h2');
-    await expect(heading).toContainText('v1.14.3');
-    await expect(heading).toContainText('July 1, 2026');
+    await expect(heading).toContainText('v1.15.0');
+    await expect(heading).toContainText('July 2, 2026');
   });
 
-  test('v1.14.3 lists key features', async ({ page }) => {
+  test('v1.15.0 lists key features', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
     const items = secondArticle.locator('ul li');
     const count = await items.count();
-    expect(count).toBe(9);
+    expect(count).toBe(11);
     const content = await secondArticle.textContent();
-    expect(content).toContain('Lex avatar WebP');
-    expect(content).toContain('Quiz coaching auto-submit');
-    expect(content).toContain('Blog index redesign');
-    expect(content).toContain('Blog FAQ schema');
-    expect(content).toContain('Diamond Hunt quick link');
+    expect(content).toContain('Lex Quick-Reference Word Lists');
+    expect(content).toContain('EV Scoring Engine');
+    expect(content).toContain('Lex Query Classifier');
+    expect(content).toContain('Coaching Prompts library');
+    expect(content).toContain('Training Modes module');
   });
 
-  test('v1.14.3 has cyan border styling', async ({ page }) => {
+  test('v1.15.0 has amber border styling', async ({ page }) => {
     await page.goto(`${BASE}/releases/`);
     const secondArticle = page.locator('article').nth(1);
-    await expect(secondArticle).toHaveClass(/border-cyan-500/);
+    await expect(secondArticle).toHaveClass(/border-amber-500/);
   });
 
   // --- General structure tests ---

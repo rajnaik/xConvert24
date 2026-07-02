@@ -3,6 +3,14 @@ import { env } from 'cloudflare:workers';
 
 const getDB = () => (env as any).DB;
 
+// Standard Scrabble letter values
+const LETTER_VALUES: Record<string, number> = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+
+/** Calculate Scrabble score from word letters — server-side truth */
+function scrabbleScore(word: string): number {
+  return word.toUpperCase().split('').reduce((sum, ch) => sum + (LETTER_VALUES[ch] || 0), 0);
+}
+
 // Standard Scrabble letter distribution (weighted for interesting racks)
 const TILE_BAG = 'AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPPQRRRRRRSSSSTTTTTTUUUUVVWWXYYZ';
 
@@ -71,30 +79,34 @@ export const POST: APIRoute = async ({ request }) => {
   if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const body = await request.json() as any;
-  const { user_id, word, score, date } = body;
+  const { user_id, word, date } = body;
 
-  if (!word || !score) return new Response(JSON.stringify({ error: 'word and score required' }), { status: 400 });
+  if (!word) return new Response(JSON.stringify({ error: 'word required' }), { status: 400 });
 
+  const upperWord = word.toUpperCase();
   const today = date || new Date().toISOString().split('T')[0];
+
+  // Server-side score calculation — never trust client score
+  const score = scrabbleScore(upperWord);
 
   // Check for duplicate word submission (same user, same word, same day)
   const existing = await db.prepare(
     'SELECT id FROM daily_rack_scores WHERE date = ? AND user_id = ? AND word = ?'
-  ).bind(today, user_id || '', word.toUpperCase()).first();
+  ).bind(today, user_id || '', upperWord).first();
   if (existing) {
     return new Response(JSON.stringify({ error: 'duplicate', message: 'You already submitted this word today' }), { status: 409 });
   }
 
   await db.prepare(
     'INSERT INTO daily_rack_scores (date, user_id, word, score) VALUES (?, ?, ?, ?)'
-  ).bind(today, user_id || '', word, score).run();
+  ).bind(today, user_id || '', upperWord, score).run();
 
   const current = await db.prepare('SELECT best_score FROM daily_rack WHERE date = ?').bind(today).first();
   if (current && score > (current.best_score || 0)) {
-    await db.prepare('UPDATE daily_rack SET best_word = ?, best_score = ? WHERE date = ?').bind(word, score, today).run();
+    await db.prepare('UPDATE daily_rack SET best_word = ?, best_score = ? WHERE date = ?').bind(upperWord, score, today).run();
   }
 
-  return new Response(JSON.stringify({ success: true }), {
+  return new Response(JSON.stringify({ success: true, score }), {
     headers: { 'Content-Type': 'application/json' },
   });
 };

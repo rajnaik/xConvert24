@@ -379,6 +379,22 @@
 
         if (anagramState.gameOver || anagramState.solved) {
           showAnagramResult(data.answer);
+          // Submit to leaderboard if solved (best-effort)
+          if (anagramState.solved && uid) {
+            var anagramScore = (6 - anagramState.guesses.length) * 10;
+            fetch('/api/leaderboard/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                game: 'daily-anagram',
+                user_id: uid,
+                best_word: data.answer || '',
+                best_score: anagramScore > 0 ? anagramScore : 10,
+                total_score: anagramScore > 0 ? anagramScore : 10,
+                words_played: 1
+              })
+            }).catch(function() {});
+          }
         } else {
           input.focus();
         }

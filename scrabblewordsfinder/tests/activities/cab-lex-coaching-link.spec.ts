@@ -32,6 +32,13 @@ test.describe('CaB Lex Coaching Button — Positive', () => {
     await expect(lexImg).toBeVisible();
   });
 
+  test('Lex button displays shortened label text', async ({ page }) => {
+    await page.goto(ACTIVITIES_URL);
+
+    const lexBtn = page.locator('#LexCandB');
+    await expect(lexBtn).toContainText('Lex C&B Coach');
+  });
+
   test('Lex button has descriptive title for accessibility', async ({ page }) => {
     await page.goto(ACTIVITIES_URL);
 

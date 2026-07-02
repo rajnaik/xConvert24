@@ -1574,3 +1574,250 @@ test.describe('MyBag — Earning History Heading — Negative', () => {
     expect(await headings.count()).toBe(1);
   });
 });
+
+
+// ── Avatar & Display Name Section ─────────────────────────────────────────
+
+test.describe('MyBag — Avatar & Display Name — Positive', () => {
+  test('avatar section exists in the DOM', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const avatarSection = page.locator('#mybag-avatar');
+    expect(await avatarSection.count()).toBe(1);
+  });
+
+  test('avatar section is hidden by default (no avatar set)', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const avatarSection = page.locator('#mybag-avatar');
+    await expect(avatarSection).toBeHidden();
+  });
+
+  test('avatar section becomes visible when avatar and display name are set', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-avatar', '3');
+      localStorage.setItem('swf-display-name', 'Blue Fox');
+      localStorage.setItem('swf-uid', 'test-avatar-visible');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 5, total_diamonds: 1, current_streak: 1, best_streak: 2, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-07-01' },
+          activities: { wotd: { name: 'WOTD', icon: '📖', color: 'amber' } },
+          history: [{ date: '2026-07-01', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+
+    const avatarSection = page.locator('#mybag-avatar');
+    await expect(avatarSection).toBeVisible();
+  });
+
+  test('avatar image src updates to the correct avatar number', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-avatar', '5');
+      localStorage.setItem('swf-display-name', 'Silver Wolf');
+      localStorage.setItem('swf-uid', 'test-avatar-img');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 3, total_diamonds: 0, current_streak: 1, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-07-01' },
+          activities: {},
+          history: [{ date: '2026-07-01', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+
+    const img = page.locator('#mybag-avatar-img');
+    const src = await img.getAttribute('src');
+    expect(src).toBe('/avatars/avatar-5.svg');
+  });
+
+  test('display name text is rendered correctly', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-avatar', '2');
+      localStorage.setItem('swf-display-name', 'Red Panda');
+      localStorage.setItem('swf-uid', 'test-avatar-name');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 1, total_diamonds: 0, current_streak: 1, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-07-01' },
+          activities: {},
+          history: [{ date: '2026-07-01', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+
+    const nameEl = page.locator('#mybag-avatar-name');
+    await expect(nameEl).toHaveText('Red Panda');
+  });
+
+  test('avatar section has teal-themed border and background styling', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const avatarSection = page.locator('#mybag-avatar');
+    const classes = await avatarSection.getAttribute('class') || '';
+    expect(classes).toContain('border-teal-700/40');
+    expect(classes).toContain('bg-teal-950/20');
+  });
+
+  test('avatar image has correct size and shape classes', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const img = page.locator('#mybag-avatar-img');
+    const classes = await img.getAttribute('class') || '';
+    expect(classes).toContain('w-14');
+    expect(classes).toContain('h-14');
+    expect(classes).toContain('rounded-full');
+  });
+
+  test('subtitle text is present in avatar section', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const avatarSection = page.locator('#mybag-avatar');
+    const subtitle = avatarSection.locator('p.text-xs.text-gray-400');
+    expect(await subtitle.count()).toBe(1);
+    const text = await subtitle.textContent();
+    expect(text).toContain('Your avatar');
+    expect(text).toContain('display name');
+  });
+});
+
+test.describe('MyBag — Avatar & Display Name — Negative', () => {
+  test('no duplicate avatar sections exist', async ({ page }) => {
+    await page.goto(`${BASE}/mybag/`);
+    const avatarSections = page.locator('#mybag-avatar');
+    expect(await avatarSections.count()).toBe(1);
+  });
+
+  test('avatar section stays hidden when only avatar is set (no display name)', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-avatar', '4');
+      localStorage.removeItem('swf-display-name');
+      localStorage.setItem('swf-uid', 'test-avatar-no-name');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 1, total_diamonds: 0, current_streak: 1, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-07-01' },
+          activities: {},
+          history: [{ date: '2026-07-01', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+
+    const avatarSection = page.locator('#mybag-avatar');
+    await expect(avatarSection).toBeHidden();
+  });
+
+  test('avatar section stays hidden when only display name is set (no avatar)', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.removeItem('swf-avatar');
+      localStorage.setItem('swf-display-name', 'Golden Owl');
+      localStorage.setItem('swf-uid', 'test-name-no-avatar');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 1, total_diamonds: 0, current_streak: 1, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-07-01' },
+          activities: {},
+          history: [{ date: '2026-07-01', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+
+    const avatarSection = page.locator('#mybag-avatar');
+    await expect(avatarSection).toBeHidden();
+  });
+
+  test('no JS errors when avatar section is rendered', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-avatar', '1');
+      localStorage.setItem('swf-display-name', 'Test Player');
+      localStorage.setItem('swf-uid', 'test-avatar-no-err');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 1, total_diamonds: 0, current_streak: 1, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-07-01' },
+          activities: {},
+          history: [{ date: '2026-07-01', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+
+    const criticalErrors = errors.filter(e => e.includes('TypeError') || e.includes('ReferenceError'));
+    expect(criticalErrors).toHaveLength(0);
+  });
+
+  test('avatar name does not show undefined or null', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('swf-avatar', '2');
+      localStorage.setItem('swf-display-name', 'Red Panda');
+      localStorage.setItem('swf-uid', 'test-avatar-clean');
+    });
+
+    await page.route('**/api/mybag/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          totals: { total_stars: 1, total_diamonds: 0, current_streak: 1, best_streak: 1, diamond_streak: 0, best_diamond_streak: 0, last_active_date: '2026-07-01' },
+          activities: {},
+          history: [{ date: '2026-07-01', stars: ['wotd'], stars_count: 1, diamond: false }],
+          badges: [],
+        }),
+      });
+    });
+
+    await page.goto(`${BASE}/mybag/`);
+    await page.waitForTimeout(1500);
+
+    const nameText = await page.locator('#mybag-avatar-name').textContent() || '';
+    expect(nameText).not.toContain('undefined');
+    expect(nameText).not.toContain('null');
+    expect(nameText).not.toBe('');
+  });
+});

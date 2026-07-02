@@ -4,7 +4,7 @@
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🐄</span> Cows and Bulls <span class="star-indicator ml-auto text-sm opacity-40 cursor-help" data-game="cab" title="⭐ Earn star: Solve 1 game">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="cab">✅</span></h2>
           <div class="flex items-center gap-2">
             <button id="LexCandB" type="button" class="px-2 py-1 rounded-lg bg-cyan-600/20 border border-cyan-500/30 text-xs text-cyan-300 hover:bg-cyan-600/40 transition-colors flex items-center gap-1 cursor-pointer" title="Get AI coaching on your Cows and Bulls skills">
-              <img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" /> Lex Cows and Bulls Coach
+              <img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" /> Lex C&amp;B Coach
             </button>
             <!-- History icon (shown only when user has 1+ rounds) -->
             <div id="cab-history-btn-wrap" class="hidden">
@@ -100,6 +100,12 @@
             <p id="cab-result-emoji" class="text-4xl mb-2">🎉</p>
             <p id="cab-result-text" class="text-lg font-bold text-white mb-1"></p>
             <p id="cab-result-word" class="text-sm text-orange-400 font-mono tracking-wider mb-2"></p>
+            <!-- Leaderboard rank link (populated after round ends) -->
+            <div id="cab-lb-rank" class="hidden mb-3">
+              <a id="cab-lb-rank-link" href="/leaderboard/?game=cab" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-900/30 border border-purple-500/30 text-xs text-purple-300 font-medium hover:bg-purple-600/30 hover:border-purple-400 transition-colors no-underline" style="display:inline-flex">
+                🏆 <span id="cab-lb-rank-text">Loading...</span>
+              </a>
+            </div>
             <button id="cab-play-again" class="mt-3 px-4 py-2 rounded-lg bg-orange-600/30 border border-orange-500/50 text-sm text-orange-300 hover:bg-orange-600/50 transition-colors cursor-pointer">🔄 Play Again</button>
           </div>
         </div>
@@ -646,6 +652,22 @@
           showResult(true, data.word);
           // Show history button after a solve (user now has at least 1 more round)
           historyBtnWrap.classList.remove('hidden');
+          // Submit to leaderboard (best-effort)
+          if (uid) {
+            var cabScore = (11 - gameState.attempts) * gameState.length;
+            fetch('/api/leaderboard/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                game: 'cab',
+                user_id: uid,
+                best_word: data.word,
+                best_score: cabScore,
+                total_score: cabScore,
+                words_played: 1
+              })
+            }).catch(function() {});
+          }
         }
       })
       .catch(function(err) {

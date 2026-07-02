@@ -5,11 +5,11 @@ const BASE_URL = process.env.SWF_TEST_URL || 'https://www.scrabblewordsfinder.co
 // ── Solver Quick Links — Positive (desktop only) ───────────────────────────
 
 test.describe('Solver Quick Links — Positive', () => {
-  test('all 6 quick link icons are visible on desktop', async ({ page }) => {
+  test('all 7 quick link icons are visible on desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(BASE_URL);
-    const quickLinks = page.locator('main .items-center.gap-2.ml-auto a');
-    await expect(quickLinks).toHaveCount(6);
+    const quickLinks = page.locator('main .items-center.gap-2.ml-auto > a');
+    await expect(quickLinks).toHaveCount(7);
   });
 
   test('Diamond Hunt link points to /diamond-hunt/', async ({ page }) => {
@@ -35,11 +35,11 @@ test.describe('Solver Quick Links — Positive', () => {
     await expect(diamondLink).toHaveAttribute('title', /Diamond Hunt/);
   });
 
-  test('Diamond Hunt link is the first quick link icon', async ({ page }) => {
+  test('Leaderboard link is the first quick link icon', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(BASE_URL);
-    const firstLink = page.locator('main .items-center.gap-2.ml-auto a').first();
-    await expect(firstLink).toHaveAttribute('href', '/diamond-hunt/');
+    const firstLink = page.locator('main .items-center.gap-2.ml-auto > a').first();
+    await expect(firstLink).toHaveAttribute('href', '/leaderboard/');
   });
 
   test('Word Quiz link points to /activities/', async ({ page }) => {
@@ -172,7 +172,7 @@ test.describe('Activities Page Anagram Link — Positive', () => {
 
   test('60-Second link still exists alongside Anagrams', async ({ page }) => {
     await page.goto(`${BASE_URL}/activities/`);
-    const sixtyLink = page.locator('a[href="/sixty-seconds/"]', { hasText: '60-Second' });
+    const sixtyLink = page.locator('a[href="/activities/#60seconds"]', { hasText: '60-Second' });
     await expect(sixtyLink).toBeVisible();
   });
 });

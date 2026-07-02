@@ -39,6 +39,32 @@ import '../styles/global.css';
       <p class="text-xs text-gray-400 leading-relaxed mt-3">🔒 Full details in our <a href="/privacy/" class="text-blue-400 hover:text-blue-300 underline underline-offset-2">Privacy Policy</a>.</p>
     </div>
 
+    <!-- Avatar & Display Name -->
+    <div class="rounded-xl border border-teal-800/50 bg-teal-950/10 p-6 mb-6">
+      <h2 class="font-semibold text-white mb-2 flex items-center gap-2">🎭 Your Avatar & Display Name</h2>
+
+      <!-- Dynamic current avatar preview -->
+      <div id="settings-avatar-preview" class="flex items-center gap-4 mb-4 p-3 rounded-lg bg-gray-900/60 border border-teal-700/30">
+        <img id="settings-avatar-img" src="/avatars/avatar-1.svg" alt="Your current avatar" class="w-14 h-14 rounded-full border-2 border-teal-500/60 shrink-0" />
+        <div>
+          <p id="settings-avatar-name" class="text-base font-semibold text-white">—</p>
+          <p id="settings-avatar-animal" class="text-xs text-gray-400">Avatar #1</p>
+        </div>
+        <a href="/avatar-swap/" class="ml-auto px-3 py-1.5 rounded-lg bg-teal-900/60 border border-teal-600/40 text-xs font-medium text-teal-300 hover:bg-teal-800/60 hover:border-teal-500 transition-colors shrink-0">Change</a>
+      </div>
+
+      <p class="text-sm text-gray-300 leading-relaxed mb-3">
+        Choose an avatar and display name to personalise your presence on ScrabbleWordsFinder. Your avatar appears on leaderboards, daily challenges, and anywhere your scores are shown.
+      </p>
+      <ul class="space-y-2 text-sm text-gray-300 mb-4">
+        <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5 shrink-0">✓</span><span><strong>50 unique avatars</strong> — pick from a curated set of colourful character illustrations. No uploads needed.</span></li>
+        <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5 shrink-0">✓</span><span><strong>Display name</strong> — set a short nickname (up to 16 characters) shown alongside your scores. Defaults to a random fun name if you don't choose one.</span></li>
+        <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5 shrink-0">✓</span><span><strong>Still anonymous</strong> — your avatar and name are purely cosmetic. They're tied to your UUID, not to any personal information.</span></li>
+        <li class="flex items-start gap-2"><span class="text-teal-400 mt-0.5 shrink-0">✓</span><span><a href="/avatar-swap/" class="inline-flex items-center gap-1.5 text-teal-400 hover:text-teal-300 underline font-semibold"><span aria-hidden="true">🎭</span> Change Avatar now</a></span></li>
+      </ul>
+      <p class="text-xs text-gray-400 leading-relaxed">Your avatar selection is stored locally and synced with your anonymous profile on the server. If you relink your UUID on a new device, your avatar and display name restore automatically.</p>
+    </div>
+
     <!-- User ID Section -->
     <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-6 mb-6">
       <h2 class="font-semibold text-white mb-2">🆔 Your User ID</h2>
@@ -141,6 +167,20 @@ import '../styles/global.css';
       S.setRaw('swf-uid', uid);
     }
     uidDisplay.textContent = uid;
+  })();
+
+  // ─── Avatar Preview on Settings ────────────────────────────────────────
+  (function() {
+    var S = window.__swfStore;
+    if (!S) return;
+    var avatarId = parseInt(S.getRaw('swf-avatar') || '1');
+    var displayName = S.getRaw('swf-display-name') || '—';
+    var imgEl = document.getElementById('settings-avatar-img');
+    var nameEl = document.getElementById('settings-avatar-name');
+    var animalEl = document.getElementById('settings-avatar-animal');
+    if (imgEl) imgEl.src = '/avatars/avatar-' + avatarId + '.svg';
+    if (nameEl) nameEl.textContent = displayName;
+    if (animalEl) animalEl.textContent = 'Avatar #' + avatarId;
   })();
 
   // ─── Copy User ID ──────────────────────────────────────────────────────

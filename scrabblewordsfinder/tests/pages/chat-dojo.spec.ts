@@ -87,9 +87,9 @@ test.describe('Chat Page — Dojo Buttons (Negative)', () => {
     await page.goto(`${BASE}/chat/`);
   });
 
-  test('dojo buttons are hidden by default when toggle is off', async ({ page }) => {
+  test('dojo buttons are visible by default (dojo mode defaults to on)', async ({ page }) => {
     const dojoContainer = page.locator('#dojo-buttons');
-    await expect(dojoContainer).toBeHidden();
+    await expect(dojoContainer).toBeVisible();
   });
 
   test('no duplicate dojo buttons exist', async ({ page }) => {

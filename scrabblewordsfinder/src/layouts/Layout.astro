@@ -133,7 +133,67 @@ const showAds = !isAdmin;
     </script>
   </head>
   <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">
+    {/* Welcome banner — shows after user is registered with avatar */}
+    {showHeader && !isAdmin && (
+      <div id="welcome-banner" class="hidden mx-auto max-w-6xl px-4 sm:px-6 pt-[5px] pb-0">
+        <div class="flex items-center gap-3 rounded-lg bg-gradient-to-r from-teal-900/40 to-purple-900/30 border border-teal-700/40 px-4 py-2">
+          <img id="welcome-avatar" src="/avatars/avatar-1.svg" alt="Your avatar" class="h-9 w-9 rounded-full border-2 border-teal-500/60 shadow-sm" />
+          <p class="text-sm text-gray-200">
+            <span class="text-gray-400">Welcome to the world of Scrabble —</span>
+            <span id="welcome-name" class="font-semibold text-teal-300 ml-1">Player</span>
+            <button id="welcome-info-btn" type="button" class="ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded-full border border-gray-600 text-gray-400 hover:border-teal-500 hover:text-teal-300 transition-colors text-[10px] font-bold align-middle" title="How did I get this name?" aria-label="How did I get this name and avatar?">?</button>
+          </p>
+        </div>
+        <!-- Info bubble -->
+        <div id="welcome-info-bubble" class="hidden relative mt-2 ml-12 mr-4 rounded-xl border border-teal-700/40 bg-gray-900/95 px-4 py-3 shadow-xl">
+          <div class="absolute -top-2 left-6 w-4 h-4 rotate-45 bg-gray-900/95 border-l border-t border-teal-700/40"></div>
+          <p class="text-xs text-gray-300 leading-relaxed">
+            <span class="text-teal-400 font-medium">Your avatar and name were assigned automatically</span> when you first visited. We pick a random animal avatar (one of 50 unique creatures) and pair it with a random adjective to create your display name — like "Silver Fox" or "Cosmic Penguin". No sign-up needed! Your identity is stored locally in your browser and recognized when you return.
+          </p>
+          <button id="welcome-info-close" class="mt-2 text-xs text-gray-500 hover:text-teal-400 transition-colors">Got it ✓</button>
+        </div>
+      </div>
+    )}
+
     {showHeader && <Header showSectionLinks={showSectionLinks} variant="main" />}
+
+    {/* Welcome banner logic — shows when user has an avatar assigned */}
+    {showHeader && !isAdmin && (
+      <script is:inline>
+      (function() {
+        var avatarId = localStorage.getItem('swf-avatar');
+        var displayName = localStorage.getItem('swf-display-name');
+        if (!avatarId || !displayName) return;
+
+        var banner = document.getElementById('welcome-banner');
+        if (!banner) return;
+
+        // Show banner
+        banner.classList.remove('hidden');
+        document.getElementById('welcome-avatar').src = '/avatars/avatar-' + avatarId + '.svg';
+        document.getElementById('welcome-name').textContent = displayName;
+
+        // ? button toggles info bubble
+        var infoBtn = document.getElementById('welcome-info-btn');
+        var bubble = document.getElementById('welcome-info-bubble');
+        var closeBtn = document.getElementById('welcome-info-close');
+
+        infoBtn.addEventListener('click', function() {
+          bubble.classList.toggle('hidden');
+        });
+        closeBtn.addEventListener('click', function() {
+          bubble.classList.add('hidden');
+        });
+
+        // Close bubble on click outside
+        document.addEventListener('click', function(e) {
+          if (!bubble.contains(e.target) && e.target !== infoBtn) {
+            bubble.classList.add('hidden');
+          }
+        });
+      })();
+      </script>
+    )}
 
     <!-- Theme toggle logic -->
     <script is:inline>
@@ -448,6 +508,116 @@ const showAds = !isAdmin;
       // Also send on page visibility change (user returns to tab)
       document.addEventListener('visibilitychange', function() {
         if (document.visibilityState === 'visible') sendHeartbeat();
+      });
+    })();
+    </script>
+
+    <!-- Avatar auto-registration (first visit) -->
+    <script is:inline>
+    (function() {
+      if (window.location.pathname.startsWith('/admin')) return;
+      var AVATAR_KEY = 'swf-avatar';
+      var NAME_KEY = 'swf-display-name';
+      var UID_KEY = 'swf-uid';
+
+      // Already registered — skip
+      if (localStorage.getItem(AVATAR_KEY)) return;
+
+      // Wait briefly for UID to be set by other scripts
+      setTimeout(function() {
+        var uid = localStorage.getItem(UID_KEY);
+        if (!uid) return;
+
+        var payload = {
+          user_id: uid,
+          screen_width: window.screen ? window.screen.width : null,
+          screen_height: window.screen ? window.screen.height : null,
+          viewport_width: window.innerWidth || null,
+          viewport_height: window.innerHeight || null,
+          language: navigator.language || '',
+          referrer: document.referrer || '',
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+        };
+
+        fetch('/api/users/register/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.avatar_id && data.display_name) {
+            localStorage.setItem(AVATAR_KEY, String(data.avatar_id));
+            localStorage.setItem(NAME_KEY, data.display_name);
+            // Show welcome banner immediately on first registration
+            var banner = document.getElementById('welcome-banner');
+            if (banner) {
+              banner.classList.remove('hidden');
+              var avatarImg = document.getElementById('welcome-avatar');
+              var nameEl = document.getElementById('welcome-name');
+              if (avatarImg) avatarImg.src = '/avatars/avatar-' + data.avatar_id + '.svg';
+              if (nameEl) nameEl.textContent = data.display_name;
+            }
+          }
+          // Show admin message modal if user has a pending message
+          if (data.message && data.message.trim()) {
+            var msgModal = document.getElementById('admin-message-modal');
+            var msgText = document.getElementById('admin-message-text');
+            var msgName = document.getElementById('admin-message-name');
+            if (msgModal && msgText) {
+              if (msgName) msgName.textContent = data.display_name || '';
+              msgText.innerHTML = data.message;
+              msgModal.classList.remove('hidden');
+              msgModal.classList.add('flex');
+            }
+          }
+        })
+        .catch(function() {});
+      }, 1500);
+    })();
+    </script>
+
+    <!-- Admin Message Modal — shown when admin sends a message to this user -->
+    <div id="admin-message-modal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div class="w-full max-w-sm mx-4 rounded-2xl border border-purple-500/30 bg-gray-900 p-6 shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-2xl">💬</span>
+          <div>
+            <h3 class="text-base font-bold text-white">Message from SWF</h3>
+            <p class="text-xs text-gray-400">Hi <span id="admin-message-name" class="text-purple-300"></span>, you have a message:</p>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl bg-gray-800/60 border border-gray-700/50 mb-5">
+          <p id="admin-message-text" class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap"></p>
+        </div>
+        <button id="admin-message-dismiss" class="w-full px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-sm text-white font-medium transition-colors">Got it</button>
+      </div>
+    </div>
+
+    <script is:inline>
+    // Admin message modal dismiss + clear
+    (function() {
+      var dismissBtn = document.getElementById('admin-message-dismiss');
+      var modal = document.getElementById('admin-message-modal');
+      if (!dismissBtn || !modal) return;
+
+      function dismiss() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        // Clear message on the server so user doesn't see it again
+        var uid = localStorage.getItem('swf-uid');
+        if (uid) {
+          fetch('/api/users/message-read/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: uid })
+          }).catch(function() {});
+        }
+      }
+
+      dismissBtn.addEventListener('click', dismiss);
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) dismiss();
       });
     })();
     </script>

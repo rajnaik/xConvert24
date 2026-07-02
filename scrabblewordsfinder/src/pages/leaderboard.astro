@@ -1,0 +1,392 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Leaderboard — Game Rankings" description="See who scored the highest in today's word games. Compete with players worldwide in 60-Second, Daily Rack, Anagram, Cows & Bulls, and Word Quiz challenges." keywords="scrabble leaderboard, word game rankings, competitive scrabble, daily word challenge, 60 second word game, daily anagram, daily rack, word quiz">
+
+  <main class="mx-auto max-w-4xl px-4 sm:px-6 pb-20 pt-4">
+    <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white"><span class="text-amber-400">🏆</span> Leaderboard</h1>
+      <a href="/activities/" class="px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/30 text-xs font-medium text-blue-400 hover:bg-blue-600/40 transition-colors">🎯 Activities</a>
+    </div>
+    <p class="text-sm text-gray-400 mb-6">Compete with players around the world. Same tiles, best score wins.</p>
+
+    <!-- Game Tabs -->
+    <div class="flex gap-1 mb-6 border-b border-gray-700/50 pb-0 overflow-x-auto" id="lb-game-tabs">
+      <button data-game="sixty-second" class="lb-tab active px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-amber-500/50 bg-amber-900/20 text-amber-300 transition-colors whitespace-nowrap">⏱️ 60-Second</button>
+      <button data-game="cab" class="lb-tab px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 transition-colors whitespace-nowrap">🐄 Cows & Bulls</button>
+      <button data-game="daily-rack" class="lb-tab px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 transition-colors whitespace-nowrap">🎲 Daily Rack</button>
+      <button data-game="daily-anagram" class="lb-tab px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 transition-colors whitespace-nowrap">🔤 Anagram</button>
+      <button data-game="word-quiz" class="lb-tab px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 transition-colors whitespace-nowrap">🧠 Word Quiz</button>
+    </div>
+
+    <!-- Period Filter -->
+    <div class="flex gap-2 mb-6" id="lb-period-tabs">
+      <button data-period="today" class="lb-period active px-3 py-1.5 text-xs font-medium rounded-lg border border-amber-500/50 bg-amber-900/20 text-amber-300 transition-colors">Today</button>
+      <button data-period="week" class="lb-period px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 transition-colors">This Week</button>
+      <button data-period="month" class="lb-period px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 transition-colors">This Month</button>
+      <button data-period="alltime" class="lb-period px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 transition-colors">All Time</button>
+    </div>
+
+    <!-- Your Rank Card (shown if user has a score) -->
+    <div id="lb-your-rank" class="hidden mb-6 p-4 rounded-xl border border-purple-500/30 bg-purple-900/10">
+      <div class="flex items-center gap-3">
+        <img id="lb-your-avatar" src="/avatars/avatar-1.svg" alt="Your avatar" class="w-10 h-10 rounded-full border-2 border-purple-400/50" />
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-purple-300 truncate" id="lb-your-name">You</p>
+          <p class="text-xs text-gray-400">Rank #<span id="lb-your-rank-num" class="text-purple-300 font-bold">—</span></p>
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-bold text-amber-400 uppercase" id="lb-your-best">0</p>
+          <p class="text-[10px] text-gray-500">Best word</p>
+        </div>
+        <div class="text-right ml-4">
+          <p class="text-lg font-bold text-green-400" id="lb-your-total">0</p>
+          <p class="text-[10px] text-gray-500">Total pts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Summary (populated from game_history) -->
+    <div id="lb-stats" class="hidden mb-6 flex items-center gap-4 px-4 py-3 rounded-xl border border-gray-700/30 bg-gray-800/20 flex-wrap">
+      <div id="lb-stat-bestword-wrap" class="text-center hidden">
+        <p id="lb-stat-bestword" class="text-lg font-bold text-purple-400 uppercase font-mono">—</p>
+        <p class="text-[10px] text-gray-500">Best Word</p>
+      </div>
+
+      <div class="text-center">
+        <p id="lb-stat-players" class="text-lg font-bold text-blue-400">0</p>
+        <p class="text-[10px] text-gray-500">Players</p>
+      </div>
+      <div class="text-center">
+        <p id="lb-stat-games" class="text-lg font-bold text-green-400">0</p>
+        <p class="text-[10px] text-gray-500">Games Played</p>
+      </div>
+      <div class="text-center">
+        <p id="lb-stat-best" class="text-lg font-bold text-amber-400">0</p>
+        <p class="text-[10px] text-gray-500">Top Score</p>
+        <p id="lb-stat-best-calc" class="text-[9px] text-gray-600 font-normal"></p>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="lb-loading" class="text-center py-12">
+      <div class="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+      <p class="text-xs text-gray-500">Loading leaderboard...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div id="lb-empty" class="hidden text-center py-12">
+      <p class="text-4xl mb-3">🏜️</p>
+      <p class="text-sm text-gray-400 mb-2">No scores yet for this period.</p>
+      <p class="text-xs text-gray-500">Be the first to play — head to <a href="/activities/" class="text-amber-400 hover:underline">Activities</a> and submit a word!</p>
+    </div>
+
+    <!-- Leaderboard Table -->
+    <div id="lb-table-container" class="hidden">
+      <div class="rounded-xl border border-gray-700/50 overflow-hidden overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-gray-800/50 text-xs text-gray-400 uppercase" id="lb-thead-row">
+              <th class="px-4 py-3 text-left w-12">#</th>
+              <th class="px-4 py-3 text-left">Player</th>
+              <th class="px-4 py-3 text-center">Best Word</th>
+              <th class="px-4 py-3 text-right">Best Score</th>
+              <th class="px-4 py-3 text-right">Total</th>
+              <th class="px-4 py-3 text-right">Games</th>
+            </tr>
+          </thead>
+          <tbody id="lb-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is the leaderboard?", "acceptedAnswer": { "@type": "Answer", "text": "The leaderboard ranks all players across SWF's daily word games: 60-Second Word Finder, Cows & Bulls, Daily Rack Challenge, and Daily Anagram. Everyone plays with the same conditions — the player with the best score wins. Rankings reset daily." } },
+      { "@type": "Question", "name": "How is the leaderboard ranked?", "acceptedAnswer": { "@type": "Answer", "text": "Players are ranked by their best single word score for the day. If two players tie on best word, total score (sum of all submitted words) breaks the tie. You can submit multiple words to increase your total score." } },
+      { "@type": "Question", "name": "Can I see historical leaderboards?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! Use the period filters (Today, This Week, This Month, All Time) to view aggregated rankings. Weekly and monthly rankings use total combined scores across all days played." } }
+    ]
+  }
+  </script>
+
+<script is:inline>
+(function() {
+  var S = window.__swfStore;
+  var uid = S.getRaw('swf-uid') || '';
+  var LB_GAME_KEY = 'swf-lb-game';
+  // Check URL param first, then localStorage, then default
+  var urlGame = new URLSearchParams(window.location.search).get('game');
+  var savedGame = urlGame || localStorage.getItem(LB_GAME_KEY);
+  var currentGame = savedGame || 'sixty-second';
+  var currentPeriod = 'today';
+
+  // Activate saved game tab on load
+  if (savedGame) {
+    localStorage.setItem(LB_GAME_KEY, savedGame);
+    var savedTab = document.querySelector('.lb-tab[data-game="' + savedGame + '"]');
+    if (savedTab) {
+      document.querySelectorAll('.lb-tab').forEach(function(t) {
+        t.classList.remove('active', 'border-amber-500/50', 'bg-amber-900/20', 'text-amber-300');
+        t.classList.add('border-gray-700/50', 'bg-gray-800/30', 'text-gray-400');
+      });
+      savedTab.classList.add('active', 'border-amber-500/50', 'bg-amber-900/20', 'text-amber-300');
+      savedTab.classList.remove('border-gray-700/50', 'bg-gray-800/30', 'text-gray-400');
+    }
+  }
+
+  // Tab switching
+  document.querySelectorAll('.lb-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      currentGame = this.getAttribute('data-game');
+      localStorage.setItem(LB_GAME_KEY, currentGame);
+      document.querySelectorAll('.lb-tab').forEach(function(t) {
+        t.classList.remove('active', 'border-amber-500/50', 'bg-amber-900/20', 'text-amber-300');
+        t.classList.add('border-gray-700/50', 'bg-gray-800/30', 'text-gray-400');
+      });
+      this.classList.add('active', 'border-amber-500/50', 'bg-amber-900/20', 'text-amber-300');
+      this.classList.remove('border-gray-700/50', 'bg-gray-800/30', 'text-gray-400');
+      loadLeaderboard();
+    });
+  });
+
+  // Period switching
+  document.querySelectorAll('.lb-period').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      currentPeriod = this.getAttribute('data-period');
+      document.querySelectorAll('.lb-period').forEach(function(b) {
+        b.classList.remove('active', 'border-amber-500/50', 'bg-amber-900/20', 'text-amber-300');
+        b.classList.add('border-gray-700/50', 'bg-gray-800/30', 'text-gray-400');
+      });
+      this.classList.add('active', 'border-amber-500/50', 'bg-amber-900/20', 'text-amber-300');
+      this.classList.remove('border-gray-700/50', 'bg-gray-800/30', 'text-gray-400');
+      loadLeaderboard();
+    });
+  });
+
+  function loadLeaderboard() {
+    var loading = document.getElementById('lb-loading');
+    var empty = document.getElementById('lb-empty');
+    var table = document.getElementById('lb-table-container');
+    var yourRank = document.getElementById('lb-your-rank');
+
+    loading.classList.remove('hidden');
+    empty.classList.add('hidden');
+    table.classList.add('hidden');
+    yourRank.classList.add('hidden');
+    document.getElementById('lb-stats').classList.add('hidden');
+
+    var url = '/api/leaderboard/?game=' + encodeURIComponent(currentGame) + '&period=' + encodeURIComponent(currentPeriod) + '&limit=50';
+
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        loading.classList.add('hidden');
+
+        if (!data.entries || data.entries.length === 0) {
+          empty.classList.remove('hidden');
+          return;
+        }
+
+        table.classList.remove('hidden');
+        renderTable(data.entries);
+        renderYourRank(data.entries);
+        renderStats(data.stats);
+      })
+      .catch(function() {
+        loading.classList.add('hidden');
+        empty.classList.remove('hidden');
+      });
+  }
+
+  // Scrabble letter values for score breakdown
+  var LETTER_VALUES = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+
+  function calcWordScore(word) {
+    if (!word) return {total: 0, breakdown: ''};
+    var total = 0;
+    var parts = [];
+    for (var i = 0; i < word.length; i++) {
+      var ch = word[i].toUpperCase();
+      var val = LETTER_VALUES[ch] || 0;
+      total += val;
+      parts.push(ch + '=' + val);
+    }
+    return {total: total, breakdown: parts.join(' + ')};
+  }
+
+  function renderStats(stats) {
+    if (!stats) return;
+    var el = document.getElementById('lb-stats');
+    el.classList.remove('hidden');
+    document.getElementById('lb-stat-players').textContent = stats.players || 0;
+    document.getElementById('lb-stat-games').textContent = stats.total_games || 0;
+
+    var bestEl = document.getElementById('lb-stat-best');
+    bestEl.textContent = stats.top_score || 0;
+    var bestCalcEl = document.getElementById('lb-stat-best-calc');
+
+    // Show best word stat for daily-rack and cab
+    var bestWordWrap = document.getElementById('lb-stat-bestword-wrap');
+    var bestWordEl = document.getElementById('lb-stat-bestword');
+    var isCab = currentGame === 'cab';
+    var isDailyRack = currentGame === 'daily-rack';
+
+    // Best Word stat
+    if ((isDailyRack || isCab) && stats.top_best_word) {
+      bestWordWrap.classList.remove('hidden');
+      bestWordEl.textContent = stats.top_best_word;
+    } else {
+      bestWordWrap.classList.add('hidden');
+    }
+
+    // Top Score calculation breakdown
+    if (isCab && stats.top_attempts && stats.top_word_length) {
+      bestCalcEl.textContent = '(11−' + stats.top_attempts + ')×' + stats.top_word_length;
+    } else if (isDailyRack && stats.top_best_word) {
+      var calc = calcWordScore(stats.top_best_word);
+      bestCalcEl.textContent = calc.breakdown;
+    } else {
+      bestCalcEl.textContent = '';
+    }
+  }
+
+  function renderTable(entries) {
+    var tbody = document.getElementById('lb-tbody');
+    var theadRow = document.getElementById('lb-thead-row');
+    var isCab = currentGame === 'cab';
+    var html = '';
+
+    // Update table headers based on game
+    if (isCab) {
+      theadRow.innerHTML = '<th class="px-4 py-3 text-left w-12">#</th>' +
+        '<th class="px-4 py-3 text-left">Player</th>' +
+        '<th class="px-4 py-3 text-center">Best Word</th>' +
+        '<th class="px-4 py-3 text-right">Score<span class="block text-[9px] text-gray-500 font-normal normal-case">(11 − attempts) × letters</span></th>' +
+        '<th class="px-4 py-3 text-center">🔤 Letters</th>' +
+        '<th class="px-4 py-3 text-center">🎯 Attempts</th>' +
+        '<th class="px-4 py-3 text-right">Games</th>';
+    } else if (currentGame === 'word-quiz') {
+      theadRow.innerHTML = '<th class="px-4 py-3 text-left w-12">#</th>' +
+        '<th class="px-4 py-3 text-left">Player</th>' +
+        '<th class="px-4 py-3 text-right">Best Score</th>' +
+        '<th class="px-4 py-3 text-right">Total Correct</th>' +
+        '<th class="px-4 py-3 text-right">Quizzes</th>';
+    } else {
+      theadRow.innerHTML = '<th class="px-4 py-3 text-left w-12">#</th>' +
+        '<th class="px-4 py-3 text-left">Player</th>' +
+        '<th class="px-4 py-3 text-center">Best Word</th>' +
+        '<th class="px-4 py-3 text-right">Best Score</th>' +
+        '<th class="px-4 py-3 text-right">Total</th>' +
+        '<th class="px-4 py-3 text-right">Games</th>';
+    }
+
+    entries.forEach(function(entry) {
+      var isYou = uid && entry.user_id === uid;
+      var medalIcon = entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : entry.rank;
+      var rowClass = isYou ? 'bg-purple-900/20 border-l-2 border-purple-500' : '';
+      var rankClass = entry.rank <= 3 ? 'text-lg' : 'text-sm text-gray-400 font-bold';
+
+      html += '<tr class="border-t border-gray-800/50 hover:bg-gray-800/30 transition-colors ' + rowClass + '">';
+      html += '<td class="px-4 py-3 ' + rankClass + '">' + medalIcon + '</td>';
+      html += '<td class="px-4 py-3"><div class="flex items-center gap-2.5">';
+      html += '<img src="' + entry.avatar_src + '" alt="" class="w-7 h-7 rounded-full border border-gray-600/50" />';
+      html += '<span class="font-medium text-white truncate max-w-[140px]">' + entry.display_name + (isYou ? ' <span class="text-purple-400 text-xs">(you)</span>' : '') + '</span>';
+      html += '</div></td>';
+
+      if (isCab) {
+        var lettersDisplay = entry.word_length || '—';
+        var attemptsDisplay = entry.attempts || '—';
+        var scoreFormula = (entry.attempts && entry.word_length) ? '(11−' + entry.attempts + ')×' + entry.word_length : '';
+        html += '<td class="px-4 py-3 text-center font-mono text-xs text-gray-300 uppercase">' + (entry.best_word || '—') + '</td>';
+        html += '<td class="px-4 py-3 text-right font-bold text-amber-400" title="' + scoreFormula + '">' + entry.best_score + (scoreFormula ? '<span class="block text-[10px] text-gray-500 font-normal">' + scoreFormula + '</span>' : '') + '</td>';
+        html += '<td class="px-4 py-3 text-center text-blue-400 font-bold">' + lettersDisplay + '</td>';
+        html += '<td class="px-4 py-3 text-center text-orange-400 font-bold">' + attemptsDisplay + '</td>';
+        html += '<td class="px-4 py-3 text-right text-gray-400">' + entry.words_played + '</td>';
+      } else if (currentGame === 'word-quiz') {
+        html += '<td class="px-4 py-3 text-right font-bold text-amber-400">' + entry.best_score + '</td>';
+        html += '<td class="px-4 py-3 text-right text-green-400">' + entry.total_score + '</td>';
+        html += '<td class="px-4 py-3 text-right text-gray-400">' + entry.words_played + '</td>';
+      } else {
+        var wordScoreCalc = '';
+        if (currentGame === 'daily-rack' && entry.best_word) {
+          var wc = calcWordScore(entry.best_word);
+          wordScoreCalc = wc.breakdown;
+        }
+        html += '<td class="px-4 py-3 text-center font-mono text-xs text-gray-300 uppercase">' + (entry.best_word || '—') + '</td>';
+        html += '<td class="px-4 py-3 text-right font-bold text-amber-400"' + (wordScoreCalc ? ' title="' + wordScoreCalc + '"' : '') + '>' + entry.best_score + (wordScoreCalc ? '<span class="block text-[9px] text-gray-500 font-normal">' + wordScoreCalc + '</span>' : '') + '</td>';
+        html += '<td class="px-4 py-3 text-right text-green-400">' + entry.total_score + '</td>';
+        html += '<td class="px-4 py-3 text-right text-gray-400">' + entry.words_played + '</td>';
+      }
+
+      html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  function formatTime(seconds) {
+    if (seconds == null) return '—';
+    var mins = Math.floor(seconds / 60);
+    var secs = seconds % 60;
+    if (mins > 0) return mins + 'm ' + secs + 's';
+    return secs + 's';
+  }
+
+  function renderYourRank(entries) {
+    if (!uid) return;
+    var yourEntry = entries.find(function(e) { return e.user_id === uid; });
+    if (!yourEntry) return;
+
+    var isCab = currentGame === 'cab';
+
+    document.getElementById('lb-your-rank').classList.remove('hidden');
+    document.getElementById('lb-your-avatar').src = yourEntry.avatar_src;
+    document.getElementById('lb-your-name').textContent = yourEntry.display_name;
+    document.getElementById('lb-your-rank-num').textContent = yourEntry.rank;
+
+    var bestEl = document.getElementById('lb-your-best');
+    var bestLabel = bestEl.nextElementSibling;
+    var totalEl = document.getElementById('lb-your-total');
+    var totalLabel = totalEl.nextElementSibling;
+
+    if (isCab) {
+      // Show best_word as the primary best stat
+      bestEl.textContent = yourEntry.best_word || yourEntry.best_score;
+      bestLabel.textContent = 'Best word';
+      // Total shows score with formula
+      totalEl.textContent = yourEntry.total_score;
+      if (yourEntry.best_attempts && yourEntry.word_length) {
+        totalLabel.innerHTML = '<span class="block">Total pts</span><span class="block text-[9px] text-gray-500">(11−att)×len</span>';
+      } else {
+        totalLabel.textContent = 'Total pts';
+      }
+    } else if (currentGame === 'word-quiz') {
+      bestEl.textContent = yourEntry.best_score;
+      bestLabel.textContent = 'Best score';
+      totalEl.textContent = yourEntry.total_score;
+      totalLabel.textContent = 'Total correct';
+    } else {
+      // Show best word with score in parentheses, e.g. "QUIZ (22)"
+      if (yourEntry.best_word) {
+        bestEl.textContent = yourEntry.best_word + ' (' + yourEntry.best_score + ')';
+      } else {
+        bestEl.textContent = yourEntry.best_score;
+      }
+      bestLabel.textContent = 'Best word';
+      totalEl.textContent = yourEntry.total_score;
+      totalLabel.textContent = 'Total pts';
+    }
+  }
+
+  // Initial load
+  loadLeaderboard();
+})();
+</script>
+
+</Layout>

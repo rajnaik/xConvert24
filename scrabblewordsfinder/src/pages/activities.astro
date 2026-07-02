@@ -17,8 +17,9 @@ import StarBar from '../components/activities/StarBar.astro';
     <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
       <h1 class="text-2xl sm:text-3xl font-extrabold text-white"><span class="text-blue-400">🎯</span> Activities</h1>
       <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <a href="/leaderboard/" class="px-2 sm:px-3 py-1.5 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs font-medium text-purple-400 hover:bg-purple-600/40 hover:border-purple-400 transition-colors" title="Leaderboard">🏆</a>
         <a href="/activities/#60seconds" class="px-2 sm:px-3 py-1.5 rounded-lg bg-green-600/20 border border-green-500/30 text-xs font-medium text-green-400 hover:bg-green-600/40 transition-colors">⏱️ 60-Second</a>
-        <a href="/activities/#anagram" class="px-2 sm:px-3 py-1.5 rounded-lg bg-amber-600/20 border border-amber-500/30 text-xs font-medium text-amber-400 hover:bg-amber-600/40 transition-colors">🔀 Anagrams</a>
+        <a href="/activities/#anagram" class="px-2 sm:px-3 py-1.5 rounded-lg bg-amber-600/20 border border-amber-500/30 text-xs font-medium text-amber-400 hover:bg-amber-600/40 transition-colors">🔤 Anagrams</a>
         <button id="backup-data-btn" type="button" class="hidden px-2 sm:px-3 py-1.5 rounded-lg bg-amber-600/20 border border-amber-500/30 text-xs font-medium text-amber-400 hover:bg-amber-600/40 transition-colors cursor-pointer">💾 Backup Data <span class="text-[9px] opacity-70">💎</span></button>
         <!-- TODO: Fix stats page after go-live, then uncomment -->
         <!-- <a href="/stats/" class="px-3 py-1.5 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs font-medium text-purple-400 hover:bg-purple-600/40 transition-colors">📊 Your Stats</a> -->
@@ -36,6 +37,8 @@ import StarBar from '../components/activities/StarBar.astro';
       <DailyAnagramPanel />
       <SixtySecondPanel />
       <CaBPanel />
+      <!-- DailyDuelPanel hidden — planned for Phase 2 multiplayer -->
+      <!-- <DailyDuelPanel /> -->
     </div>
 
     <!-- Quick Links Tiles -->
@@ -232,6 +235,65 @@ import StarBar from '../components/activities/StarBar.astro';
       if (!e.target.closest('.panel-focused') && !e.target.closest('.panel-focus-btn')) {
         panels.forEach(function(p) { p.classList.remove('panel-focused'); });
       }
+    });
+  })();
+  </script>
+
+  <!-- Leaderboard rank badges on each game panel -->
+  <script is:inline>
+  (function() {
+    var S = window.__swfStore;
+    var uid = S ? S.getRaw('swf-uid') : '';
+    if (!uid) return;
+
+    // Map data-game attribute to leaderboard game name
+    var gameMap = {
+      'sixty': 'sixty-second',
+      'rack': 'daily-rack',
+      'anagram': 'daily-anagram',
+      'cab': 'cab'
+    };
+
+    Object.keys(gameMap).forEach(function(dataGame) {
+      var leaderboardGame = gameMap[dataGame];
+      fetch('/api/leaderboard/?game=' + encodeURIComponent(leaderboardGame) + '&period=today&limit=100')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.entries || data.entries.length === 0) return;
+          var userEntry = null;
+          for (var i = 0; i < data.entries.length; i++) {
+            if (data.entries[i].user_id === uid) {
+              userEntry = data.entries[i];
+              break;
+            }
+          }
+          if (!userEntry) return;
+
+          // Find the panel via the star indicator data-game attribute
+          var starEl = document.querySelector('.star-indicator[data-game="' + dataGame + '"]');
+          if (!starEl) return;
+          var headerRow = starEl.closest('.flex.items-center.justify-between');
+          if (!headerRow) return;
+
+          // Create rank badge
+          var badge = document.createElement('a');
+          badge.href = '/leaderboard/?game=' + encodeURIComponent(leaderboardGame);
+          badge.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-900/30 border border-purple-500/30 text-[10px] text-purple-300 font-medium hover:bg-purple-600/30 hover:border-purple-400 transition-colors no-underline';
+          badge.title = 'Your leaderboard rank today';
+          badge.innerHTML = '🏆 #' + userEntry.rank;
+
+          // Insert after the h2 heading, before the buttons area
+          var h2 = headerRow.querySelector('h2');
+          if (h2) {
+            h2.insertAdjacentElement('afterend', badge);
+            // Wrap h2 + badge if needed (use flex gap)
+            h2.parentNode.style.display = 'flex';
+            h2.parentNode.style.alignItems = 'center';
+            h2.parentNode.style.gap = '8px';
+            h2.parentNode.style.flexWrap = 'wrap';
+          }
+        })
+        .catch(function() {});
     });
   })();
   </script>

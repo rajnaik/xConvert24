@@ -16,16 +16,16 @@ test.describe('Chat Page — Dojo Mode (Positive)', () => {
     await expect(toggle).toBeAttached();
   });
 
-  test('dojo status label shows "Off" by default', async ({ page }) => {
+  test('dojo status label shows "On" by default', async ({ page }) => {
     await page.goto(`${BASE}/chat/`);
     const status = page.locator('#dojo-status');
-    await expect(status).toHaveText('Off');
+    await expect(status).toHaveText('On');
   });
 
-  test('dojo buttons container is hidden by default', async ({ page }) => {
+  test('dojo buttons container is visible by default', async ({ page }) => {
     await page.goto(`${BASE}/chat/`);
     const buttons = page.locator('#dojo-buttons');
-    await expect(buttons).toBeHidden();
+    await expect(buttons).toBeVisible();
   });
 
   test('dojo toggle shows training buttons when enabled', async ({ page }) => {

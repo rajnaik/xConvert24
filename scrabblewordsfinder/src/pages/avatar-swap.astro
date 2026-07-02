@@ -1,0 +1,249 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Change Avatar — ScrabbleWordsFinder" description="Choose a new avatar from 50 unique characters. Your avatar appears on leaderboards and daily challenges." keywords="scrabble avatar, change avatar, word game profile, display name">
+
+  <main class="mx-auto max-w-2xl px-4 sm:px-6 pb-20 pt-4">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-white"><span class="text-teal-400">🎭</span> Change Avatar</h1>
+      <a href="/settings/" class="px-3 py-1.5 rounded-lg bg-gray-700/40 border border-gray-600/40 text-xs font-medium text-gray-300 hover:bg-gray-700/60 transition-colors">← Settings</a>
+    </div>
+
+    <!-- Current Avatar -->
+    <div id="as-current" class="rounded-xl border border-teal-700/40 bg-teal-950/20 p-5 mb-6">
+      <p class="text-xs text-gray-400 uppercase tracking-wide mb-3">Your Current Avatar</p>
+      <div class="flex items-center gap-4">
+        <img id="as-current-img" src="/avatars/avatar-1.svg" alt="Current avatar" class="w-16 h-16 rounded-full border-2 border-teal-500/60 shrink-0" />
+        <div>
+          <p id="as-current-name" class="text-lg font-semibold text-white">—</p>
+          <p id="as-current-animal" class="text-sm text-gray-400">—</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avatar Grid -->
+    <div class="rounded-xl border border-gray-700/50 bg-gray-900/50 p-5 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-medium text-gray-300">Choose a new avatar</p>
+        <p id="as-page-info" class="text-xs text-gray-500">Page 1 of 5</p>
+      </div>
+
+      <!-- Loading -->
+      <div id="as-loading" class="text-center py-8">
+        <p class="text-gray-400 text-sm animate-pulse">Loading avatars...</p>
+      </div>
+
+      <!-- Grid -->
+      <div id="as-grid" class="hidden grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-center gap-4 mt-5">
+        <button id="as-prev" type="button" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed" disabled>
+          ‹ Prev
+        </button>
+        <span id="as-page-num" class="text-sm text-gray-400 font-medium">1 / 5</span>
+        <button id="as-next" type="button" class="px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+          Next ›
+        </button>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div id="as-save-wrap" class="hidden text-center">
+      <div id="as-selected-preview" class="flex items-center justify-center gap-3 mb-4">
+        <img id="as-selected-img" src="" alt="Selected avatar" class="w-12 h-12 rounded-full border-2 border-amber-400/60" />
+        <p id="as-selected-name" class="text-sm font-medium text-amber-300"></p>
+      </div>
+      <button id="as-save-btn" type="button" class="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold transition-colors cursor-pointer shadow-lg shadow-teal-900/30">
+        ✓ Save This Avatar
+      </button>
+    </div>
+
+    <!-- Toast -->
+    <div id="as-toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl bg-teal-600 text-white text-sm font-medium shadow-xl z-50 transition-opacity">
+      Avatar updated!
+    </div>
+  </main>
+
+  <script is:inline>
+  (function() {
+    var S = window.__swfStore;
+    if (!S) return;
+
+    var uid = S.getRaw('swf-uid') || '';
+    var currentAvatarId = parseInt(S.getRaw('swf-avatar') || '1');
+    var currentName = S.getRaw('swf-display-name') || '—';
+
+    // State
+    var currentPage = 1;
+    var totalPages = 5;
+    var selectedId = null;
+
+    // Elements
+    var currentImgEl = document.getElementById('as-current-img');
+    var currentNameEl = document.getElementById('as-current-name');
+    var currentAnimalEl = document.getElementById('as-current-animal');
+    var gridEl = document.getElementById('as-grid');
+    var loadingEl = document.getElementById('as-loading');
+    var pageInfoEl = document.getElementById('as-page-info');
+    var pageNumEl = document.getElementById('as-page-num');
+    var prevBtn = document.getElementById('as-prev');
+    var nextBtn = document.getElementById('as-next');
+    var saveWrap = document.getElementById('as-save-wrap');
+    var selectedImgEl = document.getElementById('as-selected-img');
+    var selectedNameEl = document.getElementById('as-selected-name');
+    var saveBtn = document.getElementById('as-save-btn');
+    var toastEl = document.getElementById('as-toast');
+
+    // Show current avatar
+    currentImgEl.src = '/avatars/avatar-' + currentAvatarId + '.svg';
+    currentNameEl.textContent = currentName;
+    currentAnimalEl.textContent = 'Avatar #' + currentAvatarId;
+
+    // Load avatar page
+    function loadPage(page) {
+      currentPage = page;
+      loadingEl.classList.remove('hidden');
+      gridEl.classList.add('hidden');
+
+      fetch('/api/users/avatar-swap/?page=' + page)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          totalPages = data.pages;
+          renderGrid(data.avatars);
+          updatePagination();
+          loadingEl.classList.add('hidden');
+          gridEl.classList.remove('hidden');
+        })
+        .catch(function() {
+          loadingEl.innerHTML = '<p class="text-red-400 text-sm">Failed to load avatars</p>';
+        });
+    }
+
+    function renderGrid(avatars) {
+      var html = '';
+      for (var i = 0; i < avatars.length; i++) {
+        var a = avatars[i];
+        var isCurrent = a.id === currentAvatarId;
+        var isSelected = a.id === selectedId;
+        var border = isSelected ? 'border-amber-400 ring-2 ring-amber-400/40' : (isCurrent ? 'border-teal-500/60' : 'border-gray-700/50 hover:border-gray-500');
+        var bg = isSelected ? 'bg-amber-950/20' : (isCurrent ? 'bg-teal-950/20' : 'bg-gray-800/30 hover:bg-gray-800/60');
+        html += '<div class="relative rounded-xl border ' + border + ' ' + bg + ' p-3 text-center cursor-pointer transition-all" data-avatar-id="' + a.id + '">';
+        html += '<img src="' + a.src + '" alt="' + a.name + '" class="w-12 h-12 mx-auto mb-1.5 rounded-full" />';
+        html += '<p class="text-xs text-gray-300 font-medium truncate">' + a.name + '</p>';
+        if (isCurrent) html += '<span class="absolute top-1 right-1 text-[10px] bg-teal-600/80 text-white px-1.5 py-0.5 rounded-full">current</span>';
+        if (isSelected) html += '<span class="absolute top-1 right-1 text-[10px] bg-amber-500/80 text-white px-1.5 py-0.5 rounded-full">selected</span>';
+        html += '</div>';
+      }
+      gridEl.innerHTML = html;
+
+      // Attach click handlers
+      var cards = gridEl.querySelectorAll('[data-avatar-id]');
+      for (var j = 0; j < cards.length; j++) {
+        cards[j].addEventListener('click', selectAvatar);
+      }
+    }
+
+    function selectAvatar(e) {
+      var card = e.currentTarget;
+      var id = parseInt(card.getAttribute('data-avatar-id'));
+      if (id === currentAvatarId) return; // Can't select current
+
+      selectedId = id;
+      // Re-render to update borders
+      loadPage(currentPage);
+
+      // Show save section
+      selectedImgEl.src = '/avatars/avatar-' + id + '.svg';
+      selectedNameEl.textContent = 'Avatar #' + id + ' — ' + card.querySelector('p').textContent;
+      saveWrap.classList.remove('hidden');
+    }
+
+    function updatePagination() {
+      pageInfoEl.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+      pageNumEl.textContent = currentPage + ' / ' + totalPages;
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    // Pagination handlers
+    prevBtn.addEventListener('click', function() {
+      if (currentPage > 1) loadPage(currentPage - 1);
+    });
+    nextBtn.addEventListener('click', function() {
+      if (currentPage < totalPages) loadPage(currentPage + 1);
+    });
+
+    // Save handler
+    saveBtn.addEventListener('click', function() {
+      if (!selectedId || !uid) return;
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      fetch('/api/users/avatar-swap/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: uid, avatar_id: selectedId }),
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.success) {
+            // Update localStorage
+            S.setRaw('swf-avatar', String(selectedId));
+            S.setRaw('swf-display-name', data.user.display_name);
+
+            // Update current display
+            currentAvatarId = selectedId;
+            currentName = data.user.display_name;
+            currentImgEl.src = '/avatars/avatar-' + currentAvatarId + '.svg';
+            currentNameEl.textContent = currentName;
+            currentAnimalEl.textContent = 'Avatar #' + currentAvatarId;
+
+            // Hide save, reset selection
+            selectedId = null;
+            saveWrap.classList.add('hidden');
+            loadPage(currentPage);
+
+            // Show toast
+            showToast('Avatar updated to ' + currentName + '!');
+          } else {
+            showToast('Failed: ' + (data.error || 'Unknown error'));
+          }
+        })
+        .catch(function() {
+          showToast('Network error — try again');
+        })
+        .finally(function() {
+          saveBtn.disabled = false;
+          saveBtn.textContent = '✓ Save This Avatar';
+        });
+    });
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.remove('hidden');
+      setTimeout(function() { toastEl.classList.add('hidden'); }, 3000);
+    }
+
+    // Initial load
+    loadPage(1);
+  })();
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "How do I change my avatar on ScrabbleWordsFinder?", "acceptedAnswer": { "@type": "Answer", "text": "Go to Settings → Change Avatar now, browse the 50 available avatars using the page navigation, select one, and click Save. Your new avatar and display name update instantly." } },
+      { "@type": "Question", "name": "What happens to my old avatar when I change it?", "acceptedAnswer": { "@type": "Answer", "text": "Your old avatar is freed and available for other players. You get a new randomly generated display name based on your new avatar's animal character." } },
+      { "@type": "Question", "name": "Can I change my avatar as many times as I want?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — there are no limits on avatar changes. Switch as often as you like, completely free." } }
+    ]
+  }
+  </script>
+
+</Layout>

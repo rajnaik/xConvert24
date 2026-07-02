@@ -9,6 +9,7 @@
             <a id="quiz-history-btn" href="/quiz-history/" class="hidden px-2 py-1 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs text-purple-300 hover:bg-purple-600/40 transition-colors flex items-center gap-1">
               <span>📊</span><span id="quiz-history-count">0</span>
             </a>
+            <a id="quiz-lb-link" href="/leaderboard/?game=word-quiz" class="px-2 py-1 rounded-lg bg-amber-600/20 border border-amber-500/30 text-xs text-amber-300 hover:bg-amber-600/40 transition-colors flex items-center gap-1 no-underline" title="View Word Quiz leaderboard">🏆 #1</a>
           </div>
         </div>
 
@@ -70,6 +71,12 @@
           <p id="quiz-result-text" class="text-lg font-bold text-white mb-2"></p>
           <p id="quiz-result-details" class="text-sm text-gray-400 mb-4"></p>
           <div id="quiz-splits" class="text-xs text-gray-500 mb-4"></div>
+          <!-- Leaderboard rank link (populated after quiz ends) -->
+          <div id="quiz-lb-rank" class="hidden mb-3">
+            <a id="quiz-lb-rank-link" href="/leaderboard/?game=word-quiz" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-900/30 border border-purple-500/30 text-xs text-purple-300 font-medium hover:bg-purple-600/30 hover:border-purple-400 transition-colors no-underline" style="display:inline-flex">
+              🏆 <span id="quiz-lb-rank-text">Loading...</span>
+            </a>
+          </div>
           <div class="flex gap-3 justify-center">
             <button id="quiz-retry-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">Play Again</button>
             <button id="quiz-track-btn" class="px-4 py-2 rounded-lg bg-emerald-600/30 border border-emerald-500/50 text-sm text-emerald-300 hover:bg-emerald-600/50 transition-colors flex items-center gap-1"><span>📈</span> Track</button>
@@ -239,6 +246,7 @@
     document.getElementById('quiz-setup').classList.remove('hidden');
     document.getElementById('quiz-complete').classList.add('hidden');
     document.getElementById('quiz-timeline-panel').classList.add('hidden');
+    document.getElementById('quiz-lb-rank').classList.add('hidden');
   });
 
   var encourageCorrect = [
@@ -487,6 +495,33 @@
     // Save quiz score to DB with user ID
     var uid = window.__swfStore.getRaw('swf-uid') || '';
     fetch('/api/quiz-scores/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: uid, score: score, total: total, time_used: parseFloat(totalTime), timer_limit: limit, timed_out: timedOut ? 1 : 0, details: quizState.details }) }).catch(function(){});
+    // Submit to leaderboard (best-effort) then fetch rank
+    if (uid && score > 0) {
+      fetch('/api/leaderboard/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game: 'word-quiz',
+          user_id: uid,
+          best_word: '',
+          best_score: score,
+          total_score: score,
+          words_played: 1
+        })
+      }).then(function() {
+        // Fetch user's rank after submitting score
+        return fetch('/api/leaderboard/?game=word-quiz&period=today&user_id=' + encodeURIComponent(uid));
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        var entries = data.entries || [];
+        var myEntry = entries.find(function(e) { return e.user_id === uid; });
+        var rankDiv = document.getElementById('quiz-lb-rank');
+        var rankText = document.getElementById('quiz-lb-rank-text');
+        if (myEntry && myEntry.rank && rankDiv && rankText) {
+          rankText.textContent = '#' + myEntry.rank + ' today';
+          rankDiv.classList.remove('hidden');
+        }
+      }).catch(function(){});
+    }
     document.getElementById('quiz-timer').classList.remove('text-red-400');
     // Award quiz star
     window.__awardStar && window.__awardStar('quiz');

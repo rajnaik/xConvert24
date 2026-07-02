@@ -47,6 +47,7 @@ test.describe('Settings Page — Structure', () => {
   test('has all main sections', async ({ page }) => {
     await page.goto('/settings');
     await expect(page.getByRole('heading', { name: /Your User ID/ })).toBeAttached();
+    await expect(page.getByRole('heading', { name: /Your Avatar & Display Name/ })).toBeAttached();
     await expect(page.getByRole('heading', { name: /Backup & Restore/ })).toBeAttached();
     await expect(page.getByRole('heading', { name: /Danger Zone/ })).toBeAttached();
   });
@@ -263,6 +264,158 @@ test.describe('Settings Page — Relink Modal', () => {
     });
     await page.locator('#relink-confirm').click();
     expect(alertMessage).toContain('too short');
+  });
+});
+
+test.describe('Settings Page — Avatar & Display Name — Positive', () => {
+  test('avatar section exists with correct heading', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.getByRole('heading', { name: /Your Avatar & Display Name/ })).toBeAttached();
+  });
+
+  test('avatar section appears before User ID section', async ({ page }) => {
+    await page.goto('/settings/');
+    const allH2 = page.locator('h2');
+    const texts: string[] = [];
+    const count = await allH2.count();
+    for (let i = 0; i < count; i++) {
+      texts.push((await allH2.nth(i).textContent()) || '');
+    }
+    const avatarIndex = texts.findIndex(t => t.includes('Your Avatar & Display Name'));
+    const userIdIndex = texts.findIndex(t => t.includes('Your User ID'));
+    expect(avatarIndex).toBeGreaterThan(-1);
+    expect(userIdIndex).toBeGreaterThan(-1);
+    expect(avatarIndex).toBeLessThan(userIdIndex);
+  });
+
+  test('avatar preview row is visible with image, name, and Change button', async ({ page }) => {
+    await page.goto('/settings/');
+    const preview = page.locator('#settings-avatar-preview');
+    await expect(preview).toBeVisible();
+    await expect(page.locator('#settings-avatar-img')).toBeVisible();
+    await expect(page.locator('#settings-avatar-name')).toBeVisible();
+    await expect(page.locator('#settings-avatar-animal')).toBeVisible();
+    await expect(preview.locator('a[href="/avatar-swap/"]')).toBeVisible();
+  });
+
+  test('avatar image src matches localStorage avatar id', async ({ page }) => {
+    await page.goto('/settings/');
+    await page.evaluate(() => {
+      window.__swfStore.setRaw('swf-avatar', '7');
+      window.__swfStore.setRaw('swf-display-name', 'Silver Penguin');
+    });
+    await page.reload();
+    const src = await page.locator('#settings-avatar-img').getAttribute('src');
+    expect(src).toBe('/avatars/avatar-7.svg');
+    await expect(page.locator('#settings-avatar-name')).toHaveText('Silver Penguin');
+    await expect(page.locator('#settings-avatar-animal')).toHaveText('Avatar #7');
+  });
+
+  test('avatar preview Change button links to /avatar-swap/', async ({ page }) => {
+    await page.goto('/settings/');
+    const changeLink = page.locator('#settings-avatar-preview a[href="/avatar-swap/"]');
+    await expect(changeLink).toHaveText('Change');
+  });
+
+  test('avatar section has teal border styling', async ({ page }) => {
+    await page.goto('/settings/');
+    const section = page.locator('div.border-teal-800\\/50.bg-teal-950\\/10');
+    await expect(section).toBeVisible();
+  });
+
+  test('avatar section lists all 4 feature bullet points', async ({ page }) => {
+    await page.goto('/settings/');
+    const section = page.locator('div.border-teal-800\\/50.bg-teal-950\\/10');
+    const bullets = section.locator('li');
+    await expect(bullets).toHaveCount(4);
+  });
+
+  test('mentions 50 unique avatars', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.getByText('50 unique avatars')).toBeAttached();
+  });
+
+  test('mentions display name with 16 character limit', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.getByText('up to 16 characters')).toBeAttached();
+  });
+
+  test('mentions anonymous nature of avatar feature', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.getByText('Still anonymous')).toBeAttached();
+  });
+
+  test('Change Avatar now link points to /avatar-swap/', async ({ page }) => {
+    await page.goto('/settings/');
+    const link = page.getByRole('link', { name: 'Change Avatar now' });
+    await expect(link).toBeVisible();
+    await expect(link).toContainText('Change Avatar now');
+  });
+
+  test('Change Avatar now link has correct styling', async ({ page }) => {
+    await page.goto('/settings/');
+    const link = page.getByRole('link', { name: 'Change Avatar now' });
+    await expect(link).toHaveClass(/text-teal-400/);
+    await expect(link).toHaveClass(/underline/);
+    await expect(link).toHaveClass(/font-semibold/);
+  });
+
+  test('has footer note about UUID sync', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.getByText('relink your UUID on a new device')).toBeAttached();
+  });
+});
+
+test.describe('Settings Page — Avatar & Display Name — Negative', () => {
+  test('no duplicate avatar sections exist', async ({ page }) => {
+    await page.goto('/settings/');
+    const headings = page.getByRole('heading', { name: /Your Avatar & Display Name/ });
+    await expect(headings).toHaveCount(1);
+  });
+
+  test('only one avatar preview row exists', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.locator('#settings-avatar-preview')).toHaveCount(1);
+    await expect(page.locator('#settings-avatar-img')).toHaveCount(1);
+  });
+
+  test('only one Change Avatar link exists in the avatar section', async ({ page }) => {
+    await page.goto('/settings/');
+    const links = page.locator('a[href="/avatar-swap/"]');
+    // One in the preview row, one in the bullet list = 2 total
+    expect(await links.count()).toBe(2);
+  });
+
+  test('avatar preview defaults gracefully when no avatar set', async ({ page }) => {
+    await page.goto('/settings/');
+    await page.evaluate(() => {
+      localStorage.removeItem('swf-avatar');
+      localStorage.removeItem('swf-display-name');
+    });
+    await page.reload();
+    // Should default to avatar-1 and show "—" for name
+    const src = await page.locator('#settings-avatar-img').getAttribute('src');
+    expect(src).toBe('/avatars/avatar-1.svg');
+    await expect(page.locator('#settings-avatar-animal')).toHaveText('Avatar #1');
+  });
+
+  test('avatar section does not cause console errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto('/settings/');
+    await page.waitForTimeout(500);
+    const avatarErrors = errors.filter(e => e.toLowerCase().includes('avatar'));
+    expect(avatarErrors).toHaveLength(0);
+  });
+
+  test('avatar section renders correctly after page reload', async ({ page }) => {
+    await page.goto('/settings/');
+    await page.reload();
+    await expect(page.getByRole('heading', { name: /Your Avatar & Display Name/ })).toBeAttached();
+    await expect(page.locator('#settings-avatar-preview')).toBeVisible();
+    const section = page.locator('div.border-teal-800\\/50.bg-teal-950\\/10');
+    const bullets = section.locator('li');
+    await expect(bullets).toHaveCount(4);
   });
 });
 

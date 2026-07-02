@@ -334,6 +334,19 @@
                   document.getElementById('drc-history-btn').classList.remove('hidden');
                 }
               }).catch(function() {});
+            // Submit to leaderboard (best-effort)
+            fetch('/api/leaderboard/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                game: 'daily-rack',
+                user_id: uid,
+                best_word: word,
+                best_score: wordPts,
+                total_score: wordPts,
+                words_played: 1
+              })
+            }).catch(function() {});
           }
         }).catch(function() {
           fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-red-900/30 border border-red-500/50 text-red-300';

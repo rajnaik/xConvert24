@@ -422,6 +422,23 @@ import '../styles/global.css';
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: userId, round_id: roundId, words: roundWords })
         }).catch(function() {});
+
+        // Submit to leaderboard (best-effort)
+        var bestWordInRound = foundWords.reduce(function(b, w) { var s = wordScore(w); return s > b.s ? {w:w,s:s} : b; }, {w:'',s:0});
+        if (userId && bestWordInRound.s > 0) {
+          fetch('/api/leaderboard/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              game: 'sixty-second',
+              user_id: userId,
+              best_word: bestWordInRound.w,
+              best_score: bestWordInRound.s,
+              total_score: score,
+              words_played: foundWords.length
+            })
+          }).catch(function() {});
+        }
       }
     }
 

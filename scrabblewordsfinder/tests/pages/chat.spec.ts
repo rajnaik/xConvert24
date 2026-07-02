@@ -810,3 +810,107 @@ test.describe('Chat Page — Identified Words Dictionary Validation (Negative)',
     expect(listText).toContain('CASTLE');
   });
 });
+
+
+test.describe('Chat Page — Memorise with Memory WordBench Modal (Positive)', () => {
+  test('WordBench button is visible on the chat page', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const btn = page.locator('#mwb-modal-open');
+    await expect(btn).toBeVisible();
+  });
+
+  test('WordBench button contains correct text', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const btn = page.locator('#mwb-modal-open');
+    const text = await btn.textContent();
+    expect(text).toContain('Memorise with Memory WordBench');
+  });
+
+  test('WordBench button has purple styling', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const btn = page.locator('#mwb-modal-open');
+    const classes = await btn.getAttribute('class');
+    expect(classes).toContain('text-purple-300');
+    expect(classes).toContain('border-purple-500/40');
+  });
+
+  test('WordBench button has brain emoji with aria-hidden', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const emoji = page.locator('#mwb-modal-open span[aria-hidden="true"]');
+    await expect(emoji).toBeAttached();
+    const text = await emoji.textContent();
+    expect(text).toContain('🧠');
+  });
+
+  test('clicking WordBench button opens the MWB modal', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.locator('#mwb-modal-open').click();
+    const modal = page.locator('#mwb-modal');
+    await expect(modal).not.toHaveClass(/hidden/);
+  });
+
+  test('MWB modal contains flash card panel and controls', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.locator('#mwb-modal-open').click();
+    await expect(page.locator('#mwb-m-start')).toBeVisible();
+    await expect(page.locator('#mwb-m-panel')).toBeVisible();
+    await expect(page.locator('#mwb-m-meaningful')).toBeAttached();
+  });
+
+  test('MWB modal has "Open full" link to activities page', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.locator('#mwb-modal-open').click();
+    const link = page.locator('#mwb-modal a[href="/activities/#wordbench"]');
+    await expect(link).toBeVisible();
+    const text = await link.textContent();
+    expect(text).toContain('Open full');
+  });
+
+  test('MWB modal closes on close button click', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.locator('#mwb-modal-open').click();
+    await expect(page.locator('#mwb-modal')).not.toHaveClass(/hidden/);
+    await page.locator('#mwb-modal-close').click();
+    await expect(page.locator('#mwb-modal')).toHaveClass(/hidden/);
+  });
+
+  test('MWB modal closes on Escape key', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.locator('#mwb-modal-open').click();
+    await expect(page.locator('#mwb-modal')).not.toHaveClass(/hidden/);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#mwb-modal')).toHaveClass(/hidden/);
+  });
+});
+
+test.describe('Chat Page — Memorise with Memory WordBench Modal (Negative)', () => {
+  test('MWB modal is hidden by default on page load', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await expect(page.locator('#mwb-modal')).toHaveClass(/hidden/);
+  });
+
+  test('no duplicate MWB modal open buttons', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const btns = page.locator('#mwb-modal-open');
+    const count = await btns.count();
+    expect(count).toBe(1);
+  });
+
+  test('opening MWB modal does not crash the page', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/chat/`);
+    await page.locator('#mwb-modal-open').click();
+    await page.waitForTimeout(1000);
+    expect(errors.filter(e => !e.includes('net::') && !e.includes('Failed to fetch') && !e.includes('adsbygoogle'))).toHaveLength(0);
+  });
+
+  test('MWB modal closes on backdrop click', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.locator('#mwb-modal-open').click();
+    await expect(page.locator('#mwb-modal')).not.toHaveClass(/hidden/);
+    // Click the backdrop at a corner where the modal content doesn't overlap
+    await page.locator('#mwb-modal-backdrop').click({ position: { x: 5, y: 5 } });
+    await expect(page.locator('#mwb-modal')).toHaveClass(/hidden/);
+  });
+});

@@ -182,6 +182,18 @@
     document.getElementById('sp-result-emoji').textContent = emoji;
     document.getElementById('sp-result-title').textContent = score >= 100 ? 'Amazing!' : score >= 60 ? 'Great!' : score >= 30 ? 'Nice!' : "Time's Up!";
     if (score > pb) { pb = score; window.__swfStore.setRaw(PB_KEY, JSON.stringify({ score: pb, achievedAt: new Date().toISOString() })); document.getElementById('sixty-pb-badge').textContent = 'PB: ' + pb + ' pts \uD83C\uDD95'; }
+
+    // Submit to sixty-seconds-history + leaderboard (best-effort)
+    if (foundWords.length > 0) {
+      var uid = window.__swfStore.getRaw('swf-uid') || '';
+      var roundWords = foundWords.map(function(w, i) { return { word: w, points: wordScore(w), attempt: i + 1, split_time: 60 }; });
+      var roundId = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
+      if (uid) {
+        fetch('/api/sixty-seconds-history/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: uid, round_id: roundId, words: roundWords }) }).catch(function(){});
+        fetch('/api/leaderboard/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ game: 'sixty-second', user_id: uid, best_word: best.w !== '\u2014' ? best.w : '', best_score: best.s, total_score: score, words_played: foundWords.length }) }).catch(function(){});
+      }
+    }
+
     var possible = WORDS.filter(function(w) { return w.length <= 7 && canMake(w, currentTiles); });
     var missed = possible.filter(function(w) { return foundWords.indexOf(w) === -1; }).sort(function(a,b) { return wordScore(b) - wordScore(a); }).slice(0, 10);
     if (missed.length > 0) {

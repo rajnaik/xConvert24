@@ -95,6 +95,10 @@ import '../styles/global.css';
             <span id="ev-score-value" class="text-xs font-bold font-mono"></span>
             <span id="ev-score-label" class="text-[10px] uppercase tracking-wider font-semibold"></span>
           </div>
+          <!-- Memorise with Memory WordBench -->
+          <button id="mwb-modal-open" type="button" class="inline-flex items-center gap-1.5 mt-[11px] px-3 py-1.5 text-xs font-medium rounded-lg border border-purple-500/40 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:border-purple-400 transition-colors">
+            <span aria-hidden="true">🧠</span> Memorise with Memory WordBench
+          </button>
         </div>
 
         <!-- Vertical Separator -->
@@ -106,14 +110,14 @@ import '../styles/global.css';
           <div class="flex items-center gap-2 mb-2">
             <label for="dojo-toggle" class="text-xs font-semibold text-gray-300 uppercase tracking-wide">Dojo Mode</label>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input id="dojo-toggle" type="checkbox" class="sr-only peer" />
+              <input id="dojo-toggle" type="checkbox" class="sr-only peer" checked />
               <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500 peer-checked:after:bg-white"></div>
             </label>
-            <span id="dojo-status" class="text-[10px] uppercase tracking-wide font-bold text-gray-500">Off</span>
+            <span id="dojo-status" class="text-[10px] uppercase tracking-wide font-bold text-orange-400">On</span>
           </div>
           <p class="text-xs text-gray-500 mb-2">Train your skills with AI-powered drills</p>
           <!-- Dojo training mode buttons (hidden until toggle is on) -->
-          <div id="dojo-buttons" class="hidden grid grid-cols-2 gap-2">
+          <div id="dojo-buttons" class="grid grid-cols-2 gap-2">
             <button data-dojo="bingo" class="dojo-btn px-2 py-2 text-xs font-semibold rounded-lg border border-purple-500/50 bg-purple-900/30 text-purple-300 hover:bg-purple-800/50 hover:border-purple-400 transition-colors text-left">
               <span class="block text-[11px] font-bold">🎯 Bingo Trainer</span>
               <span class="block text-[10px] text-gray-400 mt-0.5">Find all 7-letter words</span>
@@ -281,6 +285,63 @@ import '../styles/global.css';
     </div><!-- end right column -->
     </div><!-- end flex row -->
   </main>
+
+  <!-- MWB Modal Overlay -->
+  <div id="mwb-modal" class="fixed inset-0 z-[9999] hidden">
+    <!-- Backdrop -->
+    <div id="mwb-modal-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+    <!-- Modal Container -->
+    <div class="absolute inset-4 sm:inset-8 md:inset-12 lg:inset-16 flex items-center justify-center pointer-events-none">
+      <div class="relative w-full max-w-lg max-h-full overflow-y-auto pointer-events-auto rounded-2xl border border-purple-700/50 bg-gray-900 shadow-2xl shadow-purple-900/20 p-5 sm:p-6">
+        <!-- Close button -->
+        <button id="mwb-modal-close" type="button" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full border border-gray-600 bg-gray-800 text-gray-400 hover:text-white hover:border-gray-400 transition-colors z-10" aria-label="Close">&times;</button>
+        <!-- Header -->
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-xl">🃏</span>
+          <h2 class="text-lg font-semibold text-white">Memory WordBench</h2>
+          <a href="/activities/#wordbench" class="ml-auto text-[10px] text-purple-400 hover:underline">Open full →</a>
+        </div>
+        <!-- Category Tabs -->
+        <div id="mwb-m-cats" class="flex flex-wrap gap-1.5 mb-3"></div>
+        <!-- Controls row -->
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+          <button id="mwb-m-start" class="px-3 py-1.5 rounded-lg bg-green-600/30 border border-green-500/50 text-sm text-green-300 hover:bg-green-600/50 transition-colors">▶ Start</button>
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" id="mwb-m-meaningful" class="w-3.5 h-3.5 rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500/30 focus:ring-offset-0" />
+            <span class="text-xs text-gray-400">Meaningful only</span>
+          </label>
+          <div id="mwb-m-speed-wrap" class="hidden flex items-center gap-2">
+            <input type="range" id="mwb-m-speed" min="1" max="30" value="5" class="w-20 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500" />
+            <span id="mwb-m-speed-label" class="text-[10px] text-gray-400 font-mono w-6">5s</span>
+            <button id="mwb-m-autoplay" class="w-7 h-7 flex items-center justify-center rounded-full border-2 border-purple-500/50 bg-purple-900/20 hover:bg-purple-600/30 hover:border-purple-400 text-purple-300 transition-all" title="Auto-play">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+          </div>
+        </div>
+        <!-- Flash Card -->
+        <div id="mwb-m-panel" class="relative text-center py-4">
+          <div id="mwb-m-card" class="hidden mx-auto w-full max-w-sm h-44 rounded-2xl border-2 border-green-500/30 bg-gradient-to-br from-gray-800 to-gray-900 flex flex-col items-center justify-center cursor-pointer transition-all hover:border-green-400 select-none">
+            <p id="mwb-m-word" class="text-3xl font-black text-green-400 tracking-wider mb-2">WORD</p>
+            <p id="mwb-m-score" class="text-sm text-blue-400 hidden"></p>
+            <p id="mwb-m-meaning" class="text-sm text-gray-400 italic px-4 hidden">Click to reveal meaning</p>
+            <p id="mwb-m-hint" class="text-xs text-gray-600 mt-2">tap to flip</p>
+          </div>
+          <div id="mwb-m-empty" class="text-sm text-gray-500 italic">Press Start to begin flash cards</div>
+        </div>
+        <!-- Navigation Controls -->
+        <div id="mwb-m-controls" class="hidden flex items-center justify-center gap-4 mt-2">
+          <button id="mwb-m-prev" class="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-sm hover:bg-gray-600 transition-colors">← Prev</button>
+          <span id="mwb-m-counter" class="text-xs text-gray-500">1 / 10</span>
+          <button id="mwb-m-next" class="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-sm hover:bg-gray-600 transition-colors">Next →</button>
+        </div>
+        <!-- Word Actions -->
+        <div id="mwb-m-actions" class="hidden flex items-center justify-center gap-2 mt-3">
+          <button id="mwb-m-copy" class="px-2.5 py-1 text-xs text-gray-400 hover:text-green-400 hover:bg-green-900/20 rounded transition-colors">📋 Copy</button>
+          <button id="mwb-m-delete" class="px-2.5 py-1 text-xs text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors">🗑️ Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- FAQ Schema -->
   <script type="application/ld+json" set:html={JSON.stringify({
@@ -2364,6 +2425,307 @@ import '../styles/global.css';
     checkAIHealth();
     // Re-check every 30 seconds
     setInterval(checkAIHealth, 30000);
+  })();
+  </script>
+
+  <!-- MWB Modal Logic -->
+  <script is:inline>
+  (function() {
+    var modal = document.getElementById('mwb-modal');
+    var openBtn = document.getElementById('mwb-modal-open');
+    var closeBtn = document.getElementById('mwb-modal-close');
+    var backdrop = document.getElementById('mwb-modal-backdrop');
+
+    // State
+    var mwbState = { words: [], current: 0, flipped: false, active: false, activeCategory: 'all' };
+    var mwbAutoTimer = null;
+    var mwbAutoPhase = 'word';
+
+    var catColors = {
+      'wotd': { border: 'border-purple-500/50', bg: 'bg-purple-900/20', text: 'text-purple-300' },
+      'quiz': { border: 'border-blue-500/50', bg: 'bg-blue-900/20', text: 'text-blue-300' },
+      'manual': { border: 'border-amber-500/50', bg: 'bg-amber-900/20', text: 'text-amber-300' },
+      'solver': { border: 'border-green-500/50', bg: 'bg-green-900/20', text: 'text-green-300' },
+      'default': { border: 'border-gray-500/50', bg: 'bg-gray-900/20', text: 'text-gray-300' }
+    };
+    function getCatStyle(cat) { return catColors[cat] || catColors['default']; }
+
+    var scores = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+    function wordScore(w) { return (w||'').split('').reduce(function(s,c){return s+(scores[c.toUpperCase()]||0);},0); }
+
+    function shuffleArray(arr) {
+      var c = arr.slice();
+      for (var i = c.length-1; i>0; i--) { var j = Math.floor(Math.random()*(i+1)); var t=c[i]; c[i]=c[j]; c[j]=t; }
+      return c;
+    }
+
+    function hasMeaningfulDef(w) {
+      if (!w.meaning || !w.meaning.trim()) return false;
+      var m = w.meaning.toLowerCase();
+      if (m === 'no meaning saved') return false;
+      if (m.indexOf('scrabble-legal word') !== -1) return false;
+      if (m.indexOf('no standard definition') !== -1) return false;
+      return true;
+    }
+
+    // Open modal
+    openBtn.addEventListener('click', function() {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      refreshModalCats();
+    });
+
+    // Close modal
+    function closeModal() {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+      stopMwbAuto();
+    }
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+    });
+
+    // Category filters
+    function refreshModalCats() {
+      var saved = JSON.parse((window.__swfStore && window.__swfStore.getRaw('scbAchievements')) || localStorage.getItem('scbAchievements') || '[]');
+      var filterReal = document.getElementById('mwb-m-meaningful').checked;
+      var pool = filterReal ? saved.filter(hasMeaningfulDef) : saved;
+      var cats = {};
+      pool.forEach(function(w) { var c = w.category || 'manual'; if(!cats[c]) cats[c]=0; cats[c]++; });
+
+      var filtersEl = document.getElementById('mwb-m-cats');
+      if (pool.length === 0) { filtersEl.innerHTML = ''; return; }
+
+      var activeCat = mwbState.activeCategory || 'all';
+      var html = '<button class="mwb-m-cat px-2 py-0.5 rounded text-[10px] font-medium border transition-colors ' +
+        (activeCat==='all' ? 'border-green-500/50 bg-green-900/30 text-green-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-green-500/50') +
+        '" data-cat="all">All ('+pool.length+')</button>';
+      Object.keys(cats).sort().forEach(function(c) {
+        html += '<button class="mwb-m-cat px-2 py-0.5 rounded text-[10px] font-medium border transition-colors ' +
+          (activeCat===c ? 'border-green-500/50 bg-green-900/30 text-green-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-green-500/50') +
+          '" data-cat="'+c+'">'+c+' ('+cats[c]+')</button>';
+      });
+      filtersEl.innerHTML = html;
+      filtersEl.querySelectorAll('.mwb-m-cat').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          mwbState.activeCategory = btn.dataset.cat;
+          startMwbCards();
+        });
+      });
+    }
+
+    // Start flash cards
+    function startMwbCards() {
+      var saved = JSON.parse((window.__swfStore && window.__swfStore.getRaw('scbAchievements')) || localStorage.getItem('scbAchievements') || '[]');
+      var filterReal = document.getElementById('mwb-m-meaningful').checked;
+      var pool = filterReal ? saved.filter(hasMeaningfulDef) : saved;
+
+      // Apply category filter
+      var cat = mwbState.activeCategory || 'all';
+      if (cat !== 'all') pool = pool.filter(function(w) { return (w.category||'manual') === cat; });
+
+      if (pool.length === 0) {
+        document.getElementById('mwb-m-empty').textContent = 'No words saved yet. Use the solver or Word of the Day to build your collection!';
+        document.getElementById('mwb-m-empty').classList.remove('hidden');
+        document.getElementById('mwb-m-card').classList.add('hidden');
+        document.getElementById('mwb-m-controls').classList.add('hidden');
+        document.getElementById('mwb-m-actions').classList.add('hidden');
+        return;
+      }
+
+      mwbState.words = shuffleArray(pool);
+      mwbState.current = 0;
+      mwbState.active = true;
+      mwbState.flipped = false;
+
+      document.getElementById('mwb-m-empty').classList.add('hidden');
+      document.getElementById('mwb-m-card').classList.remove('hidden');
+      document.getElementById('mwb-m-controls').classList.remove('hidden');
+      document.getElementById('mwb-m-actions').classList.remove('hidden');
+      document.getElementById('mwb-m-start').textContent = '🔀 Shuffle';
+      document.getElementById('mwb-m-speed-wrap').classList.remove('hidden');
+
+      refreshModalCats();
+      renderMwbCard();
+    }
+
+    // Render current card
+    function renderMwbCard() {
+      if (!mwbState.words.length) return;
+      var w = mwbState.words[mwbState.current];
+      var style = getCatStyle(w.category || 'manual');
+      var pts = wordScore(w.word);
+
+      mwbState.flipped = false;
+      document.getElementById('mwb-m-word').textContent = w.word || '?';
+      document.getElementById('mwb-m-word').className = 'text-3xl font-black tracking-wider mb-2 ' + style.text;
+      document.getElementById('mwb-m-score').textContent = pts + ' pts';
+      document.getElementById('mwb-m-score').classList.remove('hidden');
+      document.getElementById('mwb-m-meaning').textContent = w.meaning || 'No meaning saved';
+      document.getElementById('mwb-m-meaning').classList.add('hidden');
+      document.getElementById('mwb-m-hint').textContent = 'tap to flip';
+      document.getElementById('mwb-m-hint').classList.remove('hidden');
+      document.getElementById('mwb-m-counter').textContent = (mwbState.current+1) + ' / ' + mwbState.words.length;
+
+      var card = document.getElementById('mwb-m-card');
+      card.className = 'mx-auto w-full max-w-sm h-44 rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all select-none ' + style.border + ' ' + style.bg + ' hover:scale-[1.02]';
+
+      // Animate entry
+      card.style.opacity = '0';
+      card.style.transform = 'rotateY(90deg)';
+      requestAnimationFrame(function() {
+        card.style.transition = 'opacity 0.3s, transform 0.3s';
+        card.style.opacity = '1';
+        card.style.transform = 'rotateY(0deg)';
+      });
+    }
+
+    // Flip card
+    function flipMwbCard() {
+      if (!mwbState.active) return;
+      mwbState.flipped = !mwbState.flipped;
+      var card = document.getElementById('mwb-m-card');
+      var wordEl = document.getElementById('mwb-m-word');
+      var meaningEl = document.getElementById('mwb-m-meaning');
+      var hintEl = document.getElementById('mwb-m-hint');
+
+      card.style.transition = 'transform 0.2s';
+      card.style.transform = 'rotateY(90deg)';
+      setTimeout(function() {
+        if (mwbState.flipped) {
+          meaningEl.classList.remove('hidden');
+          hintEl.textContent = 'tap to see word';
+          wordEl.style.fontSize = '1.2rem';
+          wordEl.className = 'font-black tracking-wider mb-2 text-gray-500';
+        } else {
+          meaningEl.classList.add('hidden');
+          hintEl.textContent = 'tap to flip';
+          wordEl.style.fontSize = '';
+          var style = getCatStyle((mwbState.words[mwbState.current]||{}).category||'manual');
+          wordEl.className = 'text-3xl font-black tracking-wider mb-2 ' + style.text;
+        }
+        card.style.transform = 'rotateY(0deg)';
+      }, 200);
+    }
+
+    // Event listeners
+    document.getElementById('mwb-m-card').addEventListener('click', flipMwbCard);
+
+    document.getElementById('mwb-m-start').addEventListener('click', startMwbCards);
+
+    document.getElementById('mwb-m-meaningful').addEventListener('change', function() {
+      refreshModalCats();
+      if (mwbState.active) startMwbCards();
+    });
+
+    document.getElementById('mwb-m-prev').addEventListener('click', function() {
+      if (!mwbState.active || !mwbState.words.length) return;
+      stopMwbAuto();
+      mwbState.current = (mwbState.current - 1 + mwbState.words.length) % mwbState.words.length;
+      renderMwbCard();
+    });
+
+    document.getElementById('mwb-m-next').addEventListener('click', function() {
+      if (!mwbState.active || !mwbState.words.length) return;
+      stopMwbAuto();
+      mwbState.current = (mwbState.current + 1) % mwbState.words.length;
+      renderMwbCard();
+    });
+
+    // Copy
+    document.getElementById('mwb-m-copy').addEventListener('click', function() {
+      if (!mwbState.active || !mwbState.words[mwbState.current]) return;
+      var self = this;
+      navigator.clipboard.writeText(mwbState.words[mwbState.current].word).catch(function(){});
+      self.textContent = '✓ Copied';
+      setTimeout(function() { self.textContent = '📋 Copy'; }, 1500);
+    });
+
+    // Delete
+    document.getElementById('mwb-m-delete').addEventListener('click', function() {
+      if (!mwbState.active || !mwbState.words[mwbState.current]) return;
+      var wordToDelete = mwbState.words[mwbState.current].word;
+      var store = window.__swfStore ? window.__swfStore : null;
+      var saved = JSON.parse((store && store.getRaw('scbAchievements')) || localStorage.getItem('scbAchievements') || '[]');
+      saved = saved.filter(function(a) { return a.word !== wordToDelete; });
+      if (store) store.setRaw('scbAchievements', JSON.stringify(saved));
+      else localStorage.setItem('scbAchievements', JSON.stringify(saved));
+
+      mwbState.words.splice(mwbState.current, 1);
+      if (mwbState.words.length === 0) {
+        document.getElementById('mwb-m-card').classList.add('hidden');
+        document.getElementById('mwb-m-controls').classList.add('hidden');
+        document.getElementById('mwb-m-actions').classList.add('hidden');
+        document.getElementById('mwb-m-empty').textContent = 'All words deleted from this set.';
+        document.getElementById('mwb-m-empty').classList.remove('hidden');
+        mwbState.active = false;
+      } else {
+        if (mwbState.current >= mwbState.words.length) mwbState.current = 0;
+        renderMwbCard();
+      }
+      refreshModalCats();
+    });
+
+    // Auto-play
+    function getMwbSpeed() { return parseInt(document.getElementById('mwb-m-speed').value)*1000 || 5000; }
+
+    function startMwbAuto() {
+      if (!mwbState.active) startMwbCards();
+      if (!mwbState.active) return;
+      mwbAutoPhase = 'word';
+      scheduleMwbNext();
+    }
+
+    function scheduleMwbNext() {
+      clearTimeout(mwbAutoTimer);
+      mwbAutoTimer = setTimeout(function() {
+        if (modal.classList.contains('hidden')) return;
+        if (mwbAutoPhase === 'word') {
+          if (!mwbState.flipped) flipMwbCard();
+          mwbAutoPhase = 'meaning';
+          scheduleMwbNext();
+        } else {
+          mwbState.current = (mwbState.current + 1) % mwbState.words.length;
+          renderMwbCard();
+          mwbAutoPhase = 'word';
+          scheduleMwbNext();
+        }
+      }, getMwbSpeed());
+    }
+
+    function stopMwbAuto() {
+      clearTimeout(mwbAutoTimer);
+      mwbAutoTimer = null;
+      var btn = document.getElementById('mwb-m-autoplay');
+      btn.innerHTML = '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+      btn.dataset.playing = '';
+    }
+
+    document.getElementById('mwb-m-autoplay').addEventListener('click', function() {
+      var btn = this;
+      if (btn.dataset.playing === '1') {
+        stopMwbAuto();
+      } else {
+        btn.dataset.playing = '1';
+        btn.innerHTML = '<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>';
+        startMwbAuto();
+      }
+    });
+
+    document.getElementById('mwb-m-speed').addEventListener('input', function() {
+      document.getElementById('mwb-m-speed-label').textContent = this.value + 's';
+      if (mwbAutoTimer) { clearTimeout(mwbAutoTimer); scheduleMwbNext(); }
+    });
+
+    // Keyboard nav within modal
+    document.addEventListener('keydown', function(e) {
+      if (modal.classList.contains('hidden') || !mwbState.active) return;
+      if (e.key === 'ArrowLeft') { stopMwbAuto(); document.getElementById('mwb-m-prev').click(); }
+      else if (e.key === 'ArrowRight') { stopMwbAuto(); document.getElementById('mwb-m-next').click(); }
+      else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipMwbCard(); }
+    });
   })();
   </script>
 

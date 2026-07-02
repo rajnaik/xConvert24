@@ -164,3 +164,72 @@ test.describe('EV Score Badge — Negative', () => {
     expect(score).toBeLessThan(30);
   });
 });
+
+
+test.describe('Memorise with Memory WordBench Button — Positive', () => {
+  test('MWB modal-open button is visible on the chat page', async ({ page }) => {
+    await page.goto(CHAT_URL);
+    const btn = page.locator('#mwb-modal-open');
+    await expect(btn).toBeVisible();
+  });
+
+  test('MWB button is a <button> element with type="button"', async ({ page }) => {
+    await page.goto(CHAT_URL);
+    const btn = page.locator('#mwb-modal-open');
+    const tagName = await btn.evaluate(el => el.tagName.toLowerCase());
+    expect(tagName).toBe('button');
+    const type = await btn.getAttribute('type');
+    expect(type).toBe('button');
+  });
+
+  test('MWB button contains correct text', async ({ page }) => {
+    await page.goto(CHAT_URL);
+    const btn = page.locator('#mwb-modal-open');
+    const text = await btn.textContent();
+    expect(text).toContain('Memorise with Memory WordBench');
+  });
+
+  test('MWB button has brain emoji with aria-hidden', async ({ page }) => {
+    await page.goto(CHAT_URL);
+    const emoji = page.locator('#mwb-modal-open span[aria-hidden="true"]');
+    await expect(emoji).toBeAttached();
+    const text = await emoji.textContent();
+    expect(text).toContain('🧠');
+  });
+
+  test('MWB button has purple styling classes', async ({ page }) => {
+    await page.goto(CHAT_URL);
+    const btn = page.locator('#mwb-modal-open');
+    const cls = await btn.getAttribute('class');
+    expect(cls).toContain('border-purple-500/40');
+    expect(cls).toContain('text-purple-300');
+  });
+});
+
+test.describe('Memorise with Memory WordBench Button — Negative', () => {
+  test('no duplicate MWB modal-open buttons on the page', async ({ page }) => {
+    await page.goto(CHAT_URL);
+    const buttons = page.locator('#mwb-modal-open');
+    const count = await buttons.count();
+    expect(count).toBe(1);
+  });
+
+  test('MWB button click does not cause page errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(CHAT_URL);
+    await page.locator('#mwb-modal-open').click();
+    await page.waitForTimeout(1000);
+    const critical = errors.filter(e =>
+      e.includes('TypeError') || e.includes('ReferenceError') || e.includes('Cannot read')
+    );
+    expect(critical).toHaveLength(0);
+  });
+
+  test('MWB button click does not navigate away from chat page', async ({ page }) => {
+    await page.goto(CHAT_URL);
+    await page.locator('#mwb-modal-open').click();
+    await page.waitForTimeout(500);
+    expect(page.url()).toContain('/chat/');
+  });
+});

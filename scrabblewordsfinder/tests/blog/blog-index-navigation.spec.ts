@@ -30,7 +30,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     expect(classes).toContain('lg:grid-cols-5');
   });
 
-  test('all 29 category/activity tiles are present', async ({ page }) => {
+  test('all 30 category/activity tiles are present', async ({ page }) => {
     await page.goto('/blog/');
     const expectedLabels = [
       'Beginner',
@@ -56,6 +56,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
       'Fun Facts',
       'Cheat Sheets',
       'WOTD Series',
+      'Videos',
       'Word Quiz',
       'WordBench',
       'Daily Rack',
@@ -84,7 +85,7 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     await page.goto('/blog/');
     const navGrid = page.locator(NAV_GRID).first();
     const tiles = await navGrid.locator('a').all();
-    expect(tiles.length).toBe(29);
+    expect(tiles.length).toBe(30);
     for (const tile of tiles) {
       // Each tile should have either 2 spans (emoji + label) or 1 img + 1 span (for Ask Lex AI)
       const spans = await tile.locator('span').count();
@@ -99,6 +100,29 @@ test.describe('Blog Index — Category Navigation Grid — Positive', () => {
     const tile = page.locator(`${NAV_GRID} a:has-text("WOTD Series")`).first();
     await expect(tile).toBeVisible();
     await expect(tile).toHaveAttribute('href', '/blog/word-of-the-day-series/');
+  });
+
+  test('Videos tile points to /blog/how-to-play-scrabble-videos/', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Videos")`).first();
+    await expect(tile).toBeVisible();
+    await expect(tile).toHaveAttribute('href', '/blog/how-to-play-scrabble-videos/');
+  });
+
+  test('Videos tile has red theming', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Videos")`).first();
+    const classes = await tile.getAttribute('class');
+    expect(classes).toContain('border-red-500/30');
+    expect(classes).toContain('bg-red-950/20');
+  });
+
+  test('Videos tile has 🎬 emoji icon', async ({ page }) => {
+    await page.goto('/blog/');
+    const tile = page.locator(`${NAV_GRID} a:has-text("Videos")`).first();
+    const emojiSpan = tile.locator('span').first();
+    const text = await emojiSpan.textContent();
+    expect(text?.trim()).toBe('🎬');
   });
 
   test('Pro Player tile points to /blog/roadmap-to-being-a-pro-player/', async ({ page }) => {

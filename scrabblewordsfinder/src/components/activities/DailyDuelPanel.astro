@@ -1,0 +1,244 @@
+      <!-- Panel: Daily Duel -->
+      <div class="rounded-xl border border-emerald-800/50 bg-gray-900/50 p-4 sm:p-6">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>⚔️</span> Daily Duel <span class="star-indicator text-sm opacity-40 cursor-help" data-game="duel" title="⭐ Earn star: Submit 1 valid word">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="duel">✅</span></h2>
+          <a href="/leaderboard/" class="px-2 py-1 rounded-lg bg-amber-600/20 border border-amber-500/30 text-xs text-amber-300 hover:bg-amber-600/40 transition-colors flex items-center gap-1" title="View full leaderboard">🏆 Leaderboard</a>
+        </div>
+        <p class="text-xs text-gray-500 mb-4">Same tiles for everyone — highest single word wins. Submit as many words as you like!</p>
+
+        <!-- Loading -->
+        <div id="dd-loading" class="text-center py-4"><p class="text-xs text-gray-500">Loading today's duel...</p></div>
+
+        <!-- Content -->
+        <div id="dd-content" class="hidden">
+          <!-- Today's tiles -->
+          <div id="dd-tiles" class="flex gap-1.5 justify-center mb-4"></div>
+
+          <!-- Input -->
+          <div class="flex gap-2 mb-3">
+            <input id="dd-input" type="text" maxlength="15" placeholder="Type your best word..." class="flex-1 h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white uppercase tracking-wider font-mono placeholder-gray-500 focus:outline-none focus:border-emerald-500" autocomplete="off" />
+            <button id="dd-submit" class="h-10 px-4 rounded-lg bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-500 transition-colors cursor-pointer">Submit</button>
+          </div>
+
+          <!-- Feedback -->
+          <div id="dd-feedback" class="hidden mb-3 p-3 rounded-lg text-center text-sm font-medium"></div>
+
+          <!-- Your stats -->
+          <div id="dd-your-stats" class="hidden mb-3 grid grid-cols-3 gap-2">
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="dd-stat-best" class="text-lg font-bold text-amber-400">0</p>
+              <p class="text-[9px] text-gray-500">Best Word</p>
+            </div>
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="dd-stat-total" class="text-lg font-bold text-green-400">0</p>
+              <p class="text-[9px] text-gray-500">Total Pts</p>
+            </div>
+            <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+              <p id="dd-stat-rank" class="text-lg font-bold text-purple-400">—</p>
+              <p class="text-[9px] text-gray-500">Your Rank</p>
+            </div>
+          </div>
+
+          <!-- Your submissions today -->
+          <div id="dd-your-words" class="hidden mb-3">
+            <p class="text-[10px] text-gray-500 uppercase mb-1">Your words today</p>
+            <div id="dd-your-list" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
+          <!-- Top Players Mini-leaderboard -->
+          <div id="dd-top" class="mt-3 pt-3 border-t border-gray-800">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-[10px] text-gray-500 uppercase font-semibold">Today's Top Players</p>
+              <a href="/leaderboard/" class="text-[10px] text-amber-400 hover:underline">View all →</a>
+            </div>
+            <div id="dd-top-list" class="flex flex-col gap-1"></div>
+            <p id="dd-top-empty" class="hidden text-xs text-gray-600 text-center py-2">No scores yet — be the first!</p>
+          </div>
+        </div>
+      </div>
+
+<script is:inline>
+(function() {
+  var S = window.__swfStore;
+  var uid = S.getRaw('swf-uid') || '';
+  var scores = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+  var dailyRack = '';
+  var userWords = [];
+
+  // Load duel data
+  var cacheKey = 'swf-dd-' + new Date().toISOString().split('T')[0];
+  var cached = S.getIfValid(cacheKey);
+  if (cached) {
+    renderDuel(cached);
+    // Refresh in background for latest top players
+    if (uid) fetchDuel(true);
+  } else {
+    fetchDuel(false);
+  }
+
+  function fetchDuel(silent) {
+    var url = '/api/daily-duel/' + (uid ? '?user_id=' + encodeURIComponent(uid) : '');
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.expiresAt) S.setWithExpiry(cacheKey, data, data.expiresAt);
+        if (!silent) renderDuel(data);
+        else { renderTopPlayers(data.topPlayers); renderUserStats(data); }
+      })
+      .catch(function() {
+        if (!silent) document.getElementById('dd-loading').innerHTML = '<p class="text-xs text-red-400">Failed to load</p>';
+      });
+  }
+
+  function renderDuel(data) {
+    document.getElementById('dd-loading').classList.add('hidden');
+    document.getElementById('dd-content').classList.remove('hidden');
+    dailyRack = data.rack || '';
+
+    // Render tiles
+    var tilesHtml = dailyRack.split('').map(function(letter) {
+      var pts = scores[letter] || 0;
+      return '<div class="w-11 h-14 rounded-lg flex flex-col items-center justify-center select-none" style="background:linear-gradient(145deg,#e8d5c0,#dcc8b0);box-shadow:inset 0 2px 0 rgba(255,255,255,0.4),inset 0 -3px 0 rgba(0,0,0,0.08),0 4px 8px rgba(0,0,0,0.2);border:2px solid #c4a882;">' +
+        '<span class="text-lg font-black text-gray-800">' + letter + '</span>' +
+        '<span class="text-[8px] text-gray-600 -mt-0.5">' + pts + '</span>' +
+      '</div>';
+    }).join('');
+    document.getElementById('dd-tiles').innerHTML = tilesHtml;
+
+    // User stats
+    renderUserStats(data);
+
+    // User words
+    if (data.userWords && data.userWords.length > 0) {
+      userWords = data.userWords;
+      renderUserWords();
+    }
+
+    // Top players
+    renderTopPlayers(data.topPlayers);
+  }
+
+  function renderUserStats(data) {
+    if (!data.userStats || (!data.userStats.best_score && !data.userStats.total_score)) return;
+    document.getElementById('dd-your-stats').classList.remove('hidden');
+    document.getElementById('dd-stat-best').textContent = data.userStats.best_score || 0;
+    document.getElementById('dd-stat-total').textContent = data.userStats.total_score || 0;
+    document.getElementById('dd-stat-rank').textContent = data.userRank ? '#' + data.userRank : '—';
+  }
+
+  function renderUserWords() {
+    if (userWords.length === 0) return;
+    document.getElementById('dd-your-words').classList.remove('hidden');
+    document.getElementById('dd-your-list').innerHTML = userWords.map(function(w) {
+      var bingoIcon = (w.word && w.word.length === 7) ? ' <span title="Bingo! All 7 tiles used">🎯</span>' : '';
+      return '<span class="px-2 py-0.5 rounded bg-emerald-900/30 border border-emerald-700/50 text-xs text-emerald-300 font-mono uppercase">' + w.word + bingoIcon + ' <span class="text-emerald-500 font-bold">' + w.score + '</span></span>';
+    }).join('');
+  }
+
+  function renderTopPlayers(topPlayers) {
+    if (!topPlayers || topPlayers.length === 0) {
+      document.getElementById('dd-top-empty').classList.remove('hidden');
+      document.getElementById('dd-top-list').innerHTML = '';
+      return;
+    }
+    document.getElementById('dd-top-empty').classList.add('hidden');
+    var html = topPlayers.slice(0, 5).map(function(p, i) {
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+      var isYou = uid && p.user_id === uid;
+      var nameClass = isYou ? 'text-purple-300 font-bold' : 'text-gray-300';
+      return '<div class="flex items-center gap-2 py-1' + (isYou ? ' bg-purple-900/10 rounded px-1' : '') + '">' +
+        '<span class="w-5 text-center text-xs">' + medal + '</span>' +
+        '<img src="' + p.avatar_src + '" alt="" class="w-5 h-5 rounded-full border border-gray-600/50" />' +
+        '<span class="flex-1 text-xs ' + nameClass + ' truncate">' + p.display_name + (isYou ? ' (you)' : '') + '</span>' +
+        '<span class="text-xs font-bold text-amber-400">' + p.best_score + '</span>' +
+        '<span class="text-[10px] text-gray-500 ml-1">pts</span>' +
+      '</div>';
+    }).join('');
+    document.getElementById('dd-top-list').innerHTML = html;
+  }
+
+  function canMakeFromRack(word, rack) {
+    var available = rack.toUpperCase().split('');
+    for (var i = 0; i < word.length; i++) {
+      var idx = available.indexOf(word[i].toUpperCase());
+      if (idx === -1) return false;
+      available.splice(idx, 1);
+    }
+    return true;
+  }
+
+  function calcScore(word) {
+    return word.toUpperCase().split('').reduce(function(s, c) { return s + (scores[c] || 0); }, 0);
+  }
+
+  // Submit handler
+  document.getElementById('dd-submit').addEventListener('click', function() {
+    var input = document.getElementById('dd-input');
+    var word = input.value.trim().toUpperCase();
+    if (!word || word.length < 2) return;
+    if (!uid) {
+      showFeedback('error', 'Play a game first to register your identity!');
+      return;
+    }
+
+    if (!canMakeFromRack(word, dailyRack)) {
+      showFeedback('error', "❌ Can't make '" + word + "' from today's tiles!");
+      return;
+    }
+
+    var alreadySubmitted = userWords.some(function(w) { return w.word.toUpperCase() === word; });
+    if (alreadySubmitted) {
+      showFeedback('error', "❌ You already submitted '" + word + "' today!");
+      return;
+    }
+
+    var wordPts = calcScore(word);
+
+    fetch('/api/daily-duel/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: uid, word: word, score: wordPts })
+    }).then(function(res) {
+      if (res.status === 409) {
+        showFeedback('error', "❌ Already submitted '" + word + "'!");
+        return;
+      }
+      return res.json();
+    }).then(function(data) {
+      if (!data || !data.success) return;
+
+      showFeedback('success', '✅ ' + word + ' — ' + wordPts + ' pts! Rank #' + data.userRank);
+      input.value = '';
+
+      // Update local state
+      userWords.push({ word: word, score: wordPts });
+      renderUserWords();
+
+      // Award star
+      if (window.__awardStar) window.__awardStar('duel');
+
+      // Refresh data
+      fetchDuel(true);
+
+      // Clear cache to get fresh data next time
+      S.remove(cacheKey);
+    }).catch(function() {
+      showFeedback('error', '❌ Network error — try again');
+    });
+  });
+
+  // Enter key submits
+  document.getElementById('dd-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('dd-submit').click();
+  });
+
+  function showFeedback(type, msg) {
+    var fb = document.getElementById('dd-feedback');
+    fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium ' +
+      (type === 'error' ? 'bg-red-900/30 border border-red-500/50 text-red-300' : 'bg-emerald-900/30 border border-emerald-500/50 text-emerald-300');
+    fb.textContent = msg;
+    fb.classList.remove('hidden');
+    setTimeout(function() { fb.classList.add('hidden'); }, 4000);
+  }
+})();
+</script>

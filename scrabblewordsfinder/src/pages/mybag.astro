@@ -14,6 +14,15 @@ import '../styles/global.css';
       </div>
     </div>
 
+    <!-- Avatar & Display Name (full-width breakout) -->
+    <div id="mybag-avatar" class="hidden w-screen relative left-1/2 -translate-x-1/2 flex items-center gap-4 mb-6 border-y border-teal-700/40 bg-teal-950/20 px-5 py-4">
+      <img id="mybag-avatar-img" src="/avatars/avatar-1.svg" alt="Your avatar" class="w-14 h-14 rounded-full border-2 border-teal-500/60 shrink-0" />
+      <div>
+        <p id="mybag-avatar-name" class="text-lg font-semibold text-white"></p>
+        <p class="text-xs text-gray-400">Your avatar &amp; display name</p>
+      </div>
+    </div>
+
     <!-- Loading state -->
     <div id="mybag-loading" class="text-center py-12">
       <p class="text-gray-400 text-sm animate-pulse">Loading your earnings...</p>
@@ -195,6 +204,16 @@ import '../styles/global.css';
     var errorEl = document.getElementById('mybag-error');
     var contentEl = document.getElementById('mybag-content');
     var currentLimit = 30;
+
+    // Show avatar + display name from localStorage
+    var avatarId = S.getRaw('swf-avatar');
+    var displayName = S.getRaw('swf-display-name');
+    if (avatarId && displayName) {
+      var avatarEl = document.getElementById('mybag-avatar');
+      document.getElementById('mybag-avatar-img').src = '/avatars/avatar-' + avatarId + '.svg';
+      document.getElementById('mybag-avatar-name').textContent = displayName;
+      avatarEl.classList.remove('hidden');
+    }
 
     if (!uid) {
       loadingEl.classList.add('hidden');
