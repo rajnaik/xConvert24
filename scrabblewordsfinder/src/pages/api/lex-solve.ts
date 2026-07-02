@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
+import { scoreRack, rackQualitySummary, compareLeaves } from '../../lib/rack-quality';
 
 /** Scrabble letter point values */
 const LETTER_SCORES: Record<string, number> = {
@@ -130,21 +131,45 @@ export const POST: APIRoute = async ({ request }) => {
   let solvedWords: { word: string; score: number }[] = [];
 
   try {
-    // Always use the full SOWPODS dictionary file (74K+ words) as primary source
-    try {
-      const dictUrl = new URL('/data/sowpods-2-7.json', request.url);
-      const dictRes = await fetch(dictUrl.toString());
-      if (dictRes.ok) {
-        const words: string[] = await dictRes.json();
-        solvedWords = words
-          .filter(w => w.length <= cleanRack.length && canMake(w, cleanRack))
-          .map(w => ({ word: w.toUpperCase(), score: wordScore(w) }))
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 25);
-      }
-    } catch {
-      // If SOWPODS fetch fails, fall back to DB dictionary
-      if (db) {
+    // Use ASSETS binding to read the dictionary file directly (avoids self-fetch loop)
+    const ASSETS = (env as any).ASSETS;
+    let dictLoaded = false;
+
+    if (ASSETS) {
+      try {
+        const dictRes = await ASSETS.fetch(new Request('https://placeholder/data/sowpods-2-7.json'));
+        if (dictRes.ok) {
+          const words: string[] = await dictRes.json();
+          solvedWords = words
+            .filter(w => w.length <= cleanRack.length && canMake(w, cleanRack))
+            .map(w => ({ word: w.toUpperCase(), score: wordScore(w) }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 25);
+          dictLoaded = true;
+        }
+      } catch { /* fall through to DB */ }
+    }
+
+    // Fallback: try fetching from own origin (works in dev, not in deployed Worker)
+    if (!dictLoaded) {
+      try {
+        const dictUrl = new URL('/data/sowpods-2-7.json', request.url);
+        const dictRes = await fetch(dictUrl.toString());
+        if (dictRes.ok) {
+          const words: string[] = await dictRes.json();
+          solvedWords = words
+            .filter(w => w.length <= cleanRack.length && canMake(w, cleanRack))
+            .map(w => ({ word: w.toUpperCase(), score: wordScore(w) }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 25);
+          dictLoaded = true;
+        }
+      } catch { /* fall through to DB */ }
+    }
+
+    // Final fallback: DB dictionary table
+    if (!dictLoaded && db) {
+      try {
         const { results: rows } = await db.prepare(
           'SELECT word, points FROM dictionary WHERE LENGTH(word) <= ? ORDER BY points DESC'
         ).bind(cleanRack.length).all();
@@ -156,7 +181,7 @@ export const POST: APIRoute = async ({ request }) => {
             .sort((a: any, b: any) => b.score - a.score)
             .slice(0, 25);
         }
-      }
+      } catch { /* non-fatal */ }
     }
   } catch {
     // Non-fatal — proceed with empty results
@@ -228,7 +253,9 @@ Best words found (in order, #1 is the best): ${wordListForAI}
 ${rackLeaveInfo}
 Total words possible: ${solvedWords.length}
 ${hasBingo ? `\n🎯 BINGO AVAILABLE! ${bingos.map(b => b.word).join(', ')} use(s) ALL 7 tiles for +50 bonus! This is ALWAYS the best play.\n` : ''}
-THE #1 RECOMMENDED PLAY IS: ${bestPlayLabel}. Recommend THIS word to me. Do NOT suggest any other word as the best play.`;
+📊 RACK QUALITY: ${rackQualitySummary(cleanRack)}
+${!hasBingo && topWords.length >= 2 ? `LEAVE COMPARISON: ${compareLeaves(cleanRack, topWords.slice(0, 3).map(w => w.word)).map(l => `${l.play} → leave ${l.leave || '(none)'} (${l.leaveScore}/100)`).join(' | ')}` : ''}
+THE #1 RECOMMENDED PLAY IS: ${bestPlayLabel}. Recommend THIS word to me. Do NOT suggest any other word as the best play. Mention the rack quality score and leave quality in your coaching.`;
 
     const aiResponse = await AI.run('@cf/meta/llama-3.1-8b-instruct', {
       messages: [

@@ -64,26 +64,75 @@ import '../styles/global.css';
 
     <p class="text-sm text-gray-400 mb-4">Ask me about Scrabble strategy, word suggestions, rules, or enter your rack below for the best play.</p>
 
-    <!-- Ask Lex — Rack Input -->
+    <!-- Ask Lex — Rack Input + Dojo Mode -->
     <div id="ask-lex-panel" class="mb-4 p-3 bg-gray-800/60 border border-gray-700 rounded-xl">
-      <label for="rack-input" class="text-xs font-semibold text-gray-300 uppercase tracking-wide mb-2 block">Your Rack (up to 7 tiles)</label>
-      <div class="flex items-center gap-2">
-        <input
-          id="rack-input"
-          type="text"
-          maxlength="7"
-          placeholder="e.g. AEILNRT"
-          class="w-32 px-3 py-2 text-sm font-mono uppercase tracking-widest bg-gray-900 border border-gray-600 rounded-lg text-green-400 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <button
-          id="ask-lex-btn"
-          type="button"
-          class="px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white transition-colors"
-        >Ask Lex</button>
+      <div class="flex flex-col sm:flex-row gap-3 sm:gap-0">
+        <!-- Left: Rack Input -->
+        <div class="flex-1">
+          <label for="rack-input" class="text-xs font-semibold text-gray-300 uppercase tracking-wide mb-2 block">Your Rack (up to 7 tiles)</label>
+          <div class="flex items-center gap-2">
+            <input
+              id="rack-input"
+              type="text"
+              maxlength="7"
+              placeholder="e.g. AEILNRT"
+              class="w-32 px-3 py-2 text-sm font-mono uppercase tracking-widest bg-gray-900 border border-gray-600 rounded-lg text-green-400 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button
+              id="ask-lex-btn"
+              type="button"
+              class="px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white transition-colors"
+            >Ask Lex</button>
+          </div>
+          <p id="rack-hint" class="text-xs text-gray-500 mt-1.5">Enter your tiles and I'll find the best word</p>
+          <!-- EV Score Badge — shows rack quality when tiles entered -->
+          <div id="ev-score-badge" class="hidden mt-2 flex items-center gap-2">
+            <span id="ev-score-bar" class="h-2 rounded-full bg-gray-700 w-24 overflow-hidden">
+              <span id="ev-score-fill" class="block h-full rounded-full transition-all duration-300" style="width:0%"></span>
+            </span>
+            <span id="ev-score-value" class="text-xs font-bold font-mono"></span>
+            <span id="ev-score-label" class="text-[10px] uppercase tracking-wider font-semibold"></span>
+          </div>
+        </div>
+
+        <!-- Vertical Separator -->
+        <div class="hidden sm:block w-px bg-gray-600/60 mx-4 self-stretch"></div>
+        <div class="sm:hidden h-px bg-gray-600/60 my-2"></div>
+
+        <!-- Right: Dojo Mode -->
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-2">
+            <label for="dojo-toggle" class="text-xs font-semibold text-gray-300 uppercase tracking-wide">Dojo Mode</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input id="dojo-toggle" type="checkbox" class="sr-only peer" />
+              <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-500/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500 peer-checked:after:bg-white"></div>
+            </label>
+            <span id="dojo-status" class="text-[10px] uppercase tracking-wide font-bold text-gray-500">Off</span>
+          </div>
+          <p class="text-xs text-gray-500 mb-2">Train your skills with AI-powered drills</p>
+          <!-- Dojo training mode buttons (hidden until toggle is on) -->
+          <div id="dojo-buttons" class="hidden grid grid-cols-2 gap-2">
+            <button data-dojo="bingo" class="dojo-btn px-2 py-2 text-xs font-semibold rounded-lg border border-purple-500/50 bg-purple-900/30 text-purple-300 hover:bg-purple-800/50 hover:border-purple-400 transition-colors text-left">
+              <span class="block text-[11px] font-bold">🎯 Bingo Trainer</span>
+              <span class="block text-[10px] text-gray-400 mt-0.5">Find all 7-letter words</span>
+            </button>
+            <button data-dojo="hook" class="dojo-btn px-2 py-2 text-xs font-semibold rounded-lg border border-cyan-500/50 bg-cyan-900/30 text-cyan-300 hover:bg-cyan-800/50 hover:border-cyan-400 transition-colors text-left">
+              <span class="block text-[11px] font-bold">🪝 Hook Quiz</span>
+              <span class="block text-[10px] text-gray-400 mt-0.5">Guess valid hooks</span>
+            </button>
+            <button data-dojo="countdown" class="dojo-btn px-2 py-2 text-xs font-semibold rounded-lg border border-amber-500/50 bg-amber-900/30 text-amber-300 hover:bg-amber-800/50 hover:border-amber-400 transition-colors text-left">
+              <span class="block text-[11px] font-bold">🔢 Tile Countdown</span>
+              <span class="block text-[10px] text-gray-400 mt-0.5">Track remaining tiles</span>
+            </button>
+            <button data-dojo="leave" class="dojo-btn px-2 py-2 text-xs font-semibold rounded-lg border border-emerald-500/50 bg-emerald-900/30 text-emerald-300 hover:bg-emerald-800/50 hover:border-emerald-400 transition-colors text-left">
+              <span class="block text-[11px] font-bold">♻️ Rack Leave Drill</span>
+              <span class="block text-[10px] text-gray-400 mt-0.5">Pick the best play</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <p id="rack-hint" class="text-xs text-gray-500 mt-1.5">Enter your tiles and I'll find the best word</p>
     </div>
 
     <!-- Chat usage counter -->
@@ -216,6 +265,19 @@ import '../styles/global.css';
         <div id="kh-list" class="flex flex-col gap-1.5"></div>
       </div>
     </div>
+
+    <!-- Analyse Score tile -->
+    <div id="analyse-score-tile" class="hidden">
+      <div class="p-4 bg-gray-900/50 border border-amber-700/50 rounded-xl">
+        <h2 class="text-sm font-semibold text-amber-300 mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Analyse Score
+        </h2>
+        <p class="text-[10px] text-gray-500 mb-3">Ask Lex to analyse your game history</p>
+        <div id="analyse-score-links" class="flex flex-col gap-2"></div>
+      </div>
+    </div>
+
     </div><!-- end right column -->
     </div><!-- end flex row -->
   </main>
@@ -252,6 +314,7 @@ import '../styles/global.css';
     ]
   })}></script>
 
+  <script is:inline src="/js/coaching-renderers.js"></script>
   <script is:inline>
   (function() {
     const form = document.getElementById('chat-form');
@@ -261,6 +324,41 @@ import '../styles/global.css';
     const chatUsageCount = document.getElementById('chat-usage-count');
     const rackInput = document.getElementById('rack-input');
     const askLexBtn = document.getElementById('ask-lex-btn');
+
+    // --- Dojo Mode Toggle & Training Buttons ---
+    const dojoToggle = document.getElementById('dojo-toggle');
+    const dojoButtons = document.getElementById('dojo-buttons');
+    const dojoStatus = document.getElementById('dojo-status');
+
+    if (dojoToggle) {
+      dojoToggle.addEventListener('change', function() {
+        const isOn = this.checked;
+        dojoButtons.classList.toggle('hidden', !isOn);
+        dojoStatus.textContent = isOn ? 'On' : 'Off';
+        dojoStatus.classList.toggle('text-orange-400', isOn);
+        dojoStatus.classList.toggle('text-gray-500', !isOn);
+      });
+    }
+
+    // Dojo button click → send training prompt to Lex
+    document.querySelectorAll('.dojo-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const mode = this.getAttribute('data-dojo');
+        const dojoNextInstruction = ' After I complete this exercise, randomly pick a different drill type for the next round (choose from: Bingo Trainer, Hook Quiz, Tile Countdown, Rack Leave Drill). Do NOT follow a preset order — always pick the next exercise at random.';
+        const prompts = {
+          bingo: 'Start a Bingo Trainer drill. Generate a random 7-tile rack from a bingo-friendly stem (like SATIRE, RETINA, LADIES, ALERTS). Show me the rack and I will try to guess all valid 7-letter bingos. Confirm each guess against SOWPODS, then reveal all bingos I missed and explain the stem.' + dojoNextInstruction,
+          hook: 'Start a Hook Quiz. Pick a random 3-5 letter word from the SOWPODS dictionary and tell me the word. I will guess all valid front hooks and back hooks (single-letter additions that form new valid words). Score my attempt and show any hooks I missed.' + dojoNextInstruction,
+          countdown: 'Start a Tile Countdown drill. Present a sequence of 5-8 words that have been "played" in a game. Then ask me how many of a specific tile (like E, S, or blanks) remain in the bag. I will answer, then you reveal the actual count based on the standard Scrabble tile distribution minus the played tiles.' + dojoNextInstruction,
+          leave: 'Start a Rack Leave Drill. Generate a 7-tile rack and present 3 possible plays (word + score). Ask me which play I would choose and why. Then evaluate each resulting rack leave for vowel/consonant balance, bingo potential, power tiles kept, and synergy. Explain which is the best play and why.' + dojoNextInstruction
+        };
+        const prompt = prompts[mode];
+        if (prompt && input) {
+          input.value = prompt;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          form.dispatchEvent(new Event('submit', { bubbles: true }));
+        }
+      });
+    });
 
     // Fetch and display chat usage counter
     async function refreshChatUsage() {
@@ -311,13 +409,81 @@ import '../styles/global.css';
     const savedRack = localStorage.getItem(RACK_KEY) || '';
     if (savedRack) rackInput.value = savedRack;
 
+    // --- EV Scoring Engine (inline) ---
+    const EV_BINGO_STEMS = ['SATIRE','RETINA','NASTIER','TISANE','ARSINE','SENIOR','LINERS','SALINE','TENORS','STONER','ORNATE','ATONES','SERIAL','RAILES','SALTIE','STERNA','ANTRES','ESTRIN','INSERT','INERTS','LEARNT','RENTAL','LASTER','ALERTS','ALTERS','STEARIN','ANESTRI','RATINES','RETINAS','ANTSIER','STAINER','RETSINA'];
+    const EV_SYNERGY = [{l:'ING',b:8},{l:'TION',b:7},{l:'ED',b:4},{l:'ER',b:4},{l:'EST',b:5},{l:'RE',b:3},{l:'UN',b:3},{l:'LY',b:3},{l:'NESS',b:5},{l:'ABLE',b:6},{l:'MENT',b:5},{l:'ATE',b:4},{l:'STER',b:5},{l:'IEST',b:5}];
+    const EV_VOWELS = new Set(['A','E','I','O','U']);
+    const EV_HIGH = new Set(['J','Q','X','Z']);
+
+    function evCountLetters(r) { const m = new Map(); for (const c of r) m.set(c, (m.get(c)||0)+1); return m; }
+    function evContains(counts, pat) { const n = new Map(); for (const c of pat) n.set(c,(n.get(c)||0)+1); for (const [c,q] of n) if ((counts.get(c)||0)<q) return false; return true; }
+    function evStemOverlap(counts, stem) { const u = new Map(); let o=0; for (const c of stem) { const uc=u.get(c)||0; if (uc<(counts.get(c)||0)){o++;u.set(c,uc+1);}} return o; }
+
+    function computeEVScore(rack) {
+      const cleaned = rack.toUpperCase().replace(/[^A-Z?]/g,'');
+      if (!cleaned.length) return null;
+      const counts = evCountLetters(cleaned);
+      // Vowel balance (0-25)
+      let vc=0; for (const c of cleaned) { if (c!=='?' && EV_VOWELS.has(c)) vc++; }
+      let vBal = vc>=2&&vc<=3?25:vc===4?18:vc===1?14:vc===5?8:2;
+      // Power tiles (0-20)
+      let pwr=0; pwr+=Math.min(counts.get('S')||0,2)*8; pwr+=Math.min(counts.get('?')||0,2)*10;
+      for (const t of EV_HIGH) if (counts.has(t)) pwr+=4;
+      pwr=Math.min(pwr,20);
+      // Bingo stems (0-25)
+      let best=0; for (const s of EV_BINGO_STEMS) { const r=evStemOverlap(counts,s)/Math.min(s.length,cleaned.length); if (r>best) best=r; }
+      const bingo=Math.round(best*25);
+      // Duplicate penalty (0-15)
+      let dup=0; for (const [,q] of counts) { if(q===2)dup+=3;else if(q===3)dup+=7;else if(q>=4)dup+=12; }
+      dup=Math.min(dup,15);
+      // Synergy (0-15)
+      let syn=0; for (const {l,b} of EV_SYNERGY) if (evContains(counts,l)) syn+=b;
+      syn=Math.min(syn,15);
+      const raw=vBal+pwr+bingo+syn-dup;
+      const score=Math.max(0,Math.min(100,raw));
+      let label; if(score>=80)label='Excellent';else if(score>=65)label='Strong';else if(score>=45)label='Decent';else if(score>=25)label='Weak';else label='Poor';
+      return {score,label};
+    }
+
+    // EV Score UI elements
+    const evBadge = document.getElementById('ev-score-badge');
+    const evFill = document.getElementById('ev-score-fill');
+    const evValue = document.getElementById('ev-score-value');
+    const evLabel = document.getElementById('ev-score-label');
+
+    function updateEVDisplay(rack) {
+      const result = computeEVScore(rack);
+      if (!result || rack.replace(/[^A-Za-z?]/g,'').length === 0) {
+        evBadge.classList.add('hidden');
+        return;
+      }
+      evBadge.classList.remove('hidden');
+      evFill.style.width = result.score + '%';
+      // Color based on label
+      const colors = {Excellent:'bg-emerald-400',Strong:'bg-green-400',Decent:'bg-amber-400',Weak:'bg-orange-400',Poor:'bg-red-400'};
+      const textColors = {Excellent:'text-emerald-400',Strong:'text-green-400',Decent:'text-amber-400',Weak:'text-orange-400',Poor:'text-red-400'};
+      evFill.className = 'block h-full rounded-full transition-all duration-300 ' + (colors[result.label]||'bg-gray-400');
+      evValue.textContent = result.score + '/100';
+      evValue.className = 'text-xs font-bold font-mono ' + (textColors[result.label]||'text-gray-400');
+      evLabel.textContent = result.label;
+      evLabel.className = 'text-[10px] uppercase tracking-wider font-semibold ' + (textColors[result.label]||'text-gray-400');
+    }
+
     rackInput.addEventListener('input', () => {
       rackInput.value = rackInput.value.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 7);
       localStorage.setItem(RACK_KEY, rackInput.value);
+      updateEVDisplay(rackInput.value);
     });
+
+    // Show EV score on page load if rack was persisted
+    if (savedRack) updateEVDisplay(savedRack);
 
     // Ask Lex button handler
     let pendingKeyword = ''; // Track the rack letters for chatusage keyword logging
+    let pendingCabCoach = false; // Flag: append structured CaB graph/timing after AI response
+    let pendingQuizCoach = false; // Flag: append structured Quiz graph/timing after AI response
+    let pendingRackCoach = false; // Flag: append structured Rack graph/timing after AI response
+    let pendingAnagramCoach = false; // Flag: append structured Anagram graph/timing after AI response
     askLexBtn.addEventListener('click', () => {
       const rack = rackInput.value.trim().toUpperCase();
       if (!rack || rack.length === 0 || isStreaming) return;
@@ -467,6 +633,7 @@ import '../styles/global.css';
     })();
 
     // Identified Words panel — extract 6+ letter ALL-CAPS words from AI responses
+    // Only adds words that are valid in the SOWPODS Scrabble dictionary
     // Persisted in localStorage so they appear instantly on page load
     const identifiedWordsPanel = document.getElementById('identified-words-panel');
     const identifiedWordsList = document.getElementById('identified-words-list');
@@ -477,21 +644,52 @@ import '../styles/global.css';
     // Track which words have been imported to MWB (persisted until new words arrive)
     var importedToMwb = new Set();
 
+    // Lazy-loaded dictionary for word validation (only 6+ letter words kept)
+    var validWordsDict = null;
+    var dictLoadingPromise = null;
+    // Expose for testing
+    window.validWordsDict = null;
+
+    function loadValidWordsDict() {
+      if (validWordsDict) return Promise.resolve(validWordsDict);
+      if (dictLoadingPromise) return dictLoadingPromise;
+      dictLoadingPromise = Promise.all([
+        fetch('/data/sowpods-2-7.json').then(r => r.json()),
+        fetch('/data/sowpods-8-15.json').then(r => r.json())
+      ]).then(function(results) {
+        validWordsDict = new Set();
+        // From 2-7 file, keep only 6+ letter words
+        results[0].forEach(function(w) { if (w.length >= 6) validWordsDict.add(w.toUpperCase()); });
+        // All words from 8-15 file are 8+ letters (all valid)
+        results[1].forEach(function(w) { validWordsDict.add(w.toUpperCase()); });
+        window.validWordsDict = validWordsDict;
+        return validWordsDict;
+      }).catch(function() {
+        // If dictionary load fails, allow all words (graceful degradation)
+        validWordsDict = null;
+        dictLoadingPromise = null;
+        return null;
+      });
+      return dictLoadingPromise;
+    }
+
     // Show instantly on load if words exist from previous session
     renderIdentifiedWords();
 
-    function extractIdentifiedWords(text) {
+    // Preload dictionary so it's ready before first AI response
+    loadValidWordsDict();
+
+    async function extractIdentifiedWords(text) {
+      // Ensure dictionary is loaded before validating
+      var dict = await loadValidWordsDict();
+
       let added = false;
+      var candidates = [];
 
       // 1. Match standalone ALL-CAPS words that are 6+ letters long
       const capsMatches = text.match(/\b[A-Z]{6,}\b/g);
       if (capsMatches) {
-        capsMatches.forEach(word => {
-          if (!identifiedWords.has(word)) {
-            identifiedWords.add(word);
-            added = true;
-          }
-        });
+        capsMatches.forEach(function(word) { candidates.push(word); });
       }
 
       // 2. Match words in numbered list patterns with point values
@@ -499,22 +697,23 @@ import '../styles/global.css';
       const pointsPattern = /^\d+[\.\)]\s*\**([A-Za-z]{6,})\**\s*\(\d+\s*points?\)/gm;
       let m;
       while ((m = pointsPattern.exec(text)) !== null) {
-        var word = m[1].toUpperCase();
-        if (!identifiedWords.has(word)) {
-          identifiedWords.add(word);
-          added = true;
-        }
+        candidates.push(m[1].toUpperCase());
       }
 
       // 3. Match bold words with points: "**LAUGHED** (17 points)" or "**Laughed** (17 points)"
       const boldPointsPattern = /\*\*([A-Za-z]{6,})\*\*\s*\(\d+\s*points?\)/g;
       while ((m = boldPointsPattern.exec(text)) !== null) {
-        var boldWord = m[1].toUpperCase();
-        if (!identifiedWords.has(boldWord)) {
-          identifiedWords.add(boldWord);
-          added = true;
-        }
+        candidates.push(m[1].toUpperCase());
       }
+
+      // Filter: only add words that are valid in the Scrabble dictionary
+      candidates.forEach(function(word) {
+        if (identifiedWords.has(word)) return;
+        // If dictionary loaded, validate; if load failed, allow all (graceful degradation)
+        if (dict && !dict.has(word)) return;
+        identifiedWords.add(word);
+        added = true;
+      });
 
       if (added) {
         // Reset imported state — new words arrived, show + icons for all
@@ -725,8 +924,17 @@ import '../styles/global.css';
           return;
         }
 
+        // Detect affirmation/correct-answer lines → render in green
+        var affirmationPattern = /^(✅|✓|Correct!|That's right|Well done|Excellent|You got it|Great job|Nice one|Perfect|Spot on|Right!|Bravo|Nailed it|Good job|Great work)/i;
+        var plainBlock = block.replace(/\n/g, ' ');
+        if (affirmationPattern.test(plainBlock)) {
+          var affHtml = applyInlineFormatting(plainBlock);
+          htmlParts.push('<p class="text-sm text-green-400 font-semibold leading-relaxed mt-2">' + affHtml + '</p>');
+          return;
+        }
+
         // Regular paragraph — apply inline formatting
-        var paraHtml = applyInlineFormatting(block.replace(/\n/g, ' '));
+        var paraHtml = applyInlineFormatting(plainBlock);
         htmlParts.push('<p class="text-sm text-gray-200 leading-relaxed mt-2">' + paraHtml + '</p>');
       });
 
@@ -846,6 +1054,27 @@ import '../styles/global.css';
           extractIdentifiedWords(fullResponse);
           // Log chat usage (fire-and-forget)
           logChatUsage(userMessage, fullResponse, Date.now() - chatStartTime, true, '', pendingKeyword);
+
+          // If this was a CaB coaching request, append structured graph + timing data
+          if (pendingCabCoach) {
+            pendingCabCoach = false;
+            appendCabCoachData(textEl);
+          }
+          // If this was a Quiz coaching request, append structured graph + timing data
+          if (pendingQuizCoach) {
+            pendingQuizCoach = false;
+            appendQuizCoachData(textEl);
+          }
+          // If this was a Rack coaching request, append structured graph + timing data
+          if (pendingRackCoach) {
+            pendingRackCoach = false;
+            appendRackCoachData(textEl);
+          }
+          // If this was an Anagram coaching request, append structured graph + timing data
+          if (pendingAnagramCoach) {
+            pendingAnagramCoach = false;
+            appendAnagramCoachData(textEl);
+          }
         } else {
           textEl.textContent = '⚠️ No response received. Please try again.';
           logChatUsage(userMessage, '', Date.now() - chatStartTime, false, 'No response received', pendingKeyword);
@@ -861,6 +1090,573 @@ import '../styles/global.css';
       refreshChatUsage();
       refreshKeywordHistory(); // Instant update of "Your Recent Questions"
     });
+
+    // --- CaB Coach Structured Data (graph + timing + per-game cards) ---
+    function appendCabCoachData(containerEl) {
+      var uid = localStorage.getItem('swf-uid') || '';
+      if (!uid) return;
+
+      fetch('/api/lex-cab-coach/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: uid })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error || !data.hasHistory) return;
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'mt-4 space-y-4';
+
+        // Stats bar
+        if (data.stats) {
+          var statsHtml = '<div class="grid grid-cols-4 gap-2">';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-white">' + data.stats.totalGames + '</p><p class="text-[10px] text-gray-500">Games</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-green-400">' + data.stats.solveRate + '%</p><p class="text-[10px] text-gray-500">Solve Rate</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-orange-400">' + data.stats.avgAttempts + '</p><p class="text-[10px] text-gray-500">Avg Guesses</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-purple-400">' + data.stats.quickSolves + '</p><p class="text-[10px] text-gray-500">Quick (\u22643)</p></div>';
+          statsHtml += '</div>';
+          wrapper.insertAdjacentHTML('beforeend', statsHtml);
+        }
+
+        // Graph (attempts per game)
+        var games = data.gameAnalysis || [];
+        if (games.length >= 2) {
+          var graphSection = document.createElement('div');
+          graphSection.className = 'mt-3';
+          graphSection.innerHTML = '<p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Guesses per Game (lower = better)</p><canvas id="chat-cab-graph" class="w-full h-36 rounded-lg bg-gray-800/30 border border-gray-700/30"></canvas><div class="flex justify-between mt-1 text-[9px] text-gray-600"><span>\ud83d\udfe2 Solved</span><span>\ud83d\udd34 Failed</span><span>\u2b1c Average line</span></div>';
+          wrapper.appendChild(graphSection);
+
+          // Render graph after DOM insertion
+          setTimeout(function() {
+            renderCabChatGraph(games);
+          }, 50);
+        }
+
+        // Time commentary
+        var timed = games.filter(function(g) { return g.splitTime > 0; });
+        if (timed.length >= 2) {
+          var sorted = timed.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+          var times = sorted.map(function(g) { return g.splitTime; });
+          var fastest = Math.min.apply(null, times);
+          var slowest = Math.max.apply(null, times);
+          var avg = Math.round(times.reduce(function(a, b) { return a + b; }, 0) / times.length);
+          var fastestGame = sorted.find(function(g) { return g.splitTime === fastest; });
+          var slowestGame = sorted.find(function(g) { return g.splitTime === slowest; });
+          var recent = sorted[sorted.length - 1];
+          var prev = sorted[sorted.length - 2];
+          var diff = recent.splitTime - prev.splitTime;
+          var trend = diff < -20 ? 'Getting faster \u2014 ' + Math.abs(diff) + 's quicker than previous.' :
+                     diff > 20 ? 'Took ' + diff + 's longer \u2014 possibly a tougher word.' :
+                     'Consistent pace between recent games.';
+
+          var timeHtml = '<div class="px-3 py-2 rounded-lg bg-cyan-900/20 border border-cyan-700/30">';
+          timeHtml += '<p class="text-[10px] text-cyan-400 font-semibold uppercase mb-1">\u23f1 Time Insight</p>';
+          timeHtml += '<p class="text-[11px] text-gray-300 leading-relaxed">Fastest: ' + fastest + 's (Game #' + fastestGame.gameNumber + ') \u00b7 Slowest: ' + slowest + 's (Game #' + slowestGame.gameNumber + ') \u00b7 Avg: ' + avg + 's. ' + trend + '</p>';
+          timeHtml += '</div>';
+          wrapper.insertAdjacentHTML('beforeend', timeHtml);
+        }
+
+        // Per-game cards (top 10)
+        if (games.length > 0) {
+          var display = games.slice(0, 10);
+          var ratingColors = {
+            ace: { border: 'border-purple-500/40', bg: 'bg-purple-900/10', badge: 'bg-purple-600/30 text-purple-300', icon: '\ud83c\udfc6' },
+            brilliant: { border: 'border-green-500/40', bg: 'bg-green-900/10', badge: 'bg-green-600/30 text-green-300', icon: '\u26a1' },
+            great: { border: 'border-blue-500/40', bg: 'bg-blue-900/10', badge: 'bg-blue-600/30 text-blue-300', icon: '\u2705' },
+            good: { border: 'border-amber-500/40', bg: 'bg-amber-900/10', badge: 'bg-amber-600/30 text-amber-300', icon: '\ud83d\udc4d' },
+            tough: { border: 'border-orange-500/40', bg: 'bg-orange-900/10', badge: 'bg-orange-600/30 text-orange-300', icon: '\ud83d\ude24' },
+            failed: { border: 'border-red-500/40', bg: 'bg-red-900/10', badge: 'bg-red-600/30 text-red-300', icon: '\u274c' }
+          };
+
+          var cardsHtml = '<div class="mt-2"><div class="flex items-center justify-between mb-2"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Per-Game Analysis</p><span class="text-[10px] text-gray-600">' + display.length + ' of ' + games.length + ' games</span></div><div class="flex flex-col gap-2 max-h-64 overflow-y-auto">';
+
+          for (var i = 0; i < display.length; i++) {
+            var g = display[i];
+            var colors = ratingColors[g.rating] || ratingColors.good;
+            var dateStr = g.date && g.date !== '?' ? new Date(g.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '\u2014';
+            var resultText = g.solved ? 'Solved in ' + g.attempts + ' guesses' : 'Not solved';
+            var timeText = g.splitTime > 0 ? ' \u00b7 ' + g.splitTime + 's' : '';
+
+            cardsHtml += '<div class="rounded-xl ' + colors.border + ' ' + colors.bg + ' border p-3">';
+            cardsHtml += '<div class="flex items-center justify-between mb-1"><div class="flex items-center gap-2"><span class="text-base">' + colors.icon + '</span><span class="text-xs font-bold text-white">Game #' + g.gameNumber + '</span><span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' + colors.badge + '">' + g.rating.toUpperCase() + '</span></div><span class="text-[10px] text-gray-500">' + dateStr + '</span></div>';
+            cardsHtml += '<div class="flex items-center gap-3 text-[11px] text-gray-400"><span>' + resultText + '</span>' + (timeText ? '<span>Time: <b class="text-white">' + g.splitTime + 's</b></span>' : '') + '<span class="text-gray-600">' + g.wordLength + '-letter word</span>' + (g.word ? '<span class="font-mono uppercase text-orange-300">' + g.word + '</span>' : '') + '</div>';
+
+            if (g.improvements && g.improvements.length > 0) {
+              cardsHtml += '<div class="mt-1.5">';
+              for (var s = 0; s < g.improvements.length; s++) {
+                cardsHtml += '<p class="text-[11px] text-green-300/80 pl-2 border-l-2 border-green-500/30 mb-0.5">' + g.improvements[s] + '</p>';
+              }
+              cardsHtml += '</div>';
+            }
+            if (g.weaknesses && g.weaknesses.length > 0) {
+              cardsHtml += '<div class="mt-1.5">';
+              for (var w = 0; w < g.weaknesses.length; w++) {
+                cardsHtml += '<p class="text-[11px] text-red-300/80 pl-2 border-l-2 border-red-500/30 mb-0.5">' + g.weaknesses[w] + '</p>';
+              }
+              cardsHtml += '</div>';
+            }
+            cardsHtml += '</div>';
+          }
+          cardsHtml += '</div></div>';
+          wrapper.insertAdjacentHTML('beforeend', cardsHtml);
+        }
+
+        containerEl.appendChild(wrapper);
+        scrollToBottom();
+      })
+      .catch(function() { /* Non-critical — AI text response is still shown */ });
+    }
+
+    // Render CaB graph on canvas (chat page version)
+    function renderCabChatGraph(games) {
+      var canvas = document.getElementById('chat-cab-graph');
+      if (!canvas) return;
+
+      var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+      var ctx = canvas.getContext('2d');
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth;
+      var h = canvas.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+
+      var pad = { top: 16, right: 12, bottom: 28, left: 30 };
+      var plotW = w - pad.left - pad.right;
+      var plotH = h - pad.top - pad.bottom;
+      var n = sorted.length;
+
+      var attempts = sorted.map(function(g) { return g.solved ? g.attempts : 10; });
+      var maxAtt = Math.min(Math.max.apply(null, attempts) + 1, 12);
+      var solvedAtts = attempts.filter(function(a) { return a < 10; });
+      var avgAtt = solvedAtts.length > 0 ? Math.round(solvedAtts.reduce(function(a, b) { return a + b; }, 0) / solvedAtts.length * 10) / 10 : 0;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (var i = 0; i <= 5; i++) {
+        var y = pad.top + (plotH / 5) * i;
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+      }
+
+      // Y-axis labels
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(74,222,128,0.7)';
+      for (var i = 0; i <= 5; i++) {
+        var val = Math.round((maxAtt / 5) * i);
+        var y = pad.top + (plotH / 5) * i;
+        ctx.fillText(val === 0 ? '' : String(val), pad.left - 6, y + 3);
+      }
+
+      // X-axis labels
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      var labelStep = Math.max(1, Math.floor(n / 8));
+      for (var i = 0; i < n; i += labelStep) {
+        var x = pad.left + (plotW / Math.max(n - 1, 1)) * i;
+        ctx.fillText('#' + sorted[i].gameNumber, x, h - pad.bottom + 14);
+      }
+      if ((n - 1) % labelStep !== 0 && n > 1) {
+        ctx.fillText('#' + sorted[n - 1].gameNumber, pad.left + plotW, h - pad.bottom + 14);
+      }
+
+      function getXY(index, value) {
+        var x = pad.left + (plotW / Math.max(n - 1, 1)) * index;
+        var y = pad.top + (value / maxAtt) * plotH;
+        return { x: x, y: y };
+      }
+
+      // Average line (dashed)
+      if (avgAtt > 0) {
+        var avgY = pad.top + (avgAtt / maxAtt) * plotH;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pad.left, avgY); ctx.lineTo(w - pad.right, avgY); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Line connecting dots
+      ctx.strokeStyle = 'rgba(251,146,60,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      for (var i = 0; i < n; i++) {
+        var pt = getXY(i, attempts[i]);
+        if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+
+      // Dots
+      for (var i = 0; i < n; i++) {
+        var pt = getXY(i, attempts[i]);
+        ctx.fillStyle = sorted[i].solved ? 'rgba(74,222,128,1)' : 'rgba(248,113,113,1)';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, sorted[i].attempts <= 2 && sorted[i].solved ? 5 : 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Render Quiz accuracy graph on canvas
+    function renderQuizChatGraph(games) {
+      var canvas = document.getElementById('chat-quiz-graph');
+      if (!canvas) return;
+      var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+      var ctx = canvas.getContext('2d');
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth; var h = canvas.clientHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr; ctx.scale(dpr, dpr);
+      var pad = { top: 16, right: 12, bottom: 28, left: 30 };
+      var plotW = w - pad.left - pad.right; var plotH = h - pad.top - pad.bottom;
+      var n = sorted.length;
+      var accs = sorted.map(function(g) { return g.accuracy; });
+      var avgAcc = Math.round(accs.reduce(function(a, b) { return a + b; }, 0) / accs.length);
+      ctx.clearRect(0, 0, w, h);
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+      for (var i = 0; i <= 5; i++) { var y = pad.top + (plotH / 5) * i; ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke(); }
+      // Y-axis labels (0-100%)
+      ctx.font = '10px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(74,222,128,0.7)';
+      for (var i = 0; i <= 5; i++) { var val = 100 - (i * 20); var y = pad.top + (plotH / 5) * i; ctx.fillText(val + '%', pad.left - 4, y + 3); }
+      // X-axis labels
+      ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      var labelStep = Math.max(1, Math.floor(n / 8));
+      for (var i = 0; i < n; i += labelStep) { var x = pad.left + (plotW / Math.max(n - 1, 1)) * i; ctx.fillText('#' + sorted[i].gameNumber, x, h - pad.bottom + 14); }
+      function getXY(index, pct) { return { x: pad.left + (plotW / Math.max(n - 1, 1)) * index, y: pad.top + ((100 - pct) / 100) * plotH }; }
+      // Average line
+      if (avgAcc > 0) { var avgY = pad.top + ((100 - avgAcc) / 100) * plotH; ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad.left, avgY); ctx.lineTo(w - pad.right, avgY); ctx.stroke(); ctx.setLineDash([]); }
+      // Line
+      ctx.strokeStyle = 'rgba(96,165,250,0.6)'; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.beginPath();
+      for (var i = 0; i < n; i++) { var pt = getXY(i, accs[i]); if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y); } ctx.stroke();
+      // Dots
+      for (var i = 0; i < n; i++) { var pt = getXY(i, accs[i]); ctx.fillStyle = accs[i] === 100 ? 'rgba(74,222,128,1)' : accs[i] >= 60 ? 'rgba(251,146,60,1)' : 'rgba(248,113,113,1)'; ctx.beginPath(); ctx.arc(pt.x, pt.y, accs[i] === 100 ? 5 : 3.5, 0, Math.PI * 2); ctx.fill(); }
+    }
+
+    // Render Rack score graph on canvas
+    function renderRackChatGraph(games) {
+      var canvas = document.getElementById('chat-rack-graph');
+      if (!canvas) return;
+      var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+      var ctx = canvas.getContext('2d');
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth; var h = canvas.clientHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr; ctx.scale(dpr, dpr);
+      var pad = { top: 16, right: 12, bottom: 28, left: 30 };
+      var plotW = w - pad.left - pad.right; var plotH = h - pad.top - pad.bottom;
+      var n = sorted.length;
+      var scores = sorted.map(function(g) { return g.score || 0; });
+      var maxScore = Math.max(Math.max.apply(null, scores) + 5, 30);
+      var avgScore = Math.round(scores.reduce(function(a, b) { return a + b; }, 0) / scores.length);
+      ctx.clearRect(0, 0, w, h);
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+      for (var i = 0; i <= 5; i++) { var y = pad.top + (plotH / 5) * i; ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke(); }
+      // Y-axis labels
+      ctx.font = '10px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(74,222,128,0.7)';
+      for (var i = 0; i <= 5; i++) { var val = Math.round(maxScore - (maxScore / 5) * i); var y = pad.top + (plotH / 5) * i; ctx.fillText(String(val), pad.left - 4, y + 3); }
+      // X-axis labels
+      ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      var labelStep = Math.max(1, Math.floor(n / 8));
+      for (var i = 0; i < n; i += labelStep) { var x = pad.left + (plotW / Math.max(n - 1, 1)) * i; ctx.fillText('#' + sorted[i].gameNumber, x, h - pad.bottom + 14); }
+      function getXY(index, score) { return { x: pad.left + (plotW / Math.max(n - 1, 1)) * index, y: pad.top + ((maxScore - score) / maxScore) * plotH }; }
+      // Average line
+      if (avgScore > 0) { var avgY = pad.top + ((maxScore - avgScore) / maxScore) * plotH; ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad.left, avgY); ctx.lineTo(w - pad.right, avgY); ctx.stroke(); ctx.setLineDash([]); }
+      // Line
+      ctx.strokeStyle = 'rgba(168,85,247,0.6)'; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.beginPath();
+      for (var i = 0; i < n; i++) { var pt = getXY(i, scores[i]); if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y); } ctx.stroke();
+      // Dots
+      for (var i = 0; i < n; i++) { var pt = getXY(i, scores[i]); ctx.fillStyle = scores[i] >= 20 ? 'rgba(74,222,128,1)' : scores[i] >= 10 ? 'rgba(251,146,60,1)' : 'rgba(248,113,113,1)'; ctx.beginPath(); ctx.arc(pt.x, pt.y, sorted[i].isBingo ? 5 : 3.5, 0, Math.PI * 2); ctx.fill(); }
+    }
+
+    // Render Anagram attempts graph on canvas
+    function renderAnagramChatGraph(games) {
+      var canvas = document.getElementById('chat-anagram-graph');
+      if (!canvas) return;
+      var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+      var ctx = canvas.getContext('2d');
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth; var h = canvas.clientHeight;
+      canvas.width = w * dpr; canvas.height = h * dpr; ctx.scale(dpr, dpr);
+      var pad = { top: 16, right: 12, bottom: 28, left: 30 };
+      var plotW = w - pad.left - pad.right; var plotH = h - pad.top - pad.bottom;
+      var n = sorted.length;
+      var attempts = sorted.map(function(g) { return g.solved ? g.attempts : 6; });
+      var maxAtt = 7;
+      var solvedAtts = attempts.filter(function(a) { return a < 6; });
+      var avgAtt = solvedAtts.length > 0 ? Math.round(solvedAtts.reduce(function(a, b) { return a + b; }, 0) / solvedAtts.length * 10) / 10 : 0;
+      ctx.clearRect(0, 0, w, h);
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+      for (var i = 0; i <= 5; i++) { var y = pad.top + (plotH / 5) * i; ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke(); }
+      // Y-axis labels
+      ctx.font = '10px system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(74,222,128,0.7)';
+      for (var i = 0; i <= 5; i++) { var val = Math.round((maxAtt / 5) * i); var y = pad.top + (plotH / 5) * i; ctx.fillText(val === 0 ? '' : String(val), pad.left - 6, y + 3); }
+      // X-axis labels
+      ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      var labelStep = Math.max(1, Math.floor(n / 8));
+      for (var i = 0; i < n; i += labelStep) { var x = pad.left + (plotW / Math.max(n - 1, 1)) * i; ctx.fillText('#' + sorted[i].gameNumber, x, h - pad.bottom + 14); }
+      function getXY(index, value) { return { x: pad.left + (plotW / Math.max(n - 1, 1)) * index, y: pad.top + (value / maxAtt) * plotH }; }
+      // Average line
+      if (avgAtt > 0) { var avgY = pad.top + (avgAtt / maxAtt) * plotH; ctx.setLineDash([4, 4]); ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pad.left, avgY); ctx.lineTo(w - pad.right, avgY); ctx.stroke(); ctx.setLineDash([]); }
+      // Line
+      ctx.strokeStyle = 'rgba(251,146,60,0.6)'; ctx.lineWidth = 1.5; ctx.lineJoin = 'round'; ctx.beginPath();
+      for (var i = 0; i < n; i++) { var pt = getXY(i, attempts[i]); if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y); } ctx.stroke();
+      // Dots
+      for (var i = 0; i < n; i++) { var pt = getXY(i, attempts[i]); ctx.fillStyle = sorted[i].solved ? 'rgba(74,222,128,1)' : 'rgba(248,113,113,1)'; ctx.beginPath(); ctx.arc(pt.x, pt.y, sorted[i].attempts <= 2 && sorted[i].solved ? 5 : 3.5, 0, Math.PI * 2); ctx.fill(); }
+    }
+
+    // Shared per-game cards renderer for all coach types
+    function appendCoachGameCards(wrapper, games, type) {
+      if (games.length === 0) return;
+      var display = games.slice(0, 10);
+      var ratingColors = {
+        perfect: { border: 'border-purple-500/40', bg: 'bg-purple-900/10', badge: 'bg-purple-600/30 text-purple-300', icon: '\ud83c\udfc6' },
+        ace: { border: 'border-purple-500/40', bg: 'bg-purple-900/10', badge: 'bg-purple-600/30 text-purple-300', icon: '\ud83c\udfc6' },
+        brilliant: { border: 'border-green-500/40', bg: 'bg-green-900/10', badge: 'bg-green-600/30 text-green-300', icon: '\u26a1' },
+        great: { border: 'border-blue-500/40', bg: 'bg-blue-900/10', badge: 'bg-blue-600/30 text-blue-300', icon: '\u2705' },
+        good: { border: 'border-amber-500/40', bg: 'bg-amber-900/10', badge: 'bg-amber-600/30 text-amber-300', icon: '\ud83d\udc4d' },
+        fair: { border: 'border-orange-500/40', bg: 'bg-orange-900/10', badge: 'bg-orange-600/30 text-orange-300', icon: '\ud83d\ude10' },
+        tough: { border: 'border-orange-500/40', bg: 'bg-orange-900/10', badge: 'bg-orange-600/30 text-orange-300', icon: '\ud83d\ude24' },
+        weak: { border: 'border-red-500/40', bg: 'bg-red-900/10', badge: 'bg-red-600/30 text-red-300', icon: '\ud83d\udca2' },
+        failed: { border: 'border-red-500/40', bg: 'bg-red-900/10', badge: 'bg-red-600/30 text-red-300', icon: '\u274c' }
+      };
+
+      var typeLabel = type === 'quiz' ? 'Per-Round Analysis' : type === 'rack' ? 'Per-Play Analysis' : 'Per-Puzzle Analysis';
+      var cardsHtml = '<div class="mt-2"><div class="flex items-center justify-between mb-2"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">' + typeLabel + '</p><span class="text-[10px] text-gray-600">' + display.length + ' of ' + games.length + '</span></div><div class="flex flex-col gap-2 max-h-64 overflow-y-auto">';
+
+      for (var i = 0; i < display.length; i++) {
+        var g = display[i];
+        var colors = ratingColors[g.rating] || ratingColors.good;
+        var dateStr = g.date && g.date !== '?' ? new Date(g.date.split('T')[0] + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '\u2014';
+
+        var resultText = '';
+        if (type === 'quiz') resultText = g.accuracy + '% (' + g.score + '/' + g.total + ')' + (g.timedOut ? ' \u23f0 timed out' : '');
+        else if (type === 'rack') resultText = g.word + ' = ' + g.score + ' pts' + (g.isBingo ? ' \ud83c\udf1f BINGO' : '');
+        else resultText = g.solved ? 'Solved in ' + g.attempts + ' attempt' + (g.attempts === 1 ? '' : 's') : 'Not solved';
+
+        var timeText = '';
+        if (type === 'quiz' && g.timeUsed > 0) timeText = ' \u00b7 ' + g.timeUsed + 's';
+        else if (type === 'anagram' && g.timeTaken > 0) timeText = ' \u00b7 ' + g.timeTaken + 's';
+
+        var extraInfo = '';
+        if (type === 'rack' && g.rack) extraInfo = '<span class="font-mono text-gray-500 text-[10px]">[' + g.rack + ']</span>';
+        if (type === 'anagram' && g.scrambled) extraInfo = '<span class="font-mono text-gray-500 text-[10px]">' + g.scrambled + ' \u2192 ' + (g.word || '?') + '</span>';
+
+        cardsHtml += '<div class="rounded-xl ' + colors.border + ' ' + colors.bg + ' border p-3">';
+        cardsHtml += '<div class="flex items-center justify-between mb-1"><div class="flex items-center gap-2"><span class="text-base">' + colors.icon + '</span><span class="text-xs font-bold text-white">Game #' + g.gameNumber + '</span><span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' + colors.badge + '">' + (g.rating || 'good').toUpperCase() + '</span></div><span class="text-[10px] text-gray-500">' + dateStr + '</span></div>';
+        cardsHtml += '<div class="flex items-center gap-3 text-[11px] text-gray-400 flex-wrap"><span>' + resultText + '</span>' + (timeText ? '<span>' + timeText + '</span>' : '') + (extraInfo ? extraInfo : '') + '</div>';
+
+        if (g.improvements && g.improvements.length > 0) {
+          cardsHtml += '<div class="mt-1.5">';
+          for (var s = 0; s < g.improvements.length; s++) { cardsHtml += '<p class="text-[11px] text-green-300/80 pl-2 border-l-2 border-green-500/30 mb-0.5">' + g.improvements[s] + '</p>'; }
+          cardsHtml += '</div>';
+        }
+        if (g.weaknesses && g.weaknesses.length > 0) {
+          cardsHtml += '<div class="mt-1.5">';
+          for (var w = 0; w < g.weaknesses.length; w++) { cardsHtml += '<p class="text-[11px] text-red-300/80 pl-2 border-l-2 border-red-500/30 mb-0.5">' + g.weaknesses[w] + '</p>'; }
+          cardsHtml += '</div>';
+        }
+        cardsHtml += '</div>';
+      }
+      cardsHtml += '</div></div>';
+      wrapper.insertAdjacentHTML('beforeend', cardsHtml);
+    }
+
+    // --- Quiz Coach Structured Data (graph + timing + per-game cards) ---
+    function appendQuizCoachData(containerEl) {
+      var uid = localStorage.getItem('swf-uid') || '';
+      if (!uid) return;
+
+      fetch('/api/lex-quiz-coach/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: uid })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error || !data.hasHistory) return;
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'mt-4 space-y-4';
+
+        // Stats bar
+        if (data.stats) {
+          var s = data.stats;
+          var statsHtml = '<div class="grid grid-cols-4 gap-2">';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-white">' + s.totalGames + '</p><p class="text-[10px] text-gray-500">Games</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-green-400">' + s.accuracy + '%</p><p class="text-[10px] text-gray-500">Accuracy</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-orange-400">' + s.totalPerfect + '</p><p class="text-[10px] text-gray-500">Perfect</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-purple-400">' + s.timeUsagePct + '%</p><p class="text-[10px] text-gray-500">Timer Used</p></div>';
+          statsHtml += '</div>';
+          wrapper.insertAdjacentHTML('beforeend', statsHtml);
+        }
+
+        // Graph (accuracy per game)
+        var games = data.gameAnalysis || [];
+        if (games.length >= 2) {
+          var graphSection = document.createElement('div');
+          graphSection.className = 'mt-3';
+          graphSection.innerHTML = '<p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Accuracy per Game (higher = better)</p><canvas id="chat-quiz-graph" class="w-full h-36 rounded-lg bg-gray-800/30 border border-gray-700/30"></canvas><div class="flex justify-between mt-1 text-[9px] text-gray-600"><span>\ud83d\udfe2 Perfect</span><span>\ud83d\udfe0 Good (\u226560%)</span><span>\ud83d\udd34 Weak (<60%)</span><span>\u2b1c Average line</span></div>';
+          wrapper.appendChild(graphSection);
+          setTimeout(function() { renderQuizChatGraph(games); }, 50);
+        }
+
+        // Time insight
+        var timed = games.filter(function(g) { return g.timeUsed > 0; });
+        if (timed.length >= 2) {
+          var sorted = timed.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+          var times = sorted.map(function(g) { return g.timeUsed; });
+          var fastest = Math.min.apply(null, times);
+          var slowest = Math.max.apply(null, times);
+          var avg = Math.round(times.reduce(function(a, b) { return a + b; }, 0) / times.length);
+          var fastestGame = sorted.find(function(g) { return g.timeUsed === fastest; });
+          var slowestGame = sorted.find(function(g) { return g.timeUsed === slowest; });
+          var recent = sorted[sorted.length - 1];
+          var prev = sorted[sorted.length - 2];
+          var diff = recent.timeUsed - prev.timeUsed;
+          var trend = diff < -10 ? 'Getting faster \u2014 ' + Math.abs(diff) + 's quicker than previous.' :
+                     diff > 10 ? 'Took ' + diff + 's longer \u2014 possibly harder words.' :
+                     'Consistent pace between recent games.';
+
+          var timeHtml = '<div class="px-3 py-2 rounded-lg bg-cyan-900/20 border border-cyan-700/30">';
+          timeHtml += '<p class="text-[10px] text-cyan-400 font-semibold uppercase mb-1">\u23f1 Time Insight</p>';
+          timeHtml += '<p class="text-[11px] text-gray-300 leading-relaxed">Fastest: ' + fastest + 's (Game #' + fastestGame.gameNumber + ') \u00b7 Slowest: ' + slowest + 's (Game #' + slowestGame.gameNumber + ') \u00b7 Avg: ' + avg + 's. ' + trend + '</p>';
+          timeHtml += '</div>';
+          wrapper.insertAdjacentHTML('beforeend', timeHtml);
+        }
+
+        // Per-game cards
+        appendCoachGameCards(wrapper, games, 'quiz');
+
+        containerEl.appendChild(wrapper);
+        scrollToBottom();
+      })
+      .catch(function() { /* Non-critical */ });
+    }
+
+    // --- Rack Coach Structured Data (graph + per-game cards) ---
+    function appendRackCoachData(containerEl) {
+      var uid = localStorage.getItem('swf-uid') || '';
+      if (!uid) return;
+
+      fetch('/api/lex-rack-coach/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: uid })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error || !data.hasHistory) return;
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'mt-4 space-y-4';
+
+        // Stats bar
+        if (data.stats) {
+          var s = data.stats;
+          var statsHtml = '<div class="grid grid-cols-4 gap-2">';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-white">' + s.totalWords + '</p><p class="text-[10px] text-gray-500">Words</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-green-400">' + s.avgScore + '</p><p class="text-[10px] text-gray-500">Avg Score</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-orange-400">' + s.bingos + '</p><p class="text-[10px] text-gray-500">Bingos</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-purple-400">' + (s.highWord ? s.highWord.score : 0) + '</p><p class="text-[10px] text-gray-500">Best Score</p></div>';
+          statsHtml += '</div>';
+          wrapper.insertAdjacentHTML('beforeend', statsHtml);
+        }
+
+        // Graph (score per game)
+        var games = data.gameAnalysis || [];
+        if (games.length >= 2) {
+          var graphSection = document.createElement('div');
+          graphSection.className = 'mt-3';
+          graphSection.innerHTML = '<p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Score per Play (higher = better)</p><canvas id="chat-rack-graph" class="w-full h-36 rounded-lg bg-gray-800/30 border border-gray-700/30"></canvas><div class="flex justify-between mt-1 text-[9px] text-gray-600"><span>\ud83d\udfe2 20+ pts</span><span>\ud83d\udfe0 10\u201319 pts</span><span>\ud83d\udd34 <10 pts</span><span>\u2b1c Average line</span></div>';
+          wrapper.appendChild(graphSection);
+          setTimeout(function() { renderRackChatGraph(games); }, 50);
+        }
+
+        // Per-game cards
+        appendCoachGameCards(wrapper, games, 'rack');
+
+        containerEl.appendChild(wrapper);
+        scrollToBottom();
+      })
+      .catch(function() { /* Non-critical */ });
+    }
+
+    // --- Anagram Coach Structured Data (graph + timing + per-game cards) ---
+    function appendAnagramCoachData(containerEl) {
+      var uid = localStorage.getItem('swf-uid') || '';
+      if (!uid) return;
+
+      fetch('/api/lex-anagram-coach/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: uid })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error || !data.hasHistory) return;
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'mt-4 space-y-4';
+
+        // Stats bar
+        if (data.stats) {
+          var s = data.stats;
+          var statsHtml = '<div class="grid grid-cols-4 gap-2">';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-white">' + s.totalGames + '</p><p class="text-[10px] text-gray-500">Puzzles</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-green-400">' + s.solveRate + '%</p><p class="text-[10px] text-gray-500">Solve Rate</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-orange-400">' + s.avgAttempts + '</p><p class="text-[10px] text-gray-500">Avg Attempts</p></div>';
+          statsHtml += '<div class="text-center p-2 rounded-lg bg-gray-700/50 border border-gray-600/50"><p class="text-lg font-bold text-purple-400">' + s.streak + '</p><p class="text-[10px] text-gray-500">Streak</p></div>';
+          statsHtml += '</div>';
+          wrapper.insertAdjacentHTML('beforeend', statsHtml);
+        }
+
+        // Graph (attempts per game — lower is better)
+        var games = data.gameAnalysis || [];
+        if (games.length >= 2) {
+          var graphSection = document.createElement('div');
+          graphSection.className = 'mt-3';
+          graphSection.innerHTML = '<p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Attempts per Puzzle (lower = better)</p><canvas id="chat-anagram-graph" class="w-full h-36 rounded-lg bg-gray-800/30 border border-gray-700/30"></canvas><div class="flex justify-between mt-1 text-[9px] text-gray-600"><span>\ud83d\udfe2 Solved</span><span>\ud83d\udd34 Failed</span><span>\u2b1c Average line</span></div>';
+          wrapper.appendChild(graphSection);
+          setTimeout(function() { renderAnagramChatGraph(games); }, 50);
+        }
+
+        // Time insight
+        var timed = games.filter(function(g) { return g.timeTaken > 0; });
+        if (timed.length >= 2) {
+          var sorted = timed.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+          var times = sorted.map(function(g) { return g.timeTaken; });
+          var fastest = Math.min.apply(null, times);
+          var slowest = Math.max.apply(null, times);
+          var avg = Math.round(times.reduce(function(a, b) { return a + b; }, 0) / times.length);
+          var fastestGame = sorted.find(function(g) { return g.timeTaken === fastest; });
+          var slowestGame = sorted.find(function(g) { return g.timeTaken === slowest; });
+          var recent = sorted[sorted.length - 1];
+          var prev = sorted[sorted.length - 2];
+          var diff = recent.timeTaken - prev.timeTaken;
+          var trend = diff < -15 ? 'Getting faster \u2014 ' + Math.abs(diff) + 's quicker than previous.' :
+                     diff > 15 ? 'Took ' + diff + 's longer \u2014 possibly a tougher scramble.' :
+                     'Consistent pace between recent puzzles.';
+
+          var timeHtml = '<div class="px-3 py-2 rounded-lg bg-cyan-900/20 border border-cyan-700/30">';
+          timeHtml += '<p class="text-[10px] text-cyan-400 font-semibold uppercase mb-1">\u23f1 Time Insight</p>';
+          timeHtml += '<p class="text-[11px] text-gray-300 leading-relaxed">Fastest: ' + fastest + 's (Puzzle #' + fastestGame.gameNumber + ') \u00b7 Slowest: ' + slowest + 's (Puzzle #' + slowestGame.gameNumber + ') \u00b7 Avg: ' + avg + 's. ' + trend + '</p>';
+          timeHtml += '</div>';
+          wrapper.insertAdjacentHTML('beforeend', timeHtml);
+        }
+
+        // Per-game cards
+        appendCoachGameCards(wrapper, games, 'anagram');
+
+        containerEl.appendChild(wrapper);
+        scrollToBottom();
+      })
+      .catch(function() { /* Non-critical */ });
+    }
 
     function appendMessage(role, content) {
       const wrapper = document.createElement('div');
@@ -947,6 +1743,7 @@ import '../styles/global.css';
       const uid = localStorage.getItem('swf-uid') || '';
       if (!uid) {
         input.value = '[QUIZ COACHING REQUEST]\n\nHere is my Word Quiz performance data. Please analyze it and give me personalized coaching advice.\n\n--- MY QUIZ STATS ---\nTotal rounds played: 0\nOverall accuracy: N/A (no games played yet)\nPerfect scores: 0\nTimed out: 0\n\nI am a first-time quiz player with no history. Please welcome me and share some Scrabble vocabulary wisdom to get me started.';
+        pendingQuizCoach = true;
         setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         return;
       }
@@ -961,6 +1758,7 @@ import '../styles/global.css';
 
           if (scores.length === 0) {
             input.value = '[QUIZ COACHING REQUEST]\n\nHere is my Word Quiz performance data. Please analyze it and give me personalized coaching advice.\n\n--- MY QUIZ STATS ---\nTotal rounds played: 0\nOverall accuracy: N/A (no games played yet)\nPerfect scores: 0\nTimed out: 0\n\nI am a first-time quiz player with no history. Please welcome me and share some Scrabble vocabulary wisdom to get me started.';
+            pendingQuizCoach = true;
             setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
             return;
           }
@@ -1037,9 +1835,11 @@ import '../styles/global.css';
           msg += '\nPlease give me specific, actionable coaching tips based on this data.';
 
           input.value = msg;
+          pendingQuizCoach = true;
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         } catch {
           input.value = 'I\'ve been playing the Word Quiz. Can you analyze my performance and give me tips to improve?';
+          pendingQuizCoach = true;
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         }
       })();
@@ -1119,6 +1919,7 @@ import '../styles/global.css';
         // No user ID — no history, send a first-timer prompt
         const msg = buildRackPrompt([], {}, null, null);
         input.value = msg;
+        pendingRackCoach = true;
         setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         return;
       }
@@ -1154,9 +1955,11 @@ import '../styles/global.css';
           } catch { /* non-critical */ }
 
           input.value = buildRackPrompt(history, racks, todayRack, todayBest);
+          pendingRackCoach = true;
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         } catch {
           input.value = 'I\'ve been playing the Daily Rack Challenge. Can you analyse my play history and give me tips to improve my Scrabble rack skills?';
+          pendingRackCoach = true;
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         }
       })();
@@ -1241,6 +2044,7 @@ import '../styles/global.css';
         // No user ID — first-timer prompt
         const msg = buildAnagramPrompt([], {}, {}, null);
         input.value = msg;
+        pendingAnagramCoach = true;
         setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         return;
       }
@@ -1271,9 +2075,11 @@ import '../styles/global.css';
           } catch { /* non-critical */ }
 
           input.value = buildAnagramPrompt(history, puzzles, stats, todayPuzzle);
+          pendingAnagramCoach = true;
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         } catch {
           input.value = 'I\'ve been playing the Daily Anagram puzzle. Can you analyse my play history and give me tips to improve my unscrambling skills?';
+          pendingAnagramCoach = true;
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         }
       })();
@@ -1346,6 +2152,7 @@ import '../styles/global.css';
 
       if (!uid) {
         input.value = buildCabPrompt([]);
+        pendingCabCoach = true;
         setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         return;
       }
@@ -1356,15 +2163,54 @@ import '../styles/global.css';
           if (!res.ok) throw new Error('Failed to fetch CaB history');
           const data = await res.json();
           input.value = buildCabPrompt(data.rounds || []);
+          pendingCabCoach = true;
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         } catch {
           input.value = 'I\'ve been playing Cows and Bulls. Can you analyse my history and give me tips to improve my deduction skills?';
+          pendingCabCoach = true;
           setTimeout(() => { form.dispatchEvent(new Event('submit', { cancelable: true })); }, 500);
         }
       })();
     })();
 
     // Voice input (Web Speech API)
+    // Analyse Score tile — show game-specific coaching links if user has history
+    (function initAnalyseScore() {
+      const uid = localStorage.getItem('swf-uid') || '';
+      if (!uid) return; // No user = no history
+
+      const tile = document.getElementById('analyse-score-tile');
+      const linksContainer = document.getElementById('analyse-score-links');
+      if (!tile || !linksContainer) return;
+
+      (async function() {
+        try {
+          const res = await fetch(`/api/users/${encodeURIComponent(uid)}/`);
+          if (!res.ok) return;
+          const data = await res.json();
+
+          const games = [
+            { key: 'quizzes', label: 'Word Quiz', icon: '📝', context: 'quiz', count: data.quizzes?.length || 0 },
+            { key: 'racks', label: 'Daily Rack', icon: '🎲', context: 'rack', count: data.racks?.length || 0 },
+            { key: 'anagrams', label: 'Anagram', icon: '🔤', context: 'anagram', count: data.anagrams?.length || 0 },
+            { key: 'cab_games', label: 'Cows & Bulls', icon: '🐂', context: 'cab', count: data.cab_games?.length || 0 },
+          ];
+
+          const withHistory = games.filter(g => g.count > 0);
+          if (withHistory.length === 0) return;
+
+          tile.classList.remove('hidden');
+          linksContainer.innerHTML = withHistory.map(g =>
+            `<a href="/chat/?context=${g.context}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-amber-900/20 border border-amber-700/40 hover:border-amber-500/60 hover:bg-amber-800/30 transition-colors group">
+              <span class="text-base" aria-hidden="true">${g.icon}</span>
+              <span class="text-xs text-gray-300 group-hover:text-amber-200 transition-colors">${g.label}</span>
+              <span class="ml-auto text-[10px] text-gray-500 group-hover:text-amber-400">${g.count} game${g.count === 1 ? '' : 's'}</span>
+            </a>`
+          ).join('');
+        } catch { /* non-critical */ }
+      })();
+    })();
+
     (function initVoiceInput() {
       const micBtn = document.getElementById('mic-btn');
       const micIcon = document.getElementById('mic-icon');

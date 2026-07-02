@@ -3,9 +3,9 @@
         <div class="flex items-center justify-between mb-2">
           <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span>🎲</span> Daily Rack Challenge <span class="star-indicator text-sm opacity-40 cursor-help" data-game="rack" title="⭐ Earn star: Submit 1 valid word">⭐</span><span class="star-tick hidden text-green-400 text-sm font-bold" data-game="rack">✅</span></h2>
           <div class="flex items-center gap-2">
-            <a id="LexRack" href="/chat/?context=rack" class="px-2 py-1 rounded-lg bg-cyan-600/20 border border-cyan-500/30 text-xs text-cyan-300 hover:bg-cyan-600/40 transition-colors flex items-center gap-1" title="Get AI coaching on your rack challenge">
+            <button id="LexRack" type="button" class="px-2 py-1 rounded-lg bg-cyan-600/20 border border-cyan-500/30 text-xs text-cyan-300 hover:bg-cyan-600/40 transition-colors flex items-center gap-1 cursor-pointer" title="Get AI coaching on your rack challenge">
               <img src="/lex-avatar-32.png" alt="Lex" width="16" height="16" class="rounded-full" /> Lex Rack Coach
-            </a>
+            </button>
             <button id="drc-history-btn" class="hidden w-7 h-7 flex items-center justify-center rounded-full border-2 border-amber-500/50 bg-amber-900/20 hover:bg-amber-600/30 hover:border-amber-400 text-amber-300 transition-all" title="Rack History">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </button>
@@ -57,6 +57,83 @@
           </div>
         </div>
       </div>
+
+<!-- Lex Rack Coach Modal -->
+<div id="lex-rack-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="lex-rack-modal-title">
+  <div id="lex-rack-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <div class="relative w-full max-w-lg rounded-2xl border border-cyan-500/30 bg-gray-900 shadow-2xl shadow-cyan-500/10 overflow-hidden">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-900/30 to-gray-900">
+      <div class="flex items-center gap-3">
+        <img src="/lex-avatar-32.png" alt="Lex" width="28" height="28" class="rounded-full ring-2 ring-cyan-400/50" />
+        <div>
+          <h3 id="lex-rack-modal-title" class="text-sm font-bold text-cyan-300">Lex Rack Coach</h3>
+          <p class="text-[10px] text-gray-400">AI-powered analysis of your rack challenge history</p>
+        </div>
+      </div>
+      <button id="lex-rack-close" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors" aria-label="Close">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <!-- Body -->
+    <div id="lex-rack-body" class="px-5 py-5 max-h-[70vh] overflow-y-auto">
+      <div id="lex-rack-loading" class="flex flex-col items-center gap-3 py-6">
+        <div class="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs text-gray-400">Lex is analysing your rack history...</p>
+      </div>
+      <div id="lex-rack-result" class="hidden">
+        <!-- Stats bar -->
+        <div id="lex-rack-stats-bar" class="hidden grid grid-cols-4 gap-2 mb-4">
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-rack-stat-words" class="text-lg font-bold text-white">0</p>
+            <p class="text-[10px] text-gray-500">Words</p>
+          </div>
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-rack-stat-avg" class="text-lg font-bold text-amber-400">0</p>
+            <p class="text-[10px] text-gray-500">Avg Pts</p>
+          </div>
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-rack-stat-bingos" class="text-lg font-bold text-purple-400">0</p>
+            <p class="text-[10px] text-gray-500">Bingos</p>
+          </div>
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-rack-stat-best" class="text-lg font-bold text-green-400">0</p>
+            <p class="text-[10px] text-gray-500">Best Pts</p>
+          </div>
+        </div>
+        <!-- Performance graph -->
+        <div id="lex-rack-graph-section" class="hidden mb-4">
+          <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Score Progression</p>
+          <canvas id="lex-rack-graph" class="w-full h-36 rounded-lg bg-gray-800/30 border border-gray-700/30"></canvas>
+          <div class="flex justify-between mt-1 text-[9px] text-gray-600">
+            <span>🟢 Score per word</span>
+            <span>⬜ Average line</span>
+          </div>
+        </div>
+        <!-- AI analysis text -->
+        <div id="lex-rack-analysis-text" class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap mb-4"></div>
+        <!-- Per-game analysis -->
+        <div id="lex-rack-games" class="hidden">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Per-Submission Analysis</p>
+            <span id="lex-rack-games-count" class="text-[10px] text-gray-600"></span>
+          </div>
+          <div id="lex-rack-games-list" class="flex flex-col gap-2 max-h-64 overflow-y-auto"></div>
+        </div>
+        <!-- Chat link -->
+        <div class="mt-4 pt-3 border-t border-gray-700/50">
+          <a href="/chat/?context=rack" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
+            <span class="text-sm" aria-hidden="true">💬</span>
+            <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Ask Lex for detailed coaching in chat</span>
+          </a>
+        </div>
+      </div>
+      <div id="lex-rack-error" class="hidden text-center py-4">
+        <p class="text-sm text-red-400">Something went wrong. Try again later.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script is:inline>
 (function() {
@@ -418,6 +495,270 @@
       var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       return parts[2] + ' ' + months[parseInt(parts[1]) - 1] + ' ' + parts[0];
     }
+  })();
+
+  // ── Lex Rack Coach Modal ──
+  (function lexRackCoach() {
+    var modal = document.getElementById('lex-rack-modal');
+    var backdrop = document.getElementById('lex-rack-backdrop');
+    var closeBtn = document.getElementById('lex-rack-close');
+    var loadingEl = document.getElementById('lex-rack-loading');
+    var resultEl = document.getElementById('lex-rack-result');
+    var errorEl = document.getElementById('lex-rack-error');
+    var statsBar = document.getElementById('lex-rack-stats-bar');
+    var analysisText = document.getElementById('lex-rack-analysis-text');
+    var lexBtn = document.getElementById('LexRack');
+
+    function openModal() {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      loadingEl.classList.remove('hidden');
+      resultEl.classList.add('hidden');
+      errorEl.classList.add('hidden');
+      fetchCoaching();
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function fetchCoaching() {
+      var userId = window.__swfStore.getRaw('swf-uid') || '';
+      fetch('/api/lex-rack-coach/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        loadingEl.classList.add('hidden');
+        if (data.error) {
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        resultEl.classList.remove('hidden');
+
+        // Show stats bar if history exists
+        if (data.hasHistory && data.stats) {
+          statsBar.classList.remove('hidden');
+          document.getElementById('lex-rack-stat-words').textContent = data.stats.totalWords;
+          document.getElementById('lex-rack-stat-avg').textContent = data.stats.avgScore;
+          document.getElementById('lex-rack-stat-bingos').textContent = data.stats.bingos;
+          document.getElementById('lex-rack-stat-best').textContent = data.stats.highWord ? data.stats.highWord.score : 0;
+        } else {
+          statsBar.classList.add('hidden');
+        }
+
+        analysisText.textContent = data.analysis || 'No analysis available.';
+
+        // Render performance graph
+        renderRackGraph(data.gameAnalysis || []);
+
+        // Render game-by-game analysis
+        renderRackGameAnalysis(data.gameAnalysis || []);
+      })
+      .catch(function() {
+        loadingEl.classList.add('hidden');
+        errorEl.classList.remove('hidden');
+      });
+    }
+
+    function renderRackGraph(games) {
+      var section = document.getElementById('lex-rack-graph-section');
+      var canvas = document.getElementById('lex-rack-graph');
+      if (!section || !canvas || !games || games.length < 2) {
+        if (section) section.classList.add('hidden');
+        return;
+      }
+
+      // Sort games chronologically (gameNumber ascending)
+      var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+
+      section.classList.remove('hidden');
+      var ctx = canvas.getContext('2d');
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.clientWidth;
+      var h = canvas.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+
+      // Layout
+      var pad = { top: 16, right: 12, bottom: 28, left: 36 };
+      var plotW = w - pad.left - pad.right;
+      var plotH = h - pad.top - pad.bottom;
+      var n = sorted.length;
+
+      // Data
+      var scores = sorted.map(function(g) { return g.score; });
+      var maxScore = Math.max.apply(null, scores) || 1;
+      maxScore = Math.ceil(maxScore / 5) * 5; // round up to nearest 5
+      var avgScore = Math.round(scores.reduce(function(a, b) { return a + b; }, 0) / n);
+
+      // Clear
+      ctx.clearRect(0, 0, w, h);
+
+      // Draw grid lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (var i = 0; i <= 4; i++) {
+        var y = pad.top + (plotH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+      }
+
+      // Y-axis labels (score 0 to maxScore)
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(74,222,128,0.7)';
+      for (var i = 0; i <= 4; i++) {
+        var val = Math.round(maxScore - (maxScore / 4) * i);
+        var y = pad.top + (plotH / 4) * i;
+        ctx.fillText(val, pad.left - 6, y + 3);
+      }
+
+      // X-axis labels (game numbers)
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      var labelStep = Math.max(1, Math.floor(n / 8));
+      for (var i = 0; i < n; i += labelStep) {
+        var x = pad.left + (plotW / Math.max(n - 1, 1)) * i;
+        ctx.fillText('#' + sorted[i].gameNumber, x, h - pad.bottom + 14);
+      }
+      if ((n - 1) % labelStep !== 0 && n > 1) {
+        var x = pad.left + plotW;
+        ctx.fillText('#' + sorted[n - 1].gameNumber, x, h - pad.bottom + 14);
+      }
+
+      function getXY(index, value) {
+        var x = pad.left + (plotW / Math.max(n - 1, 1)) * index;
+        var y = pad.top + plotH - (value / maxScore) * plotH;
+        return { x: x, y: y };
+      }
+
+      // Draw average line (dashed)
+      var avgY = pad.top + plotH - (avgScore / maxScore) * plotH;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, avgY);
+      ctx.lineTo(w - pad.right, avgY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw score line (green)
+      ctx.strokeStyle = 'rgba(74,222,128,0.9)';
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (var i = 0; i < n; i++) {
+        var pt = getXY(i, scores[i]);
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.stroke();
+
+      // Draw score dots (colour by rating)
+      for (var i = 0; i < n; i++) {
+        var pt = getXY(i, scores[i]);
+        var rating = sorted[i].rating;
+        var color = rating === 'excellent' ? 'rgba(168,85,247,1)' :
+                    rating === 'great' ? 'rgba(74,222,128,1)' :
+                    rating === 'good' ? 'rgba(251,191,36,1)' :
+                    rating === 'fair' ? 'rgba(251,146,60,1)' :
+                    'rgba(248,113,113,1)';
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function renderRackGameAnalysis(games) {
+      var container = document.getElementById('lex-rack-games');
+      var list = document.getElementById('lex-rack-games-list');
+      var countEl = document.getElementById('lex-rack-games-count');
+      if (!container || !list || !games || games.length === 0) return;
+
+      container.classList.remove('hidden');
+      // Show max 20 most recent
+      var display = games.slice(0, 20);
+      countEl.textContent = display.length + ' of ' + games.length + ' submissions';
+
+      var ratingColors = {
+        excellent: { border: 'border-purple-500/40', bg: 'bg-purple-900/10', badge: 'bg-purple-600/30 text-purple-300', icon: '💎' },
+        great: { border: 'border-green-500/40', bg: 'bg-green-900/10', badge: 'bg-green-600/30 text-green-300', icon: '⚡' },
+        good: { border: 'border-amber-500/40', bg: 'bg-amber-900/10', badge: 'bg-amber-600/30 text-amber-300', icon: '✅' },
+        fair: { border: 'border-orange-500/40', bg: 'bg-orange-900/10', badge: 'bg-orange-600/30 text-orange-300', icon: '📝' },
+        weak: { border: 'border-red-500/40', bg: 'bg-red-900/10', badge: 'bg-red-600/30 text-red-300', icon: '⚠️' }
+      };
+
+      var html = '';
+      for (var i = 0; i < display.length; i++) {
+        var g = display[i];
+        var colors = ratingColors[g.rating] || ratingColors.fair;
+        var dateStr = g.date && g.date !== '?' ? new Date(g.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+
+        // Strengths HTML
+        var impHtml = '';
+        if (g.improvements && g.improvements.length > 0) {
+          impHtml = '<div class="mt-1.5">';
+          for (var s = 0; s < g.improvements.length; s++) {
+            impHtml += '<p class="text-[11px] text-green-300/80 pl-2 border-l-2 border-green-500/30 mb-0.5">' + g.improvements[s] + '</p>';
+          }
+          impHtml += '</div>';
+        }
+
+        // Weaknesses HTML
+        var weakHtml = '';
+        if (g.weaknesses && g.weaknesses.length > 0) {
+          weakHtml = '<div class="mt-1.5">';
+          for (var w = 0; w < g.weaknesses.length; w++) {
+            weakHtml += '<p class="text-[11px] text-red-300/80 pl-2 border-l-2 border-red-500/30 mb-0.5">' + g.weaknesses[w] + '</p>';
+          }
+          weakHtml += '</div>';
+        }
+
+        html += '<div class="rounded-xl ' + colors.border + ' ' + colors.bg + ' border p-3">' +
+          '<div class="flex items-center justify-between mb-1">' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="text-base">' + colors.icon + '</span>' +
+              '<span class="text-xs font-bold text-white font-mono uppercase">' + g.word + '</span>' +
+              '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' + colors.badge + '">' + g.rating.toUpperCase() + '</span>' +
+            '</div>' +
+            '<span class="text-[10px] text-gray-500">' + dateStr + '</span>' +
+          '</div>' +
+          '<div class="flex items-center gap-3 text-[11px] text-gray-400">' +
+            '<span>Score: <b class="text-amber-300">' + g.score + ' pts</b></span>' +
+            '<span>Length: <b class="text-white">' + g.wordLength + '</b></span>' +
+            (g.isBingo ? '<span class="text-purple-400 font-semibold">🎯 Bingo!</span>' : '') +
+            (g.rack ? '<span class="text-gray-600">Rack: ' + g.rack + '</span>' : '') +
+          '</div>' +
+          (g.meaning ? '<p class="text-[10px] text-gray-500 mt-1 italic">' + g.meaning + '</p>' : '') +
+          impHtml + weakHtml +
+        '</div>';
+      }
+
+      list.innerHTML = html;
+    }
+
+    // Event listeners
+    lexBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      openModal();
+    });
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
   })();
 })();
 </script>

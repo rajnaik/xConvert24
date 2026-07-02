@@ -869,46 +869,6 @@
   openBtn.addEventListener('click', function() {
     modal.classList.remove('hidden');
     input.focus();
-
-    // On first click, auto-trigger coaching if user has played
-    if (!hasAutoCoached && !isStreaming) {
-      hasAutoCoached = true;
-      var S = window.__swfStore;
-      var uid = S ? S.getRaw('swf-uid') : (localStorage.getItem('swf-uid') || '');
-      if (uid) {
-        coachBtn.textContent = '⏳ Loading...';
-        coachBtn.disabled = true;
-        fetch('/api/cab/?user_id=' + encodeURIComponent(uid))
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
-            coachBtn.textContent = '🧠 Coach me on my games';
-            coachBtn.disabled = false;
-            var rounds = data.rounds || [];
-            if (rounds.length === 0) return; // No history — don't auto-send
-            var count = data.count || 0;
-            var solved = rounds.filter(function(r) { return r.solved; }).length;
-            var totalAttempts = rounds.reduce(function(sum, r) { return sum + (r.attempts || 0); }, 0);
-            var avgAttempts = count > 0 ? (totalAttempts / count).toFixed(1) : 0;
-
-            var prompt = '[COWS AND BULLS — COACHING REQUEST]\n\n';
-            prompt += 'Player stats: ' + count + ' games played, ' + solved + ' solved (' + (count > 0 ? Math.round(solved/count*100) : 0) + '% solve rate), average ' + avgAttempts + ' attempts per game.\n';
-            if (rounds.length > 0) {
-              prompt += 'Recent games:\n';
-              rounds.slice(0, 5).forEach(function(r) {
-                prompt += '- ' + (r.word || '???') + ' (' + r.length + ' letters) — ' + (r.solved ? 'Solved in ' + r.attempts + ' attempts' : 'Not solved') + (r.timer_duration ? ', timer: ' + r.timer_duration + 's' : '') + (r.split_time != null && r.solved ? ', ' + r.split_time + 's left' : '') + '\n';
-              });
-            }
-            prompt += '\nPlease coach me on my Cows and Bulls performance based on these stats.';
-
-            input.value = prompt;
-            form.dispatchEvent(new Event('submit'));
-          })
-          .catch(function() {
-            coachBtn.textContent = '🧠 Coach me on my games';
-            coachBtn.disabled = false;
-          });
-      }
-    }
   });
 
   // Close modal
@@ -944,50 +904,8 @@
     }
   });
 
-  // Coach button — gather stats and ask for coaching
-  coachBtn.addEventListener('click', function() {
-    if (isStreaming) return;
-    var S = window.__swfStore;
-    var uid = S ? S.getRaw('swf-uid') : (localStorage.getItem('swf-uid') || '');
-    if (!uid) {
-      input.value = 'Can you give me tips for Cows and Bulls?';
-      form.dispatchEvent(new Event('submit'));
-      return;
-    }
-    // Fetch user's CaB history for coaching context
-    coachBtn.textContent = '⏳ Loading...';
-    coachBtn.disabled = true;
-    fetch('/api/cab/?user_id=' + encodeURIComponent(uid))
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        coachBtn.textContent = '🧠 Coach me on my games';
-        coachBtn.disabled = false;
-        var rounds = data.rounds || [];
-        var count = data.count || 0;
-        var solved = rounds.filter(function(r) { return r.solved; }).length;
-        var totalAttempts = rounds.reduce(function(sum, r) { return sum + (r.attempts || 0); }, 0);
-        var avgAttempts = count > 0 ? (totalAttempts / count).toFixed(1) : 0;
-
-        var prompt = '[COWS AND BULLS — COACHING REQUEST]\n\n';
-        prompt += 'Player stats: ' + count + ' games played, ' + solved + ' solved (' + (count > 0 ? Math.round(solved/count*100) : 0) + '% solve rate), average ' + avgAttempts + ' attempts per game.\n';
-        if (rounds.length > 0) {
-          prompt += 'Recent games:\n';
-          rounds.slice(0, 5).forEach(function(r) {
-            prompt += '- ' + (r.word || '???') + ' (' + r.length + ' letters) — ' + (r.solved ? 'Solved in ' + r.attempts + ' attempts' : 'Not solved') + (r.timer_duration ? ', timer: ' + r.timer_duration + 's' : '') + (r.split_time != null && r.solved ? ', ' + r.split_time + 's left' : '') + '\n';
-          });
-        }
-        prompt += '\nPlease coach me on my Cows and Bulls performance based on these stats.';
-
-        input.value = prompt;
-        form.dispatchEvent(new Event('submit'));
-      })
-      .catch(function() {
-        coachBtn.textContent = '🧠 Coach me on my games';
-        coachBtn.disabled = false;
-        input.value = 'Can you give me tips for Cows and Bulls?';
-        form.dispatchEvent(new Event('submit'));
-      });
-  });
+  // Coach button — now handled by the dedicated coaching modal script below
+  // (the new script uses stopPropagation to intercept clicks)
 
   // Diamond Hunt Details button — ask Lex to explain Diamond Hunt + Badges
   diamondBtn.addEventListener('click', function() {
@@ -1181,5 +1099,353 @@
     div.textContent = text;
     return div.innerHTML;
   }
+})();
+</script>
+
+<!-- Lex CaB Coach Analysis Modal -->
+<div id="lex-cab-coach-modal" class="hidden fixed inset-0 z-[99999] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+  <div id="lex-cab-coach-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+  <div class="relative w-full max-w-lg rounded-2xl border border-cyan-500/30 bg-gray-900 shadow-2xl shadow-cyan-500/10 overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-900/30 to-gray-900">
+      <div class="flex items-center gap-3">
+        <img src="/lex-avatar-32.png" alt="Lex" width="28" height="28" class="rounded-full ring-2 ring-cyan-400/50" />
+        <div>
+          <h3 class="text-sm font-bold text-cyan-300">Lex CaB Coach</h3>
+          <p class="text-[10px] text-gray-400">AI-powered analysis of your Cows & Bulls history</p>
+        </div>
+      </div>
+      <button id="lex-cab-coach-close" class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors" aria-label="Close">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="lex-cab-coach-body" class="px-5 py-5 max-h-[70vh] overflow-y-auto">
+      <div id="lex-cab-coach-loading" class="flex flex-col items-center gap-3 py-6">
+        <div class="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs text-gray-400">Lex is analysing your games...</p>
+      </div>
+      <div id="lex-cab-coach-result" class="hidden">
+        <!-- Stats bar -->
+        <div id="lex-cab-stats-bar" class="hidden grid grid-cols-4 gap-2 mb-4">
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-cab-stat-games" class="text-lg font-bold text-white">0</p>
+            <p class="text-[10px] text-gray-500">Games</p>
+          </div>
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-cab-stat-rate" class="text-lg font-bold text-green-400">0%</p>
+            <p class="text-[10px] text-gray-500">Solve Rate</p>
+          </div>
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-cab-stat-avg" class="text-lg font-bold text-orange-400">0</p>
+            <p class="text-[10px] text-gray-500">Avg Guesses</p>
+          </div>
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-cab-stat-quick" class="text-lg font-bold text-purple-400">0</p>
+            <p class="text-[10px] text-gray-500">Quick (≤3)</p>
+          </div>
+        </div>
+        <!-- Graph: attempts per game (golf style — lower = better) -->
+        <div id="lex-cab-graph-section" class="hidden mb-4">
+          <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Guesses per Game (lower = better)</p>
+          <canvas id="lex-cab-graph" class="w-full h-36 rounded-lg bg-gray-800/30 border border-gray-700/30"></canvas>
+          <div class="flex justify-between mt-1 text-[9px] text-gray-600">
+            <span>🟢 Solved</span>
+            <span>🔴 Failed</span>
+            <span>⬜ Average line</span>
+          </div>
+        </div>
+        <!-- Time commentary -->
+        <div id="lex-cab-time-commentary" class="hidden mb-4 px-3 py-2 rounded-lg bg-cyan-900/20 border border-cyan-700/30">
+          <p class="text-[10px] text-cyan-400 font-semibold uppercase mb-1">⏱ Time Insight</p>
+          <p id="lex-cab-time-text" class="text-[11px] text-gray-300 leading-relaxed"></p>
+        </div>
+        <!-- AI analysis -->
+        <div id="lex-cab-analysis-text" class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap mb-4"></div>
+        <!-- Per-game cards -->
+        <div id="lex-cab-games" class="hidden mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Per-Game Analysis</p>
+            <span id="lex-cab-games-count" class="text-[10px] text-gray-600"></span>
+          </div>
+          <div id="lex-cab-games-list" class="flex flex-col gap-2 max-h-64 overflow-y-auto"></div>
+        </div>
+        <!-- Chat link -->
+        <div class="pt-3 border-t border-gray-700/50">
+          <a href="/chat/?context=cab" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
+            <span class="text-sm" aria-hidden="true">💬</span>
+            <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Ask Lex for detailed coaching in chat</span>
+          </a>
+        </div>
+      </div>
+      <div id="lex-cab-coach-error" class="hidden text-center py-4">
+        <p class="text-sm text-red-400">Something went wrong. Try again later.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+(function() {
+  var coachModal = document.getElementById('lex-cab-coach-modal');
+  var coachBackdrop = document.getElementById('lex-cab-coach-backdrop');
+  var coachClose = document.getElementById('lex-cab-coach-close');
+  var coachLoading = document.getElementById('lex-cab-coach-loading');
+  var coachResult = document.getElementById('lex-cab-coach-result');
+  var coachError = document.getElementById('lex-cab-coach-error');
+  var coachBtn = document.getElementById('cab-lex-coach-btn');
+
+  function openCoachModal() {
+    coachModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    coachLoading.classList.remove('hidden');
+    coachResult.classList.add('hidden');
+    coachError.classList.add('hidden');
+    fetchCabCoaching();
+  }
+
+  function closeCoachModal() {
+    coachModal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function fetchCabCoaching() {
+    var S = window.__swfStore;
+    var userId = S ? S.getRaw('swf-uid') : (localStorage.getItem('swf-uid') || '');
+    fetch('/api/lex-cab-coach/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      coachLoading.classList.add('hidden');
+      if (data.error) { coachError.classList.remove('hidden'); return; }
+      coachResult.classList.remove('hidden');
+
+      if (data.hasHistory && data.stats) {
+        document.getElementById('lex-cab-stats-bar').classList.remove('hidden');
+        document.getElementById('lex-cab-stat-games').textContent = data.stats.totalGames;
+        document.getElementById('lex-cab-stat-rate').textContent = data.stats.solveRate + '%';
+        document.getElementById('lex-cab-stat-avg').textContent = data.stats.avgAttempts;
+        document.getElementById('lex-cab-stat-quick').textContent = data.stats.quickSolves;
+      }
+
+      document.getElementById('lex-cab-analysis-text').textContent = data.analysis || 'No analysis available.';
+      renderCabGraph(data.gameAnalysis || []);
+      renderCabTimeCommentary(data.gameAnalysis || [], data.stats || {});
+      renderCabGameAnalysis(data.gameAnalysis || []);
+    })
+    .catch(function() {
+      coachLoading.classList.add('hidden');
+      coachError.classList.remove('hidden');
+    });
+  }
+
+  function renderCabGraph(games) {
+    var section = document.getElementById('lex-cab-graph-section');
+    var canvas = document.getElementById('lex-cab-graph');
+    if (!section || !canvas || !games || games.length < 2) { if (section) section.classList.add('hidden'); return; }
+
+    var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+    section.classList.remove('hidden');
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.clientWidth;
+    var h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+
+    var pad = { top: 16, right: 12, bottom: 28, left: 30 };
+    var plotW = w - pad.left - pad.right;
+    var plotH = h - pad.top - pad.bottom;
+    var n = sorted.length;
+
+    // Max attempts on graph (cap at 10 for readability)
+    var attempts = sorted.map(function(g) { return g.solved ? g.attempts : 10; });
+    var maxAtt = Math.min(Math.max.apply(null, attempts) + 1, 12);
+    var solvedAtts = attempts.filter(function(a) { return a < 10; });
+    var avgAtt = solvedAtts.length > 0 ? Math.round(solvedAtts.reduce(function(a, b) { return a + b; }, 0) / solvedAtts.length * 10) / 10 : 0;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    for (var i = 0; i <= 5; i++) {
+      var y = pad.top + (plotH / 5) * i;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+    }
+
+    // Y-axis labels
+    ctx.font = '10px system-ui, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(74,222,128,0.7)';
+    for (var i = 0; i <= 5; i++) {
+      var val = Math.round((maxAtt / 5) * i);
+      var y = pad.top + (plotH / 5) * i;
+      ctx.fillText(val === 0 ? '' : String(val), pad.left - 6, y + 3);
+    }
+
+    // X-axis labels
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    var labelStep = Math.max(1, Math.floor(n / 8));
+    for (var i = 0; i < n; i += labelStep) {
+      var x = pad.left + (plotW / Math.max(n - 1, 1)) * i;
+      ctx.fillText('#' + sorted[i].gameNumber, x, h - pad.bottom + 14);
+    }
+    if ((n - 1) % labelStep !== 0 && n > 1) {
+      ctx.fillText('#' + sorted[n - 1].gameNumber, pad.left + plotW, h - pad.bottom + 14);
+    }
+
+    function getXY(index, value) {
+      var x = pad.left + (plotW / Math.max(n - 1, 1)) * index;
+      var y = pad.top + (value / maxAtt) * plotH;
+      return { x: x, y: y };
+    }
+
+    // Average line (dashed)
+    if (avgAtt > 0) {
+      var avgY = pad.top + (avgAtt / maxAtt) * plotH;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.left, avgY); ctx.lineTo(w - pad.right, avgY); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Line connecting dots
+    ctx.strokeStyle = 'rgba(251,146,60,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (var i = 0; i < n; i++) {
+      var pt = getXY(i, attempts[i]);
+      if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y);
+    }
+    ctx.stroke();
+
+    // Dots
+    for (var i = 0; i < n; i++) {
+      var pt = getXY(i, attempts[i]);
+      ctx.fillStyle = sorted[i].solved ? 'rgba(74,222,128,1)' : 'rgba(248,113,113,1)';
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, sorted[i].attempts <= 2 && sorted[i].solved ? 5 : 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function renderCabTimeCommentary(games, stats) {
+    var container = document.getElementById('lex-cab-time-commentary');
+    var textEl = document.getElementById('lex-cab-time-text');
+    if (!container || !textEl) return;
+
+    var timed = games.filter(function(g) { return g.splitTime > 0; });
+    if (timed.length < 2) { container.classList.add('hidden'); return; }
+
+    var sorted = timed.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+    var times = sorted.map(function(g) { return g.splitTime; });
+    var fastest = Math.min.apply(null, times);
+    var slowest = Math.max.apply(null, times);
+    var avg = Math.round(times.reduce(function(a, b) { return a + b; }, 0) / times.length);
+
+    var fastestGame = sorted.find(function(g) { return g.splitTime === fastest; });
+    var slowestGame = sorted.find(function(g) { return g.splitTime === slowest; });
+
+    var recent = sorted[sorted.length - 1];
+    var prev = sorted[sorted.length - 2];
+    var diff = recent.splitTime - prev.splitTime;
+    var trend = diff < -20 ? 'Getting faster — ' + Math.abs(diff) + 's quicker than previous.' :
+                diff > 20 ? 'Took ' + diff + 's longer — possibly a tougher word.' :
+                'Consistent pace between recent games.';
+
+    container.classList.remove('hidden');
+    textEl.textContent = 'Fastest: ' + fastest + 's (Game #' + fastestGame.gameNumber + ') · Slowest: ' + slowest + 's (Game #' + slowestGame.gameNumber + ') · Avg: ' + avg + 's. ' + trend;
+  }
+
+  function renderCabGameAnalysis(games) {
+    var container = document.getElementById('lex-cab-games');
+    var list = document.getElementById('lex-cab-games-list');
+    var countEl = document.getElementById('lex-cab-games-count');
+    if (!container || !list || !games || games.length === 0) return;
+
+    container.classList.remove('hidden');
+    var display = games.slice(0, 20);
+    countEl.textContent = display.length + ' of ' + games.length + ' games';
+
+    var ratingColors = {
+      ace: { border: 'border-purple-500/40', bg: 'bg-purple-900/10', badge: 'bg-purple-600/30 text-purple-300', icon: '🏆' },
+      brilliant: { border: 'border-green-500/40', bg: 'bg-green-900/10', badge: 'bg-green-600/30 text-green-300', icon: '⚡' },
+      great: { border: 'border-blue-500/40', bg: 'bg-blue-900/10', badge: 'bg-blue-600/30 text-blue-300', icon: '✅' },
+      good: { border: 'border-amber-500/40', bg: 'bg-amber-900/10', badge: 'bg-amber-600/30 text-amber-300', icon: '👍' },
+      tough: { border: 'border-orange-500/40', bg: 'bg-orange-900/10', badge: 'bg-orange-600/30 text-orange-300', icon: '😤' },
+      failed: { border: 'border-red-500/40', bg: 'bg-red-900/10', badge: 'bg-red-600/30 text-red-300', icon: '❌' }
+    };
+
+    var html = '';
+    for (var i = 0; i < display.length; i++) {
+      var g = display[i];
+      var colors = ratingColors[g.rating] || ratingColors.good;
+      var dateStr = g.date && g.date !== '?' ? new Date(g.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+
+      var impHtml = '';
+      if (g.improvements && g.improvements.length > 0) {
+        impHtml = '<div class="mt-1.5">';
+        for (var s = 0; s < g.improvements.length; s++) {
+          impHtml += '<p class="text-[11px] text-green-300/80 pl-2 border-l-2 border-green-500/30 mb-0.5">' + g.improvements[s] + '</p>';
+        }
+        impHtml += '</div>';
+      }
+
+      var weakHtml = '';
+      if (g.weaknesses && g.weaknesses.length > 0) {
+        weakHtml = '<div class="mt-1.5">';
+        for (var w = 0; w < g.weaknesses.length; w++) {
+          weakHtml += '<p class="text-[11px] text-red-300/80 pl-2 border-l-2 border-red-500/30 mb-0.5">' + g.weaknesses[w] + '</p>';
+        }
+        weakHtml += '</div>';
+      }
+
+      var resultText = g.solved ? 'Solved in ' + g.attempts + ' guesses' : 'Not solved';
+      var timeText = g.splitTime > 0 ? ' · ' + g.splitTime + 's' : '';
+
+      html += '<div class="rounded-xl ' + colors.border + ' ' + colors.bg + ' border p-3">' +
+        '<div class="flex items-center justify-between mb-1">' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="text-base">' + colors.icon + '</span>' +
+            '<span class="text-xs font-bold text-white">Game #' + g.gameNumber + '</span>' +
+            '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' + colors.badge + '">' + g.rating.toUpperCase() + '</span>' +
+          '</div>' +
+          '<span class="text-[10px] text-gray-500">' + dateStr + '</span>' +
+        '</div>' +
+        '<div class="flex items-center gap-3 text-[11px] text-gray-400">' +
+          '<span>' + resultText + '</span>' +
+          (timeText ? '<span>Time: <b class="text-white">' + g.splitTime + 's</b></span>' : '') +
+          '<span class="text-gray-600">' + g.wordLength + '-letter word</span>' +
+          (g.word ? '<span class="font-mono uppercase text-orange-300">' + g.word + '</span>' : '') +
+        '</div>' +
+        impHtml + weakHtml +
+      '</div>';
+    }
+
+    list.innerHTML = html;
+  }
+
+  // Wire up the "Coach me" button to open the analysis modal instead
+  if (coachBtn) {
+    coachBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openCoachModal();
+    });
+  }
+
+  coachClose.addEventListener('click', closeCoachModal);
+  coachBackdrop.addEventListener('click', closeCoachModal);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !coachModal.classList.contains('hidden')) {
+      closeCoachModal();
+    }
+  });
 })();
 </script>

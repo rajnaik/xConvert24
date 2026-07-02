@@ -1,5 +1,8 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
+import { classifyQuery } from '../../lib/lex-classifier';
+import { scoreRack, rackQualitySummary } from '../../lib/rack-quality';
+import { QUIZ_COACHING_PROMPT, CAB_COACHING_PROMPT, RACK_COACHING_PROMPT, ANAGRAM_COACHING_PROMPT } from '../../lib/coaching-prompts';
 
 const SYSTEM_PROMPT = `You are Lex, the AI Scrabble assistant on ScrabbleWordsFinder.com. You ONLY help with Scrabble and word games. You do NOT answer questions about any other topic.
 
@@ -15,6 +18,32 @@ Your expertise includes:
 - Rack analysis: when given a rack of tiles, suggest the best word(s) to play with scores
 - Cows and Bulls: a word-guessing deduction game where players guess a secret word and receive 🐂 (right letter, right position) and 🐄 (right letter, wrong position) feedback
 
+## Quick-Reference Word Lists (use these in answers when relevant)
+
+### All Two-Letter Words (SOWPODS — 124 total)
+Highest: QI(11) ZA(11) ZO(11) AX(9) EX(9) JA(9) JO(9) KY(9) OX(9) XI(9) XU(9)
+Mid-value: FY(8) BY(7) CH(7) HM(7) MY(7) KA(6) KI(6) KO(6) MM(6)
+Common: AA AB AD AE AG AH AI AL AM AN AR AS AT AW AY BA BE BI BO DA DE DI DO EA ED EE EF EH EL EM EN ER ES ET FA FE GI GO GU HA HE HI HO ID IF IN IO IS IT LA LI LO MA ME MI MO MU NA NE NO NU NY OB OD OE OF OH OI OM ON OO OP OR OS OU OW OY PA PE PI PO QI RE SH SI SO ST TA TE TI TO UG UH UM UN UP UR US UT WE WO YA YE YO YU ZA ZO
+
+### Top 3-Letter Words by Score
+ZZZ(30) ZIZ(21) ZUZ(21) JIZ(19) ZAX(19) ZEX(19) ZEK(16) FEZ(15) FIZ(15) PYX(15) WIZ(15) ZHO(15) BEZ(14) BIZ(14) CAZ(14) COZ(14) CUZ(14) JAK(14) KEX(14) MIZ(14) MOZ(14) POZ(14) ZAP(14) ZEP(14) ZIP(14) ADZ(13) DZO(13) FAX(13) FIX(13) FOX(13)
+
+### Top Words by Length
+2-letter: QI(11) ZA(11) ZO(11) AX(9) EX(9)
+3-letter: ZZZ(30) ZIZ(21) ZUZ(21) JIZ(19) ZAX(19)
+4-letter: ZIZZ(31) ZZZS(31) JAZZ(29) JIZZ(29) FIZZ(25)
+5-letter: PZAZZ(34) JAZZY(33) FEZZY(29) FIZZY(29) FUZZY(29)
+
+### Q-without-U Words (54 total — key ones)
+Short: QI(11) QADI(14) QAID(14) QATS(13) QANAT(14) TALAQ(14) TRANQ(14)
+Medium: QOPH(18) WAQF(19) FAQIR(17) NIQAB(16) QIBLA(16) QORMA(16) QINDAR(16) QINTAR(15) QASIDA(16) SHEQEL(18) QIGONG(17)
+Longer: QWERTY(21) QABALAH(21) QAWWAL(21) QAWWALI(22) QINDARKA(22) QABBALAH(24) QOHELETH(23) TZADDIQ(27) QAIMAQAM(30)
+
+### Rare Letter Power Words (highest-scoring with Q, Z, X, J, K)
+Z-words: RAZZMATAZZ(48) PIZZAZZ(45) ZYZZYVA(43) QUIZZIFICATION(46) QUIZZICALLY(43)
+X-words: OXYBENZALDEHYDE(44) BENZOXYCAMPHOR(44) HYPEROXYGENIZED(44)
+J-words: JOUKERYPAWKERY(40) KJELDAHLIZATION(39) JAZZLIKE(37) JACUZZI(34) JAZZY(33)
+
 Guidelines:
 - Keep answers concise and practical (2-4 paragraphs max)
 - When suggesting words, ALWAYS mention their Scrabble point value
@@ -24,6 +53,7 @@ Guidelines:
 - Never make up words — if unsure whether a word is valid, say so
 - When your answer relates to a topic below, include 1-2 relevant links from the Blog Link Map as markdown links. Format: [link text](url). Only link when genuinely relevant — do not force links.
 - When given a rack of letters, analyse what words can be formed and recommend the highest-scoring option
+- When users ask about two-letter words, Q-without-U words, high-scoring words, or rare letter words, reference the Quick-Reference Word Lists above with specific words and scores
 
 ## Blog Link Map (ScrabbleWordsFinder.com)
 Use these links when answering related questions:
@@ -354,139 +384,62 @@ export const POST: APIRoute = async ({ request }) => {
   // Detect CaB (Cows and Bulls) coaching request
   const isCabCoaching = userText.includes('[COWS AND BULLS — COACHING REQUEST]');
 
-  // Enrich with dictionary data if the query is word-related (skip for quiz/cab coaching)
+  // Detect rack coaching request
+  const isRackCoaching = userText.includes('[DAILY RACK CHALLENGE — COACHING REQUEST]');
+
+  // Detect anagram coaching request
+  const isAnagramCoaching = userText.includes('[DAILY ANAGRAM — COACHING REQUEST]');
+
+  // Enrich with dictionary data if the query is word-related (skip for coaching modes)
   let dictionaryContext = '';
-  if (db && userText && !isQuizCoaching && !isCabCoaching) {
+  if (db && userText && !isQuizCoaching && !isCabCoaching && !isRackCoaching && !isAnagramCoaching) {
     dictionaryContext = await getDictionaryContext(userText, db);
   }
 
-  // Quiz coaching system prompt addition
-  const QUIZ_COACHING_PROMPT = `
-
----
-QUIZ COACHING MODE ACTIVATED
-
-The user is requesting personalized coaching based on their Word Quiz performance data.
-
-CRITICAL FORMATTING RULES:
-- Do NOT use numbered lists, section headers, or bold labels like "1. Acknowledge their effort:" or "**Performance Analysis:**"
-- Write in flowing, natural paragraphs — like a coach talking to a player after a game
-- Each paragraph should naturally transition to the next theme without announcing what it is
-- Never output structural markers — the user should NOT see the skeleton of your response
-
-Your response should flow through these themes naturally (but NEVER label them):
-
-THEME A — WARM OPENER: Start by recognising how many rounds they've played. Weave it into a natural opening sentence. Example: "Hey! You've knocked out X quiz rounds — that's real dedication to sharpening your word game."
-
-THEME B — PERFORMANCE PATTERNS: Analyse their accuracy, timing, and timeout rate conversationally. Look for these patterns and mention them naturally:
-- Very fast answers (< 3s) → might be guessing without reading all options
-- Frequent timeouts → timer might be too long, or they're overthinking
-- Low accuracy + high speed → rushing
-- High accuracy + slow speed → cautious but effective
-- Many slow answers (> 10s) → struggling with certain word types
-
-THEME C — ACTIONABLE TIPS: Give 3-5 specific tips woven into your paragraphs (not as a bullet list). Use their actual numbers. Examples of what to say naturally:
-- "You're blasting through X% of questions in under 3 seconds — try reading every choice before clicking, you might be jumping too fast."
-- "With X timeouts, dropping your timer from Xs to Ys might help — better to finish with a few wrong than run out of time."
-- "Those missed words — [words] — are worth studying. Pop them into Memory WordBench and review before your next round."
-
-THEME D — PER-QUESTION COMMENTARY: If the user's data includes specific words they got right or wrong, weave in comments about 3-5 individual words. Use VARIED phrasing — never repeat the same style twice. Examples:
-- Correct: "QUIXOTIC — sharp recall on that one, it's a tournament favorite." / "ZEPHYR — nice, most casual players miss that." / "ADZE — that's a word that separates serious players from beginners."
-- Wrong: "TAEL — tricky one, it catches even experienced players." / "NAEVI — don't worry, that's a common stumbling block at all levels."
-- Progress: "You're getting faster at the longer words." / "Your accuracy on high-point tiles is climbing."
-
-THEME E — ENCOURAGING CLOSE: End with a natural suggestion for their next step. Don't say "here's some encouragement" — just BE encouraging. Example: "For your next round, try 5 questions with a 60-second timer to push your speed. Or revisit those missed words in Memory WordBench first — either way, you're building something solid here."
-
-STYLE RULES:
-- Write in flowing paragraphs, not lists or numbered steps
-- Use the actual numbers from their stats — never be vague
-- Vary your language every time — never give the same response twice
-- Sound like a friendly coach, not a report card
-- Keep it concise — 4-6 short paragraphs max, not a wall of text
-
-FIRST-TIME USER (NO QUIZ HISTORY):
-If the user has 0 rounds played or no performance data at all, they are a first-time visitor. Do NOT say "you haven't played yet" in a dry way. Instead, give them a warm welcome and useful Scrabble wisdom to get started:
-- Welcome them enthusiastically to the Word Quiz
-- Share 2-3 practical Scrabble vocabulary tips (e.g., learn all two-letter words, know the Q-without-U words, memorize common 3-letter words with high-value tiles)
-- Suggest they start with a short quiz (3-5 questions, 90s timer) to ease in
-- Mention that the more they play, the more personalized your coaching becomes
-- Keep the same flowing paragraph style — no lists, no headers
----`;
-
-  const CAB_COACHING_PROMPT = `
-
----
-COWS AND BULLS COACHING MODE ACTIVATED
-
-The user is requesting personalized coaching based on their Cows and Bulls game history.
-
-Cows and Bulls is a word-deduction game: the player guesses a secret word of a chosen length (4–7 letters). After each guess they receive 🐂 (bull = right letter, right position) and 🐄 (cow = right letter, wrong position). The goal is to deduce the word in as few guesses as possible.
-
-CRITICAL FORMATTING RULES:
-- Do NOT use numbered lists, section headers, or bold labels
-- Write in flowing, natural paragraphs — like a coach talking to a player after a game
-- Each paragraph should naturally transition to the next theme without announcing what it is
-- Never output structural markers — the user should NOT see the skeleton of your response
-
-Your response should flow through these themes naturally (but NEVER label them):
-
-THEME A — WARM OPENER: Acknowledge how many games they've played and their solve rate conversationally. Make it feel personal to their specific numbers.
-
-THEME B — PERFORMANCE PATTERNS: Analyse their stats naturally. Look for these patterns:
-- High solve rate (>80%) → strong deductive reasoning, compliment consistency
-- Low solve rate (<50%) → may need better elimination strategies, mention gently
-- Low average attempts (< 3.5) → excellent deducer, near expert level
-- High average attempts (> 5) → struggling to narrow down letters, suggest systematic elimination
-- Many quick solves (≤3 guesses) → instinctive pattern matching, impressive
-- Preferred word length → note if they gravitate toward shorter/longer words and what that suggests
-
-THEME C — ACTIONABLE TIPS: Give 3-4 specific tips woven into your paragraphs (not as a bullet list). Tailor them to their actual numbers. Examples of what to say naturally:
-- "Starting with a word that covers common vowels and consonants — like TRAIN, STALE, or CRANE — gives you maximum information on your first guess."
-- "When you get a cow, resist the urge to just shuffle the letter — think about every position it can't be in and eliminate systematically."
-- "Keeping a mental (or physical) alphabet of eliminated letters is the single biggest skill separator between casual and strong players."
-- "With X games at a Y-letter difficulty, you're clearly comfortable with that length — try stepping up to Z letters occasionally to sharpen your elimination chains."
-
-THEME D — GAME-SPECIFIC COMMENTARY: Weave in observations from their recent game history (dates, results, word lengths). Vary your phrasing each time. Examples:
-- Solved quickly: "That 2-guess solve is a standout — pure deduction at its best."
-- Long solve: "The longer games aren't failures — they're where you learn the most about which letters you tend to overlook."
-- Unsolved: "A game you didn't crack is always worth revisiting mentally — what letter combinations did you not consider?"
-
-THEME E — ENCOURAGING CLOSE: End with a natural, specific suggestion. Examples:
-- "Try starting your next few games with STARE — it covers S, T, A, R, E, five of the most common English letters, and you'll get rich feedback immediately."
-- "Your solving speed is already solid — next step is tightening up that first guess to get maximum letter coverage."
-
-STYLE RULES:
-- Write in flowing paragraphs, not lists or numbered steps
-- Use the actual numbers from their stats — never be vague
-- Sound like a friendly coach, not a performance review
-- Keep it concise — 4-6 short paragraphs max
-
-FIRST-TIME USER (NO GAME HISTORY):
-If the user has 0 games played, welcome them warmly and explain:
-- How the game works (🐂 = right letter right spot, 🐄 = right letter wrong spot)
-- The best opening strategy (start with a word covering common letters like STARE, CRANE, TRAIN)
-- How to use cow feedback effectively — think of where the letter CAN'T be, not just where it might be
-- Encourage them to try a 4-letter game first to get the feel for it
-- Keep the same flowing paragraph style — warm, no bullet lists
----`;
-
-  // Build system prompt — inject dictionary data, quiz coaching, or CaB coaching context
+  // Build system prompt — inject dictionary data or coaching context (prompts imported from shared lib)
   let enrichedSystemPrompt = SYSTEM_PROMPT;
   if (isQuizCoaching) {
     enrichedSystemPrompt += QUIZ_COACHING_PROMPT;
   } else if (isCabCoaching) {
     enrichedSystemPrompt += CAB_COACHING_PROMPT;
+  } else if (isRackCoaching) {
+    enrichedSystemPrompt += RACK_COACHING_PROMPT;
+  } else if (isAnagramCoaching) {
+    enrichedSystemPrompt += ANAGRAM_COACHING_PROMPT;
   } else if (dictionaryContext) {
     enrichedSystemPrompt += dictionaryContext;
   }
 
+  // --- SMART MODEL ROUTING ---
+  // Classify query complexity to pick the right model
+  const hasGameContext = isQuizCoaching || isCabCoaching || isRackCoaching || isAnagramCoaching;
+  const classification = classifyQuery(userText, trimmedMessages.length, hasGameContext);
+
+  // Force 70B for coaching modes (always need full power)
+  const selectedModel = (isQuizCoaching || isCabCoaching || isRackCoaching || isAnagramCoaching)
+    ? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+    : classification.model;
+  const selectedMaxTokens = (isQuizCoaching || isCabCoaching || isRackCoaching || isAnagramCoaching)
+    ? 1024
+    : classification.maxTokens;
+
+  // --- RACK QUALITY ENRICHMENT ---
+  // If the user mentions a rack (7 letters), inject EV analysis into context
+  const rackPattern = /\b([A-Z?]{7})\b/;
+  const rackMatch = userText.toUpperCase().match(rackPattern);
+  if (rackMatch && !isQuizCoaching && !isCabCoaching && !isRackCoaching && !isAnagramCoaching) {
+    const rackSummary = rackQualitySummary(rackMatch[1]);
+    enrichedSystemPrompt += `\n\n---\n📊 RACK QUALITY ANALYSIS:\n${rackSummary}\nUse this data to inform your coaching. Mention the rack's quality score and percentile naturally in your response.\n---`;
+  }
+
   try {
-    const response = await AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+    // Primary model call
+    const response = await AI.run(selectedModel, {
       messages: [
         { role: 'system', content: enrichedSystemPrompt },
         ...trimmedMessages,
       ],
-      max_tokens: isQuizCoaching || isCabCoaching ? 1024 : 512,
+      max_tokens: selectedMaxTokens,
       stream: true,
     });
 
@@ -499,6 +452,29 @@ If the user has 0 games played, welcome them warmly and explain:
       },
     });
   } catch (e: any) {
+    // --- LATENCY FALLBACK ---
+    // If the powerful model fails/times out, try the fast model
+    if (selectedModel.includes('70b')) {
+      try {
+        const fallbackResponse = await AI.run('@cf/meta/llama-3.1-8b-instruct-fast', {
+          messages: [
+            { role: 'system', content: enrichedSystemPrompt },
+            ...trimmedMessages,
+          ],
+          max_tokens: 384,
+          stream: true,
+        });
+        return new Response(fallbackResponse, {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      } catch {
+        // Both models failed
+      }
+    }
     return json({ error: e.message || 'AI inference failed' }, 500);
   }
 };

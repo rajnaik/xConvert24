@@ -386,3 +386,427 @@ test.describe('Chat Page — Negative', () => {
     }
   });
 });
+
+
+test.describe('Chat Page — Quiz Coach Auto-Submit (Positive)', () => {
+  test('?context=quiz redirects to clean URL immediately', async ({ page }) => {
+    await page.goto(`${BASE}/chat/?context=quiz`);
+    await page.waitForFunction(() => !window.location.search.includes('context=quiz'), { timeout: 3000 });
+    expect(page.url()).toBe(`${BASE}/chat/`);
+  });
+
+  test('?context=quiz auto-submits a Quiz coaching message', async ({ page }) => {
+    await page.goto(`${BASE}/chat/?context=quiz`);
+    const userMsg = page.locator('#messages .bg-blue-600\\/20, #messages [class*="bg-blue"]');
+    await userMsg.first().waitFor({ state: 'attached', timeout: 8000 });
+    const msgText = await userMsg.first().textContent();
+    expect(msgText).toMatch(/Quiz|vocabulary|coaching|accuracy/i);
+  });
+
+  test('?context=quiz without uid still auto-submits a welcome message', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.evaluate(() => localStorage.removeItem('swf-uid'));
+    await page.goto(`${BASE}/chat/?context=quiz`);
+    const userMsg = page.locator('#messages .bg-blue-600\\/20, #messages [class*="bg-blue"]');
+    await userMsg.first().waitFor({ state: 'attached', timeout: 8000 });
+    const msgText = await userMsg.first().textContent();
+    expect(msgText).toBeTruthy();
+    expect(msgText!.trim().length).toBeGreaterThan(5);
+  });
+});
+
+test.describe('Chat Page — Quiz Coach Auto-Submit (Negative)', () => {
+  test('?context=quiz does not leave stale query param in URL', async ({ page }) => {
+    await page.goto(`${BASE}/chat/?context=quiz`);
+    await page.waitForTimeout(2000);
+    expect(page.url()).not.toContain('context=quiz');
+    expect(page.url()).not.toContain('?');
+  });
+
+  test('?context=quiz does not crash the page', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/chat/?context=quiz`);
+    await page.waitForTimeout(2000);
+    expect(errors.filter(e => !e.includes('net::') && !e.includes('Failed to fetch'))).toHaveLength(0);
+  });
+});
+
+test.describe('Chat Page — Rack Coach Auto-Submit (Positive)', () => {
+  test('?context=rack redirects to clean URL immediately', async ({ page }) => {
+    await page.goto(`${BASE}/chat/?context=rack`);
+    await page.waitForFunction(() => !window.location.search.includes('context=rack'), { timeout: 3000 });
+    expect(page.url()).toBe(`${BASE}/chat/`);
+  });
+
+  test('?context=rack auto-submits a Rack coaching message', async ({ page }) => {
+    await page.goto(`${BASE}/chat/?context=rack`);
+    const userMsg = page.locator('#messages .bg-blue-600\\/20, #messages [class*="bg-blue"]');
+    await userMsg.first().waitFor({ state: 'attached', timeout: 8000 });
+    const msgText = await userMsg.first().textContent();
+    expect(msgText).toMatch(/rack|scoring|coaching|tiles/i);
+  });
+
+  test('?context=rack without uid still auto-submits a welcome message', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.evaluate(() => localStorage.removeItem('swf-uid'));
+    await page.goto(`${BASE}/chat/?context=rack`);
+    const userMsg = page.locator('#messages .bg-blue-600\\/20, #messages [class*="bg-blue"]');
+    await userMsg.first().waitFor({ state: 'attached', timeout: 8000 });
+    const msgText = await userMsg.first().textContent();
+    expect(msgText).toBeTruthy();
+    expect(msgText!.trim().length).toBeGreaterThan(5);
+  });
+});
+
+test.describe('Chat Page — Rack Coach Auto-Submit (Negative)', () => {
+  test('?context=rack does not leave stale query param in URL', async ({ page }) => {
+    await page.goto(`${BASE}/chat/?context=rack`);
+    await page.waitForTimeout(2000);
+    expect(page.url()).not.toContain('context=rack');
+    expect(page.url()).not.toContain('?');
+  });
+
+  test('?context=rack does not crash the page', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/chat/?context=rack`);
+    await page.waitForTimeout(2000);
+    expect(errors.filter(e => !e.includes('net::') && !e.includes('Failed to fetch'))).toHaveLength(0);
+  });
+});
+
+test.describe('Chat Page — Anagram Coach Auto-Submit (Positive)', () => {
+  test('?context=anagram redirects to clean URL immediately', async ({ page }) => {
+    await page.goto(`${BASE}/chat/?context=anagram`);
+    await page.waitForFunction(() => !window.location.search.includes('context=anagram'), { timeout: 3000 });
+    expect(page.url()).toBe(`${BASE}/chat/`);
+  });
+
+  test('?context=anagram auto-submits an Anagram coaching message', async ({ page }) => {
+    // Clear uid to force the faster first-timer branch (avoids API timeout)
+    await page.goto(`${BASE}/chat/`);
+    await page.evaluate(() => localStorage.removeItem('swf-uid'));
+    await page.goto(`${BASE}/chat/?context=anagram`);
+    const userMsg = page.locator('#messages .bg-blue-600\\/20, #messages [class*="bg-blue"]');
+    await userMsg.first().waitFor({ state: 'attached', timeout: 8000 });
+    const msgText = await userMsg.first().textContent();
+    expect(msgText).toMatch(/anagram|scrambl|unscrambl|coaching|puzzle/i);
+  });
+
+  test('?context=anagram without uid still auto-submits a welcome message', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.evaluate(() => localStorage.removeItem('swf-uid'));
+    await page.goto(`${BASE}/chat/?context=anagram`);
+    const userMsg = page.locator('#messages .bg-blue-600\\/20, #messages [class*="bg-blue"]');
+    await userMsg.first().waitFor({ state: 'attached', timeout: 8000 });
+    const msgText = await userMsg.first().textContent();
+    expect(msgText).toBeTruthy();
+    expect(msgText!.trim().length).toBeGreaterThan(5);
+  });
+});
+
+test.describe('Chat Page — Anagram Coach Auto-Submit (Negative)', () => {
+  test('?context=anagram does not leave stale query param in URL', async ({ page }) => {
+    await page.goto(`${BASE}/chat/?context=anagram`);
+    await page.waitForTimeout(2000);
+    expect(page.url()).not.toContain('context=anagram');
+    expect(page.url()).not.toContain('?');
+  });
+
+  test('?context=anagram does not crash the page', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/chat/?context=anagram`);
+    await page.waitForTimeout(2000);
+    expect(errors.filter(e => !e.includes('net::') && !e.includes('Failed to fetch'))).toHaveLength(0);
+  });
+});
+
+
+test.describe('Chat Page — Affirmation Green Styling (Positive)', () => {
+  test('affirmation line starting with ✅ renders in green', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    // Intercept AI response to inject a known affirmation block
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":"✅ Correct! QUIXOTIC is a valid word."}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('Is QUIXOTIC valid?');
+    await page.locator('#send-btn').click();
+    // Wait for the green paragraph to appear
+    const greenP = page.locator('#messages p.text-green-400');
+    await greenP.first().waitFor({ state: 'attached', timeout: 8000 });
+    const classes = await greenP.first().getAttribute('class');
+    expect(classes).toContain('text-green-400');
+    expect(classes).toContain('font-semibold');
+  });
+
+  test('affirmation line starting with "Correct!" renders in green', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":"Correct! That word scores 22 points."}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('Does JAZZ score 22?');
+    await page.locator('#send-btn').click();
+    const greenP = page.locator('#messages p.text-green-400');
+    await greenP.first().waitFor({ state: 'attached', timeout: 8000 });
+    const text = await greenP.first().textContent();
+    expect(text).toContain('Correct!');
+  });
+
+  test('affirmation line starting with "Well done" renders in green', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":"Well done! You found a bingo."}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('I played RETINAS');
+    await page.locator('#send-btn').click();
+    const greenP = page.locator('#messages p.text-green-400');
+    await greenP.first().waitFor({ state: 'attached', timeout: 8000 });
+    expect(await greenP.first().textContent()).toContain('Well done');
+  });
+});
+
+test.describe('Chat Page — Affirmation Green Styling (Negative)', () => {
+  test('non-affirmation text does NOT get green styling', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":"Here are some good words to play from your rack."}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('Solve AEINRST');
+    await page.locator('#send-btn').click();
+    // Wait for the response to render
+    await page.waitForTimeout(3000);
+    // Should NOT have green paragraph for this text
+    const greenP = page.locator('#messages p.text-green-400');
+    const count = await greenP.count();
+    expect(count).toBe(0);
+  });
+
+  test('affirmation pattern only matches at START of line (not mid-text)', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":"The player said Correct! before leaving the room."}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('Tell me about correct plays');
+    await page.locator('#send-btn').click();
+    await page.waitForTimeout(3000);
+    // "Correct!" is mid-sentence so should NOT trigger green styling
+    const greenP = page.locator('#messages p.text-green-400');
+    const count = await greenP.count();
+    expect(count).toBe(0);
+  });
+
+  test('affirmation styling does not crash with empty response', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/chat/`);
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":""}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('test');
+    await page.locator('#send-btn').click();
+    await page.waitForTimeout(2000);
+    expect(errors.filter(e => !e.includes('net::') && !e.includes('Failed to fetch') && !e.includes('adsbygoogle'))).toHaveLength(0);
+  });
+});
+
+test.describe('Chat Page — Coaching Renderers Script (Positive)', () => {
+  test('coaching-renderers.js script tag is present', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const scriptTag = page.locator('script[src="/js/coaching-renderers.js"]');
+    await expect(scriptTag).toBeAttached();
+  });
+
+  test('coaching-renderers.js loads with 200 status', async ({ page }) => {
+    const responses: { url: string; status: number }[] = [];
+    page.on('response', res => {
+      if (res.url().includes('coaching-renderers.js')) {
+        responses.push({ url: res.url(), status: res.status() });
+      }
+    });
+    await page.goto(`${BASE}/chat/`);
+    await page.waitForTimeout(1000);
+    expect(responses.length).toBeGreaterThan(0);
+    expect(responses[0].status).toBe(200);
+  });
+
+  test('global coaching renderer functions are available after load', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const hasQuiz = await page.evaluate(() => typeof (window as any).appendQuizCoachData === 'function');
+    const hasRack = await page.evaluate(() => typeof (window as any).appendRackCoachData === 'function');
+    const hasAnagram = await page.evaluate(() => typeof (window as any).appendAnagramCoachData === 'function');
+    const hasRenderGraph = await page.evaluate(() => typeof (window as any).renderLineGraph === 'function');
+    const hasRenderCards = await page.evaluate(() => typeof (window as any).renderPerGameCards === 'function');
+    expect(hasQuiz).toBe(true);
+    expect(hasRack).toBe(true);
+    expect(hasAnagram).toBe(true);
+    expect(hasRenderGraph).toBe(true);
+    expect(hasRenderCards).toBe(true);
+  });
+
+  test('coaching-renderers.js is loaded before the main inline script', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    // The coaching-renderers script tag should appear before any inline script
+    // that calls appendQuizCoachData/appendRackCoachData/appendAnagramCoachData
+    const scriptOrder = await page.evaluate(() => {
+      const scripts = Array.from(document.querySelectorAll('script'));
+      const rendererIdx = scripts.findIndex(s => s.src.includes('coaching-renderers.js'));
+      // Find inline script that references the coaching functions
+      const inlineIdx = scripts.findIndex(s => !s.src && s.textContent?.includes('appendQuizCoachData'));
+      return { rendererIdx, inlineIdx };
+    });
+    // Renderer script must exist
+    expect(scriptOrder.rendererIdx).toBeGreaterThanOrEqual(0);
+    // If inline script exists that uses it, renderer must come first
+    if (scriptOrder.inlineIdx >= 0) {
+      expect(scriptOrder.rendererIdx).toBeLessThan(scriptOrder.inlineIdx);
+    }
+  });
+});
+
+test.describe('Chat Page — Coaching Renderers Script (Negative)', () => {
+  test('no duplicate coaching-renderers.js script tags', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const scripts = page.locator('script[src="/js/coaching-renderers.js"]');
+    const count = await scripts.count();
+    expect(count).toBe(1);
+  });
+
+  test('coaching-renderers.js does not cause page errors on load', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/chat/`);
+    await page.waitForTimeout(2000);
+    // Filter out network errors which are unrelated to the script
+    const scriptErrors = errors.filter(e =>
+      e.includes('coaching') || e.includes('renderer') || e.includes('is not defined')
+    );
+    expect(scriptErrors).toHaveLength(0);
+  });
+
+  test('coaching renderer functions do not crash when called without uid', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    // Remove uid to simulate new user
+    await page.evaluate(() => localStorage.removeItem('swf-uid'));
+    // Call each function with a container — they should exit gracefully (no uid)
+    const crashed = await page.evaluate(() => {
+      try {
+        const container = document.createElement('div');
+        (window as any).appendQuizCoachData(container);
+        (window as any).appendRackCoachData(container);
+        (window as any).appendAnagramCoachData(container);
+        return false;
+      } catch (e) {
+        return (e as Error).message;
+      }
+    });
+    expect(crashed).toBe(false);
+  });
+
+  test('coachRatingColors returns valid colors for all known ratings', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const result = await page.evaluate(() => {
+      const ratings = ['perfect', 'excellent', 'genius', 'great', 'good', 'fair', 'close', 'weak', 'failed'];
+      const fn = (window as any).coachRatingColors;
+      if (!fn) return 'function not found';
+      for (const r of ratings) {
+        const colors = fn(r);
+        if (!colors || !colors.border || !colors.bg || !colors.badge || !colors.icon) {
+          return 'missing property for rating: ' + r;
+        }
+      }
+      // Unknown rating should return fallback (good)
+      const unknown = fn('unknown-rating');
+      if (!unknown || !unknown.border) return 'fallback missing for unknown rating';
+      return 'ok';
+    });
+    expect(result).toBe('ok');
+  });
+});
+
+
+test.describe('Chat Page — Identified Words Dictionary Validation (Positive)', () => {
+  test('valid SOWPODS word is added to identified words panel', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.evaluate(() => localStorage.removeItem('swf-chat-identified-words'));
+    await page.reload();
+    // Intercept AI response with a known valid 6+ letter SOWPODS word
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":"Try playing RETINAS — it scores 7 points per letter."}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('Solve my rack');
+    await page.locator('#send-btn').click();
+    // Wait for the identified words panel to appear
+    const panel = page.locator('#identified-words-panel');
+    await panel.waitFor({ state: 'visible', timeout: 10000 });
+    const listText = await page.locator('#identified-words-list').textContent();
+    expect(listText).toContain('RETINAS');
+  });
+
+  test('dictionary is preloaded on page load (validWordsDict available)', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    // Wait for dict to load (it preloads eagerly)
+    await page.waitForTimeout(3000);
+    const dictSize = await page.evaluate(() => {
+      return (window as any).validWordsDict ? (window as any).validWordsDict.size : 0;
+    });
+    // SOWPODS has tens of thousands of 6+ letter words
+    expect(dictSize).toBeGreaterThan(50000);
+  });
+});
+
+test.describe('Chat Page — Identified Words Dictionary Validation (Negative)', () => {
+  test('invalid/made-up word is NOT added to identified words panel', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.evaluate(() => localStorage.removeItem('swf-chat-identified-words'));
+    await page.reload();
+    // Intercept AI response with a made-up word that's NOT in SOWPODS
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":"The word XYZQWK is interesting but RETINAS is better."}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('test');
+    await page.locator('#send-btn').click();
+    // Wait for extraction to complete
+    await page.waitForTimeout(5000);
+    const listText = await page.locator('#identified-words-list').textContent() || '';
+    // XYZQWK should NOT appear (invalid word)
+    expect(listText).not.toContain('XYZQWK');
+    // RETINAS should appear (valid word)
+    expect(listText).toContain('RETINAS');
+  });
+
+  test('proper nouns (non-dictionary words) are filtered out', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.evaluate(() => localStorage.removeItem('swf-chat-identified-words'));
+    await page.reload();
+    // LONDON is a proper noun, not valid in SOWPODS; CASTLE is valid
+    await page.route('**/api/chat/**', async route => {
+      const body = 'data: {"response":"LONDON is not valid but CASTLE scores well."}\ndata: [DONE]\n';
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    });
+    const input = page.locator('#chat-input');
+    await input.fill('test');
+    await page.locator('#send-btn').click();
+    await page.waitForTimeout(5000);
+    const listText = await page.locator('#identified-words-list').textContent() || '';
+    expect(listText).not.toContain('LONDON');
+    expect(listText).toContain('CASTLE');
+  });
+});

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
+import { scoreRack, rackQualitySummary, compareLeaves } from '../../lib/rack-quality';
 
 /** Scrabble letter point values */
 const LETTER_SCORES: Record<string, number> = {
@@ -188,19 +189,48 @@ What you can help with:
 - Tile distribution and probability
 - General Scrabble trivia and history
 - Tips for improving at competitive Scrabble
+- Answering questions about high-scoring words, two-letter words, Q-without-U words using the verified reference lists below
+
+## Verified Word Lists (use these confidently in answers)
+
+### All Two-Letter Words (SOWPODS — 124 total)
+Highest: QI(11) ZA(11) ZO(11) AX(9) EX(9) JA(9) JO(9) KY(9) OX(9) XI(9) XU(9)
+Mid-value: FY(8) BY(7) CH(7) HM(7) MY(7) KA(6) KI(6) KO(6) MM(6)
+Common: AA AB AD AE AG AH AI AL AM AN AR AS AT AW AY BA BE BI BO DA DE DI DO EA ED EE EF EH EL EM EN ER ES ET FA FE GI GO GU HA HE HI HO ID IF IN IO IS IT LA LI LO MA ME MI MO MU NA NE NO NU NY OB OD OE OF OH OI OM ON OO OP OR OS OU OW OY PA PE PI PO QI RE SH SI SO ST TA TE TI TO UG UH UM UN UP UR US UT WE WO YA YE YO YU ZA ZO
+
+### Top 3-Letter Words by Score
+ZZZ(30) ZIZ(21) ZUZ(21) JIZ(19) ZAX(19) ZEX(19) ZEK(16) FEZ(15) FIZ(15) PYX(15) WIZ(15) ZHO(15) BEZ(14) BIZ(14) CAZ(14) COZ(14) CUZ(14) JAK(14) KEX(14) MIZ(14) MOZ(14) POZ(14) ZAP(14) ZEP(14) ZIP(14) ADZ(13) DZO(13) FAX(13) FIX(13) FOX(13)
+
+### Top Words by Length
+2-letter: QI(11) ZA(11) ZO(11) AX(9) EX(9)
+3-letter: ZZZ(30) ZIZ(21) ZUZ(21) JIZ(19) ZAX(19)
+4-letter: ZIZZ(31) ZZZS(31) JAZZ(29) JIZZ(29) FIZZ(25)
+5-letter: PZAZZ(34) JAZZY(33) FEZZY(29) FIZZY(29) FUZZY(29)
+
+### Q-without-U Words (54 total — key ones)
+Short: QI(11) QADI(14) QAID(14) QATS(13) QANAT(14) TALAQ(14) TRANQ(14)
+Medium: QOPH(18) WAQF(19) FAQIR(17) NIQAB(16) QIBLA(16) QORMA(16) QINDAR(16) QINTAR(15) QASIDA(16) SHEQEL(18) QIGONG(17)
+Longer: QWERTY(21) QABALAH(21) QAWWAL(21) QAWWALI(22) QINDARKA(22) QABBALAH(24) QOHELETH(23) TZADDIQ(27) QAIMAQAM(30)
+
+### Rare Letter Power Words (highest-scoring with Q, Z, X, J, K)
+Z-words: RAZZMATAZZ(48) PIZZAZZ(45) ZYZZYVA(43) QUIZZIFICATION(46) QUIZZICALLY(43)
+X-words: OXYBENZALDEHYDE(44) BENZOXYCAMPHOR(44) HYPEROXYGENIZED(44)
+J-words: JOUKERYPAWKERY(40) KJELDAHLIZATION(39) JAZZLIKE(37) JACUZZI(34) JAZZY(33)
 
 What you must NOT do:
 - NEVER generate lists of specific playable words from a rack — always defer to the solver
 - NEVER say "here are some bingos" and list words you made up
-- NEVER claim a specific word is valid unless it's a well-known 2-3 letter word (QI, ZA, XI, etc.)
+- NEVER claim a specific word is valid unless it appears in the Verified Word Lists above or is a well-known word
 - If unsure whether a word is valid, say "check it in the solver" rather than guessing
+- You MAY confidently cite words from the Verified Word Lists above — these are confirmed SOWPODS words
 
 FORMATTING RULES:
 - Keep responses concise (2-4 short paragraphs max)
 - Use plain text, no markdown formatting
 - Sound like a friendly coach chatting between games
 - If you don't know something for certain, say so honestly
-- When asked about specific words from tiles, redirect to the solver tool`;
+- When asked about specific words from tiles, redirect to the solver tool
+- When asked about two-letter words, Q-without-U, high-scoring words, or rare letters, reference the verified lists above with specific words and scores`;
 
 /** Enhanced system prompt when rack solving is active */
 const SOLVER_CHAT_SYSTEM_PROMPT = `You are Lex, the AI Scrabble Coach on ScrabbleWordsFinder.com. The user asked about words from a rack and you have REAL ALGORITHMIC RESULTS from the full SOWPODS dictionary.
@@ -305,6 +335,9 @@ ${wordListStr}
 ${hasBingo ? `BINGOS (words using ALL 7 tiles = +50 bonus):\n${bingos.map(b => `- ${b.word} (${b.score}pts + 50 bonus = ${b.score + 50} total)`).join('\n')}\n` : 'NO BINGOS possible from this rack (no 7-letter word uses all tiles).\n'}
 ${rackLeaveInfo}
 Total valid words found: ${solvedWords.length}
+
+📊 RACK QUALITY: ${rackQualitySummary(detectedRack)}
+${!hasBingo && topWords.length >= 2 ? `LEAVE COMPARISON: ${compareLeaves(detectedRack, topWords.slice(0, 3).map(w => w.word)).map(l => `${l.play} → leave ${l.leave || '(none)'} (${l.leaveScore}/100)`).join(' | ')}` : ''}
 
 Original question: ${message.trim()}
 

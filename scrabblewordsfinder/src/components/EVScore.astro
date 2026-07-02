@@ -1,0 +1,106 @@
+---
+/**
+ * EVScore — Reusable Rack Quality Score Badge
+ *
+ * Displays a compact EV score bar showing rack quality (0-100).
+ * Accepts a `targetInput` prop — the CSS selector of the input element
+ * whose value provides the rack letters. Listens for `input` events on
+ * that element and updates the score in realtime.
+ *
+ * Usage:
+ *   <EVScore targetInput="#text-solver" />
+ *   <EVScore targetInput="#rack-input" />
+ */
+interface Props {
+  targetInput: string;
+  id?: string;
+}
+
+const { targetInput, id = 'ev-score-widget' } = Astro.props;
+---
+
+<div id={id} class="hidden flex items-center gap-2" data-target={targetInput}>
+  <span class="ev-score-bar h-2 rounded-full bg-gray-700 w-24 overflow-hidden">
+    <span class="ev-score-fill block h-full rounded-full transition-all duration-300" style="width:0%"></span>
+  </span>
+  <span class="ev-score-value text-xs font-bold font-mono"></span>
+  <span class="ev-score-label text-[10px] uppercase tracking-wider font-semibold"></span>
+</div>
+
+<script is:inline>
+(function() {
+  // --- EV Scoring Engine (self-contained for inline use) ---
+  var BINGO_STEMS = ['SATIRE','RETINA','NASTIER','TISANE','ARSINE','SENIOR','LINERS','SALINE','TENORS','STONER','ORNATE','ATONES','SERIAL','RAILES','SALTIE','STERNA','ANTRES','ESTRIN','INSERT','INERTS','LEARNT','RENTAL','LASTER','ALERTS','ALTERS','STEARIN','ANESTRI','RATINES','RETINAS','ANTSIER','STAINER','RETSINA'];
+  var SYNERGY = [{l:'ING',b:8},{l:'TION',b:7},{l:'ED',b:4},{l:'ER',b:4},{l:'EST',b:5},{l:'RE',b:3},{l:'UN',b:3},{l:'LY',b:3},{l:'NESS',b:5},{l:'ABLE',b:6},{l:'MENT',b:5},{l:'ATE',b:4},{l:'STER',b:5},{l:'IEST',b:5}];
+  var VOWELS = {A:1,E:1,I:1,O:1,U:1};
+  var HIGH = {J:1,Q:1,X:1,Z:1};
+
+  function countLetters(r) { var m = {}; for (var i = 0; i < r.length; i++) { var c = r[i]; m[c] = (m[c]||0)+1; } return m; }
+  function contains(counts, pat) { var n = {}; for (var i = 0; i < pat.length; i++) { var c = pat[i]; n[c]=(n[c]||0)+1; } for (var c in n) { if ((counts[c]||0)<n[c]) return false; } return true; }
+  function stemOverlap(counts, stem) { var u = {}; var o = 0; for (var i = 0; i < stem.length; i++) { var c = stem[i]; var uc = u[c]||0; if (uc < (counts[c]||0)) { o++; u[c]=uc+1; } } return o; }
+
+  function computeEV(rack) {
+    var cleaned = rack.toUpperCase().replace(/[^A-Z?]/g,'');
+    if (!cleaned.length) return null;
+    var counts = countLetters(cleaned);
+    // Vowel balance (0-25)
+    var vc = 0; for (var i = 0; i < cleaned.length; i++) { if (cleaned[i] !== '?' && VOWELS[cleaned[i]]) vc++; }
+    var vBal = vc>=2&&vc<=3?25:vc===4?18:vc===1?14:vc===5?8:2;
+    // Power tiles (0-20)
+    var pwr = 0; pwr += Math.min(counts['S']||0,2)*8; pwr += Math.min(counts['?']||0,2)*10;
+    for (var t in HIGH) { if (counts[t]) pwr += 4; }
+    pwr = Math.min(pwr,20);
+    // Bingo stems (0-25)
+    var best = 0; for (var i = 0; i < BINGO_STEMS.length; i++) { var r2 = stemOverlap(counts,BINGO_STEMS[i])/Math.min(BINGO_STEMS[i].length,cleaned.length); if (r2>best) best=r2; }
+    var bingo = Math.round(best*25);
+    // Duplicate penalty (0-15)
+    var dup = 0; for (var c in counts) { var q=counts[c]; if(q===2)dup+=3;else if(q===3)dup+=7;else if(q>=4)dup+=12; }
+    dup = Math.min(dup,15);
+    // Synergy (0-15)
+    var syn = 0; for (var i = 0; i < SYNERGY.length; i++) { if (contains(counts,SYNERGY[i].l)) syn+=SYNERGY[i].b; }
+    syn = Math.min(syn,15);
+    var raw = vBal+pwr+bingo+syn-dup;
+    var score = Math.max(0,Math.min(100,raw));
+    var label; if(score>=80)label='Excellent';else if(score>=65)label='Strong';else if(score>=45)label='Decent';else if(score>=25)label='Weak';else label='Poor';
+    return {score:score,label:label};
+  }
+
+  // --- Bind to all EVScore widgets on the page ---
+  var widgets = document.querySelectorAll('[id^="ev-score-widget"]');
+  widgets.forEach(function(widget) {
+    var targetSel = widget.getAttribute('data-target');
+    if (!targetSel) return;
+    var targetEl = document.querySelector(targetSel);
+    if (!targetEl) return;
+
+    var fillEl = widget.querySelector('.ev-score-fill');
+    var valueEl = widget.querySelector('.ev-score-value');
+    var labelEl = widget.querySelector('.ev-score-label');
+
+    var colors = {Excellent:'bg-emerald-400',Strong:'bg-green-400',Decent:'bg-amber-400',Weak:'bg-orange-400',Poor:'bg-red-400'};
+    var textColors = {Excellent:'text-emerald-400',Strong:'text-green-400',Decent:'text-amber-400',Weak:'text-orange-400',Poor:'text-red-400'};
+
+    function update() {
+      var val = (targetEl.value || '').replace(/[^A-Za-z?]/g,'');
+      var result = computeEV(val);
+      if (!result || val.length === 0) {
+        widget.classList.add('hidden');
+        return;
+      }
+      widget.classList.remove('hidden');
+      fillEl.style.width = result.score + '%';
+      fillEl.className = 'ev-score-fill block h-full rounded-full transition-all duration-300 ' + (colors[result.label]||'bg-gray-400');
+      valueEl.textContent = result.score + '/100';
+      valueEl.className = 'ev-score-value text-xs font-bold font-mono ' + (textColors[result.label]||'text-gray-400');
+      labelEl.textContent = result.label;
+      labelEl.className = 'ev-score-label text-[10px] uppercase tracking-wider font-semibold ' + (textColors[result.label]||'text-gray-400');
+    }
+
+    targetEl.addEventListener('input', update);
+    // Initial check (in case value is already populated)
+    if (targetEl.value && targetEl.value.replace(/[^A-Za-z?]/g,'').length > 0) {
+      update();
+    }
+  });
+})();
+</script>

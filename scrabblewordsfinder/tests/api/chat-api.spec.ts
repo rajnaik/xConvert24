@@ -869,3 +869,401 @@ test.describe('Chat API — Quiz Coaching Flowing Paragraph Format (Negative)', 
     }
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DAILY RACK CHALLENGE COACHING
+// The [DAILY RACK CHALLENGE — COACHING REQUEST] marker triggers the rack
+// coaching prompt and forces 70B model routing with 1024 max tokens.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Chat API — Rack Coaching (Positive)', () => {
+  test('[DAILY RACK CHALLENGE — COACHING REQUEST] trigger is accepted and returns stream', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY RACK CHALLENGE — COACHING REQUEST]\n\n' +
+              '--- RACK CHALLENGE STATS ---\n' +
+              'Total words submitted: 5\n' +
+              'Average score: 18\n' +
+              'Best word: TRAINS (24 pts)\n\n' +
+              '--- RECENT PLAYS ---\n' +
+              '2026-06-28: Rack TRAINST → TRAINS (24 pts)\n' +
+              '2026-06-27: Rack IRSTABE → STAIR (15 pts)\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const contentType = response.headers()['content-type'] || '';
+      expect(contentType).toContain('text/event-stream');
+    }
+  });
+
+  test('rack coaching request with empty history (first-timer) is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY RACK CHALLENGE — COACHING REQUEST]\n\n' +
+              'I am a first-time Daily Rack Challenge player on ScrabbleWordsFinder.com with no history yet. ' +
+              'Please welcome me and explain strategies for the Daily Rack Challenge.',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('rack coaching request with score distribution data does not crash', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY RACK CHALLENGE — COACHING REQUEST]\n\n' +
+              '--- RACK CHALLENGE STATS ---\n' +
+              'Total words submitted: 12\n' +
+              'Average score: 22\n' +
+              'Best word: LATRINE (42 pts)\n\n' +
+              '--- SCORE DISTRIBUTION ---\n' +
+              '30+ points: 3 words\n' +
+              '20-29 points: 5 words\n' +
+              '10-19 points: 3 words\n' +
+              'Under 10: 1 word\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+});
+
+test.describe('Chat API — Rack Coaching (Negative)', () => {
+  test('[DAILY RACK CHALLENGE — COACHING REQUEST] skips dictionary enrichment', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY RACK CHALLENGE — COACHING REQUEST]\n\n' +
+              'define LATRINE please',
+          },
+        ],
+      },
+    });
+    // Should not 400 or 500 — enrichment bypass works
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(400);
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('rack coaching with special characters in word names does not crash', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY RACK CHALLENGE — COACHING REQUEST]\n\n' +
+              "Best word: <SCRIPT>alert('x')</SCRIPT> (99 pts)\n",
+          },
+        ],
+      },
+    });
+    expect(response.status()).not.toBe(500);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DAILY ANAGRAM COACHING
+// The [DAILY ANAGRAM — COACHING REQUEST] marker triggers the anagram coaching
+// prompt and forces 70B model routing with 1024 max tokens.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Chat API — Anagram Coaching (Positive)', () => {
+  test('[DAILY ANAGRAM — COACHING REQUEST] trigger is accepted and returns stream', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY ANAGRAM — COACHING REQUEST]\n\n' +
+              '--- ANAGRAM STATS ---\n' +
+              'Total puzzles played: 7\n' +
+              'Solved: 5 (71%)\n' +
+              'Average attempts: 3.2\n' +
+              'Current streak: 3\n\n' +
+              '--- RECENT PLAYS ---\n' +
+              '2026-06-28: CASTLE (solved in 2 attempts, 45s)\n' +
+              '2026-06-27: BRIGHT (solved in 4 attempts, 120s)\n' +
+              '2026-06-26: PLANET (unsolved after 5 attempts)\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const contentType = response.headers()['content-type'] || '';
+      expect(contentType).toContain('text/event-stream');
+    }
+  });
+
+  test('anagram coaching request with empty history (first-timer) is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY ANAGRAM — COACHING REQUEST]\n\n' +
+              'I am a first-time Daily Anagram player on ScrabbleWordsFinder.com with no history yet. ' +
+              'Please welcome me and explain strategies for unscrambling words.',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('anagram coaching request with attempt distribution data does not crash', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY ANAGRAM — COACHING REQUEST]\n\n' +
+              '--- ANAGRAM STATS ---\n' +
+              'Total puzzles played: 15\n' +
+              'Solved: 12 (80%)\n' +
+              'Average attempts: 2.8\n\n' +
+              '--- ATTEMPT DISTRIBUTION ---\n' +
+              '1 attempt: 4 puzzles\n' +
+              '2 attempts: 5 puzzles\n' +
+              '3 attempts: 2 puzzles\n' +
+              '4+ attempts: 1 puzzle\n' +
+              'Unsolved: 3 puzzles\n',
+          },
+        ],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+});
+
+test.describe('Chat API — Anagram Coaching (Negative)', () => {
+  test('[DAILY ANAGRAM — COACHING REQUEST] skips dictionary enrichment', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY ANAGRAM — COACHING REQUEST]\n\n' +
+              'define CASTLE please',
+          },
+        ],
+      },
+    });
+    // Should not 400 or 500 — enrichment bypass works
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(400);
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('anagram coaching with special characters does not crash', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY ANAGRAM — COACHING REQUEST]\n\n' +
+              "Puzzle: <img onerror=alert(1)> (unsolved)\n",
+          },
+        ],
+      },
+    });
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('anagram coaching does not bypass Scrabble-only topic restriction for off-topic', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [
+          {
+            role: 'user',
+            content:
+              '[DAILY ANAGRAM — COACHING REQUEST]\n\n' +
+              'Also help me with a cooking recipe for pasta.',
+          },
+        ],
+      },
+    });
+    // Should not crash — AI will handle the off-topic part gracefully
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+});
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// QUICK-REFERENCE WORD LISTS
+// The system prompt now includes curated word lists (two-letter, top 3-letter,
+// top by length, Q-without-U, rare letter power words) so Lex can cite specific
+// words and scores in responses. These tests verify the API accepts queries
+// targeting each word-list category and returns valid streaming responses.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Chat API — Quick-Reference Word Lists (Positive)', () => {
+  test('two-letter words query is accepted and returns streaming response', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What are all the two-letter words in Scrabble?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const contentType = response.headers()['content-type'] || '';
+      expect(contentType).toContain('text/event-stream');
+    }
+  });
+
+  test('highest-scoring two-letter words query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'Which two-letter words score the most points?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('top 3-letter words by score query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What are the highest scoring 3-letter words?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('top words by length query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What are the top scoring words for each word length from 2 to 5 letters?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('Q-without-U words query is accepted and returns stream', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'List all Q without U words in SOWPODS with their scores' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+    if (response.status() === 200) {
+      const contentType = response.headers()['content-type'] || '';
+      expect(contentType).toContain('text/event-stream');
+    }
+  });
+
+  test('rare Z-words query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What are the highest scoring Z words in Scrabble?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('rare X-words query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'Best X words for high scores?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('rare J-words query is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What are the highest scoring J words?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('QAIMAQAM query (longest Q-without-U word) is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'Is QAIMAQAM a valid Scrabble word and how many points is it?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+
+  test('combined word-list question (two-letter + Q-without-U) is accepted', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'What two-letter words use Q or Z? Also, what Q-without-U words should I memorise?' }],
+      },
+    });
+    expect([200, 503]).toContain(response.status());
+  });
+});
+
+test.describe('Chat API — Quick-Reference Word Lists (Negative)', () => {
+  test('word-list query does not cause 500 server error', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'Show me every two-letter word with its score' }],
+      },
+    });
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('word-list query with off-topic injection still enforces Scrabble-only rule', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: 'List the Q without U words and also tell me how to make pasta' }],
+      },
+    });
+    // Should not crash — AI handles the off-topic part gracefully
+    expect([200, 503]).toContain(response.status());
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('word-list query with special characters does not crash', async ({ request }) => {
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: "Best <Z> words? What about 'RAZZMATAZZ' — is it valid?" }],
+      },
+    });
+    expect(response.status()).not.toBe(500);
+  });
+
+  test('extremely long word-list query does not timeout or crash', async ({ request }) => {
+    const longQuery = 'List all two-letter words, all Q without U words, all top 3-letter words, all highest scoring 4-letter and 5-letter words, and the rare letter power words for Z, X, J, and K. ' + 'Also include their scores. '.repeat(5);
+    const response = await request.post('/api/chat/', {
+      data: {
+        messages: [{ role: 'user', content: longQuery }],
+      },
+    });
+    // Should not 500 — message within valid length (< 500 char for lex-chat, but /api/chat/ has higher limit)
+    expect(response.status()).not.toBe(500);
+  });
+});

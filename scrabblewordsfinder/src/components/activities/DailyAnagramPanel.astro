@@ -62,7 +62,7 @@
 <!-- Lex Anagram Coach Modal -->
 <div id="lex-anagram-modal" class="hidden fixed inset-0 z-[999] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="lex-modal-title">
   <div id="lex-anagram-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
-  <div class="relative w-full max-w-md rounded-2xl border border-cyan-500/30 bg-gray-900 shadow-2xl shadow-cyan-500/10 overflow-hidden">
+  <div class="relative w-full max-w-lg rounded-2xl border border-cyan-500/30 bg-gray-900 shadow-2xl shadow-cyan-500/10 overflow-hidden">
     <!-- Header -->
     <div class="flex items-center justify-between px-5 py-4 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-900/30 to-gray-900">
       <div class="flex items-center gap-3">
@@ -77,14 +77,14 @@
       </button>
     </div>
     <!-- Body -->
-    <div id="lex-anagram-body" class="px-5 py-5 max-h-[60vh] overflow-y-auto">
+    <div id="lex-anagram-body" class="px-5 py-5 max-h-[70vh] overflow-y-auto">
       <div id="lex-anagram-loading" class="flex flex-col items-center gap-3 py-6">
         <div class="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
         <p class="text-xs text-gray-400">Lex is analysing your games...</p>
       </div>
       <div id="lex-anagram-result" class="hidden">
-        <!-- Stats bar (shown when history exists) -->
-        <div id="lex-stats-bar" class="hidden grid grid-cols-3 gap-2 mb-4">
+        <!-- Stats bar -->
+        <div id="lex-stats-bar" class="hidden grid grid-cols-4 gap-2 mb-4">
           <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
             <p id="lex-stat-games" class="text-lg font-bold text-white">0</p>
             <p class="text-[10px] text-gray-500">Games</p>
@@ -97,28 +97,43 @@
             <p id="lex-stat-streak" class="text-lg font-bold text-orange-400">0</p>
             <p class="text-[10px] text-gray-500">Streak</p>
           </div>
+          <div class="text-center p-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+            <p id="lex-stat-avg-attempts" class="text-lg font-bold text-cyan-400">0</p>
+            <p class="text-[10px] text-gray-500">Avg Tries</p>
+          </div>
+        </div>
+        <!-- Performance graph (attempts over time — lower = better) -->
+        <div id="lex-anagram-graph-section" class="hidden mb-4">
+          <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2">Attempts Progression (lower = better)</p>
+          <canvas id="lex-anagram-graph" class="w-full h-36 rounded-lg bg-gray-800/30 border border-gray-700/30"></canvas>
+          <div class="flex justify-between mt-1 text-[9px] text-gray-600">
+            <span>🟢 Solved</span>
+            <span>🔴 Failed (shown as 6)</span>
+            <span>⬜ Average line</span>
+          </div>
+        </div>
+        <!-- Time commentary -->
+        <div id="lex-anagram-time-commentary" class="hidden mb-4 px-3 py-2 rounded-lg bg-cyan-900/20 border border-cyan-700/30">
+          <p class="text-[10px] text-cyan-400 font-semibold uppercase mb-1">⏱ Time Insight</p>
+          <p id="lex-anagram-time-text" class="text-[11px] text-gray-300 leading-relaxed"></p>
         </div>
         <!-- AI analysis text -->
-        <div id="lex-analysis-text" class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap"></div>
-        <!-- Useful links for further exploration -->
-        <div id="lex-anagram-links" class="mt-5 pt-4 border-t border-gray-700/50">
+        <div id="lex-analysis-text" class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap mb-4"></div>
+        <!-- Per-game analysis -->
+        <div id="lex-anagram-games" class="hidden mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Per-Puzzle Analysis</p>
+            <span id="lex-anagram-games-count" class="text-[10px] text-gray-600"></span>
+          </div>
+          <div id="lex-anagram-games-list" class="flex flex-col gap-2 max-h-64 overflow-y-auto"></div>
+        </div>
+        <!-- Links -->
+        <div id="lex-anagram-links" class="pt-3 border-t border-gray-700/50">
           <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Further Exploration</p>
           <div class="grid gap-2">
-            <a href="/blog/anagram-solvers-explained/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
-              <span class="text-sm" aria-hidden="true">📖</span>
-              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">How Anagram Solvers Work</span>
-            </a>
-            <a href="/blog/how-to-spot-bingos-faster/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
-              <span class="text-sm" aria-hidden="true">⚡</span>
-              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">How to Spot Bingos Faster</span>
-            </a>
-            <a href="/blog/bingo-training-methods/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
-              <span class="text-sm" aria-hidden="true">🏋️</span>
-              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Bingo Training Methods</span>
-            </a>
-            <a href="/blog/best-scrabble-training-tools/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
-              <span class="text-sm" aria-hidden="true">🛠️</span>
-              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Best Scrabble Training Tools</span>
+            <a href="/chat/?context=anagram" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
+              <span class="text-sm" aria-hidden="true">💬</span>
+              <span class="text-xs text-gray-300 group-hover:text-cyan-300 transition-colors">Ask Lex for detailed coaching in chat</span>
             </a>
             <a href="/anagram-history/" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/40 hover:border-cyan-500/40 hover:bg-gray-800 transition-colors group">
               <span class="text-sm" aria-hidden="true">📊</span>
@@ -476,16 +491,242 @@
             document.getElementById('lex-stat-games').textContent = data.stats.totalGames;
             document.getElementById('lex-stat-rate').textContent = data.stats.solveRate + '%';
             document.getElementById('lex-stat-streak').textContent = data.stats.streak;
+            document.getElementById('lex-stat-avg-attempts').textContent = data.stats.avgAttempts;
           } else {
             statsBar.classList.add('hidden');
           }
 
           analysisText.textContent = data.analysis || 'No analysis available.';
+
+          // Render performance graph
+          renderAnagramGraph(data.gameAnalysis || []);
+
+          // Render time commentary
+          renderAnagramTimeCommentary(data.gameAnalysis || [], data.stats || {});
+
+          // Render per-game analysis
+          renderAnagramGameAnalysis(data.gameAnalysis || []);
         })
         .catch(function() {
           loadingEl.classList.add('hidden');
           errorEl.classList.remove('hidden');
         });
+      }
+
+      function renderAnagramGraph(games) {
+        var section = document.getElementById('lex-anagram-graph-section');
+        var canvas = document.getElementById('lex-anagram-graph');
+        if (!section || !canvas || !games || games.length < 2) {
+          if (section) section.classList.add('hidden');
+          return;
+        }
+
+        // Sort chronologically (gameNumber ascending)
+        var sorted = games.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+
+        section.classList.remove('hidden');
+        var ctx = canvas.getContext('2d');
+        var dpr = window.devicePixelRatio || 1;
+        var w = canvas.clientWidth;
+        var h = canvas.clientHeight;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        ctx.scale(dpr, dpr);
+
+        // Layout
+        var pad = { top: 16, right: 12, bottom: 28, left: 30 };
+        var plotW = w - pad.left - pad.right;
+        var plotH = h - pad.top - pad.bottom;
+        var n = sorted.length;
+        var maxAttempts = 6; // failed = 6 on the graph
+
+        // Data: attempts (failed = 6)
+        var attempts = sorted.map(function(g) { return g.solved ? g.attempts : 6; });
+        var avgAttempts = Math.round(attempts.reduce(function(a, b) { return a + b; }, 0) / n * 10) / 10;
+
+        // Clear
+        ctx.clearRect(0, 0, w, h);
+
+        // Draw grid lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        for (var i = 0; i <= 6; i++) {
+          var y = pad.top + (plotH / 6) * i;
+          ctx.beginPath();
+          ctx.moveTo(pad.left, y);
+          ctx.lineTo(w - pad.right, y);
+          ctx.stroke();
+        }
+
+        // Y-axis labels (attempts 0-6, inverted: 0 top, 6 bottom... actually lower=better so 1 top, 6 bottom)
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(74,222,128,0.7)';
+        for (var i = 0; i <= 6; i++) {
+          var val = i; // 0 at top, 6 at bottom... but we want 1 at top
+          // Actually: y=0 → attempt=0(impossible), y=plotH → attempt=6
+          // Better: map value 1-6 to plot area
+          if (i === 0) continue; // skip 0
+          var y = pad.top + (plotH / 5) * (i - 1);
+          ctx.fillText(i === 6 ? '✗' : String(i), pad.left - 6, y + 3);
+        }
+
+        // X-axis labels (game numbers)
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        var labelStep = Math.max(1, Math.floor(n / 8));
+        for (var i = 0; i < n; i += labelStep) {
+          var x = pad.left + (plotW / Math.max(n - 1, 1)) * i;
+          ctx.fillText('#' + sorted[i].gameNumber, x, h - pad.bottom + 14);
+        }
+        if ((n - 1) % labelStep !== 0 && n > 1) {
+          var x = pad.left + plotW;
+          ctx.fillText('#' + sorted[n - 1].gameNumber, x, h - pad.bottom + 14);
+        }
+
+        function getXY(index, value) {
+          // value 1-6 maps to y-axis (1=top, 6=bottom)
+          var x = pad.left + (plotW / Math.max(n - 1, 1)) * index;
+          var y = pad.top + ((value - 1) / 5) * plotH;
+          return { x: x, y: y };
+        }
+
+        // Draw average line (dashed)
+        var avgY = pad.top + ((avgAttempts - 1) / 5) * plotH;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, avgY);
+        ctx.lineTo(w - pad.right, avgY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw line connecting dots
+        ctx.strokeStyle = 'rgba(74,222,128,0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        for (var i = 0; i < n; i++) {
+          var pt = getXY(i, attempts[i]);
+          if (i === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+
+        // Draw dots (green for solved, red for failed)
+        for (var i = 0; i < n; i++) {
+          var pt = getXY(i, attempts[i]);
+          ctx.fillStyle = sorted[i].solved ? 'rgba(74,222,128,1)' : 'rgba(248,113,113,1)';
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, sorted[i].attempts === 1 ? 5 : 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function renderAnagramTimeCommentary(games, stats) {
+        var container = document.getElementById('lex-anagram-time-commentary');
+        var textEl = document.getElementById('lex-anagram-time-text');
+        if (!container || !textEl) return;
+
+        var timed = games.filter(function(g) { return g.timeTaken > 0; });
+        if (timed.length < 2) {
+          container.classList.add('hidden');
+          return;
+        }
+
+        var sorted = timed.slice().sort(function(a, b) { return a.gameNumber - b.gameNumber; });
+        var times = sorted.map(function(g) { return g.timeTaken; });
+        var fastest = Math.min.apply(null, times);
+        var slowest = Math.max.apply(null, times);
+        var avg = Math.round(times.reduce(function(a, b) { return a + b; }, 0) / times.length);
+
+        var fastestGame = sorted.find(function(g) { return g.timeTaken === fastest; });
+        var slowestGame = sorted.find(function(g) { return g.timeTaken === slowest; });
+
+        // Trend: compare last 2 timed games
+        var recent = sorted[sorted.length - 1];
+        var prev = sorted[sorted.length - 2];
+        var timeDiff = recent.timeTaken - prev.timeTaken;
+        var trendText = '';
+        if (timeDiff < -15) trendText = 'You\'re speeding up — ' + Math.abs(timeDiff) + 's quicker than your previous puzzle.';
+        else if (timeDiff > 15) trendText = 'You took ' + timeDiff + 's longer this time — possibly a tougher scramble.';
+        else trendText = 'Your solve speed is consistent between recent puzzles.';
+
+        var parts = [];
+        parts.push('Fastest: ' + fastest + 's (Puzzle #' + fastestGame.gameNumber + ') · Slowest: ' + slowest + 's (Puzzle #' + slowestGame.gameNumber + ') · Avg: ' + avg + 's.');
+        parts.push(trendText);
+
+        container.classList.remove('hidden');
+        textEl.textContent = parts.join(' ');
+      }
+
+      function renderAnagramGameAnalysis(games) {
+        var container = document.getElementById('lex-anagram-games');
+        var list = document.getElementById('lex-anagram-games-list');
+        var countEl = document.getElementById('lex-anagram-games-count');
+        if (!container || !list || !games || games.length === 0) return;
+
+        container.classList.remove('hidden');
+        var display = games.slice(0, 20);
+        countEl.textContent = display.length + ' of ' + games.length + ' puzzles';
+
+        var ratingColors = {
+          genius: { border: 'border-purple-500/40', bg: 'bg-purple-900/10', badge: 'bg-purple-600/30 text-purple-300', icon: '🏆' },
+          excellent: { border: 'border-green-500/40', bg: 'bg-green-900/10', badge: 'bg-green-600/30 text-green-300', icon: '⚡' },
+          good: { border: 'border-blue-500/40', bg: 'bg-blue-900/10', badge: 'bg-blue-600/30 text-blue-300', icon: '✅' },
+          fair: { border: 'border-amber-500/40', bg: 'bg-amber-900/10', badge: 'bg-amber-600/30 text-amber-300', icon: '📝' },
+          close: { border: 'border-orange-500/40', bg: 'bg-orange-900/10', badge: 'bg-orange-600/30 text-orange-300', icon: '😅' },
+          failed: { border: 'border-red-500/40', bg: 'bg-red-900/10', badge: 'bg-red-600/30 text-red-300', icon: '❌' }
+        };
+
+        var html = '';
+        for (var i = 0; i < display.length; i++) {
+          var g = display[i];
+          var colors = ratingColors[g.rating] || ratingColors.fair;
+          var dateStr = g.date && g.date !== '?' ? new Date(g.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+
+          var impHtml = '';
+          if (g.improvements && g.improvements.length > 0) {
+            impHtml = '<div class="mt-1.5">';
+            for (var s = 0; s < g.improvements.length; s++) {
+              impHtml += '<p class="text-[11px] text-green-300/80 pl-2 border-l-2 border-green-500/30 mb-0.5">' + g.improvements[s] + '</p>';
+            }
+            impHtml += '</div>';
+          }
+
+          var weakHtml = '';
+          if (g.weaknesses && g.weaknesses.length > 0) {
+            weakHtml = '<div class="mt-1.5">';
+            for (var w = 0; w < g.weaknesses.length; w++) {
+              weakHtml += '<p class="text-[11px] text-red-300/80 pl-2 border-l-2 border-red-500/30 mb-0.5">' + g.weaknesses[w] + '</p>';
+            }
+            weakHtml += '</div>';
+          }
+
+          var resultText = g.solved ? 'Solved in ' + g.attempts + '/5' : 'Not solved';
+          var timeText = g.timeTaken > 0 ? ' · ' + g.timeTaken + 's' : '';
+
+          html += '<div class="rounded-xl ' + colors.border + ' ' + colors.bg + ' border p-3">' +
+            '<div class="flex items-center justify-between mb-1">' +
+              '<div class="flex items-center gap-2">' +
+                '<span class="text-base">' + colors.icon + '</span>' +
+                '<span class="text-xs font-bold text-white">Puzzle #' + g.gameNumber + '</span>' +
+                '<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ' + colors.badge + '">' + g.rating.toUpperCase() + '</span>' +
+              '</div>' +
+              '<span class="text-[10px] text-gray-500">' + dateStr + '</span>' +
+            '</div>' +
+            '<div class="flex items-center gap-3 text-[11px] text-gray-400">' +
+              '<span>' + resultText + '</span>' +
+              (timeText ? '<span>Time: <b class="text-white">' + g.timeTaken + 's</b></span>' : '') +
+              (g.word ? '<span class="font-mono uppercase text-cyan-300">' + g.word + '</span>' : '') +
+              (g.wordLength ? '<span class="text-gray-600">' + g.wordLength + ' letters</span>' : '') +
+            '</div>' +
+            impHtml + weakHtml +
+          '</div>';
+        }
+
+        list.innerHTML = html;
       }
 
       // Event listeners
