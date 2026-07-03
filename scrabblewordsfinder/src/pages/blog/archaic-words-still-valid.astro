@@ -1,55 +1,223 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Archaic Words Still Valid in Scrabble"
-  description="Old English words that remain in the Scrabble dictionary. THOU, DOTH, HATH and other useful archaisms."
-  keywords="scrabble, archaic, words, still, valid"
+<Layout
+  title="Archaic Words Still Valid in Scrabble — Hidden Gems from Old English"
+  description="Discover archaic English words that remain legal in Scrabble. THOU, DOTH, HATH, YE and dozens more Old English terms worth big points. Free guide, no sign-up."
+  keywords="archaic scrabble words, old english scrabble, thou scrabble, valid archaic words, scrabble dictionary archaisms, ye scrabble word"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Archaic Words Still Valid in Scrabble",
-    "description": "Old English words that remain in the Scrabble dictionary. THOU, DOTH, HATH and other useful archaisms.",
+    "headline": "Archaic Words Still Valid in Scrabble — Hidden Gems from Old English",
+    "description": "Discover archaic English words that remain legal in Scrabble. THOU, DOTH, HATH, YE and dozens more Old English terms worth big points.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/archaic-words-still-valid" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/archaic-words-still-valid/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Is THOU a valid Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. THOU is valid in both SOWPODS and TWL dictionaries, scoring 7 points. It can also be used as a verb meaning 'to address someone as thou'." } },
+      { "@type": "Question", "name": "Can you play YE in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. YE is valid in Scrabble and scores 5 points. It is the archaic plural of 'you' and remains in both official dictionaries." } },
+      { "@type": "Question", "name": "Are Old English words allowed in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Many Old English and Middle English words remain in the official Scrabble dictionaries (SOWPODS and TWL). If a word appears in either dictionary, it is playable regardless of how archaic it is." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/dictionaries/" class="hover:text-blue-400 transition-colors text-gray-300">Dictionaries</a>
+        <a href="/blog/dictionaries/" class="hover:text-amber-500 transition-colors text-gray-300">Dictionaries</a>
       </nav>
+
+      <BlogCrossLinks title="Archaic Words Still Valid in Scrabble" />
 
       <h1 class="text-3xl font-bold text-white mb-4">Archaic Words Still Valid in Scrabble</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Old English words that remain in the Scrabble dictionary. THOU, DOTH, HATH and other useful archaisms.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The English language has shed thousands of words over the centuries — but the Scrabble dictionary hasn't. Words that Shakespeare would recognise still sit comfortably in both SOWPODS and TWL, and many are surprisingly useful for scoring. Here's your guide to archaic words that can win you games.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why Archaic Words Matter in Scrabble</h2>
+
+      <p class="text-gray-300">Most players focus on modern vocabulary, but archaic words offer a strategic edge. They use common tile combinations, often score well on premium squares, and your opponents are unlikely to challenge them if they sound "old-fashioned enough" to be real.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+        <p class="text-base text-gray-200">Archaic words are rarely challenged because they <span class="text-white font-medium">sound legitimate</span> — your opponent knows the word exists even if they can't define it. This gives you a psychological edge.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">High-Value Archaic Pronouns & Verbs</h2>
+
+      <p class="text-gray-300">These are the workhorses — short, common tiles, easy to slot into tight board positions.</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Meaning</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Hooks</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-white">THOU</td><td class="px-4 py-3 text-amber-400">7</td><td class="px-4 py-3 text-gray-400">You (singular)</td><td class="px-4 py-3 text-gray-400">THOUS, THOUED</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-white">THEE</td><td class="px-4 py-3 text-amber-400">7</td><td class="px-4 py-3 text-gray-400">You (objective)</td><td class="px-4 py-3 text-gray-400">THEED, THEES</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-white">YE</td><td class="px-4 py-3 text-amber-400">5</td><td class="px-4 py-3 text-gray-400">You (plural)</td><td class="px-4 py-3 text-gray-400">YEA, YEW, YES</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-white">DOTH</td><td class="px-4 py-3 text-amber-400">8</td><td class="px-4 py-3 text-gray-400">Does (3rd person)</td><td class="px-4 py-3 text-gray-400">—</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-white">HATH</td><td class="px-4 py-3 text-amber-400">10</td><td class="px-4 py-3 text-gray-400">Has (3rd person)</td><td class="px-4 py-3 text-gray-400">—</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-white">DOST</td><td class="px-4 py-3 text-amber-400">5</td><td class="px-4 py-3 text-gray-400">Do (2nd person)</td><td class="px-4 py-3 text-gray-400">DOSTS</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-white">HAST</td><td class="px-4 py-3 text-amber-400">7</td><td class="px-4 py-3 text-gray-400">Have (2nd person)</td><td class="px-4 py-3 text-gray-400">HASTE</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-white">WILT</td><td class="px-4 py-3 text-amber-400">7</td><td class="px-4 py-3 text-gray-400">Will (2nd person)</td><td class="px-4 py-3 text-gray-400">WILTS</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">HATH</p><p class="text-xs text-gray-400">10 pts — best pronoun/verb</p></div>
+          <div><p class="text-xl font-bold text-amber-400">DOTH</p><p class="text-xs text-gray-400">8 pts — uses common tiles</p></div>
+          <div><p class="text-xl font-bold text-amber-400">THOU</p><p class="text-xs text-gray-400">7 pts — verbable!</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Archaic Nouns Worth Knowing</h2>
+
+      <p class="text-gray-300">Beyond pronouns and verbs, Old English left us nouns that score well and open hook opportunities.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">SWAIN (8 pts)</p>
+          <p class="text-xs text-gray-400">A young lover or suitor. Hooks: SWAINS, BOATSWAIN.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">KNAVE (12 pts)</p>
+          <p class="text-xs text-gray-400">A dishonest man. Hooks: KNAVES, KNAVERY.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">WIGHT (12 pts)</p>
+          <p class="text-xs text-gray-400">A person or creature. Hooks: WIGHTS, TWIGHT.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">LIEGE (6 pts)</p>
+          <p class="text-xs text-gray-400">A feudal lord. Hooks: LIEGES, LIEGED.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">VARLET (9 pts)</p>
+          <p class="text-xs text-gray-400">A rogue or rascal. Hooks: VARLETS.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">SENNIGHT (11 pts)</p>
+          <p class="text-xs text-gray-400">A week (seven nights). Hooks: SENNIGHTS.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Two- and Three-Letter Archaisms</h2>
+
+      <p class="text-gray-300">The shortest archaic words are the most tactically useful — they fit in tight spaces and create parallel plays.</p>
+
+      <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">YE</span><span class="text-blue-400 text-xs">5 pts</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AE</span><span class="text-blue-400 text-xs">2 pts</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OE</span><span class="text-blue-400 text-xs">2 pts</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ERE</span><span class="text-blue-400 text-xs">3 pts</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ANE</span><span class="text-blue-400 text-xs">3 pts</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OWT</span><span class="text-blue-400 text-xs">6 pts</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">NAE</span><span class="text-blue-400 text-xs">3 pts</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">TAV</span><span class="text-blue-400 text-xs">6 pts</span></span>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/two-letter-scrabble-words-complete-list/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Complete Two-Letter Words List — every legal 2-letter word</span>
+          </a>
+          <a href="/blog/historical-terms-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Historical Terms in Scrabble — period vocabulary that scores</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy: When to Play Archaic Words</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Tight board positions:</span> Short archaic words (YE, AE, ERE) fit where modern words can't, creating parallel plays for 20+ points.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Bluff-proof plays:</span> Even aggressive challengers hesitate to challenge THOU or HATH — the risk isn't worth it because they sound obviously real.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hook creation:</span> HAST → HASTE, WILT → WILTS, SWAIN → BOATSWAIN. Archaic words often have modern extensions your opponent doesn't expect.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Vowel dumps:</span> Words like LIEGE and SWAIN help balance a vowel-heavy rack without wasting a turn.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">SOWPODS vs TWL: Which Archaisms Are Valid Where?</h2>
+
+      <p class="text-gray-300">Most archaic English words appear in both dictionaries, but a handful are SOWPODS-only. Always check before tournament play.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Both Dictionaries</p>
+          <p class="text-xs text-gray-400">THOU, THEE, YE, HATH, DOTH, DOST, HAST, WILT, KNAVE, LIEGE, SWAIN, ERE, ANE</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">⚠ SOWPODS Only</p>
+          <p class="text-xs text-gray-400">OWT, NAE, AE — valid in international play but not North American tournaments (TWL)</p>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/historical-terms-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Historical Terms Valid in Scrabble</span>
+          </a>
+          <a href="/blog/sowpods-vs-twl-which-to-use/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">SOWPODS vs TWL — Which Dictionary to Use</span>
+          </a>
+          <a href="/blog/slang-words-allowed-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Slang Words Allowed in Scrabble</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find archaic words from your tiles — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

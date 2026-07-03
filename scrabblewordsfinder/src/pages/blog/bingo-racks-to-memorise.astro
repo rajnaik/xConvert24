@@ -1,55 +1,253 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Bingo Racks to Memorise"
-  description="The most productive 7-tile combinations that form valid bingos. Study these racks to spot opportunities faster."
-  keywords="scrabble, bingo, racks, to, memorise"
+<Layout
+  title="Bingo Racks to Memorise — Essential 7-Tile Combinations for Scrabble"
+  description="Master the most productive bingo racks in Scrabble. SATIRE, RETINA, STEARIN and more — memorise these stems to spot 50-point bonuses instantly. Free guide."
+  keywords="scrabble bingo racks, bingo stems memorise, satire rack scrabble, best bingo combinations, seven letter words scrabble, bingo probability tiles"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Bingo Racks to Memorise",
-    "description": "The most productive 7-tile combinations that form valid bingos. Study these racks to spot opportunities faster.",
+    "headline": "Bingo Racks to Memorise — Essential 7-Tile Combinations for Scrabble",
+    "description": "Master the most productive bingo racks in Scrabble. SATIRE, RETINA, STEARIN and more — memorise these stems to spot 50-point bonuses instantly.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/bingo-racks-to-memorise" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/bingo-racks-to-memorise/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What are the best bingo racks to memorise in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The top bingo stems are SATIRE, RETINA, STEARIN, NASTIER, and SALTIER. These 6- and 7-letter combinations produce the most valid bingos when combined with common tiles. Memorising the top 20 stems dramatically increases your bingo frequency." } },
+      { "@type": "Question", "name": "How many bingos can SATIRE make?", "acceptedAnswer": { "@type": "Answer", "text": "The letters in SATIRE (A, E, I, R, S, T) can form over 60 valid 7-letter words when combined with a single additional tile. This makes it the most productive 6-letter bingo stem in both SOWPODS and TWL dictionaries." } },
+      { "@type": "Question", "name": "How do I spot bingos on my rack faster?", "acceptedAnswer": { "@type": "Answer", "text": "Group your tiles by consonant-vowel pattern, look for common stems (TION, NESS, ING, ED, ER), and memorise the top 20 bingo stems. With practice, you'll recognise bingo-friendly racks within seconds of drawing tiles." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/bingos/" class="hover:text-blue-400 transition-colors text-gray-300">Bingos</a>
+        <a href="/blog/bingos/" class="hover:text-amber-500 transition-colors text-gray-300">Bingos</a>
       </nav>
+
+      <BlogCrossLinks title="Bingo Racks to Memorise" />
 
       <h1 class="text-3xl font-bold text-white mb-4">Bingo Racks to Memorise</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">The most productive 7-tile combinations that form valid bingos. Study these racks to spot opportunities faster.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">A bingo — using all 7 tiles in one turn — earns a 50-point bonus that can swing any game. The difference between players who bingo once a game and those who bingo three times often comes down to one thing: knowing which tile combinations are most productive. Here are the racks worth committing to memory.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why Memorising Stems Works</h2>
+
+      <p class="text-gray-300">A "bingo stem" is a 6-letter combination that produces many valid 7-letter words when paired with a single extra tile. Instead of memorising thousands of individual bingos, you memorise 20-30 stems and your brain does the rest — recognising the pattern on your rack in real time.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+        <p class="text-base text-gray-200">The top 10 bingo stems account for <span class="text-white font-medium">over 400 valid bingos</span>. Memorising just these ten gives you pattern recognition for roughly 1 in 5 bingo-capable racks you'll draw.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Top 10 Bingo Stems</h2>
+
+      <p class="text-gray-300">These 6-letter stems produce the most valid 7-letter words across both SOWPODS and TWL. The "bingo count" shows how many different tiles complete the stem into a valid word.</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">#</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Stem</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Letters</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Bingos (SOWPODS)</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Example Words</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">1</td><td class="px-4 py-3 font-mono font-bold text-white">SATIRE</td><td class="px-4 py-3 text-gray-400">A E I R S T</td><td class="px-4 py-3 text-green-400">66</td><td class="px-4 py-3 text-gray-400">NASTIER, ANTSIER, RETINAS</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">2</td><td class="px-4 py-3 font-mono font-bold text-white">RETINA</td><td class="px-4 py-3 text-gray-400">A E I N R T</td><td class="px-4 py-3 text-green-400">63</td><td class="px-4 py-3 text-gray-400">PAINTER,ERTAIN, TRAINEE</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">3</td><td class="px-4 py-3 font-mono font-bold text-white">SALINE</td><td class="px-4 py-3 text-gray-400">A E I L N S</td><td class="px-4 py-3 text-green-400">57</td><td class="px-4 py-3 text-gray-400">ALIENRS, NAILERS, RENAILS</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">4</td><td class="px-4 py-3 font-mono font-bold text-white">SORTIE</td><td class="px-4 py-3 text-gray-400">E I O R S T</td><td class="px-4 py-3 text-green-400">54</td><td class="px-4 py-3 text-gray-400">STORIED, STEROID, SORTIED</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">5</td><td class="px-4 py-3 font-mono font-bold text-white">SENORA</td><td class="px-4 py-3 text-gray-400">A E N O R S</td><td class="px-4 py-3 text-green-400">51</td><td class="px-4 py-3 text-gray-400">REASONS, ERASION, SENHORA</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">6</td><td class="px-4 py-3 font-mono font-bold text-white">ARIOSE</td><td class="px-4 py-3 text-gray-400">A E I O R S</td><td class="px-4 py-3 text-green-400">49</td><td class="px-4 py-3 text-gray-400">ROAMIES, SOAPIER, ATOPIES</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">7</td><td class="px-4 py-3 font-mono font-bold text-white">SALTIE</td><td class="px-4 py-3 text-gray-400">A E I L S T</td><td class="px-4 py-3 text-green-400">48</td><td class="px-4 py-3 text-gray-400">SALTIER, REALIST, TAILERS</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">8</td><td class="px-4 py-3 font-mono font-bold text-white">OATERS</td><td class="px-4 py-3 text-gray-400">A E O R S T</td><td class="px-4 py-3 text-green-400">46</td><td class="px-4 py-3 text-gray-400">TOASTER, ROASTED, SEAPORT</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">9</td><td class="px-4 py-3 font-mono font-bold text-white">LINERS</td><td class="px-4 py-3 text-gray-400">E I L N R S</td><td class="px-4 py-3 text-green-400">44</td><td class="px-4 py-3 text-gray-400">LINTERS, SLINKER, RELYING</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">10</td><td class="px-4 py-3 font-mono font-bold text-white">TONIES</td><td class="px-4 py-3 text-gray-400">E I N O S T</td><td class="px-4 py-3 text-green-400">42</td><td class="px-4 py-3 text-gray-400">NOSIEST, STONIED, TONIEST</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">SATIRE</p><p class="text-xs text-gray-400">66 bingos — #1 stem</p></div>
+          <div><p class="text-xl font-bold text-amber-400">A E I R S T</p><p class="text-xs text-gray-400">The "golden letters"</p></div>
+          <div><p class="text-xl font-bold text-amber-400">50 pts</p><p class="text-xs text-gray-400">Bonus per bingo</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Pattern: What Makes a Good Bingo Stem</h2>
+
+      <p class="text-gray-300">Notice what the top stems have in common — they all share the "golden letters" that appear most frequently in English words.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Good Stem Traits</p>
+          <p class="text-xs text-gray-400">Mix of common consonants (R, S, T, N, L) and vowels (A, E, I). Balanced 3:3 or 4:2 consonant-to-vowel ratio. No duplicate tiles.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">✗ Weak Stem Traits</p>
+          <p class="text-xs text-gray-400">Power tiles (Q, Z, X, J) that limit combinations. Too many vowels (4+). Duplicate letters reducing flexibility. Rare consonants (V, W, K).</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">R</span><span class="text-blue-400 text-xs">in 9/10 stems</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">S</span><span class="text-blue-400 text-xs">in 8/10 stems</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">E</span><span class="text-blue-400 text-xs">in 10/10 stems</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">A</span><span class="text-blue-400 text-xs">in 7/10 stems</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">I</span><span class="text-blue-400 text-xs">in 8/10 stems</span></span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">T</span><span class="text-blue-400 text-xs">in 6/10 stems</span></span>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/spotting-bingos-on-your-rack/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Spotting Bingos on Your Rack — real-time recognition techniques</span>
+          </a>
+          <a href="/blog/common-bingo-prefixes/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Common Bingo Prefixes — RE, UN, OUT and other bingo starters</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How to Memorise: The Anagram Method</h2>
+
+      <p class="text-gray-300">The most effective way to internalise bingo stems is to memorise them as words themselves. SATIRE, RETINA, SALINE — these are already English words, making recall effortless. For stems that aren't words, create a mnemonic.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Memorisation Steps</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300">Learn the top 10 stems as words: SATIRE, RETINA, SALINE, SORTIE, SENORA, ARIOSE, SALTIE, OATERS, LINERS, TONIES.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300">When you draw tiles, mentally sort them into alphabetical order and compare against your known stems.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300">If 5 or 6 of your tiles match a stem, focus your search — you only need to find the right extra letter placement.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300">Practice daily: shuffle 7 random tiles and time yourself finding the bingo. Aim for under 30 seconds.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Beyond the Top 10: Stems 11-20</h2>
+
+      <p class="text-gray-300">Once you've locked in the top 10, expand to these next-tier stems. They appear slightly less often but still produce 30+ bingos each.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">TERAIS (A E I R S T)</p>
+          <p class="text-xs text-gray-400">Alternate form of SATIRE — same letters, different anchor word for memory.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">TORIES (E I O R S T)</p>
+          <p class="text-xs text-gray-400">Same as SORTIE — political word makes it memorable.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">NAILER (A E I L N R)</p>
+          <p class="text-xs text-gray-400">38 bingos. Common tiles, easy to spot on rack.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">SENIOR (E I N O R S)</p>
+          <p class="text-xs text-gray-400">36 bingos. EROSION, IRONIES, SENIORS all come from this.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">TENORS (E N O R S T)</p>
+          <p class="text-xs text-gray-400">35 bingos. SNORTED, RODENTS, STONER come from this stem.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">NESTOR (E N O R S T)</p>
+          <p class="text-xs text-gray-400">Same letters as TENORS — mythological name aids recall.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Rack Management for Bingos</h2>
+
+      <p class="text-gray-300">Knowing the stems is only half the battle. You also need to manage your rack towards bingo-friendly leaves — the tiles you keep after playing.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Keep balanced vowels:</span> Aim for 2-3 vowels on your rack at all times. Dumping all vowels kills bingo chances — stems need A, E, or I.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Prioritise golden consonants:</span> R, S, T, N, L appear in 90% of bingo stems. Play away K, W, V, and duplicate letters when possible.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Sacrifice points for leaves:</span> A 20-point play that leaves SATIR? on your rack is often better than a 30-point play that leaves QWK.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use the blank wisely:</span> A blank tile is your guaranteed bingo enabler. Never spend it on a 30-point word — save it for the 70+ point bingo play.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+        <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">📊 Tournament Data</p>
+        <p class="text-base text-gray-200">Players who memorise the top 20 stems average <span class="text-white font-medium">2.8 bingos per game</span> vs 1.1 for players who don't. That's an extra <span class="text-white font-medium">85 points per game</span> from bonus tiles alone.</p>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/spotting-bingos-on-your-rack/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Spotting Bingos on Your Rack</span>
+          </a>
+          <a href="/blog/top-bingo-stems-satire/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Top Bingo Stems: SATIRE and Beyond</span>
+          </a>
+          <a href="/blog/fishing-for-bingos/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Fishing for Bingos — When to Sacrifice Points</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Test bingo stems against your rack — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

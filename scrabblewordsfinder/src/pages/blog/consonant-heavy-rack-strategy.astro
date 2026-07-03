@@ -1,55 +1,269 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Consonant-Heavy Rack Strategy"
-  description="How to play when stuck with too many consonants. Dump strategies, consonant-friendly words, and rack recovery techniques."
-  keywords="scrabble, consonant, heavy, rack, strategy"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Consonant-Heavy Rack Strategy",
-    "description": "How to play when stuck with too many consonants. Dump strategies, consonant-friendly words, and rack recovery techniques.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/consonant-heavy-rack-strategy" }
-  })} />
+<Layout title="Consonant-Heavy Rack Strategy — Scrabble Tips" description="Master consonant-heavy racks in Scrabble. Learn when to exchange, which consonant-rich words score big, and how to rebalance your rack effectively." keywords="consonant heavy rack, scrabble consonants, consonant words scrabble, rack management, scrabble strategy, consonant dump">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Consonant-Heavy Rack Strategy in Scrabble",
+  "description": "Master consonant-heavy racks in Scrabble. Learn when to exchange, which consonant-rich words score big, and how to rebalance your rack effectively.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/favicon.svg" } },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/consonant-heavy-rack-strategy/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Consonant-Heavy Rack Strategy</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is considered a consonant-heavy rack in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A consonant-heavy rack is one with 5 or more consonants out of your 7 tiles. This imbalance makes it difficult to form common words since most English words require vowels." } },
+    { "@type": "Question", "name": "Should I exchange tiles when I have too many consonants?", "acceptedAnswer": { "@type": "Answer", "text": "Exchange when you have 6-7 consonants and no playable word scores more than 10-12 points. If you can play a short word scoring 15+ points while dumping 2-3 consonants, that's usually better than exchanging." } },
+    { "@type": "Question", "name": "What are the best consonant-only words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "CRWTH (14 pts), CRYPT (12 pts), GLYPH (14 pts), LYMPH (15 pts), NYMPH (15 pts), and PSYCH (15 pts) are among the best words playable with no traditional vowels. Some use Y as a vowel substitute." } }
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+<div class="max-w-3xl mx-auto px-4">
+  <article class="prose dark:prose-invert prose-gray max-w-none">
+
+    <nav class="text-sm text-gray-500 dark:text-gray-400 mb-6" aria-label="Breadcrumb">
+      <a href="/blog/" class="hover:text-amber-600">Blog</a>
+      <span class="mx-2">›</span>
+      <a href="/blog/strategy/" class="hover:text-amber-600">Strategy</a>
+      <span class="mx-2">›</span>
+      <span class="text-gray-700 dark:text-gray-200">Consonant-Heavy Rack Strategy</span>
+    </nav>
+
+    <BlogCrossLinks title="Consonant-Heavy Rack Strategy" />
+
+    <h1 class="text-3xl font-bold mb-4">Consonant-Heavy Rack Strategy</h1>
+
+    <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
+      <time datetime="2026-06-15">June 15, 2026</time>
+      <span>·</span>
+      <span>6 min read</span>
+    </div>
+
+    <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Drawing a rack loaded with consonants is one of the most frustrating situations in Scrabble. When your tiles look like BCDGKRT, forming words feels impossible. But experienced players know that consonant-heavy racks aren't a death sentence — they're a strategic puzzle with real solutions.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What Makes a Rack Consonant-Heavy?</h2>
+
+    <p>A standard Scrabble rack holds 7 tiles. The ideal vowel-to-consonant ratio is roughly 2-3 vowels and 4-5 consonants. When you have <strong>5 or more consonants</strong>, your rack is considered consonant-heavy and requires adjusted strategy.</p>
+
+    <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-400 p-4 rounded-r-lg my-6">
+      <p class="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-1">📊 Insight</p>
+      <p class="text-sm text-blue-600 dark:text-blue-200">The Scrabble tile bag contains 56 consonants and 42 vowels (plus 2 blanks). Statistically, about 1 in 4 draws will produce a consonant-heavy rack of 5+ consonants.</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 my-6">
+      <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+        <p class="text-xs text-green-600 dark:text-green-400 font-medium">Balanced</p>
+        <p class="text-lg font-bold text-green-700 dark:text-green-300">3C : 4V</p>
       </div>
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 text-center">
+        <p class="text-xs text-amber-600 dark:text-amber-400 font-medium">Heavy</p>
+        <p class="text-lg font-bold text-amber-700 dark:text-amber-300">5C : 2V</p>
+      </div>
+      <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 text-center">
+        <p class="text-xs text-red-600 dark:text-red-400 font-medium">Critical</p>
+        <p class="text-lg font-bold text-red-700 dark:text-red-300">6-7C : 0-1V</p>
+      </div>
+    </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How to play when stuck with too many consonants. Dump strategies, consonant-friendly words, and rack recovery techniques.</p>
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Best Consonant-Rich Words to Know</h2>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+    <p>Memorising consonant-heavy words gives you plays when others would be stuck. These words use few or no traditional vowels (A, E, I, O, U), often relying on Y as a vowel substitute.</p>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-2 text-left font-semibold">Word</th>
+            <th class="px-4 py-2 text-left font-semibold">Points</th>
+            <th class="px-4 py-2 text-left font-semibold">Meaning</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr><td class="px-4 py-2 font-mono font-bold">CRWTH</td><td class="px-4 py-2">14</td><td class="px-4 py-2">An ancient Welsh stringed instrument</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">LYMPH</td><td class="px-4 py-2">15</td><td class="px-4 py-2">A clear body fluid in the immune system</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">NYMPH</td><td class="px-4 py-2">15</td><td class="px-4 py-2">A mythological nature spirit</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">PSYCH</td><td class="px-4 py-2">15</td><td class="px-4 py-2">To intimidate or unnerve mentally</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">GLYPH</td><td class="px-4 py-2">14</td><td class="px-4 py-2">A carved or inscribed symbol</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">CRYPT</td><td class="px-4 py-2">12</td><td class="px-4 py-2">An underground chamber or vault</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">TRYST</td><td class="px-4 py-2">8</td><td class="px-4 py-2">A secret meeting between lovers</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">SYNTH</td><td class="px-4 py-2">11</td><td class="px-4 py-2">An electronic musical instrument</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">PYGMY</td><td class="px-4 py-2">16</td><td class="px-4 py-2">A very small person or thing</td></tr>
+          <tr><td class="px-4 py-2 font-mono font-bold">GYPSY</td><td class="px-4 py-2">14</td><td class="px-4 py-2">A travelling person or nomad</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4 my-6">
+      <p class="text-sm font-semibold text-purple-700 dark:text-purple-300 mb-2">🎯 Strategy Tile</p>
+      <p class="text-sm text-purple-600 dark:text-purple-200">Y is your lifeline in consonant-heavy racks. Words like CYST, DRYLY, GLYPH, LYNCH, and MYTHS let you play through tough draws without wasting a turn exchanging.</p>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Exchange vs Play Through: The Decision Framework</h2>
+
+    <p>The critical decision with a consonant-heavy rack is whether to exchange tiles or play a low-scoring word to dump consonants. Here's a clear framework:</p>
+
+    <div class="space-y-3 my-6">
+      <div class="flex items-start gap-3 bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+        <span class="text-green-600 font-bold text-lg">✓</span>
+        <div>
+          <p class="font-semibold text-green-700 dark:text-green-300">Play through when:</p>
+          <p class="text-sm text-green-600 dark:text-green-200">You can score 15+ points while dumping 3+ consonants, or you can set up a premium square for next turn.</p>
         </div>
       </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <div class="flex items-start gap-3 bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+        <span class="text-red-600 font-bold text-lg">✗</span>
+        <div>
+          <p class="font-semibold text-red-700 dark:text-red-300">Exchange when:</p>
+          <p class="text-sm text-red-600 dark:text-red-200">Your best play scores under 10 points, you have 6-7 consonants with no Y, or the bag has 20+ tiles remaining.</p>
+        </div>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+    </div>
+
+    <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-400 p-4 rounded-r-lg my-6">
+      <p class="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-1">📊 Insight</p>
+      <p class="text-sm text-blue-600 dark:text-blue-200">Exchanging is only viable when 7+ tiles remain in the bag. In the endgame, you must play through — knowing consonant-heavy words becomes essential in the final turns.</p>
+    </div>
+
+    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 rounded-lg p-4 my-6">
+      <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mb-2">📚 Related Reading</p>
+      <div class="flex flex-wrap gap-2">
+        <a href="/blog/vowel-heavy-rack-solutions/" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Vowel-Heavy Rack Solutions →</a>
+        <span class="text-indigo-300">|</span>
+        <a href="/blog/dealing-with-bad-tiles/" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Dealing With Bad Tiles →</a>
+      </div>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Consonant Dumping Techniques</h2>
+
+    <p>Consonant dumping means playing short words that shed 2-3 consonants per turn, gradually rebalancing your rack over multiple moves rather than wasting a full turn on an exchange.</p>
+
+    <ol class="list-none space-y-3 my-6 pl-0">
+      <li class="flex items-start gap-3">
+        <span class="flex-shrink-0 w-7 h-7 bg-amber-100 dark:bg-amber-900/40 rounded-full flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">1</span>
+        <div><strong>Play 2-letter words parallel to existing words.</strong> Words like SH, ST, and HM let you offload consonants while scoring bonus points from adjacencies.</div>
+      </li>
+      <li class="flex items-start gap-3">
+        <span class="flex-shrink-0 w-7 h-7 bg-amber-100 dark:bg-amber-900/40 rounded-full flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">2</span>
+        <div><strong>Hook existing words.</strong> Adding S, D, or R to words already on the board dumps a consonant while creating a new word perpendicularly.</div>
+      </li>
+      <li class="flex items-start gap-3">
+        <span class="flex-shrink-0 w-7 h-7 bg-amber-100 dark:bg-amber-900/40 rounded-full flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">3</span>
+        <div><strong>Target board vowels.</strong> If the board has exposed vowels, build consonant-heavy words through them — turning one board vowel into a 4-5 letter word.</div>
+      </li>
+      <li class="flex items-start gap-3">
+        <span class="flex-shrink-0 w-7 h-7 bg-amber-100 dark:bg-amber-900/40 rounded-full flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-300">4</span>
+        <div><strong>Use "consonant cluster" words.</strong> SHRANK, SPLINT, STRUNG — words with 3-4 consonant clusters let you dump multiple consonants in one play.</div>
+      </li>
+    </ol>
+
+    <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4 my-6">
+      <p class="text-sm font-semibold text-purple-700 dark:text-purple-300 mb-2">🎯 Strategy Tile</p>
+      <p class="text-sm text-purple-600 dark:text-purple-200">The best consonant dump targets premium squares. Even a 3-letter word on a Double Word Score can net 20+ points while shedding dead consonants. Always scan DWS and TWS before resorting to exchange.</p>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">High-Value Consonant Combinations</h2>
+
+    <p>Some consonant pairs and clusters form more words than others. Knowing which consonants work together helps you identify plays faster.</p>
+
+    <div class="flex flex-wrap gap-2 my-6">
+      <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">ST (STRONG, BLAST)</span>
+      <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">SH (SHRANK, BRASH)</span>
+      <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">TH (THRIFT, GROWTH)</span>
+      <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">CH (CRUNCH, CLUTCH)</span>
+      <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">GH (BLIGHT, KNIGHT)</span>
+      <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">PH (GRAPH, MORPH)</span>
+      <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">CR (CRAFT, CRYPT)</span>
+      <span class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-sm font-medium">SP (SPRINT, CRISP)</span>
+    </div>
+
+    <div class="overflow-x-auto my-6">
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-2 text-left font-semibold">Word</th>
+            <th class="px-4 py-2 text-left font-semibold">Consonants</th>
+            <th class="px-4 py-2 text-left font-semibold">Vowels</th>
+            <th class="px-4 py-2 text-left font-semibold">Points</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr><td class="px-4 py-2 font-mono">STRENGTHS</td><td class="px-4 py-2">8</td><td class="px-4 py-2">1 (E)</td><td class="px-4 py-2">13</td></tr>
+          <tr><td class="px-4 py-2 font-mono">SCRUNCH</td><td class="px-4 py-2">6</td><td class="px-4 py-2">1 (U)</td><td class="px-4 py-2">14</td></tr>
+          <tr><td class="px-4 py-2 font-mono">SPRINTS</td><td class="px-4 py-2">6</td><td class="px-4 py-2">1 (I)</td><td class="px-4 py-2">9</td></tr>
+          <tr><td class="px-4 py-2 font-mono">THRIFTS</td><td class="px-4 py-2">6</td><td class="px-4 py-2">1 (I)</td><td class="px-4 py-2">13</td></tr>
+          <tr><td class="px-4 py-2 font-mono">DRYNESS</td><td class="px-4 py-2">5</td><td class="px-4 py-2">1 (E) + Y</td><td class="px-4 py-2">11</td></tr>
+          <tr><td class="px-4 py-2 font-mono">SCHNAPPS</td><td class="px-4 py-2">7</td><td class="px-4 py-2">1 (A)</td><td class="px-4 py-2">17</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Preventing Consonant-Heavy Racks</h2>
+
+    <p>The best strategy is prevention. Good rack leave — the tiles you keep after each play — dramatically reduces your chance of drawing a consonant-heavy rack next turn.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+      <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
+        <p class="text-sm font-semibold text-green-700 dark:text-green-300 mb-2">✓ Good Leave</p>
+        <ul class="text-sm text-green-600 dark:text-green-200 space-y-1 list-disc pl-4">
+          <li>Keep 1-2 vowels in your leave</li>
+          <li>Retain high-flex consonants (S, R, T, N)</li>
+          <li>Dump duplicates and low-flex tiles (V, W, C)</li>
+          <li>Preserve bingo-friendly combos (ING, TION)</li>
+        </ul>
+      </div>
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+        <p class="text-sm font-semibold text-red-700 dark:text-red-300 mb-2">✗ Bad Leave</p>
+        <ul class="text-sm text-red-600 dark:text-red-200 space-y-1 list-disc pl-4">
+          <li>Keeping all consonants to "save" a vowel-heavy play</li>
+          <li>Holding duplicate consonants (BB, CC, DD)</li>
+          <li>Retaining Q, X, Z without supporting vowels</li>
+          <li>Playing only your vowels and keeping 4+ consonants</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 rounded-lg p-4 my-6">
+      <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mb-2">📚 Related Reading</p>
+      <div class="flex flex-wrap gap-2">
+        <a href="/blog/rack-management-basics/" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Rack Management Basics →</a>
+        <span class="text-indigo-300">|</span>
+        <a href="/blog/dealing-with-bad-tiles/" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Dealing With Bad Tiles →</a>
+      </div>
+    </div>
+
+    <aside class="border-t border-gray-200 dark:border-gray-700 pt-8 mt-12">
+      <h3 class="text-lg font-semibold mb-4">Related Articles</h3>
+      <ul class="space-y-2 text-sm">
+        <li><a href="/blog/vowel-heavy-rack-solutions/" class="text-amber-600 dark:text-amber-400 hover:underline">Vowel-Heavy Rack Solutions</a></li>
+        <li><a href="/blog/dealing-with-bad-tiles/" class="text-amber-600 dark:text-amber-400 hover:underline">Dealing With Bad Tiles</a></li>
+        <li><a href="/blog/rack-management-basics/" class="text-amber-600 dark:text-amber-400 hover:underline">Rack Management Basics</a></li>
+      </ul>
+    </aside>
+
+    <div class="mt-10 p-6 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 rounded-xl text-center border border-amber-200 dark:border-amber-700">
+      <p class="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">Find the best words from any rack</p>
+      <p class="text-sm text-amber-700 dark:text-amber-300 mb-4">Enter your consonant-heavy tiles and see every valid word instantly.</p>
+      <a href="/" class="inline-block px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors">Try the Word Finder →</a>
+    </div>
+
+    <div class="mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400">← Back to Blog</a>
+    </div>
+
+  </article>
+</div>
+
+</Layout>

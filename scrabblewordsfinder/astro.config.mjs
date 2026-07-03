@@ -9,7 +9,7 @@ export default defineConfig({
   output: 'server',
   adapter: cloudflare(),
   integrations: [react()],
-  trailingSlash: 'always',
+  trailingSlash: 'ignore',
   server: { port: 4321 },
   build: {
     inlineStylesheets: 'always',

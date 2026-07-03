@@ -77,6 +77,102 @@ test.describe('API — GET /api/tasks', () => {
   });
 });
 
+test.describe('API — GET /api/tasks ordering', () => {
+  const createdIds: number[] = [];
+
+  test.afterAll(async ({ request }) => {
+    for (const id of createdIds) {
+      await request.delete('/api/tasks', { data: { id } });
+    }
+  });
+
+  test('tasks are ordered by priority DESC, id ASC', async ({ request }) => {
+    // Create tasks with varying priorities
+    const tasks = [
+      { task_name: 'Low priority task', task_description: 'Priority ordering test - low', priority: 1 },
+      { task_name: 'High priority task', task_description: 'Priority ordering test - high', priority: 10 },
+      { task_name: 'Medium priority task', task_description: 'Priority ordering test - medium', priority: 5 },
+    ];
+
+    for (const t of tasks) {
+      const res = await request.post('/api/tasks', { data: t });
+      if (res.status() === 200) {
+        const { id } = await res.json();
+        createdIds.push(id);
+      }
+    }
+    // Skip if DB not available or tasks didn't create
+    if (createdIds.length < 3) return test.skip();
+
+    // Fetch tasks and check order
+    const listRes = await request.get('/api/tasks');
+    expect(listRes.status()).toBe(200);
+    const { tasks: result } = await listRes.json();
+
+    // Verify ordering: priority should be descending
+    for (let i = 0; i < result.length - 1; i++) {
+      const current = result[i];
+      const next = result[i + 1];
+      // Higher (or equal) priority should come first
+      if (current.priority !== next.priority) {
+        expect(current.priority).toBeGreaterThanOrEqual(next.priority);
+      } else {
+        // Same priority — lower id comes first (ASC)
+        expect(current.id).toBeLessThanOrEqual(next.id);
+      }
+    }
+  });
+
+  test('tasks with equal priority are ordered by id ASC', async ({ request }) => {
+    // Create two tasks with same priority
+    const res1 = await request.post('/api/tasks', {
+      data: { task_name: 'Same prio A', task_description: 'Equal priority ordering test A', priority: 7 },
+    });
+    const res2 = await request.post('/api/tasks', {
+      data: { task_name: 'Same prio B', task_description: 'Equal priority ordering test B', priority: 7 },
+    });
+    if (res1.status() !== 200 || res2.status() !== 200) return test.skip();
+
+    const id1 = (await res1.json()).id;
+    const id2 = (await res2.json()).id;
+    createdIds.push(id1, id2);
+
+    // Fetch and find our tasks
+    const listRes = await request.get('/api/tasks');
+    if (listRes.status() !== 200) return test.skip();
+    const { tasks: allTasks } = await listRes.json();
+
+    const ourTasks = allTasks.filter((t: any) => [id1, id2].includes(t.id));
+    if (ourTasks.length < 2) return test.skip();
+
+    // The one with lower id should appear first (id ASC for same priority)
+    const firstIdx = allTasks.findIndex((t: any) => t.id === Math.min(id1, id2));
+    const secondIdx = allTasks.findIndex((t: any) => t.id === Math.max(id1, id2));
+    expect(firstIdx).toBeLessThan(secondIdx);
+  });
+
+  test('results are NOT ordered by date_created DESC (regression)', async ({ request }) => {
+    // Create a high-priority task (should appear before older low-priority tasks)
+    const res = await request.post('/api/tasks', {
+      data: { task_name: 'Newest but low priority', task_description: 'This task was created last but has low priority', priority: 0 },
+    });
+    if (res.status() !== 200) return test.skip();
+    const { id } = await res.json();
+    createdIds.push(id);
+
+    const listRes = await request.get('/api/tasks');
+    if (listRes.status() !== 200) return test.skip();
+    const { tasks: allTasks } = await listRes.json();
+
+    // The newest task (lowest priority=0) should NOT be the first item
+    if (allTasks.length > 1) {
+      // It should be at the end (priority 0 is lowest)
+      const idx = allTasks.findIndex((t: any) => t.id === id);
+      expect(idx).toBeGreaterThan(0);
+    }
+  });
+});
+
 test.describe('API — POST /api/tasks', () => {
   test('POST /api/tasks creates task with valid payload', async ({ request }) => {
     const response = await request.post('/api/tasks', {

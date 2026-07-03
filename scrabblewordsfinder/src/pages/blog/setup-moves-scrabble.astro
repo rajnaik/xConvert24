@@ -1,55 +1,208 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blog-gates';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
 import '../../styles/global.css';
+
+if (!await isBlogPublished('setup-moves-scrabble', Astro)) {
+  return Astro.redirect('/404/');
+}
 ---
 
-<BlogLayout
-  title="Setup Moves in Scrabble"
-  description="Plays that sacrifice short-term points for devastating follow-ups. Creating lanes, hooks, and premium square access."
-  keywords="scrabble, setup, moves, scrabble"
->
+<Layout title="Setup Moves in Scrabble — Creating Future Scoring Opportunities" description="Master setup plays in Scrabble — moves that sacrifice immediate points to create bigger opportunities next turn. Learn to engineer premium square access and bingo lanes. Free guide." keywords="setup moves scrabble, scrabble setup plays, create scoring opportunities, premium square access, bingo lane creation, strategic sacrifice scrabble">
+
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Setup Moves in Scrabble",
-    "description": "Plays that sacrifice short-term points for devastating follow-ups. Creating lanes, hooks, and premium square access.",
+    "headline": "Setup Moves in Scrabble — Creating Future Scoring Opportunities",
     "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/setup-moves-scrabble" }
+    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/favicon.svg" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/setup-moves-scrabble/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is a setup move in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A setup move is a play that intentionally sacrifices immediate scoring potential to create a better opportunity on your next turn. This includes opening bingo lanes, placing hook letters near premium squares, and engineering board positions that only your rack can exploit." } },
+      { "@type": "Question", "name": "When should you sacrifice points for a setup play?", "acceptedAnswer": { "@type": "Answer", "text": "A setup is correct when the expected value of the two-turn sequence (setup + payoff) exceeds the best single turn available. If your best immediate play scores 28 and a setup scoring 15 creates a 70% chance at a 90-point play next turn, the setup is mathematically superior (15 + 63 = 78 vs 28 + unknown)." } },
+      { "@type": "Question", "name": "How do you prevent opponents from exploiting your setup?", "acceptedAnswer": { "@type": "Answer", "text": "Make setups that only specific tiles can exploit. If you open a lane ending at a TWS, ensure the only way to reach it requires letters you hold or that are unlikely to be in your opponent's rack. Setups near board edges are safer because they offer fewer approach angles." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
+
+      <nav class="text-sm text-gray-400 mb-6" aria-label="Breadcrumb">
+        <a href="/blog/" class="hover:text-amber-400">Blog</a>
+        <span class="mx-2">›</span>
+        <a href="/blog/strategy/" class="hover:text-amber-400">Strategy</a>
+        <span class="mx-2">›</span>
+        <span class="text-gray-300">Setup Moves</span>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Setup Moves in Scrabble</h1>
+      <BlogCrossLinks title="Setup Moves in Scrabble — Creating Future Scoring Opportunities" />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+      <h1 class="text-3xl font-bold mb-4">Setup Moves in Scrabble — Creating Future Scoring Opportunities</h1>
+
+      <div class="text-sm text-gray-400 mb-6 flex items-center gap-4">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span>·</span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Plays that sacrifice short-term points for devastating follow-ups. Creating lanes, hooks, and premium square access.</p>
+      <p class="lead text-lg text-gray-300 mb-8">The best Scrabble players think two turns ahead. A setup move deliberately trades immediate points for board position — engineering access to premium squares, creating bingo lanes, or placing hook points that only your rack can exploit. Mastering this technique separates strategic players from reactive ones.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What Is a Setup Move?</h2>
+
+      <p>A setup move is any play where the primary purpose is not scoring but rather creating a better opportunity for your next turn. You are investing points now for a larger return later — like sacrificing a pawn in chess to gain a positional advantage.</p>
+
+      <div class="border-l-4 border-blue-500/30 bg-blue-950/20 rounded-r-lg p-4 my-6">
+        <p class="text-blue-300 font-medium mb-1">Core Principle</p>
+        <p class="text-gray-300 text-sm">A setup is correct when: (points sacrificed) × certainty &lt; (future gain × probability). If you give up 15 points now to create a 70% chance at gaining 50 extra points next turn, the expected value is +20 points over two turns. That is strong play.</p>
+      </div>
+
+      <p>Setup moves are particularly valuable when you hold strong tiles that need specific board conditions to reach their potential — bingo-ready racks that need an open lane, power tiles that need premium square access, or hook-friendly letters that need adjacent words to attach to.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Types of Setup Moves</h2>
+
+      <p>Not all setups are equal. Each type serves a different strategic purpose and carries different risk levels.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+        <div class="bg-green-950/20 border border-green-500/30 rounded-lg p-4">
+          <p class="text-green-300 font-medium mb-2">Bingo Lane Opener</p>
+          <p class="text-gray-300 text-sm">Play a word that creates an open row or column with 7+ empty squares and at least one existing letter to play through. This is the most common setup when you hold 5-6 bingo-friendly tiles.</p>
+        </div>
+        <div class="bg-green-950/20 border border-green-500/30 rounded-lg p-4">
+          <p class="text-green-300 font-medium mb-2">Hook Point Creator</p>
+          <p class="text-gray-300 text-sm">Place a word ending near a premium square where adding one letter (a hook) reaches the TWS or DWS. Best when you hold the specific hook letter needed.</p>
+        </div>
+        <div class="bg-green-950/20 border border-green-500/30 rounded-lg p-4">
+          <p class="text-green-300 font-medium mb-2">Through-Play Engineer</p>
+          <p class="text-gray-300 text-sm">Place a letter in a position where a longer word can be played through it next turn, reaching premium squares that were previously inaccessible.</p>
+        </div>
+        <div class="bg-green-950/20 border border-green-500/30 rounded-lg p-4">
+          <p class="text-green-300 font-medium mb-2">Parallel Play Platform</p>
+          <p class="text-gray-300 text-sm">Create a row of letters that allows a parallel play next turn, forming multiple crosswords simultaneously for accumulated scoring.</p>
         </div>
       </div>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When Setups Are Correct vs Risky</h2>
+
+      <p>Every setup carries risk — your opponent might exploit the position before you can. The key is assessing whether the reward justifies the risk.</p>
+
+      <div class="overflow-x-auto my-6">
+        <table class="w-full text-sm dark:bg-gray-900 rounded-lg overflow-hidden">
+          <thead class="bg-gray-800 text-gray-300">
+            <tr><th class="p-3 text-left">Condition</th><th class="p-3 text-left">Setup is CORRECT</th><th class="p-3 text-left">Setup is RISKY</th></tr>
+          </thead>
+          <tbody class="text-gray-300">
+            <tr class="border-t border-gray-700"><td class="p-3 font-medium">Your rack</td><td class="p-3">Strong bingo stem (5-6 good tiles)</td><td class="p-3">Weak tiles, no clear plan</td></tr>
+            <tr class="border-t border-gray-700"><td class="p-3 font-medium">Board state</td><td class="p-3">Closed, few existing options</td><td class="p-3">Already open with multiple lanes</td></tr>
+            <tr class="border-t border-gray-700"><td class="p-3 font-medium">Game score</td><td class="p-3">Even or slightly behind</td><td class="p-3">Far ahead (play safe)</td></tr>
+            <tr class="border-t border-gray-700"><td class="p-3 font-medium">Tiles remaining</td><td class="p-3">Many tiles in bag (40+)</td><td class="p-3">Few tiles left (endgame)</td></tr>
+            <tr class="border-t border-gray-700"><td class="p-3 font-medium">Opponent's likely rack</td><td class="p-3">They lack the tiles to exploit</td><td class="p-3">S, blank, or power tiles unaccounted for</td></tr>
+          </tbody>
+        </table>
       </div>
+
+      <div class="border-l-4 border-purple-500/30 bg-purple-950/20 rounded-r-lg p-4 my-6">
+        <p class="text-purple-300 font-medium mb-1">Pro Tip</p>
+        <p class="text-gray-300 text-sm">Track tiles. If both blanks and three of the four S tiles are already played, your opponent has a much lower chance of bingoed through the lane you open. Tile tracking converts setup moves from gambles into calculated decisions.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Reading When Your Opponent Has Set Up</h2>
+
+      <p>Defensive awareness is the flip side of setup mastery. When your opponent makes an unexpectedly low-scoring play in an unusual position, ask: what are they planning?</p>
+
+      <div class="border-l-4 border-amber-500/30 bg-amber-950/10 rounded-r-lg p-4 my-6">
+        <p class="text-amber-300 font-medium mb-1">Warning Signs of an Opponent's Setup</p>
+        <p class="text-gray-300 text-sm">They play a short word (2-3 tiles) scoring under 20 when better options likely existed. They place it adjacent to a TWS or in a row with 7+ open squares. They kept most of their tiles rather than exchanging. They are playing a rack with strong bingo potential. All of these signal a setup in progress.</p>
+      </div>
+
+      <p>When you spot an opponent's setup, you have three responses:</p>
+
+      <ul class="text-gray-300 space-y-2 my-4">
+        <li><strong>Block</strong> — fill the lane or take the premium square yourself, even at a scoring cost</li>
+        <li><strong>Ignore and outrun</strong> — score maximally on your own play, hoping your points exceed their payoff</li>
+        <li><strong>Counter-setup</strong> — open your own opportunity elsewhere, creating a race to score first</li>
+      </ul>
+
+      <div class="border-l-4 border-blue-500/30 bg-blue-950/20 rounded-r-lg p-4 my-6">
+        <p class="text-blue-300 font-medium mb-1">Decision Heuristic</p>
+        <p class="text-gray-300 text-sm">Block when the opponent's setup threatens a TWS bingo (100+ points). Outrun when their setup targets a DWS or modest crossword play (40-60 points). Counter-setup when you have your own strong rack and available positions.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Two-Turn Expected Value Calculation</h2>
+
+      <p>Every setup decision reduces to a maths problem: is the two-turn expected value of (setup + payoff) greater than the two-turn expected value of (best play now + unknown next turn)?</p>
+
+      <div class="overflow-x-auto my-6">
+        <table class="w-full text-sm dark:bg-gray-900 rounded-lg overflow-hidden">
+          <thead class="bg-gray-800 text-gray-300">
+            <tr><th class="p-3 text-left">Scenario</th><th class="p-3 text-left">Turn 1</th><th class="p-3 text-left">Turn 2 (Expected)</th><th class="p-3 text-left">2-Turn Total</th></tr>
+          </thead>
+          <tbody class="text-gray-300">
+            <tr class="border-t border-gray-700"><td class="p-3">Best play now</td><td class="p-3">32 pts</td><td class="p-3">~28 pts (average)</td><td class="p-3">60 pts</td></tr>
+            <tr class="border-t border-gray-700"><td class="p-3">Setup (weak score)</td><td class="p-3">14 pts</td><td class="p-3">~85 pts (70% × 120)</td><td class="p-3">99 pts</td></tr>
+            <tr class="border-t border-gray-700"><td class="p-3">Setup (blocked)</td><td class="p-3">14 pts</td><td class="p-3">~28 pts (average)</td><td class="p-3">42 pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The setup is correct when the probability-weighted payoff exceeds the guaranteed alternative. In the example above, if there is a 70% chance the lane stays open, the expected two-turn total is 14 + (0.70 × 120 + 0.30 × 28) = 14 + 92 = 106. Compare to 60 for playing normally. The setup wins by 46 expected points.</p>
+
+      <div class="border-l-4 border-purple-500/30 bg-purple-950/20 rounded-r-lg p-4 my-6">
+        <p class="text-purple-300 font-medium mb-1">Practical Rule of Thumb</p>
+        <p class="text-gray-300 text-sm">If your setup scores 15+ points less than your best alternative, you need at least a 60% probability of a 70+ point payoff to justify it. Below those thresholds, take the safe points. Above them, the setup is mathematically sound.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Practical Setup Examples</h2>
+
+      <p>These common board situations illustrate when setups generate the highest expected returns.</p>
+
+      <div class="grid grid-cols-1 gap-4 my-6">
+        <div class="bg-green-950/20 border border-green-500/30 rounded-lg p-4">
+          <p class="text-green-300 font-medium mb-2">Example 1: Opening a bingo lane</p>
+          <p class="text-gray-300 text-sm">You hold AEINST + R (RETINAS, NASTIER, ANTSIER possible). The board is tight with no 7+ open rows. Play TI (3 pts) vertically to create an open column of 8 squares. Next turn, play NASTIER through the I for a bingo (65-130 pts depending on premium squares).</p>
+        </div>
+        <div class="bg-green-950/20 border border-green-500/30 rounded-lg p-4">
+          <p class="text-green-300 font-medium mb-2">Example 2: Hook near TWS</p>
+          <p class="text-gray-300 text-sm">You hold Z and the word MAZE is two squares from a TWS. Play MA (4 pts) extending toward the TWS. Next turn, play MAZE reaching the triple for 42 points (vs 14 without the setup). Net gain: +24 points over two turns.</p>
+        </div>
+        <div class="bg-green-950/20 border border-green-500/30 rounded-lg p-4">
+          <p class="text-green-300 font-medium mb-2">Example 3: The S-hook trap</p>
+          <p class="text-gray-300 text-sm">Play QUIT ending one square before a DWS. Hold the S. Next turn play QUITS hitting DWS for 48 instead of 29. The S-hook is safe because you HOLD the S — opponents cannot steal the setup.</p>
+        </div>
+      </div>
+
+      <div class="border-l-4 border-indigo-500/30 bg-indigo-950/20 rounded-r-lg p-4 my-6">
+        <p class="text-indigo-300 font-medium mb-2">Related Reading</p>
+        <ul class="text-gray-300 text-sm space-y-1">
+          <li><a href="/blog/hotspots-and-dead-zones/" class="text-indigo-400 hover:text-indigo-300">Hotspots and Dead Zones on the Board →</a></li>
+          <li><a href="/blog/board-openness-control/" class="text-indigo-400 hover:text-indigo-300">Board Openness Control →</a></li>
+        </ul>
+      </div>
+
+      <aside class="border border-gray-700 rounded-lg p-6 my-8">
+        <h3 class="text-lg font-semibold text-gray-200 mb-4">Related Articles</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/blog/hotspots-and-dead-zones/" class="text-amber-400 hover:text-amber-300">Hotspots and Dead Zones</a></li>
+          <li><a href="/blog/board-openness-control/" class="text-amber-400 hover:text-amber-300">Board Openness Control</a></li>
+          <li><a href="/blog/scoring-100-points-single-turn/" class="text-amber-400 hover:text-amber-300">Scoring 100+ Points in a Single Turn</a></li>
+          <li><a href="/blog/defensive-scrabble-strategy/" class="text-amber-400 hover:text-amber-300">Defensive Scrabble Strategy</a></li>
+        </ul>
+      </aside>
+
+      <div class="bg-gradient-to-r from-amber-900/30 to-amber-800/10 border border-amber-500/30 rounded-lg p-6 my-8 text-center">
+        <p class="text-amber-300 font-semibold text-lg mb-2">Plan Your Next Setup</p>
+        <p class="text-gray-300 text-sm mb-4">Use our word finder to explore what plays are possible from your current rack — then engineer the board for maximum payoff.</p>
+        <a href="/" class="inline-block bg-amber-600 hover:bg-amber-500 text-white font-medium px-6 py-2 rounded-lg transition-colors">Try the Word Finder →</a>
+      </div>
+
+      <a href="/blog/" class="text-amber-400 hover:text-amber-300 text-sm">← Back to Blog</a>
+
     </article>
   </div>
-</BlogLayout>
+</Layout>

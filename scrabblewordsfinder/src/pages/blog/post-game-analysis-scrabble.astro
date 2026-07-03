@@ -1,55 +1,211 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Post-Game Analysis in Scrabble"
-  description="How to review your games for improvement. What to look for, tools to use, and building a study routine."
-  keywords="scrabble, post, game, analysis, scrabble"
->
+<Layout title="Post-Game Analysis in Scrabble — How to Review and Improve" description="Learn how to analyse your Scrabble games after playing. Identify missed bingos, evaluate leave decisions, spot defensive errors, and track improvement over time. Free guide." keywords="scrabble post game analysis, review scrabble game, missed bingos analysis, improve at scrabble, game review strategy, scrabble self coaching">
+
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Post-Game Analysis in Scrabble",
-    "description": "How to review your games for improvement. What to look for, tools to use, and building a study routine.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/post-game-analysis-scrabble" }
+    "headline": "Post-Game Analysis in Scrabble — How to Review and Improve",
+    "description": "Learn how to analyse your Scrabble games after playing. Identify missed bingos, evaluate leave decisions, spot defensive errors, and track improvement over time.",
+    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+    "mainEntityOfPage": "https://www.scrabblewordsfinder.com/blog/post-game-analysis-scrabble/",
+    "datePublished": "2026-07-05",
+    "dateModified": "2026-07-05"
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/tournament/" class="hover:text-blue-400 transition-colors text-gray-300">Tournament</a>
-      </nav>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I review a Scrabble game after playing?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Record each turn's rack and the word you played. After the game, replay each turn using a solver to compare your move against the highest-scoring option and evaluate your rack leave quality." }
+      },
+      {
+        "@type": "Question",
+        "name": "What should I look for during post-game analysis?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Focus on four areas: missed bingos, poor rack leaves, defensive errors that opened triple-word squares, and opening mistakes that gave your opponent scoring lanes." }
+      },
+      {
+        "@type": "Question",
+        "name": "How often should I analyse my Scrabble games?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Reviewing one game per week in depth produces more improvement than playing five games without analysis. Quality of review matters more than quantity of games played." }
+      }
+    ]
+  })} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Post-Game Analysis in Scrabble</h1>
+  <div class="max-w-3xl mx-auto px-4 py-10">
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-zinc-500 dark:text-zinc-400 mb-6" aria-label="Breadcrumb">
+      <a href="/blog/" class="hover:underline">Blog</a>
+      <span class="mx-1">›</span>
+      <a href="/blog/strategy/" class="hover:underline">Strategy</a>
+      <span class="mx-1">›</span>
+      <span class="text-zinc-700 dark:text-zinc-200">Post-Game Analysis</span>
+    </nav>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How to review your games for improvement. What to look for, tools to use, and building a study routine.</p>
+    <BlogCrossLinks currentSlug="post-game-analysis-scrabble" />
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+    <h1 class="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white mb-4">Post-Game Analysis in Scrabble — How to Review and Improve</h1>
+
+    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6">Strategy Guide · 8 min read</p>
+
+    <p class="text-lg text-zinc-700 dark:text-zinc-300 mb-8 leading-relaxed">The fastest path to Scrabble improvement isn't playing more games — it's reviewing the ones you've already played. Post-game analysis reveals patterns in your decision-making, highlights missed opportunities, and gives you a concrete plan for what to study next. One thoroughly reviewed game teaches more than ten played on autopilot.</p>
+
+    <!-- Section 1 -->
+    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-white mt-10 mb-4 border-l-4 border-amber-500 pl-4">Why Review Games? The Case for Analysis Over Volume</h2>
+
+    <p class="text-zinc-700 dark:text-zinc-300 mb-4">Most improving players hit a plateau because they repeat the same mistakes without noticing them. You might miss the same type of bingo three games in a row, or consistently leave awkward tiles on your rack without realising you had a better option. Without review, these blind spots persist indefinitely.</p>
+
+    <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-5 mb-6">
+      <p class="font-semibold text-purple-800 dark:text-purple-200 mb-2">💡 Pro Tip</p>
+      <p class="text-purple-700 dark:text-purple-300">Tournament players who review one game per week improve their rating 30-50 points faster per year than those who only play. The review habit compounds — each session makes the next game slightly better.</p>
+    </div>
+
+    <p class="text-zinc-700 dark:text-zinc-300 mb-4">Analysis also builds your intuition. When you repeatedly discover that keeping a balanced leave would have scored more over two turns, you internalise that principle. The next time you face a similar decision at the board, the correct choice feels natural.</p>
+
+    <!-- Section 2 -->
+    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-white mt-10 mb-4 border-l-4 border-amber-500 pl-4">What to Look For: The Four Pillars of Game Review</h2>
+
+    <p class="text-zinc-700 dark:text-zinc-300 mb-4">Every game review should examine four areas. You don't need to study all of them in depth every time — pick the one that felt weakest during the game and focus there.</p>
+
+    <div class="space-y-4 mb-6">
+      <div class="flex items-start gap-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-sm">1</span>
+        <div>
+          <p class="font-semibold text-zinc-900 dark:text-white">Missed Bingos</p>
+          <p class="text-zinc-600 dark:text-zinc-400 text-sm">Did your rack contain a playable seven- or eight-letter word that you didn't see? This is the single biggest point leak for intermediate players.</p>
         </div>
       </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <div class="flex items-start gap-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-sm">2</span>
+        <div>
+          <p class="font-semibold text-zinc-900 dark:text-white">Rack Leave Quality</p>
+          <p class="text-zinc-600 dark:text-zinc-400 text-sm">After each play, what tiles remained on your rack? Were they balanced (mix of vowels and consonants) or clunky (UUVC, QWVX)?</p>
+        </div>
       </div>
-    </article>
+      <div class="flex items-start gap-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-sm">3</span>
+        <div>
+          <p class="font-semibold text-zinc-900 dark:text-white">Defensive Errors</p>
+          <p class="text-zinc-600 dark:text-zinc-400 text-sm">Did you open a triple-word square unnecessarily? Did you give your opponent a hook spot next to a premium lane?</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-sm">4</span>
+        <div>
+          <p class="font-semibold text-zinc-900 dark:text-white">Opening and Positional Mistakes</p>
+          <p class="text-zinc-600 dark:text-zinc-400 text-sm">Did your opening move give the opponent easy access to premium squares? Did you play in dead zones when scoring lanes were available?</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-white mt-10 mb-4 border-l-4 border-amber-500 pl-4">The Three-Question Framework for Every Turn</h2>
+
+    <p class="text-zinc-700 dark:text-zinc-300 mb-4">When replaying a game, ask yourself three questions about each move you made. This framework structures your analysis and prevents aimless browsing through moves.</p>
+
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-5 mb-6">
+      <p class="font-semibold text-blue-800 dark:text-blue-200 mb-3">🔍 The Three Questions</p>
+      <ol class="list-decimal list-inside space-y-2 text-blue-700 dark:text-blue-300">
+        <li><strong>Was this the highest-scoring play?</strong> — Use a solver to check. If not, how many points did you leave on the table?</li>
+        <li><strong>Was the leave good?</strong> — Even if the score was high, did the tiles you kept set you up for next turn or leave you stuck?</li>
+        <li><strong>Did I miss a better play entirely?</strong> — Sometimes the best move isn't the highest-scoring one but a slightly lower score with a vastly better leave or defensive position.</li>
+      </ol>
+    </div>
+
+    <p class="text-zinc-700 dark:text-zinc-300 mb-4">You don't need to apply all three questions to every single turn. Focus on turns where you felt uncertain during the game, turns where the score difference was largest, and turns near the endgame where tile counting mattered.</p>
+
+    <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-5 mb-6">
+      <p class="font-semibold text-purple-800 dark:text-purple-200 mb-2">💡 The 80/20 Rule of Review</p>
+      <p class="text-purple-700 dark:text-purple-300">About 80% of your lost points come from 3-4 turns per game. Find those turns first — they're where you felt most unsure or where the solver shows the biggest gap between your play and the optimal one.</p>
+    </div>
+
+    <!-- Section 4 -->
+    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-white mt-10 mb-4 border-l-4 border-amber-500 pl-4">Tools and Methods for Analysis</h2>
+
+    <p class="text-zinc-700 dark:text-zinc-300 mb-4">You don't need expensive software to review games. The method matters more than the tool. Here are approaches from simple to advanced:</p>
+
+    <div class="grid md:grid-cols-2 gap-4 mb-6">
+      <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5">
+        <p class="font-semibold text-zinc-900 dark:text-white mb-2">📓 Notebook Method</p>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Write down your rack for each turn and the word you played. After the game, spend 10 minutes looking at each rack with fresh eyes. You'll spot bingos you missed under time pressure.</p>
+      </div>
+      <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5">
+        <p class="font-semibold text-zinc-900 dark:text-white mb-2">🖥️ Solver Replay</p>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Enter each rack into a word finder tool and compare the top results to what you actually played. Calculate the point difference — this is your "equity loss" for the game.</p>
+      </div>
+      <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5">
+        <p class="font-semibold text-zinc-900 dark:text-white mb-2">📊 Pattern Tracking</p>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Keep a running tally of your error types: missed bingos, bad leaves, defensive blunders. After 10 games, the pattern is clear — that's what to study next.</p>
+      </div>
+      <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5">
+        <p class="font-semibold text-zinc-900 dark:text-white mb-2">🎯 Focused Review</p>
+        <p class="text-zinc-600 dark:text-zinc-400 text-sm">Pick one area per session. Monday: only check leaves. Wednesday: only look for missed bingos. This prevents overwhelm and builds skill incrementally.</p>
+      </div>
+    </div>
+
+    <!-- Section 5 -->
+    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-white mt-10 mb-4 border-l-4 border-amber-500 pl-4">Tracking Improvement Over Time</h2>
+
+    <p class="text-zinc-700 dark:text-zinc-300 mb-4">Improvement in Scrabble is gradual and hard to notice day-to-day. Tracking metrics from your reviews makes progress visible and keeps you motivated.</p>
+
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-5 mb-6">
+      <p class="font-semibold text-blue-800 dark:text-blue-200 mb-3">📈 Metrics Worth Tracking</p>
+      <ul class="list-disc list-inside space-y-1 text-blue-700 dark:text-blue-300 text-sm">
+        <li><strong>Equity loss per game</strong> — total points left on the table (solver best minus your play, summed)</li>
+        <li><strong>Bingo rate</strong> — how many bingos you play per game (target: 1.5+ for competitive players)</li>
+        <li><strong>Missed bingo count</strong> — how many bingos your rack contained that you didn't see</li>
+        <li><strong>Average leave quality</strong> — rate your leaves 1-5 after each play, track the average</li>
+        <li><strong>Recurring weakness type</strong> — which of the four pillars causes the most point loss?</li>
+      </ul>
+    </div>
+
+    <p class="text-zinc-700 dark:text-zinc-300 mb-4">After 10 reviewed games, calculate your averages. Set a target to reduce your equity loss by 10 points per game over the next month. This is achievable and measurable — far more useful than vague goals like "get better at Scrabble."</p>
+
+    <!-- Cross-links -->
+    <div class="mt-10 mb-8 p-5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700 rounded-lg">
+      <p class="font-semibold text-indigo-800 dark:text-indigo-200 mb-3">📚 Related Guides</p>
+      <ul class="space-y-2 text-indigo-700 dark:text-indigo-300">
+        <li><a href="/blog/rack-leave-explained/" class="underline hover:text-indigo-900 dark:hover:text-indigo-100">Rack Leave Explained</a> — understand why what you keep matters as much as what you play</li>
+        <li><a href="/blog/bingo-racks-to-memorise/" class="underline hover:text-indigo-900 dark:hover:text-indigo-100">Bingo Racks to Memorise</a> — the stem combinations most likely to yield seven-letter words</li>
+        <li><a href="/blog/midgame-strategy/" class="underline hover:text-indigo-900 dark:hover:text-indigo-100">Midgame Strategy</a> — board control and positional play in the middle turns</li>
+      </ul>
+    </div>
+
+    <!-- Related Articles -->
+    <aside class="mt-8 mb-8 p-5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+      <p class="font-semibold text-zinc-900 dark:text-white mb-3">Related Articles</p>
+      <ul class="space-y-1 text-zinc-600 dark:text-zinc-400 text-sm">
+        <li><a href="/blog/scrabble-endgame-strategy/" class="hover:underline">Endgame Strategy</a></li>
+        <li><a href="/blog/scrabble-leave-analysis-guide/" class="hover:underline">Leave Analysis Guide</a></li>
+        <li><a href="/blog/spotting-bingos-on-your-rack/" class="hover:underline">Spotting Bingos on Your Rack</a></li>
+        <li><a href="/blog/tile-turnover-rate/" class="hover:underline">Tile Turnover Rate</a></li>
+      </ul>
+    </aside>
+
+    <!-- CTA -->
+    <div class="mt-8 p-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg text-center">
+      <p class="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">Ready to find the words you missed?</p>
+      <p class="text-amber-700 dark:text-amber-300 mb-4">Enter your rack into our free solver and discover every possible play — instantly.</p>
+      <a href="/" class="inline-block px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-colors">Try the Word Finder →</a>
+    </div>
+
+    <!-- Back link -->
+    <div class="mt-8 text-center">
+      <a href="/blog/" class="text-zinc-500 dark:text-zinc-400 hover:underline text-sm">← Back to Blog</a>
+    </div>
+
   </div>
-</BlogLayout>
+</Layout>

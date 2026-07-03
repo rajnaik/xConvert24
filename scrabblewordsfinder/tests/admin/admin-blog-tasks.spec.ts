@@ -46,13 +46,14 @@ test.describe('Admin Blog Tasks — Positive', () => {
     await page.goto('/admin/blog-tasks/');
     const headers = page.locator('thead th');
     await expect(headers.nth(0)).toContainText('ID');
-    await expect(headers.nth(1)).toContainText('Title');
-    await expect(headers.nth(2)).toContainText('Category');
-    await expect(headers.nth(3)).toContainText('Status');
-    await expect(headers.nth(4)).toContainText('Ready');
-    await expect(headers.nth(5)).toContainText('Agent');
-    await expect(headers.nth(6)).toContainText('Est.');
-    await expect(headers.nth(7)).toContainText('Actions');
+    await expect(headers.nth(1)).toContainText('Pri');
+    await expect(headers.nth(2)).toContainText('Title');
+    await expect(headers.nth(3)).toContainText('Category');
+    await expect(headers.nth(4)).toContainText('Status');
+    await expect(headers.nth(5)).toContainText('Ready');
+    await expect(headers.nth(6)).toContainText('Agent');
+    await expect(headers.nth(7)).toContainText('Est.');
+    await expect(headers.nth(8)).toContainText('Actions');
   });
 
   test('fetches tasks from /api/blog-tasks/ with trailing slash on load', async ({ page }) => {
@@ -141,6 +142,56 @@ test.describe('Admin Blog Tasks — Positive', () => {
     await page.goto('/admin/blog-tasks/');
     await expect(page.locator('#prevBtn')).toBeVisible();
     await expect(page.locator('#nextBtn')).toBeVisible();
+  });
+
+  test('tasks are displayed in priority descending order', async ({ page }) => {
+    await page.route('**/api/blog-tasks/**', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          tasks: [
+            { id: 3, title: 'High Priority Post', category: 'Strategy', status: 'pending', ready_status: 'ready', agent_name: 'quill', estimated_execution_time: '30min', priority: 10 },
+            { id: 1, title: 'Medium Priority Post', category: 'Beginner', status: 'pending', ready_status: 'pending', agent_name: 'kiro', estimated_execution_time: '15min', priority: 5 },
+            { id: 2, title: 'Low Priority Post', category: 'Strategy', status: 'pending', ready_status: 'pending', agent_name: 'quill', estimated_execution_time: '20min', priority: 1 },
+          ],
+          counts: { total: 3, pending: 3, completed: 0 },
+          categories: ['Strategy', 'Beginner'],
+        }),
+      })
+    );
+    await page.goto('/admin/blog-tasks/');
+    await page.waitForSelector('#tasksTable tr');
+    const rows = page.locator('#tasksTable tr');
+    // API returns in priority DESC order — first row should be highest priority
+    await expect(rows.nth(0)).toContainText('High Priority Post');
+    await expect(rows.nth(1)).toContainText('Medium Priority Post');
+    await expect(rows.nth(2)).toContainText('Low Priority Post');
+  });
+
+  test('tasks with same priority are ordered by id ascending', async ({ page }) => {
+    await page.route('**/api/blog-tasks/**', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          tasks: [
+            { id: 1, title: 'First Same Priority', category: 'Strategy', status: 'pending', ready_status: 'pending', agent_name: 'quill', estimated_execution_time: '10min', priority: 5 },
+            { id: 4, title: 'Second Same Priority', category: 'Beginner', status: 'pending', ready_status: 'pending', agent_name: 'kiro', estimated_execution_time: '15min', priority: 5 },
+            { id: 7, title: 'Third Same Priority', category: 'Strategy', status: 'completed', ready_status: 'done', agent_name: 'quill', estimated_execution_time: '20min', priority: 5 },
+          ],
+          counts: { total: 3, pending: 2, completed: 1 },
+          categories: ['Strategy', 'Beginner'],
+        }),
+      })
+    );
+    await page.goto('/admin/blog-tasks/');
+    await page.waitForSelector('#tasksTable tr');
+    const rows = page.locator('#tasksTable tr');
+    // Same priority → id ASC: id 1 first, then 4, then 7
+    await expect(rows.nth(0)).toContainText('First Same Priority');
+    await expect(rows.nth(1)).toContainText('Second Same Priority');
+    await expect(rows.nth(2)).toContainText('Third Same Priority');
   });
 });
 

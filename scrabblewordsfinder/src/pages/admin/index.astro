@@ -68,6 +68,31 @@ import '../../styles/global.css';
           <p class="text-sm text-gray-300" id="widget-updated">—</p>
           <p class="text-xs text-gray-500 mt-0.5" id="widget-updated-by"></p>
         </div>
+        <!-- Telemetry -->
+        <div class="rounded-lg bg-gray-800/60 p-4 sm:col-span-2 lg:col-span-5">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs text-gray-400 uppercase tracking-wide">📡 Telemetry</p>
+            <a href="/admin/telemetry/" class="text-[10px] text-blue-400 hover:underline">View full →</a>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+              <span id="telem-health-dot" class="inline-block w-2.5 h-2.5 rounded-full bg-gray-500 animate-pulse"></span>
+              <span id="telem-health-text" class="text-sm font-bold text-gray-400">Checking...</span>
+            </div>
+            <div class="text-sm text-gray-400">
+              <span class="text-xs text-gray-500">Avg:</span>
+              <span id="telem-avg-ms" class="font-mono text-white">—</span>
+            </div>
+            <div class="text-sm text-gray-400">
+              <span class="text-xs text-gray-500">Endpoints:</span>
+              <span id="telem-ok-count" class="font-mono text-green-400">—</span><span class="text-gray-500">/</span><span id="telem-total-count" class="font-mono text-white">—</span>
+            </div>
+            <div class="text-sm text-gray-400">
+              <span class="text-xs text-gray-500">Last:</span>
+              <span id="telem-last-check" class="text-xs text-gray-300">—</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -549,5 +574,49 @@ import '../../styles/global.css';
       document.getElementById('users-a-solver')!.textContent = String(d.summary.totalSolverUses);
       document.getElementById('users-a-returning')!.textContent = String(d.summary.totalReturning);
     }).catch(() => {});
+
+    // Telemetry quick check (inline, same as /admin/telemetry page)
+    (async function loadTelemWidget() {
+      const ENDPOINTS = [
+        { name: 'Homepage', path: '/' },
+        { name: 'Blog', path: '/blog/' },
+        { name: 'Guide', path: '/guide/' },
+        { name: 'Activities', path: '/activities/' },
+        { name: 'Chat', path: '/chat/' },
+        { name: 'API Clicks', path: '/api/clicks/?count=true' },
+        { name: 'API Banners', path: '/api/banners/?active=true' },
+        { name: 'API Site Status', path: '/api/site-status/' },
+        { name: 'API Emails', path: '/api/emails/?limit=1' },
+      ];
+      try {
+        const results: { ok: boolean; time_ms: number }[] = [];
+        for (const ep of ENDPOINTS) {
+          const start = Date.now();
+          try {
+            const res = await fetch(ep.path, { cache: 'no-store' });
+            results.push({ ok: res.status >= 200 && res.status < 400, time_ms: Date.now() - start });
+          } catch {
+            results.push({ ok: false, time_ms: Date.now() - start });
+          }
+        }
+        const okCount = results.filter(r => r.ok).length;
+        const allOk = okCount === results.length;
+        const avgMs = Math.round(results.reduce((s, r) => s + r.time_ms, 0) / results.length);
+
+        const dot = document.getElementById('telem-health-dot')!;
+        const text = document.getElementById('telem-health-text')!;
+        dot.classList.remove('bg-gray-500', 'animate-pulse');
+        dot.classList.add(allOk ? 'bg-green-400' : 'bg-red-400');
+        text.textContent = allOk ? 'ALL OK' : 'ISSUES';
+        text.className = 'text-sm font-bold ' + (allOk ? 'text-green-400' : 'text-red-400');
+
+        document.getElementById('telem-avg-ms')!.textContent = avgMs + 'ms';
+        document.getElementById('telem-ok-count')!.textContent = String(okCount);
+        document.getElementById('telem-total-count')!.textContent = String(results.length);
+        document.getElementById('telem-last-check')!.textContent = new Date().toLocaleTimeString();
+      } catch {
+        document.getElementById('telem-health-text')!.textContent = 'Failed';
+      }
+    })();
   </script>
 </Layout>

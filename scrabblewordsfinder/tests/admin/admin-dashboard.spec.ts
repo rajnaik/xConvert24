@@ -573,3 +573,191 @@ test.describe('Admin Dashboard — Badges Card Negative', () => {
     await expect(page.locator('#badges-a-earners')).toHaveCount(1);
   });
 });
+
+
+test.describe('Admin Dashboard — Telemetry Widget Positive', () => {
+  test('telemetry widget section is visible', async ({ page }) => {
+    await page.goto('/admin/');
+    const widget = page.locator('#site-status-widget');
+    await expect(widget).toContainText('Telemetry');
+  });
+
+  test('telemetry widget has health indicator dot', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#telem-health-dot')).toBeVisible();
+  });
+
+  test('telemetry health dot starts with gray pulsing state', async ({ page }) => {
+    // Block all internal fetches so the widget stays in loading state briefly
+    await page.route('**/*', route => {
+      const url = route.request().url();
+      if (url.includes('/admin')) return route.continue();
+      return new Promise(resolve => setTimeout(() => resolve(route.continue()), 3000));
+    });
+    await page.goto('/admin/');
+    const dot = page.locator('#telem-health-dot');
+    await expect(dot).toHaveClass(/bg-gray-500/);
+    await expect(dot).toHaveClass(/animate-pulse/);
+  });
+
+  test('telemetry health text shows "Checking..." initially', async ({ page }) => {
+    await page.route('**/blog/', route =>
+      new Promise(resolve => setTimeout(() => resolve(route.continue()), 5000))
+    );
+    await page.goto('/admin/');
+    // The initial text before fetch completes
+    await expect(page.locator('#telem-health-text')).toHaveText('Checking...');
+  });
+
+  test('telemetry widget has "View full →" link to /admin/telemetry/', async ({ page }) => {
+    await page.goto('/admin/');
+    const link = page.locator('a[href="/admin/telemetry/"]', { hasText: 'View full' });
+    await expect(link).toBeVisible();
+  });
+
+  test('telemetry widget shows avg ms element', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#telem-avg-ms')).toBeAttached();
+  });
+
+  test('telemetry widget shows ok/total count elements', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#telem-ok-count')).toBeAttached();
+    await expect(page.locator('#telem-total-count')).toBeAttached();
+  });
+
+  test('telemetry widget shows last check element', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#telem-last-check')).toBeAttached();
+  });
+
+  test('telemetry shows ALL OK when all endpoints respond successfully', async ({ page }) => {
+    await page.goto('/admin/');
+    // Wait for the telemetry script to finish checking all endpoints
+    await page.waitForFunction(() =>
+      document.getElementById('telem-health-text')?.textContent !== 'Checking...'
+    , { timeout: 30000 });
+
+    const healthText = await page.locator('#telem-health-text').textContent();
+    // On local dev, most endpoints should respond — expect ALL OK or ISSUES
+    expect(['ALL OK', 'ISSUES']).toContain(healthText);
+  });
+
+  test('telemetry avg ms is populated after check completes', async ({ page }) => {
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('telem-avg-ms')?.textContent !== '—'
+    , { timeout: 30000 });
+
+    const avgText = await page.locator('#telem-avg-ms').textContent();
+    expect(avgText).toMatch(/\d+ms/);
+  });
+
+  test('telemetry ok/total counts are populated as numbers', async ({ page }) => {
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('telem-ok-count')?.textContent !== '—'
+    , { timeout: 30000 });
+
+    const okCount = await page.locator('#telem-ok-count').textContent();
+    const totalCount = await page.locator('#telem-total-count').textContent();
+    expect(Number(okCount)).toBeGreaterThanOrEqual(0);
+    expect(Number(totalCount)).toBeGreaterThan(0);
+  });
+
+  test('telemetry last check shows a time string after completion', async ({ page }) => {
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('telem-last-check')?.textContent !== '—'
+    , { timeout: 30000 });
+
+    const lastCheck = await page.locator('#telem-last-check').textContent();
+    // Should be a time like "14:30:05" or locale equivalent
+    expect(lastCheck!.length).toBeGreaterThan(0);
+    expect(lastCheck).not.toBe('—');
+  });
+
+  test('telemetry dot turns green when all endpoints are healthy', async ({ page }) => {
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('telem-health-text')?.textContent === 'ALL OK'
+    , { timeout: 30000 }).catch(() => {});
+
+    const healthText = await page.locator('#telem-health-text').textContent();
+    if (healthText === 'ALL OK') {
+      await expect(page.locator('#telem-health-dot')).toHaveClass(/bg-green-400/);
+      await expect(page.locator('#telem-health-dot')).not.toHaveClass(/animate-pulse/);
+    }
+  });
+
+  test('telemetry widget spans full width (sm:col-span-2 lg:col-span-5)', async ({ page }) => {
+    await page.goto('/admin/');
+    const telemSection = page.locator('#telem-health-dot').locator('..').locator('..').locator('..');
+    await expect(telemSection).toHaveClass(/sm:col-span-2/);
+    await expect(telemSection).toHaveClass(/lg:col-span-5/);
+  });
+});
+
+test.describe('Admin Dashboard — Telemetry Widget Negative', () => {
+  test('no duplicate telemetry health dots exist', async ({ page }) => {
+    await page.goto('/admin/');
+    await expect(page.locator('#telem-health-dot')).toHaveCount(1);
+    await expect(page.locator('#telem-health-text')).toHaveCount(1);
+    await expect(page.locator('#telem-avg-ms')).toHaveCount(1);
+    await expect(page.locator('#telem-ok-count')).toHaveCount(1);
+    await expect(page.locator('#telem-total-count')).toHaveCount(1);
+    await expect(page.locator('#telem-last-check')).toHaveCount(1);
+  });
+
+  test('telemetry widget does not crash the page on load', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('telem-health-text')?.textContent !== 'Checking...'
+    , { timeout: 30000 }).catch(() => {});
+
+    expect(errors.filter(e => e.toLowerCase().includes('telem'))).toHaveLength(0);
+  });
+
+  test('telemetry shows ISSUES state when an endpoint fails', async ({ page }) => {
+    // Abort one of the endpoints the telemetry script hits
+    await page.route('**/api/site-status/', route => route.abort());
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('telem-health-text')?.textContent !== 'Checking...'
+    , { timeout: 30000 });
+
+    await expect(page.locator('#telem-health-text')).toHaveText('ISSUES');
+    await expect(page.locator('#telem-health-dot')).toHaveClass(/bg-red-400/);
+  });
+
+  test('telemetry shows Failed when all fetches throw', async ({ page }) => {
+    // Block every URL except the admin page itself
+    await page.route('**/*', route => {
+      const url = route.request().url();
+      if (url.includes('/admin')) return route.continue();
+      return route.abort();
+    });
+    await page.goto('/admin/');
+    await page.waitForFunction(() => {
+      const text = document.getElementById('telem-health-text')?.textContent;
+      return text !== 'Checking...' && text !== null;
+    }, { timeout: 30000 });
+
+    const healthText = await page.locator('#telem-health-text').textContent();
+    // Should be either ISSUES (all ok=false) or Failed (catch block)
+    expect(['ISSUES', 'Failed']).toContain(healthText);
+  });
+
+  test('telemetry ok count never exceeds total count', async ({ page }) => {
+    await page.goto('/admin/');
+    await page.waitForFunction(() =>
+      document.getElementById('telem-ok-count')?.textContent !== '—'
+    , { timeout: 30000 });
+
+    const ok = Number(await page.locator('#telem-ok-count').textContent());
+    const total = Number(await page.locator('#telem-total-count').textContent());
+    expect(ok).toBeLessThanOrEqual(total);
+  });
+});

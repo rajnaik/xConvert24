@@ -1,55 +1,224 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Managing the Q Tile Without U"
-  description="Complete strategy for handling Q when U is unavailable. QI, QOPH, QADI and other Q-without-U options."
-  keywords="scrabble, managing, the, q, tile"
->
+<Layout title="Managing the Q Tile — Strategies for Scrabble's Hardest Letter" description="Master Q tile management in Scrabble. Learn Q-without-U words, when to dump the Q, optimal timing for QI plays, and how to avoid getting stuck. Free guide." keywords="managing q tile scrabble, q without u words, qi scrabble strategy, q stuck scrabble, q tile dump, when to play q scrabble">
+
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Managing the Q Tile Without U",
-    "description": "Complete strategy for handling Q when U is unavailable. QI, QOPH, QADI and other Q-without-U options.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/managing-the-q-tile" }
+    "headline": "Managing the Q Tile — Strategies for Scrabble's Hardest Letter",
+    "description": "Master Q tile management in Scrabble. Learn Q-without-U words, when to dump the Q, optimal timing for QI plays, and how to avoid getting stuck.",
+    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder", "url": "https://www.scrabblewordsfinder.com/" },
+    "mainEntityOfPage": "https://www.scrabblewordsfinder.com/blog/managing-the-q-tile/"
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What are the best Q without U words in Scrabble?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The most useful Q-without-U words are QI (11 points), QOPH (18 points), QADI (14 points), QAID (14 points), QANAT (14 points), QINTAR (15 points), and QWERTY (21 points). QI is by far the most commonly played because it's only two letters and easy to fit on the board." }
+      },
+      {
+        "@type": "Question",
+        "name": "When should I exchange the Q tile in Scrabble?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Exchange the Q when all four U tiles have been played or accounted for and you have no Q-without-U words available on the board. Also consider exchanging if it's late in the game (fewer than 15 tiles in the bag) and holding Q is blocking better plays from your remaining letters." }
+      },
+      {
+        "@type": "Question",
+        "name": "How many points do you lose if stuck with Q at the end of Scrabble?",
+        "acceptedAnswer": { "@type": "Answer", "text": "If you're stuck with the Q tile at game end, you lose 10 points (the face value of Q). Your opponent gains those 10 points, making it a 20-point swing. This is why managing the Q in the endgame is critical — holding it too long can cost you the match." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
+
+      <nav class="text-sm text-gray-500 dark:text-gray-400 mb-6" aria-label="Breadcrumb">
+        <a href="/blog/" class="hover:text-amber-500">Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
+        <a href="/blog/strategy/" class="hover:text-amber-500">Strategy</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-700 dark:text-gray-300">Managing the Q Tile</span>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Managing the Q Tile Without U</h1>
+      <BlogCrossLinks currentSlug="managing-the-q-tile" />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+      <h1 class="text-3xl font-bold mb-2">Managing the Q Tile in Scrabble</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Strategy • 7 min read</p>
+
+      <p class="lead text-lg text-gray-700 dark:text-gray-300 mb-8">The Q is worth 10 points — the joint highest value in the tile bag alongside Z. But unlike Z, which slots easily into dozens of short words, Q demands a U that may never arrive. Learning to manage this volatile tile is the difference between a 10-point bonus and a 20-point swing against you.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Q Problem — Why It's Scrabble's Hardest Tile</h2>
+
+      <p>In English, Q almost always pairs with U. But there's only one Q in the bag and four U tiles shared among 100 total. Once those U tiles are gone — played, exchanged, or sitting on an opponent's rack — your Q becomes dead weight.</p>
+
+      <div class="border-l-4 border-amber-500/30 bg-amber-950/10 rounded-r-lg p-4 my-6">
+        <p class="font-semibold text-amber-500 mb-2">📊 Q Tile Statistics</p>
+        <ul class="text-sm text-gray-300 space-y-1 list-none pl-0">
+          <li>• Face value: <strong>10 points</strong></li>
+          <li>• Quantity in bag: <strong>1 tile</strong></li>
+          <li>• U tiles available: <strong>4 out of 100</strong></li>
+          <li>• Q-without-U words (SOWPODS): <strong>30+</strong></li>
+          <li>• Most common Q play: <strong>QI</strong> (played in ~80% of games featuring Q)</li>
+          <li>• Endgame penalty if stuck: <strong>-10 to you, +10 to opponent = 20-point swing</strong></li>
+        </ul>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Complete strategy for handling Q when U is unavailable. QI, QOPH, QADI and other Q-without-U options.</p>
+      <p>The key insight: Q is not a scoring opportunity — it's a liability that must be managed. Your goal isn't to score big with Q; it's to play it without destroying your rack leave or getting stuck at game end.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Essential Q-Without-U Words</h2>
+
+      <p>Memorising Q-without-U words is your insurance policy. These words let you play Q even when no U is available on your rack or the board.</p>
+
+      <div class="overflow-x-auto my-6">
+        <table class="w-full text-sm border-collapse dark:bg-gray-900 rounded-lg overflow-hidden">
+          <thead>
+            <tr class="bg-gray-100 dark:bg-gray-800">
+              <th class="px-4 py-2 text-left">Word</th>
+              <th class="px-4 py-2 text-left">Points</th>
+              <th class="px-4 py-2 text-left">Meaning</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr><td class="px-4 py-2 font-mono font-bold">QI</td><td class="px-4 py-2">11</td><td class="px-4 py-2">Life force in Chinese philosophy</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QOPH</td><td class="px-4 py-2">18</td><td class="px-4 py-2">19th letter of the Hebrew alphabet</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QADI</td><td class="px-4 py-2">14</td><td class="px-4 py-2">An Islamic judge</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QAID</td><td class="px-4 py-2">14</td><td class="px-4 py-2">A Muslim judge or chief</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QANAT</td><td class="px-4 py-2">14</td><td class="px-4 py-2">An irrigation tunnel</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QINTAR</td><td class="px-4 py-2">15</td><td class="px-4 py-2">Albanian monetary unit</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QINDAR</td><td class="px-4 py-2">16</td><td class="px-4 py-2">Variant of qintar</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QWERTY</td><td class="px-4 py-2">21</td><td class="px-4 py-2">Standard keyboard layout</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QAT</td><td class="px-4 py-2">12</td><td class="px-4 py-2">A plant chewed as a stimulant</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">QORMA</td><td class="px-4 py-2">16</td><td class="px-4 py-2">A mild Indian curry dish</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">TRANQ</td><td class="px-4 py-2">14</td><td class="px-4 py-2">Short for tranquilliser</td></tr>
+            <tr><td class="px-4 py-2 font-mono font-bold">SUQ</td><td class="px-4 py-2">12</td><td class="px-4 py-2">An open-air marketplace</td></tr>
+          </tbody>
+        </table>
       </div>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <div class="border-l-4 border-purple-500/30 bg-purple-950/20 rounded-r-lg p-4 my-6">
+        <p class="font-semibold text-purple-400 mb-2">💡 Tip — Prioritise QI</p>
+        <p class="text-sm text-gray-300">QI is just two letters and scores 11 points base. On a Triple Letter Score, the Q alone scores 30. Always scan the board for open I squares before considering longer Q-without-U options. It's your escape hatch in 90% of Q situations.</p>
       </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Hold Q vs Dump It</h2>
+
+      <p>The decision to keep or exchange Q depends on three factors: game stage, U availability, and board state.</p>
+
+      <div class="border-l-4 border-blue-500/30 bg-blue-950/20 rounded-r-lg p-4 my-6">
+        <p class="font-semibold text-blue-400 mb-2">🔍 Decision Framework</p>
+        <ul class="text-sm text-gray-300 space-y-2 list-none pl-0">
+          <li><strong>Early game (70+ tiles in bag):</strong> Hold Q. Plenty of U tiles still unplayed. You'll likely draw one or find a Q-without-U opportunity. The bag gives you time.</li>
+          <li><strong>Mid game (30-70 tiles in bag):</strong> Track U tiles. If 2+ U tiles remain unseen, hold. If all 4 U tiles are accounted for, play Q-without-U words immediately or exchange next turn.</li>
+          <li><strong>Late game (&lt;15 tiles in bag):</strong> Play Q at first opportunity — even for modest points. Getting stuck with Q at game end is catastrophic. A 12-point QI now beats a -10 penalty later.</li>
+          <li><strong>Endgame (empty bag):</strong> If you still hold Q with no playable spot, you're in trouble. Consider the spread — if you're ahead by 20+, you can absorb the penalty. If the game is close, you may need to play a suboptimal word just to go out first.</li>
+        </ul>
+      </div>
+
+      <p>A common mistake is holding Q hoping for a big QU word like QUEEN or QUARTZ. These plays are satisfying but rare. The pragmatic approach is to play Q quickly for modest points rather than gambling on a combo that may never materialise.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">QI Placement Strategy — Maximising the Two-Letter Escape</h2>
+
+      <p>QI is your most reliable Q play. But where you place it matters enormously. A base QI scores 11, but smart placement can triple or quadruple that.</p>
+
+      <div class="overflow-x-auto my-6">
+        <table class="w-full text-sm border-collapse dark:bg-gray-900 rounded-lg overflow-hidden">
+          <thead>
+            <tr class="bg-gray-100 dark:bg-gray-800">
+              <th class="px-4 py-2 text-left">Placement</th>
+              <th class="px-4 py-2 text-left">Score</th>
+              <th class="px-4 py-2 text-left">Notes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr><td class="px-4 py-2">Q on Triple Letter Score</td><td class="px-4 py-2 font-bold">31</td><td class="px-4 py-2">Q×3 (30) + I (1) = 31</td></tr>
+            <tr><td class="px-4 py-2">Q on Double Letter Score</td><td class="px-4 py-2 font-bold">21</td><td class="px-4 py-2">Q×2 (20) + I (1) = 21</td></tr>
+            <tr><td class="px-4 py-2">QI on Double Word Score</td><td class="px-4 py-2 font-bold">22</td><td class="px-4 py-2">(10+1) × 2 = 22</td></tr>
+            <tr><td class="px-4 py-2">QI on Triple Word Score</td><td class="px-4 py-2 font-bold">33</td><td class="px-4 py-2">(10+1) × 3 = 33</td></tr>
+            <tr><td class="px-4 py-2">QI parallel play (making 2 words)</td><td class="px-4 py-2 font-bold">20-40+</td><td class="px-4 py-2">QI + cross-word scores combined</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The parallel play is especially powerful. If you can place QI so that both Q and I form separate cross-words simultaneously, you score QI plus both perpendicular words. Look for spots where an existing word has a vowel one square away from a TLS — place Q on the TLS forming QI downward while the Q also starts or extends a horizontal word.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tracking U Tiles — Your Early Warning System</h2>
+
+      <p>Effective Q management requires <a href="/blog/counting-tiles-strategy/" class="text-amber-500 hover:text-amber-400">tile tracking</a>. There are exactly 4 U tiles in a standard Scrabble bag. Track them religiously.</p>
+
+      <div class="border-l-4 border-blue-500/30 bg-blue-950/20 rounded-r-lg p-4 my-6">
+        <p class="font-semibold text-blue-400 mb-2">🔍 U Tracking Checklist</p>
+        <ul class="text-sm text-gray-300 space-y-2 list-none pl-0">
+          <li>• <strong>4 U tiles seen on board or in your rack:</strong> No more U's coming. Play Q-without-U immediately or exchange.</li>
+          <li>• <strong>3 U tiles accounted for:</strong> One U remains — it might be in your opponent's rack or the bag. Hold Q one more turn if the bag has tiles.</li>
+          <li>• <strong>2 or fewer U tiles seen:</strong> Safe to hold Q. Good chance you'll draw a U or your opponent will play one near an open spot.</li>
+          <li>• <strong>Blank tile unplayed:</strong> A blank can serve as U. Factor this into your calculations.</li>
+        </ul>
+      </div>
+
+      <p>The moment all 4 U tiles are on the board and neither blank is available, treat Q as a hot potato. Every turn you hold it without playing is a turn closer to getting stuck.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Endgame Q Trap</h2>
+
+      <p>The worst-case scenario: the bag empties, your opponent plays out, and you're holding Q. The <a href="/blog/endgame-strategy/" class="text-amber-500 hover:text-amber-400">endgame penalty</a> is brutal — you lose 10 points for the unplayed Q, and your opponent gains those 10 points. That's a 20-point swing from a single tile.</p>
+
+      <div class="border-l-4 border-amber-500/30 bg-amber-950/10 rounded-r-lg p-4 my-6">
+        <p class="font-semibold text-amber-500 mb-2">📊 Endgame Q Math</p>
+        <ul class="text-sm text-gray-300 space-y-1 list-none pl-0">
+          <li>• You hold Q at game end: <strong>-10 from your score</strong></li>
+          <li>• Opponent gains your unplayed tiles: <strong>+10 to their score</strong></li>
+          <li>• Net swing: <strong>20 points</strong> (equivalent to opponent playing a decent 5-letter word for free)</li>
+          <li>• If also holding other tiles: penalty compounds (Q + other tile values)</li>
+        </ul>
+      </div>
+
+      <p>Prevention is the only cure. Once the bag drops below 10 tiles, treat Q as your top priority. Accept a suboptimal play (even QI for 11 points on a regular square) rather than risk getting trapped. A mediocre Q play is always better than an endgame Q penalty.</p>
+
+      <p>If you're dealing with a difficult rack beyond just Q, our guide on <a href="/blog/dealing-with-bad-tiles/" class="text-amber-500 hover:text-amber-400">dealing with bad tiles</a> covers broader strategies for managing uncooperative letter combinations.</p>
+
+      <!-- Cross-links -->
+      <div class="border-l-4 border-indigo-500/30 bg-indigo-950/20 rounded-r-lg p-4 my-8">
+        <p class="font-semibold text-indigo-400 mb-3">📚 Related Strategy Guides</p>
+        <ul class="text-sm space-y-2 list-none pl-0">
+          <li><a href="/blog/dealing-with-bad-tiles/" class="text-indigo-400 hover:text-indigo-300">Dealing With Bad Tiles →</a></li>
+          <li><a href="/blog/counting-tiles-strategy/" class="text-indigo-400 hover:text-indigo-300">Counting Tiles Strategy →</a></li>
+          <li><a href="/blog/endgame-strategy/" class="text-indigo-400 hover:text-indigo-300">Endgame Strategy →</a></li>
+        </ul>
+      </div>
+
+      <!-- Related Articles -->
+      <aside class="border border-gray-200 dark:border-gray-700 rounded-lg p-6 my-8 bg-gray-50 dark:bg-gray-800/50">
+        <h3 class="text-lg font-semibold mb-4">Related Articles</h3>
+        <ul class="space-y-2 text-sm list-none pl-0">
+          <li><a href="/blog/consonant-heavy-rack-strategy/" class="text-amber-600 dark:text-amber-400 hover:underline">Consonant-Heavy Rack Strategy</a></li>
+          <li><a href="/blog/vowel-heavy-rack-solutions/" class="text-amber-600 dark:text-amber-400 hover:underline">Vowel-Heavy Rack Solutions</a></li>
+          <li><a href="/blog/two-letter-words-with-q/" class="text-amber-600 dark:text-amber-400 hover:underline">Two-Letter Words With Q</a></li>
+          <li><a href="/blog/tile-tracking-guide/" class="text-amber-600 dark:text-amber-400 hover:underline">Tile Tracking Guide</a></li>
+        </ul>
+      </aside>
+
+      <!-- CTA -->
+      <div class="text-center my-10 p-6 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+        <p class="text-lg font-semibold text-amber-700 dark:text-amber-400 mb-2">Need to find Q words fast?</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Our free solver finds every valid Q word from your rack — instantly, with no signup.</p>
+        <a href="/" class="inline-block px-6 py-2 bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 transition-colors">Try the Word Finder →</a>
+      </div>
+
+      <a href="/blog/" class="inline-block mt-6 text-sm text-gray-500 dark:text-gray-400 hover:text-amber-500">← Back to Blog</a>
+
     </article>
   </div>
-</BlogLayout>
+
+</Layout>

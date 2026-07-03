@@ -1,55 +1,182 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Highest Scoring 2-Letter Plays"
-  description="Two-letter words that score big on premium squares. QI, ZA, XI and their scoring potential."
-  keywords="scrabble, highest, scoring, 2, letter, plays"
+<Layout
+  title="Highest Scoring 2-Letter Plays — Maximum Points From Tiny Words"
+  description="Discover the highest-scoring 2-letter plays in Scrabble. Learn how QI, ZA, JO, and XI can score 50+ points with premium square placement. Free guide."
+  keywords="highest scoring 2 letter words scrabble, best two letter words, QI scrabble, ZA scrabble, 2 letter word scores, premium square strategy"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Highest Scoring 2-Letter Plays",
-    "description": "Two-letter words that score big on premium squares. QI, ZA, XI and their scoring potential.",
+    "headline": "Highest Scoring 2-Letter Plays — Maximum Points From Tiny Words",
+    "description": "Discover the highest-scoring 2-letter plays in Scrabble. Learn how QI, ZA, JO, and XI can score 50+ points with premium square placement.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/highest-scoring-2-letter-plays" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/highest-scoring-2-letter-plays/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is the highest-scoring 2-letter word in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "QI scores 11 points base (Q=10, I=1), but when placed on a Triple Letter Score with the Q, it scores 31 points for just two letters. With parallel plays forming additional words, QI can generate 50+ points in a single turn." } },
+      { "@type": "Question", "name": "How can a 2-letter word score 50+ points?", "acceptedAnswer": { "@type": "Answer", "text": "By combining premium squares with parallel word formation. Place ZA on a Triple Word Score while simultaneously forming valid 2-letter words in the perpendicular direction. Each cross-word formed adds its full value, multiplied by any premium squares it touches." } },
+      { "@type": "Question", "name": "What are the best 2-letter words to memorise for Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Prioritise high-value tiles: QI (11), ZA (11), ZO (11), JO (9), JA (9), XI (9), XU (9), AX (9), EX (9), OX (9). These use power tiles that are otherwise hard to play and score well even without premium squares." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/high-scoring/" class="hover:text-blue-400 transition-colors text-gray-300">High Scoring</a>
+        <a href="/blog/high-scoring/" class="hover:text-amber-500 transition-colors text-gray-300">High-Scoring</a>
       </nav>
+
+      <BlogCrossLinks title="Highest Scoring 2-Letter Plays" />
 
       <h1 class="text-3xl font-bold text-white mb-4">Highest Scoring 2-Letter Plays</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Two-letter words that score big on premium squares. QI, ZA, XI and their scoring potential.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Two-letter words are the secret weapons of competitive Scrabble. They don't just fill gaps — with the right premium square placement, a single two-letter play can score more than many five-letter words. Here's how to maximise points from minimal tiles.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Power Tier: 9-11 Base Points</h2>
+
+      <p class="text-gray-300">These 2-letter words use high-value tiles and score well even without premium squares:</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Base Score</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">On TLS</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">On TWS</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Meaning</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">QI</td><td class="px-4 py-3 text-gray-400">11</td><td class="px-4 py-3 text-gray-400">31</td><td class="px-4 py-3 text-gray-400">33</td><td class="px-4 py-3 text-gray-400">Life force (Chinese philosophy)</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">ZA</td><td class="px-4 py-3 text-gray-400">11</td><td class="px-4 py-3 text-gray-400">31</td><td class="px-4 py-3 text-gray-400">33</td><td class="px-4 py-3 text-gray-400">Pizza (informal)</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">ZO</td><td class="px-4 py-3 text-gray-400">11</td><td class="px-4 py-3 text-gray-400">31</td><td class="px-4 py-3 text-gray-400">33</td><td class="px-4 py-3 text-gray-400">Tibetan yak hybrid</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">JO</td><td class="px-4 py-3 text-gray-400">9</td><td class="px-4 py-3 text-gray-400">25</td><td class="px-4 py-3 text-gray-400">27</td><td class="px-4 py-3 text-gray-400">Scottish sweetheart</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">XI</td><td class="px-4 py-3 text-gray-400">9</td><td class="px-4 py-3 text-gray-400">25</td><td class="px-4 py-3 text-gray-400">27</td><td class="px-4 py-3 text-gray-400">Greek letter</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">XU</td><td class="px-4 py-3 text-gray-400">9</td><td class="px-4 py-3 text-gray-400">25</td><td class="px-4 py-3 text-gray-400">27</td><td class="px-4 py-3 text-gray-400">Vietnamese currency unit</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">AX</td><td class="px-4 py-3 text-gray-400">9</td><td class="px-4 py-3 text-gray-400">25</td><td class="px-4 py-3 text-gray-400">27</td><td class="px-4 py-3 text-gray-400">Chopping tool</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">EX</td><td class="px-4 py-3 text-gray-400">9</td><td class="px-4 py-3 text-gray-400">25</td><td class="px-4 py-3 text-gray-400">27</td><td class="px-4 py-3 text-gray-400">Former partner</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 TLS = Triple Letter Score</p>
+        <p class="text-base text-gray-200">When a high-value tile lands on a Triple Letter Score, only <span class="text-white font-medium">that tile's value triples</span>. QI with Q on TLS = (10×3)+1 = 31. On a Triple Word Score, the entire word triples: (10+1)×3 = 33.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Parallel Play Multiplier</h2>
+
+      <p class="text-gray-300">The real power of 2-letter words comes from parallel plays — placing your word alongside an existing word so you form multiple valid 2-letter combinations simultaneously:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Stack alongside existing words:</span> Playing ZA next to an existing word can form 2-3 additional cross-words. Each cross-word scores independently, multiplied by any premium squares they touch.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Target DWS/TWS for the main word:</span> Place your 2-letter word so the entire word lands on a Double or Triple Word Score. The cross-words don't get multiplied, but the main word does — ZA on TWS = 33 base + cross-word points.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Learn all valid 2-letter pairs:</span> Not every letter combination is valid. Know which letters can sit next to each other: IS, IT, IN, IF — all valid. IB, IC, IG — not valid. Memorise the grid.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Highest Possible 2-Letter Scores</h2>
+
+      <p class="text-gray-300">Theoretical maximum scores using just 2-letter words with optimal board placement:</p>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">93</p><p class="text-xs text-gray-400">Max from QI (TWS + 2 parallel words)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">62</p><p class="text-xs text-gray-400">Common realistic max (ZA on TLS + cross)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">127</p><p class="text-xs text-gray-400">Known 2-letter words per SOWPODS</p></div>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/two-letter-words-complete-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Complete Two-Letter Words Strategy — the full tactical guide</span>
+          </a>
+          <a href="/blog/best-words-for-premium-squares/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Best Words for Premium Squares — maximise every bonus</span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/two-letter-words-complete-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Two-Letter Words Complete Strategy</span>
+          </a>
+          <a href="/blog/understanding-premium-squares/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Understanding Premium Squares</span>
+          </a>
+          <a href="/blog/power-plays-under-5-tiles/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Power Plays Under 5 Tiles</span>
+          </a>
+        </div>
+      </aside>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">SOWPODS-Only 2-Letter Words</h2>
+
+      <p class="text-gray-300">Some high-scoring 2-letter words are only valid in SOWPODS (international dictionary) and not in TWL (North American). Know which dictionary you're playing before relying on these:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Valid in Both (TWL + SOWPODS)</p>
+          <p class="text-xs text-gray-400">QI, ZA, XI, XU, AX, EX, OX, JO — safe in any tournament worldwide. Memorise these first.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">⚠ SOWPODS Only</p>
+          <p class="text-xs text-gray-400">ZO, JA, CH, GU, PO, QI (all valid in both but ZO is SOWPODS-only). Always verify before tournament play.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+        <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">📊 Quick Maths</p>
+        <p class="text-base text-gray-200">SOWPODS has <span class="text-white font-medium">127 valid 2-letter words</span>. TWL has 107. The extra 20 SOWPODS words include several high-value plays like ZO (11 pts) and CH (7 pts) that international players can exploit.</p>
+      </div>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find the highest-scoring words from your tiles — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

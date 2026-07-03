@@ -104,6 +104,16 @@ import '../styles/global.css';
       <input id="restore-file-input" type="file" accept=".json" class="hidden" />
     </div>
 
+    <!-- Coaching Reports -->
+    <div id="coaching-reports" class="rounded-xl border border-amber-800/50 bg-amber-950/10 p-6 mb-6">
+      <h2 class="font-semibold text-white mb-2 flex items-center gap-2">📋 Coaching Reports</h2>
+      <p class="text-xs text-gray-400 mb-4">Your Lex coaching reports (PDFs) are stored locally in your browser. A maximum of 5 reports are kept — oldest are replaced automatically.</p>
+      <div id="coaching-reports-list" class="space-y-2">
+        <!-- Populated by JS -->
+      </div>
+      <p id="coaching-reports-empty" class="text-sm text-gray-500 italic hidden">No saved coaching reports yet. Complete a quiz or challenge and Lex will generate one for you.</p>
+    </div>
+
     <!-- Nuke Section -->
     <div class="rounded-xl border border-red-900/50 bg-red-950/20 p-6">
       <h2 class="font-semibold text-red-300 mb-2">☢️ Danger Zone</h2>
@@ -333,4 +343,94 @@ import '../styles/global.css';
       alert('✅ User ID relinked. Reload the Word Finder to restore your saved words from the server.');
     }
   });
+
+  // ─── Coaching Reports ─────────────────────────────────────────────────
+  (function() {
+    var STORAGE_KEY = 'swf-coaching-reports';
+    var listEl = document.getElementById('coaching-reports-list');
+    var emptyEl = document.getElementById('coaching-reports-empty');
+
+    function getReports() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch { return []; }
+    }
+
+    function renderReports() {
+      var reports = getReports();
+      listEl.innerHTML = '';
+
+      if (!reports.length) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      reports.forEach(function(report) {
+        var row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-3 p-3 rounded-lg bg-gray-900/60 border border-amber-700/30';
+
+        var typeIcons = { quiz: '🧠', rack: '🎯', anagram: '🔀', cab: '🐄' };
+        var icon = typeIcons[report.type] || '📄';
+        var dateStr = report.date ? new Date(report.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+        row.innerHTML =
+          '<div class="flex items-center gap-3 min-w-0">' +
+            '<span class="text-lg shrink-0">' + icon + '</span>' +
+            '<div class="min-w-0">' +
+              '<p class="text-sm font-medium text-white truncate">' + (report.title || 'Coaching Report') + '</p>' +
+              '<p class="text-xs text-gray-400">' + dateStr + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center gap-2 shrink-0">' +
+            '<button data-action="download" data-id="' + report.id + '" class="px-2.5 py-1.5 rounded-lg bg-blue-900/60 border border-blue-600/40 text-xs font-medium text-blue-300 hover:bg-blue-800/60 hover:border-blue-500 transition-colors cursor-pointer" title="Download PDF">📥 Download</button>' +
+            '<button data-action="delete" data-id="' + report.id + '" class="px-2.5 py-1.5 rounded-lg bg-red-900/60 border border-red-600/40 text-xs font-medium text-red-300 hover:bg-red-800/60 hover:border-red-500 transition-colors cursor-pointer" title="Delete report">🗑️</button>' +
+          '</div>';
+
+        listEl.appendChild(row);
+      });
+    }
+
+    listEl.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      var action = btn.getAttribute('data-action');
+      var id = btn.getAttribute('data-id');
+      var reports = getReports();
+      var report = reports.find(function(r) { return r.id === id; });
+
+      if (action === 'download' && report) {
+        if (!report.base64) {
+          alert('PDF data not available — the report may have been saved without content.');
+          return;
+        }
+        // Convert base64 to blob and trigger download
+        var byteChars = atob(report.base64.split(',').pop() || report.base64);
+        var bytes = new Uint8Array(byteChars.length);
+        for (var i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+        var blob = new Blob([bytes], { type: 'application/pdf' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (report.title || 'coaching-report').replace(/[^a-zA-Z0-9_-]/g, '_') + '.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      }
+
+      if (action === 'delete') {
+        if (!confirm('Delete this coaching report?\n\n' + (report ? report.title : 'Report') + '\n\nThis cannot be undone.')) return;
+        var updated = reports.filter(function(r) { return r.id !== id; });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        renderReports();
+      }
+    });
+
+    // Listen for external updates (e.g. new report generated on another page)
+    window.addEventListener('coaching-reports-updated', renderReports);
+
+    // Initial render
+    renderReports();
+  })();
 </script>

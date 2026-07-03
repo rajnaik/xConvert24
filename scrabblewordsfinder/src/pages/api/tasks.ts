@@ -53,7 +53,7 @@ export const POST: APIRoute = async ({ request }) => {
   let body: any;
   try { body = await request.json(); } catch { return jsonError('Invalid JSON', 400); }
 
-  const { task_name, task_category, task_description, status, plan, estimate, approval, results, suggested_improvements, running_updates } = body;
+  const { task_name, task_category, task_description, status, plan, estimate, approval, results, suggested_improvements, running_updates, priority } = body;
   if (!task_name) return jsonError('task_name is required', 400);
   if (!task_description || task_description.trim().length < 10) {
     return jsonError('task_description is required (min 10 chars)', 400);
@@ -64,8 +64,8 @@ export const POST: APIRoute = async ({ request }) => {
     const runningStartedAt = initialStatus === 'running' ? new Date().toISOString().replace('T', ' ').slice(0, 19) : null;
 
     const result = await db.prepare(
-      `INSERT INTO tasks (task_name, task_category, task_description, status, plan, estimate, approval, results, suggested_improvements, running_started_at, running_updates)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO tasks (task_name, task_category, task_description, status, plan, estimate, approval, results, suggested_improvements, running_started_at, running_updates, priority)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       task_name.trim(),
       (task_category || 'general').trim(),
@@ -77,7 +77,8 @@ export const POST: APIRoute = async ({ request }) => {
       (results || '').trim(),
       (suggested_improvements || '').trim(),
       runningStartedAt,
-      (running_updates || '').trim()
+      (running_updates || '').trim(),
+      Number(priority) || 0
     ).run();
 
     return json({ ok: true, id: result.meta?.last_row_id });
@@ -93,7 +94,7 @@ export const PUT: APIRoute = async ({ request }) => {
   let body: any;
   try { body = await request.json(); } catch { return jsonError('Invalid JSON', 400); }
 
-  const { id, task_name, task_category, task_description, status, plan, estimate, approval, results, suggested_improvements, running_updates } = body;
+  const { id, task_name, task_category, task_description, status, plan, estimate, approval, results, suggested_improvements, running_updates, priority } = body;
   if (!id) return jsonError('id is required', 400);
 
   const fields: string[] = [];
@@ -109,6 +110,7 @@ export const PUT: APIRoute = async ({ request }) => {
   if (results !== undefined) { fields.push('results = ?'); params.push(results.trim()); }
   if (suggested_improvements !== undefined) { fields.push('suggested_improvements = ?'); params.push(suggested_improvements.trim()); }
   if (running_updates !== undefined) { fields.push('running_updates = ?'); params.push(running_updates.trim()); }
+  if (priority !== undefined) { fields.push('priority = ?'); params.push(Number(priority)); }
 
   if (!fields.length) return jsonError('No fields to update', 400);
 

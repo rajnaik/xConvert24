@@ -54,6 +54,7 @@ import '../../styles/global.css';
         <thead class="bg-gray-800/80">
           <tr>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">ID</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Pri</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Title</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Category</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Status</th>
@@ -177,8 +178,10 @@ import '../../styles/global.css';
 
       var tbody = document.getElementById('tasksTable');
       tbody.innerHTML = tasksData.map(function(t) {
+        var priBadge = t.priority >= 10 ? '<span class="px-1.5 py-0.5 rounded text-xs font-bold bg-red-900 text-red-300 border border-red-700">!' + t.priority + '</span>' : t.priority > 0 ? '<span class="px-1.5 py-0.5 rounded text-xs bg-amber-900 text-amber-300">' + t.priority + '</span>' : '<span class="text-gray-600 text-xs">0</span>';
         return '<tr class="hover:bg-gray-800/50">' +
           '<td class="px-4 py-3 text-gray-500 font-mono text-xs">' + t.id + '</td>' +
+          '<td class="px-4 py-3 text-center">' + priBadge + '</td>' +
           '<td class="px-4 py-3 text-white font-medium">' + (t.title || '\u2014') + '</td>' +
           '<td class="px-4 py-3 text-gray-400 text-xs">' + (t.category || '\u2014') + '</td>' +
           '<td class="px-4 py-3">' + statusBadge(t.status) + '</td>' +
@@ -187,7 +190,7 @@ import '../../styles/global.css';
           '<td class="px-4 py-3 text-gray-400 text-xs">' + (t.estimated_execution_time || '\u2014') + '</td>' +
           '<td class="px-4 py-3"><button onclick="editTask(' + t.id + ')" class="text-blue-400 hover:underline text-xs mr-2">Edit</button><button onclick="deleteTask(' + t.id + ')" class="text-red-400 hover:underline text-xs">Del</button></td>' +
         '</tr>';
-      }).join('') || '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No tasks found</td></tr>';
+      }).join('') || '<tr><td colspan="9" class="px-4 py-8 text-center text-gray-500">No tasks found</td></tr>';
 
       document.getElementById('prevBtn').disabled = currentOffset === 0;
       document.getElementById('nextBtn').disabled = tasksData.length < pageSize;

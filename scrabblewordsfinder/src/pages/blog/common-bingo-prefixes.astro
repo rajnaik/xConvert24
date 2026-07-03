@@ -1,55 +1,187 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Common Bingo Prefixes — UN, RE, OUT, OVER"
-  description="How prefixes unlock bingo opportunities. UN-, RE-, OUT-, OVER- patterns for 7-letter words."
-  keywords="scrabble, common, bingo, prefixes"
+<Layout
+  title="Common Bingo Prefixes — RE, UN, OUT and More Scrabble Bingo Starters"
+  description="Master the prefixes that unlock bingos in Scrabble. RE-, UN-, OUT-, OVER-, MIS- and more — learn which ones produce the most 7- and 8-letter words. Free guide."
+  keywords="scrabble bingo prefixes, re words scrabble bingo, un prefix bingo, out prefix scrabble, common bingo starters, prefix strategy scrabble"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Common Bingo Prefixes — UN, RE, OUT, OVER",
-    "description": "How prefixes unlock bingo opportunities. UN-, RE-, OUT-, OVER- patterns for 7-letter words.",
+    "headline": "Common Bingo Prefixes — RE, UN, OUT and More Scrabble Bingo Starters",
+    "description": "Master the prefixes that unlock bingos in Scrabble. RE-, UN-, OUT-, OVER-, MIS- and more.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/common-bingo-prefixes" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/common-bingo-prefixes/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What are the best prefixes for Scrabble bingos?", "acceptedAnswer": { "@type": "Answer", "text": "RE- is the most productive bingo prefix, enabling over 500 valid 7-letter words in SOWPODS. UN- follows with 400+, then OUT- (200+), OVER- (150+), and MIS- (120+). These five prefixes alone account for roughly 25% of all playable bingos." } },
+      { "@type": "Question", "name": "How do prefixes help you spot bingos?", "acceptedAnswer": { "@type": "Answer", "text": "When you see RE or UN on your rack, mentally set those tiles aside and ask: do the remaining 5 tiles form a common word? If yes, you likely have a bingo. For example: RE + ASTING = REASTING, UN + SEALING = UNSEALING (too long, but UN + DOING = UNDOING)." } },
+      { "@type": "Question", "name": "Can you play a bingo using a prefix already on the board?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — if RE is already played on the board and you can extend it with 7 tiles from your rack to form an 8+ letter word, you earn the bingo bonus. This is called playing through existing letters and is a powerful technique for prefix-based bingos." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/bingos/" class="hover:text-blue-400 transition-colors text-gray-300">Bingos</a>
+        <a href="/blog/bingos/" class="hover:text-amber-500 transition-colors text-gray-300">Bingos</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Common Bingo Prefixes — UN, RE, OUT, OVER</h1>
+      <BlogCrossLinks title="Common Bingo Prefixes" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Common Bingo Prefixes</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How prefixes unlock bingo opportunities. UN-, RE-, OUT-, OVER- patterns for 7-letter words.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Prefixes are bingo shortcuts. When you spot RE, UN, or OUT on your rack, you're not searching through 25,000 possible 7-letter words — you're searching through the common 5-letter words those prefixes attach to. This drastically reduces your mental workload and speeds up bingo recognition.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Big Five Bingo Prefixes</h2>
+
+      <p class="text-gray-300">These five prefixes produce the most valid bingos in both SOWPODS and TWL. Memorise them as your primary bingo-finding toolkit.</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Prefix</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">7-Letter Bingos</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Tiles Used</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Example Words</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-amber-400">RE-</td><td class="px-4 py-3 text-green-400">500+</td><td class="px-4 py-3 text-gray-400">R, E + 5</td><td class="px-4 py-3 text-gray-400">REUSING, RELATED, READING</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-amber-400">UN-</td><td class="px-4 py-3 text-green-400">400+</td><td class="px-4 py-3 text-gray-400">U, N + 5</td><td class="px-4 py-3 text-gray-400">UNRAISE, UNTRIED, UNLACED</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-amber-400">OUT-</td><td class="px-4 py-3 text-green-400">200+</td><td class="px-4 py-3 text-gray-400">O, U, T + 4</td><td class="px-4 py-3 text-gray-400">OUTRAISE, OUTSIDE, OUTRIDE</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-amber-400">OVER-</td><td class="px-4 py-3 text-green-400">150+</td><td class="px-4 py-3 text-gray-400">O, V, E, R + 3</td><td class="px-4 py-3 text-gray-400">OVERLIT, OVERTIP, OVERSAW</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-amber-400">MIS-</td><td class="px-4 py-3 text-green-400">120+</td><td class="px-4 py-3 text-gray-400">M, I, S + 4</td><td class="px-4 py-3 text-gray-400">MISRATE, MISLEAD, MISREAD</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">RE-</p><p class="text-xs text-gray-400">500+ bingos — #1 prefix</p></div>
+          <div><p class="text-xl font-bold text-amber-400">25%</p><p class="text-xs text-gray-400">of all bingos use a prefix</p></div>
+          <div><p class="text-xl font-bold text-amber-400">5</p><p class="text-xs text-gray-400">prefixes to memorise</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How to Use Prefixes on Your Rack</h2>
+
+      <p class="text-gray-300">The mental process is simple: spot the prefix, isolate it, then ask whether the remaining tiles form a word.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Prefix Bingo Process</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300">Scan your rack for RE, UN, OUT, OVER, or MIS letter combinations.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300">Mentally set those tiles aside. Look at the remaining 4-5 tiles.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300">Can those remaining tiles anagram into a common word? STING, RATED, LACED, TRIED, DOING?</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300">If yes → RESTRING, UNRATED, UNLACED, UNTRIED, UNDOING. Check if it's valid and fits the board.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Pro Tip</p>
+        <p class="text-base text-gray-200">Don't just check one prefix. Your rack UREINTS could be <span class="text-white font-medium">UN + RITES</span> (UNRITES? No) or <span class="text-white font-medium">RE + UNITS</span> (REUNITS? No) or just an anagram: <span class="text-white font-medium">UNITERS</span> (yes!). Always check prefix AND non-prefix solutions.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Secondary Prefixes Worth Knowing</h2>
+
+      <p class="text-gray-300">Beyond the Big Five, these prefixes produce fewer bingos but appear frequently enough to be worth recognising:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">PRE- (80+ bingos)</p>
+          <p class="text-xs text-gray-400">PRELOAD, PRESOAK, PRETEND, PREVAIL. Look for PRE when you have P, R, E together.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">DIS- (90+ bingos)</p>
+          <p class="text-xs text-gray-400">DISRATE, DISROBE, DISMAY. Powerful but requires D, I, S — common tiles.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">IN- / IM- (70+ bingos)</p>
+          <p class="text-xs text-gray-400">INSTATE, INFLATED, IMPASTE. Two tiles for a prefix makes this very efficient.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">EN- / EM- (60+ bingos)</p>
+          <p class="text-xs text-gray-400">ENTAILS, ENSLAVE, EMPOWER. Short prefix, common tiles, many valid words.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/bingo-racks-to-memorise/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Bingo Racks to Memorise — the top 20 stems for rapid recognition</span>
+          </a>
+          <a href="/blog/bingo-through-existing-letter/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Bingo Through an Existing Letter — extend prefixes already on the board</span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/bingo-racks-to-memorise/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Bingo Racks to Memorise</span>
+          </a>
+          <a href="/blog/spotting-bingos-on-your-rack/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Spotting Bingos on Your Rack</span>
+          </a>
+          <a href="/blog/hook-words-advanced/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Hook Words Advanced</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find prefix bingos from your tiles — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

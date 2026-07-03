@@ -1,55 +1,188 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Bingo Bonus vs Steady Scoring"
-  description="Is chasing bingos always optimal? When consistent 30-point plays beat waiting for the 50-point bonus."
-  keywords="scrabble, bingo, bonus, vs, steady, scoring"
+<Layout
+  title="Bingo Bonus vs Steady Scoring — Which Scrabble Strategy Wins?"
+  description="Should you chase the 50-point bingo bonus or play consistent 30-40 point turns? Data-driven analysis of both Scrabble strategies. Free guide."
+  keywords="scrabble bingo bonus, steady scoring scrabble, bingo vs points, scrabble strategy comparison, 50 point bonus, scrabble scoring strategy"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Bingo Bonus vs Steady Scoring",
-    "description": "Is chasing bingos always optimal? When consistent 30-point plays beat waiting for the 50-point bonus.",
+    "headline": "Bingo Bonus vs Steady Scoring — Which Scrabble Strategy Wins?",
+    "description": "Should you chase the 50-point bingo bonus or play consistent 30-40 point turns? Data-driven analysis of both Scrabble strategies.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/bingo-bonus-vs-steady-scoring" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/bingo-bonus-vs-steady-scoring/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "How much is the bingo bonus in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The bingo bonus is 50 points, awarded when a player uses all 7 tiles from their rack in a single turn. This is in addition to the word's base score and any premium square multipliers." } },
+      { "@type": "Question", "name": "How often do professional players get bingos?", "acceptedAnswer": { "@type": "Answer", "text": "Top tournament players average 2-3 bingos per game. Club-level players average 1-2. A game with zero bingos from either player is rare at competitive levels but common in casual play." } },
+      { "@type": "Question", "name": "Is it better to play a bingo or a high-scoring short word?", "acceptedAnswer": { "@type": "Answer", "text": "It depends on context. A 35-point short word played now is often better than holding tiles for 2-3 turns hoping for a bingo. But if your rack has 5-6 bingo-friendly letters (like SATIRE + one more), the expected value of waiting one turn typically exceeds the immediate play." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/bingos/" class="hover:text-blue-400 transition-colors text-gray-300">Bingos</a>
+        <a href="/blog/bingos/" class="hover:text-amber-500 transition-colors text-gray-300">Bingos</a>
       </nav>
+
+      <BlogCrossLinks title="Bingo Bonus vs Steady Scoring in Scrabble" />
 
       <h1 class="text-3xl font-bold text-white mb-4">Bingo Bonus vs Steady Scoring</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>8 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Is chasing bingos always optimal? When consistent 30-point plays beat waiting for the 50-point bonus.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Every Scrabble player faces this dilemma: do you fish for the 50-point bingo bonus by keeping strong tiles on your rack, or do you maximise every single turn with the best available play? The answer, backed by tournament data, is nuanced — and understanding when to choose each strategy separates intermediate players from experts.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Numbers: What Each Strategy Produces</h2>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">50</p><p class="text-xs text-gray-400">Bingo bonus points</p></div>
+          <div><p class="text-xl font-bold text-amber-400">2.3</p><p class="text-xs text-gray-400">Avg bingos/game (pros)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">30-40</p><p class="text-xs text-gray-400">Pts/turn (steady)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">12-15</p><p class="text-xs text-gray-400">Turns per game</p></div>
+        </div>
+      </div>
+
+      <p class="text-gray-300">A steady scorer averaging 35 points per turn over 13 turns totals ~455 points. A bingo-chaser who gets 2 bingos (averaging 75 each with bonus) but only 25 points on other turns: 150 + (11 × 25) = 425. The steady scorer edges it — unless the bingo player can maintain their non-bingo average.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Steady Scoring Wins When</p>
+          <p class="text-xs text-gray-400">Board is tight (few open lanes), rack has no bingo potential, opponent is ahead and you need consistent pressure, or you're in the endgame.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">⚡ Bingo Hunting Wins When</p>
+          <p class="text-xs text-gray-400">You're behind by 50+, rack has 5-6 bingo-friendly tiles, board is open with 7+ letter slots available, or early game when tile pool is rich.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Hold Tiles for a Bingo</h2>
+
+      <p class="text-gray-300">Holding tiles (playing fewer than 7) to set up a bingo costs you turn equity. The question is: does the expected bingo payout exceed what you sacrifice?</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Decision Framework</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300">Count your bingo-friendly letters (from SATIRE, RETINA, SALINE stems). If you have 5-6, hold.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300">Check the board: is there a clear 7+ letter lane open? If the board is blocked, take the safe points.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300">Compare: best play now vs. expected bingo next turn (factoring draw probability). If the gap is < 20 pts, hold.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300">Never sacrifice more than 1 turn fishing. If you don't bingo on the next draw, play your best word.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Expert Approach: Hybrid Strategy</h2>
+
+      <p class="text-gray-300">Top players don't choose one strategy — they fluidly switch between them. The key insight: rack leave quality determines your next-turn scoring potential. Every play should consider what tiles stay on your rack.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play the best word that leaves a good rack:</span> A 28-point play leaving RSTLN is better than a 32-point play leaving UUVWC. The 4-point sacrifice pays back 2-3× on the next turn.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Don't tunnel-vision on bingos:</span> If your best play scores 40+ points, take it — even if your leave isn't perfect. A bird in hand beats a 30% bingo chance next turn.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Endgame switches to pure points:</span> With fewer than 15 tiles in the bag, bingo fishing becomes unprofitable. Switch to maximising every turn regardless of leave.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/bingo-stem-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Bingo Stem Strategy — the letter combos that produce bingos</span>
+          </a>
+          <a href="/blog/rack-management-basics/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Rack Management Basics — building toward big plays</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Game Phase Breakdown</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Phase</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Tiles Left</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Strategy</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Bingo Priority</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-white font-medium">Opening</td><td class="px-4 py-3">80-60</td><td class="px-4 py-3 text-gray-400">Balance: score + leave</td><td class="px-4 py-3 text-green-400">High</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-white font-medium">Midgame</td><td class="px-4 py-3">60-30</td><td class="px-4 py-3 text-gray-400">Board control + bingo lanes</td><td class="px-4 py-3 text-amber-400">Medium</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-white font-medium">Late game</td><td class="px-4 py-3">30-15</td><td class="px-4 py-3 text-gray-400">Maximum points per turn</td><td class="px-4 py-3 text-red-400">Low</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-white font-medium">Endgame</td><td class="px-4 py-3">< 15</td><td class="px-4 py-3 text-gray-400">Pure scoring, empty rack</td><td class="px-4 py-3 text-red-400">None</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/bingo-stem-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Bingo Stem Strategy</span>
+          </a>
+          <a href="/blog/eight-letter-bingos-guide/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Eight-Letter Bingos Guide</span>
+          </a>
+          <a href="/blog/scrabble-opening-strategy-first-move/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Opening Strategy — First Move Guide</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find bingo-length words from your rack — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

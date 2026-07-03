@@ -30,7 +30,7 @@ test.describe('StarBar Message Layout — Positive', () => {
   test('sb-message has left-aligned text styling', async ({ page }) => {
     await page.goto(ACTIVITIES_URL);
     const classAttr = await page.locator('#sb-message').getAttribute('class');
-    expect(classAttr).toContain('text-xs');
+    expect(classAttr).toContain('text-base');
     expect(classAttr).toContain('text-gray-400');
     expect(classAttr).toContain('mt-1');
   });

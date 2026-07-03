@@ -1,55 +1,181 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Controlling Board Openness"
-  description="When to open the board vs keep it tight. How board openness affects different player strengths."
-  keywords="scrabble, board, openness, control"
+<Layout
+  title="Board Openness Control — When to Open or Close the Scrabble Board"
+  description="Master board control in Scrabble. Learn when to open lanes for bingos vs closing them to protect your lead. Strategic framework for every game situation. Free guide."
+  keywords="scrabble board control, open board strategy, close board scrabble, board openness, defensive scrabble, when to open board"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Controlling Board Openness",
-    "description": "When to open the board vs keep it tight. How board openness affects different player strengths.",
+    "headline": "Board Openness Control — When to Open or Close the Scrabble Board",
+    "description": "Master board control in Scrabble. Learn when to open lanes for bingos vs closing them to protect your lead.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/board-openness-control" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/board-openness-control/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Should I open or close the Scrabble board?", "acceptedAnswer": { "@type": "Answer", "text": "It depends on your position. Open the board when you're behind and need bingo opportunities or have strong tiles. Close the board when you're ahead and want to protect your lead by denying your opponent scoring lanes. Tournament players adjust board openness every turn based on the score differential." } },
+      { "@type": "Question", "name": "What does a closed board mean in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A closed board has few open lanes (rows or columns with enough empty squares for long words). Words are packed tightly together, making it difficult to play 7-letter bingos. Closed boards favour the player who is ahead because they limit comeback opportunities." } },
+      { "@type": "Question", "name": "How do you open a Scrabble board?", "acceptedAnswer": { "@type": "Answer", "text": "Open the board by playing words that extend into empty areas, especially towards triple word squares. Place tiles along the edges or create hooks in isolated positions. Playing short words perpendicular to existing words creates new lanes without giving your opponent premium square access." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
+        <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors text-gray-300">Strategy</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Controlling Board Openness</h1>
+      <BlogCrossLinks title="Board Openness Control" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Board Openness Control</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>8 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">When to open the board vs keep it tight. How board openness affects different player strengths.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The board is a weapon. Open it when you need opportunities; close it when you need protection. Board openness control is the most underrated skill in competitive Scrabble — the one that turns average players into strategic thinkers. Here's the complete framework.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Open vs Closed: The Spectrum</h2>
+
+      <p class="text-gray-300">Every board state sits on a spectrum from completely open (many lanes, lots of empty space) to completely closed (tight packing, no long-word lanes). Your job is to push the board towards whichever state benefits you.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🌿 Open Board Favours</p>
+          <p class="text-xs text-gray-400">The player who is behind, has bingo-quality tiles, holds both blanks, or has a stronger vocabulary. Open boards create comeback opportunities through high-scoring plays.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">🔒 Closed Board Favours</p>
+          <p class="text-xs text-gray-400">The player who is ahead, holds power tiles (Q, Z, X, J), or has weaker tiles for bingos. Closed boards limit opponent's scoring ceiling while you grind out 20-30 point plays.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Principle</p>
+        <p class="text-base text-gray-200">The player who is <span class="text-white font-medium">ahead</span> wants to close the board. The player who is <span class="text-white font-medium">behind</span> wants to open it. Adjust your strategy every turn based on the current score differential.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How to Close the Board</h2>
+
+      <p class="text-gray-300">Closing the board means reducing available lanes for long words. Here are the specific techniques:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play parallel words:</span> Place words alongside existing ones, filling up rows. This eliminates 7-8 square lanes without extending the board into open territory.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Block triple word squares:</span> Place tiles adjacent to TW squares so opponents can't reach them with long words. A single tile blocking a TW lane can save 50+ points.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use consonant-heavy plays:</span> Words like CRWTH, GLYPH, or SHORT in edge positions leave few hook letters for opponents to extend through.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Avoid creating isolated letters:</span> Every isolated letter on the board is a through-play opportunity for your opponent. Keep the board compact.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How to Open the Board</h2>
+
+      <p class="text-gray-300">When you're behind and need opportunities, these techniques create scoring lanes:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Extend towards edges:</span> Play words that reach towards the board perimeter, especially near triple word squares. This opens new lanes in previously dead areas.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Create vowel hooks:</span> Leave vowels exposed in isolated positions. Vowels are the easiest letters to play through, giving you future bingo lanes.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play perpendicular to the flow:</span> If words cluster horizontally, play vertically. Cross-cutting opens new territory and creates multiple scoring opportunities.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Sacrifice points for position:</span> A 15-point play that opens a bingo lane is often worth more than a 25-point play that keeps the board closed — especially when you're 50+ points behind.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Decision Framework: Score Differential</h2>
+
+      <p class="text-gray-300">Use the current score difference to guide your board strategy:</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Score Gap</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">If Ahead</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">If Behind</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">0-30 pts</td><td class="px-4 py-3 text-gray-400">Neutral — play best scoring move</td><td class="px-4 py-3 text-gray-400">Neutral — play best scoring move</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">30-60 pts</td><td class="px-4 py-3 text-gray-400">Start closing — avoid TW lanes</td><td class="px-4 py-3 text-gray-400">Start opening — create bingo lanes</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">60-100 pts</td><td class="px-4 py-3 text-gray-400">Aggressively close — block everything</td><td class="px-4 py-3 text-gray-400">Aggressively open — risk is worth it</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">100+ pts</td><td class="px-4 py-3 text-gray-400">Lockdown — play 2-3 letter words only</td><td class="px-4 py-3 text-gray-400">Full desperation — open everything, fish for bingos</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/defensive-scrabble-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Defensive Scrabble Strategy — protecting your lead</span>
+          </a>
+          <a href="/blog/hotspots-and-dead-zones/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Hotspots and Dead Zones — reading the board like a pro</span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/defensive-scrabble-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Defensive Scrabble Strategy</span>
+          </a>
+          <a href="/blog/offensive-scrabble-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Offensive Scrabble Strategy</span>
+          </a>
+          <a href="/blog/coming-from-behind-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Coming From Behind in Scrabble</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find the perfect word for any board position — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

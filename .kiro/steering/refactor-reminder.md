@@ -66,6 +66,7 @@ After every major feature delivery (or once per session if multiple features are
 | 13 | Extract Footer component (differs between Layout + BlogLayout) | SWF | Low | Planned (post-credits) |
 | 14 | Dynamic search index (hardcoded PAGES array, stale) | SWF | Low | Planned (post-credits) |
 | 15 | Remove stale `swf-admin-auth-reminder` steering (auth exists) | SWF | Note | Planned |
+| 16 | GSC API integration for automated seo_index sync (when traffic grows) | SWF | Low | Deferred — revisit when daily traffic exceeds 500 sessions |
 
 ## How to Update This File
 

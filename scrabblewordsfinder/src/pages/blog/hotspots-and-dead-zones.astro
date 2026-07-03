@@ -1,55 +1,190 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Hotspots and Dead Zones on the Board"
-  description="Identifying where the next big play will happen. Reading board tension and planning ahead."
-  keywords="scrabble, hotspots, and, dead, zones"
+<Layout
+  title="Hotspots and Dead Zones — Reading the Scrabble Board Like a Pro"
+  description="Learn to identify hotspots (high-scoring opportunities) and dead zones (blocked areas) on the Scrabble board. Expert board-reading strategy guide. Free."
+  keywords="scrabble hotspots, scrabble dead zones, board reading strategy, premium square access, scrabble board analysis, open lanes scrabble"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Hotspots and Dead Zones on the Board",
-    "description": "Identifying where the next big play will happen. Reading board tension and planning ahead.",
+    "headline": "Hotspots and Dead Zones — Reading the Scrabble Board Like a Pro",
+    "description": "Learn to identify hotspots (high-scoring opportunities) and dead zones (blocked areas) on the Scrabble board.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/hotspots-and-dead-zones" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/hotspots-and-dead-zones/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is a hotspot on the Scrabble board?", "acceptedAnswer": { "@type": "Answer", "text": "A hotspot is a position on the board where high-scoring plays are possible — typically open lanes leading to unused premium squares (TW, DW, TL, DL), positions where parallel plays can form multiple words simultaneously, or hook spots on high-value existing words. Identifying hotspots before your opponent is key to scoring 40+ point turns." } },
+      { "@type": "Question", "name": "What is a dead zone in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A dead zone is an area of the board where no high-scoring plays exist — premium squares are already used or blocked, no existing words provide hook points, and access requires extending into territory that opens more for your opponent than you. Dead zones grow as the game progresses and the board fills up." } },
+      { "@type": "Question", "name": "How do I read the Scrabble board to find scoring opportunities?", "acceptedAnswer": { "@type": "Answer", "text": "Scan systematically: 1) Check all unused premium squares and trace paths from existing tiles to them. 2) Look for hook opportunities (front and back) on every word touching premium lanes. 3) Count empty squares in each lane — you need 7+ for a bingo. 4) Identify which letters are exposed for parallel plays. Do this during your opponent's turn." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
+        <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors text-gray-300">Strategy</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Hotspots and Dead Zones on the Board</h1>
+      <BlogCrossLinks title="Hotspots and Dead Zones" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Hotspots and Dead Zones</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>8 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Identifying where the next big play will happen. Reading board tension and planning ahead.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The Scrabble board isn't uniform. At any point during a game, some areas are goldmines of scoring potential while others are wastelands. Learning to read the board — instantly identifying where the points are and where they aren't — is what separates club players from tournament players.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Identifying Hotspots</h2>
+
+      <p class="text-gray-300">A hotspot is any board position where a high-scoring play is available. Here's what creates them:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🎯 Unused Premium Squares with Access</p>
+          <p class="text-xs text-gray-400">A TW square is only a hotspot if there's a path from existing tiles to reach it. Count the empty squares between the nearest tile and the premium — if it's reachable in one play, it's live.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🔗 Hook Positions on High-Value Words</p>
+          <p class="text-xs text-gray-400">An existing 8-letter word with an unhoooked front or back position is a hotspot. Adding one letter scores for the full perpendicular word you play through that spot.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">⬛ Open Parallel Lanes</p>
+          <p class="text-xs text-gray-400">A row adjacent to an existing word where 3+ valid 2-letter cross-words are possible. Parallel plays stack points from each cross-word formed.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">📏 7+ Empty Squares in a Lane</p>
+          <p class="text-xs text-gray-400">Any row or column with 7+ consecutive empty squares connecting to existing tiles is a bingo lane. These are the highest-value hotspots on the board.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Timing Matters</p>
+        <p class="text-base text-gray-200">Hotspots are <span class="text-white font-medium">time-sensitive</span>. If you don't exploit a hotspot on your turn, your opponent likely will. When you spot a hotspot that's reachable by both players, either use it immediately or block it — never leave it open unless you have no choice.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Identifying Dead Zones</h2>
+
+      <p class="text-gray-300">Dead zones are areas where no significant scoring is possible. Recognising them saves time and prevents wasted turns:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">🚫 Consumed Premium Squares</p>
+          <p class="text-xs text-gray-400">Once a TW or DW is used, the area around it drops in value dramatically. Premium squares only activate on the turn they're first covered — never again.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">🧱 Blocked Lanes</p>
+          <p class="text-xs text-gray-400">Areas surrounded by tiles on all sides with no hook positions. No word can enter or exit the zone. These typically form in the centre after 10+ turns.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">⚠️ Trap Zones</p>
+          <p class="text-xs text-gray-400">Areas that LOOK promising but opening them gives your opponent better access. A dead zone for you might be a hotspot for your opponent — and vice versa.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Board Scanning Technique</h2>
+
+      <p class="text-gray-300">Develop a systematic scanning habit during your opponent's turn:</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 The 4-Step Board Scan</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300"><strong>Premium squares:</strong> Locate all unused TW and DW squares. Trace a line from the nearest existing tile — can it be reached in one play?</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300"><strong>Hook spots:</strong> Check every word on the board — can a letter be added to front or back? Especially near premium squares.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300"><strong>Bingo lanes:</strong> Count consecutive empty squares in every row and column touching existing tiles. Mark lanes with 7+ spaces.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300"><strong>Parallel lanes:</strong> Which rows let you play alongside existing words forming multiple cross-words? These compound your score.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/board-openness-control/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Board Openness Control — when to open or close the board</span>
+          </a>
+          <a href="/blog/best-words-for-premium-squares/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Best Words for Premium Squares — maximising every bonus</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Creating Hotspots for Yourself</h2>
+
+      <p class="text-gray-300">Advanced players don't just read the board — they shape it. You can engineer hotspots that only benefit your specific rack while appearing neutral to your opponent.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Leave vowels exposed near TWS:</span> If you hold consonant-heavy tiles that pair well with vowels (like SH, TH, ST), play a word that leaves a vowel near a triple word square lane.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Create hook spots only you can fill:</span> If you hold the J and the board has no JO/JA/JI spot, create one by playing a word that exposes an O near a premium square.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Open bingo lanes for your stem:</span> If you hold SATIRE, play a short word that opens a 7-square lane. Your opponent won't know you've engineered a setup play.</p>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/board-openness-control/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Board Openness Control</span>
+          </a>
+          <a href="/blog/defensive-scrabble-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Defensive Scrabble Strategy</span>
+          </a>
+          <a href="/blog/scoring-100-points-single-turn/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scoring 100 Points in a Single Turn</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find the highest-scoring play for any board position — free, instant</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

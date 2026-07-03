@@ -42,6 +42,15 @@ test.describe('Solver Quick Links — Positive', () => {
     await expect(firstLink).toHaveAttribute('href', '/leaderboard/');
   });
 
+  test('Leaderboard link has trophy emoji and correct title', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(BASE_URL);
+    const lbLink = page.locator('main .items-center.gap-2.ml-auto a[href="/leaderboard/"]');
+    await expect(lbLink).toHaveAttribute('title', '🏆 Leaderboard — See top players');
+    const emoji = lbLink.locator('span');
+    await expect(emoji).toHaveText('🏆');
+  });
+
   test('Word Quiz link points to /activities/', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto(BASE_URL);

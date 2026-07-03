@@ -103,6 +103,28 @@ test.describe('Tech Stack Page — Positive', () => {
     await expect(img).toHaveAttribute('loading', 'lazy');
   });
 
+  test('has Client-Side Libraries section heading', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const heading = page.locator('h2:has-text("Client-Side Libraries")');
+    await expect(heading).toBeVisible();
+  });
+
+  test('has jsPDF card with version and description', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const jspdfLink = page.locator('a[href="https://github.com/parallax/jsPDF"]');
+    await expect(jspdfLink).toBeVisible();
+    await expect(jspdfLink.locator('p.text-sm.font-semibold')).toHaveText('jsPDF 2.5.2');
+    await expect(jspdfLink.locator('text=Client-side PDF generation')).toBeVisible();
+  });
+
+  test('has animal-avatar-generator card with version and description', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const avatarLink = page.locator('a[href="https://github.com/roma-lukashik/animal-avatar-generator"]');
+    await expect(avatarLink).toBeVisible();
+    await expect(avatarLink.locator('p.text-sm.font-semibold')).toHaveText('animal-avatar-generator 1.2.0');
+    await expect(avatarLink.locator('text=SVG avatar generation')).toBeVisible();
+  });
+
   test('has Data & Dictionaries section', async ({ page }) => {
     await page.goto('/tech-stack/');
     const body = await page.textContent('body');
@@ -131,10 +153,18 @@ test.describe('Tech Stack Page — Positive', () => {
 
   test('has FAQPage structured data', async ({ page }) => {
     await page.goto('/tech-stack/');
-    const schema = page.locator('script[type="application/ld+json"]');
-    const json = await schema.textContent();
-    expect(json).toContain('"@type": "FAQPage"');
-    expect(json).toContain('What technology does ScrabbleWordsFinder use');
+    const schemas = page.locator('script[type="application/ld+json"]');
+    const count = await schemas.count();
+    let foundFAQ = false;
+    for (let i = 0; i < count; i++) {
+      const json = await schemas.nth(i).textContent();
+      if (json && json.includes('"FAQPage"')) {
+        foundFAQ = true;
+        expect(json).toContain('What technology does ScrabbleWordsFinder use');
+        break;
+      }
+    }
+    expect(foundFAQ).toBe(true);
   });
 });
 
@@ -149,6 +179,18 @@ test.describe('Tech Stack Page — Negative', () => {
     await page.goto('/tech-stack/');
     const reactCards = page.locator('a[href="https://react.dev/"]');
     expect(await reactCards.count()).toBe(1);
+  });
+
+  test('no duplicate jsPDF cards', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const cards = page.locator('a[href="https://github.com/parallax/jsPDF"]');
+    expect(await cards.count()).toBe(1);
+  });
+
+  test('no duplicate animal-avatar-generator cards', async ({ page }) => {
+    await page.goto('/tech-stack/');
+    const cards = page.locator('a[href="https://github.com/roma-lukashik/animal-avatar-generator"]');
+    expect(await cards.count()).toBe(1);
   });
 
   test('no broken images (all tech cards have images or icons)', async ({ page }) => {

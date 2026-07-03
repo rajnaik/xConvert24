@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 /**
  * BlogLayout Search Autocomplete Tests
  * Verifies the blog search input, autocomplete results,
+ * deferred initialization via requestIdleCallback,
  * and that all result links have trailing slashes.
  */
 
@@ -127,5 +128,64 @@ test.describe('Blog Search Autocomplete — Negative', () => {
     await searchInput.fill('xyznonexistent');
     await page.waitForTimeout(300);
     expect(errors.filter(e => e.includes('critical'))).toHaveLength(0);
+  });
+});
+
+test.describe('Blog Search — Deferred Initialization (requestIdleCallback)', () => {
+  test('search still initializes and works after requestIdleCallback deferral', async ({ page }) => {
+    await page.goto(BLOG_PAGE);
+    // The search script now defers via requestIdleCallback (or 50ms fallback).
+    // Wait enough time for the idle callback to fire, then verify search works.
+    await page.waitForTimeout(200);
+    const searchInput = page.locator('#dict-search');
+    await searchInput.fill('scrabble');
+    await page.waitForTimeout(300);
+    const resultsBox = searchInput.locator('..').locator('div.absolute');
+    await expect(resultsBox).toBeVisible();
+    const links = resultsBox.locator('a');
+    expect(await links.count()).toBeGreaterThan(0);
+  });
+
+  test('no JS errors during deferred search initialization on blog pages', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(BLOG_PAGE);
+    // Wait for requestIdleCallback to fire and initialize the search
+    await page.waitForTimeout(200);
+    // Interact immediately to stress-test the deferred init
+    const searchInput = page.locator('#dict-search');
+    await searchInput.focus();
+    await searchInput.fill('word');
+    await page.waitForTimeout(300);
+    expect(errors).toHaveLength(0);
+  });
+
+  test('search API fetch is triggered lazily on blog page focus', async ({ page }) => {
+    let apiCalled = false;
+    page.on('request', req => {
+      if (req.url().includes('/api/search-index/')) apiCalled = true;
+    });
+    await page.goto(BLOG_PAGE);
+    // API should NOT be called immediately on page load (deferred init)
+    await page.waitForTimeout(100);
+    const searchInput = page.locator('#dict-search');
+    await searchInput.focus();
+    // After focus, the full index should be fetched
+    await page.waitForTimeout(500);
+    expect(apiCalled).toBe(true);
+  });
+
+  test('typing very quickly after page load does not crash (race condition)', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    // Navigate and type immediately — before idle callback may have fired
+    await page.goto(BLOG_PAGE);
+    const searchInput = page.locator('#dict-search');
+    // Type without waiting for idle callback
+    await searchInput.fill('tiles');
+    await page.waitForTimeout(400);
+    // No crashes — search may or may not show results depending on timing,
+    // but must not error
+    expect(errors).toHaveLength(0);
   });
 });

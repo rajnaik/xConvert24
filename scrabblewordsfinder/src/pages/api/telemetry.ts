@@ -2,19 +2,13 @@ import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
 /**
- * GET /api/telemetry — Live site health check + saves to DB
- * GET /api/telemetry?history=true — returns last 50 checks from DB
+ * GET /api/telemetry?history=true — returns last N checks from DB
+ * POST /api/telemetry — saves client-side health check results to DB
+ *
+ * Note: Health checks are performed CLIENT-SIDE (from the admin page browser).
+ * Workers cannot fetch their own hostname (Cloudflare returns 522 on self-referencing subrequests).
+ * The admin page performs the actual fetches and POSTs results here for persistence.
  */
-
-const ENDPOINTS = [
-  { name: 'Homepage', path: '/' },
-  { name: 'Blog', path: '/blog/' },
-  { name: 'Guide', path: '/guide' },
-  { name: 'API Clicks', path: '/api/clicks?count=true' },
-  { name: 'API Banners', path: '/api/banners?active=true' },
-  { name: 'API Site Status', path: '/api/site-status' },
-  { name: 'API Emails', path: '/api/emails?limit=1' },
-];
 
 export const GET: APIRoute = async ({ url }) => {
   const db = (env as any).DB;
@@ -33,56 +27,46 @@ export const GET: APIRoute = async ({ url }) => {
     }
   }
 
-  // Live check mode
-  const baseUrl = 'https://www.scrabblewordsfinder.com';
-  const results = [];
-  const checkedAt = new Date().toISOString();
-
-  for (const ep of ENDPOINTS) {
-    const start = Date.now();
-    try {
-      const res = await fetch(`${baseUrl}${ep.path}`, { redirect: 'follow' });
-      const elapsed = Date.now() - start;
-      const ok = res.status >= 200 && res.status < 400;
-      results.push({
-        name: ep.name,
-        path: ep.path,
-        status: res.status,
-        time_ms: elapsed,
-        ok,
-      });
-    } catch (e: any) {
-      results.push({
-        name: ep.name,
-        path: ep.path,
-        status: 0,
-        time_ms: Date.now() - start,
-        ok: false,
-        error: e.message,
-      });
-    }
-  }
-
-  const allOk = results.every(r => r.ok);
-  const avgTime = Math.round(results.reduce((s, r) => s + r.time_ms, 0) / results.length);
-
-  // Save to DB
-  if (db) {
-    try {
-      for (const r of results) {
-        await db.prepare(
-          'INSERT INTO telemetry (endpoint_name, path, status_code, response_ms, healthy, checked_at) VALUES (?, ?, ?, ?, ?, ?)'
-        ).bind(r.name, r.path, r.status, r.time_ms, r.ok ? 1 : 0, checkedAt).run();
-      }
-    } catch {}
-  }
-
+  // Default: return the endpoint list so the client knows what to check
   return json({
-    healthy: allOk,
-    avg_ms: avgTime,
-    checked_at: checkedAt,
-    endpoints: results,
+    endpoints: [
+      { name: 'Homepage', path: '/' },
+      { name: 'Blog', path: '/blog/' },
+      { name: 'Guide', path: '/guide/' },
+      { name: 'Activities', path: '/activities/' },
+      { name: 'Chat', path: '/chat/' },
+      { name: 'API Clicks', path: '/api/clicks/?count=true' },
+      { name: 'API Banners', path: '/api/banners/?active=true' },
+      { name: 'API Site Status', path: '/api/site-status/' },
+      { name: 'API Emails', path: '/api/emails/?limit=1' },
+    ],
   });
+};
+
+export const POST: APIRoute = async ({ request }) => {
+  const db = (env as any).DB;
+  if (!db) return json({ error: 'DB not configured' }, 500);
+
+  try {
+    const body = await request.json();
+    const { results, checked_at } = body as { results: any[]; checked_at: string };
+
+    if (!results || !Array.isArray(results)) {
+      return json({ error: 'Missing results array' }, 400);
+    }
+
+    const ts = checked_at || new Date().toISOString();
+
+    for (const r of results) {
+      await db.prepare(
+        'INSERT INTO telemetry (endpoint_name, path, status_code, response_ms, healthy, checked_at) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(r.name, r.path, r.status, r.time_ms, r.ok ? 1 : 0, ts).run();
+    }
+
+    return json({ saved: results.length, checked_at: ts });
+  } catch (e: any) {
+    return json({ error: e.message }, 500);
+  }
 };
 
 function json(data: any, status = 200) {

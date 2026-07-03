@@ -1,55 +1,169 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Triple-Triple Words — The 9x Multiplier"
-  description="Words that can span two Triple Word squares. The rarest and highest-scoring plays possible."
-  keywords="scrabble, triple, triple, words"
+<Layout
+  title="Triple-Triple Words — The 9× Multiplier Play in Scrabble"
+  description="How to score a triple-triple in Scrabble: spanning two Triple Word Score squares for a 9× multiplier. Board positions, word requirements, and realistic examples."
+  keywords="triple triple scrabble, 9x multiplier, two triple word scores, highest scoring play, scrabble TWS TWS, spanning premium squares"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Triple-Triple Words — The 9x Multiplier",
-    "description": "Words that can span two Triple Word squares. The rarest and highest-scoring plays possible.",
+    "headline": "Triple-Triple Words — The 9× Multiplier Play in Scrabble",
+    "description": "How to score a triple-triple in Scrabble: spanning two Triple Word Score squares for a 9× multiplier.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/triple-triple-words" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/triple-triple-words/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is a triple-triple in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A triple-triple occurs when a single word covers two Triple Word Score (TWS) squares simultaneously. The word multipliers stack: 3 × 3 = 9× the base word value. A word worth 15 points base becomes 135 points. Add a 50-point bingo bonus if you used all 7 tiles and the total reaches 185 points in a single turn." } },
+      { "@type": "Question", "name": "Where can triple-triples happen on the Scrabble board?", "acceptedAnswer": { "@type": "Answer", "text": "Triple-triples can only occur along the top/bottom rows (columns 1 and 8, or 8 and 15) or the left/right columns (rows 1 and 8, or 8 and 15). The TWS squares are 7 spaces apart on these edge rows/columns, meaning you need exactly a 7-8 letter word spanning both." } },
+      { "@type": "Question", "name": "How often do triple-triples happen in competitive Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Triple-triples are very rare in competitive play — perhaps once in every 50-100 games at the expert level. Both TWS squares must be unused (usually one gets used early), and you need a long word that reaches both. Most tournament players have fewer than 10 triple-triples in their entire career." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/high-scoring/" class="hover:text-blue-400 transition-colors text-gray-300">High Scoring</a>
+        <a href="/blog/high-scoring/" class="hover:text-amber-500 transition-colors text-gray-300">High-Scoring</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Triple-Triple Words — The 9x Multiplier</h1>
+      <BlogCrossLinks title="Triple-Triple Words" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Triple-Triple Words</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Words that can span two Triple Word squares. The rarest and highest-scoring plays possible.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The triple-triple is the holy grail of Scrabble scoring. When a single word lands on two Triple Word Score squares simultaneously, the multipliers stack: 3×3 = 9× your word's base value. Even a modest word becomes a game-ending bomb. Here's how they work and how to set one up.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">9×</p><p class="text-xs text-gray-400">Word multiplier (3×3)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">135+</p><p class="text-xs text-gray-400">Typical TT score</p></div>
+          <div><p class="text-xl font-bold text-amber-400">~1 in 50</p><p class="text-xs text-gray-400">Games with a TT (experts)</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How the 9× Multiplier Works</h2>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Multiplier Stacking</p>
+        <p class="text-base text-gray-200">Word multipliers in Scrabble stack multiplicatively, not additively. TWS + TWS = 3×3 = <span class="text-white font-medium">9× the word value</span>, not 3+3 = 6×. A 15-point word on a double-triple would score 90 (if 6×), but actually scores <span class="text-white font-medium">135</span> (9×). Add 50 bingo bonus = 185 points from one play.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Board Positions</h2>
+
+      <p class="text-gray-300">Triple-triples can only occur where two TWS squares sit on the same row or column with reachable distance between them:</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Position</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">TWS Squares</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Distance</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word Length Needed</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">Top row</td><td class="px-4 py-3 text-gray-400">A1 + A8, or A8 + A15</td><td class="px-4 py-3 text-gray-400">7 apart</td><td class="px-4 py-3 text-gray-400">8 letters</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">Bottom row</td><td class="px-4 py-3 text-gray-400">O1 + O8, or O8 + O15</td><td class="px-4 py-3 text-gray-400">7 apart</td><td class="px-4 py-3 text-gray-400">8 letters</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">Left column</td><td class="px-4 py-3 text-gray-400">A1 + H1, or H1 + O1</td><td class="px-4 py-3 text-gray-400">7 apart</td><td class="px-4 py-3 text-gray-400">8 letters</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">Right column</td><td class="px-4 py-3 text-gray-400">A15 + H15, or H15 + O15</td><td class="px-4 py-3 text-gray-400">7 apart</td><td class="px-4 py-3 text-gray-400">8 letters</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Setting Up a Triple-Triple</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Protect both TWS squares:</span> Don't use a TWS early unless you get massive value. If both edge TWS squares remain open, the triple-triple possibility lives. Play centrally when possible.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Create a connecting tile:</span> The TT word doesn't need to start and end on TWS — it just needs to cover both. A tile already on the board between the two TWS squares can act as a stepping stone.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use a bingo (all 7 tiles):</span> An 8-letter word spanning 8 squares perfectly bridges adjacent TWS positions. Bingo + 9× multiplier = 150-200+ points. This is why experts save blanks for edge plays.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use a through-tile:</span> If one tile already sits between the two TWS squares, you only need 7 of your own tiles to span the full distance. Play through that existing tile.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Realistic Examples</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">TRAINERS (8 letters)</p>
+          <p class="text-xs text-gray-400">Base score: 8 pts. On 9×: 72 pts + 50 bingo bonus = 122. Common word, easy to draw with SATIRE stem + N + extra tile.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">QUILTERS (8 letters)</p>
+          <p class="text-xs text-gray-400">Base score: 17 pts. On 9×: 153 pts + 50 bingo bonus = 203. High-value Q makes this a monster TT play.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/maximum-possible-scrabble-score/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Maximum Possible Scrabble Score — the theoretical ceiling</span>
+          </a>
+          <a href="/blog/scoring-100-points-single-turn/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scoring 100 Points in a Single Turn — more achievable big plays</span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/maximum-possible-scrabble-score/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Maximum Possible Scrabble Score</span>
+          </a>
+          <a href="/blog/best-words-for-premium-squares/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Best Words for Premium Squares</span>
+          </a>
+          <a href="/blog/scoring-100-points-single-turn/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scoring 100 Points in a Single Turn</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find 8-letter words for your triple-triple — free, instant</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

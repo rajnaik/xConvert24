@@ -87,22 +87,52 @@ import '../../styles/global.css';
   <script>
     let pollInterval: ReturnType<typeof setInterval> | null = null;
 
+    // Endpoints to health-check from the browser (client-side).
+    // Workers cannot fetch their own hostname (Cloudflare returns 522 on self-referencing subrequests).
+    const ENDPOINTS = [
+      { name: 'Homepage', path: '/' },
+      { name: 'Blog', path: '/blog/' },
+      { name: 'Guide', path: '/guide/' },
+      { name: 'Activities', path: '/activities/' },
+      { name: 'Chat', path: '/chat/' },
+      { name: 'API Clicks', path: '/api/clicks/?count=true' },
+      { name: 'API Banners', path: '/api/banners/?active=true' },
+      { name: 'API Site Status', path: '/api/site-status/' },
+      { name: 'API Emails', path: '/api/emails/?limit=1' },
+    ];
+
     async function loadTelemetry() {
       try {
-        const res = await fetch('/api/telemetry');
-        const data = await res.json();
+        const checkedAt = new Date().toISOString();
+        const results: any[] = [];
 
-        // Summary
+        // Perform health checks from the browser (bypasses Cloudflare subrequest loop)
+        for (const ep of ENDPOINTS) {
+          const start = Date.now();
+          try {
+            const res = await fetch(ep.path, { cache: 'no-store' });
+            const elapsed = Date.now() - start;
+            const ok = res.status >= 200 && res.status < 400;
+            results.push({ name: ep.name, path: ep.path, status: res.status, time_ms: elapsed, ok });
+          } catch (e: any) {
+            results.push({ name: ep.name, path: ep.path, status: 0, time_ms: Date.now() - start, ok: false });
+          }
+        }
+
+        const allOk = results.every(r => r.ok);
+        const avgTime = Math.round(results.reduce((s, r) => s + r.time_ms, 0) / results.length);
+
+        // Update summary
         const healthEl = document.getElementById('stat-health')!;
-        healthEl.textContent = data.healthy ? 'ALL OK' : 'ISSUES';
-        healthEl.className = 'text-2xl font-bold ' + (data.healthy ? 'text-green-400' : 'text-red-400');
+        healthEl.textContent = allOk ? 'ALL OK' : 'ISSUES';
+        healthEl.className = 'text-2xl font-bold ' + (allOk ? 'text-green-400' : 'text-red-400');
 
-        document.getElementById('stat-avg')!.textContent = data.avg_ms + 'ms';
-        document.getElementById('stat-time')!.textContent = new Date(data.checked_at).toLocaleTimeString();
+        document.getElementById('stat-avg')!.textContent = avgTime + 'ms';
+        document.getElementById('stat-time')!.textContent = new Date(checkedAt).toLocaleTimeString();
 
-        // Table
+        // Update table
         const tbody = document.getElementById('telem-tbody')!;
-        tbody.innerHTML = data.endpoints.map((ep: any) => `
+        tbody.innerHTML = results.map((ep: any) => `
           <tr class="hover:bg-gray-800/40">
             <td class="px-4 py-3 font-medium text-white">${ep.name}</td>
             <td class="px-4 py-3 font-mono text-xs text-gray-400">${ep.path}</td>
@@ -111,6 +141,14 @@ import '../../styles/global.css';
             <td class="px-4 py-3">${ep.ok ? '<span class="text-green-400">OK</span>' : '<span class="text-red-400">FAIL</span>'}</td>
           </tr>
         `).join('');
+
+        // Persist results to DB via POST (fire-and-forget)
+        fetch('/api/telemetry/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ results, checked_at: checkedAt }),
+        }).catch(() => {});
+
       } catch {
         document.getElementById('telem-tbody')!.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-400">Failed to load telemetry</td></tr>';
       }
@@ -128,7 +166,7 @@ import '../../styles/global.css';
 
     async function loadHistory() {
       try {
-        const res = await fetch('/api/telemetry?history=true&limit=50');
+        const res = await fetch('/api/telemetry/?history=true&limit=50');
         const data = await res.json();
         const rows = data.history || [];
         const tbody = document.getElementById('history-tbody')!;
@@ -138,7 +176,7 @@ import '../../styles/global.css';
         }
         tbody.innerHTML = rows.map((r: any) => `
           <tr class="hover:bg-gray-800/40">
-            <td class="px-4 py-2 text-xs text-gray-400">${new Date(r.checked_at + 'Z').toLocaleTimeString()}</td>
+            <td class="px-4 py-2 text-xs text-gray-400">${new Date(r.checked_at.endsWith('Z') ? r.checked_at : r.checked_at + 'Z').toLocaleTimeString()}</td>
             <td class="px-4 py-2 text-xs">${r.endpoint_name}</td>
             <td class="px-4 py-2"><span class="px-1.5 py-0.5 rounded text-xs ${r.status_code >= 200 && r.status_code < 400 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}">${r.status_code}</span></td>
             <td class="px-4 py-2 font-mono text-xs ${r.response_ms > 500 ? 'text-amber-400' : 'text-white'}">${r.response_ms}ms</td>

@@ -1,55 +1,212 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Playing Bingos Through Existing Letters"
-  description="How to spot bingo opportunities that use a tile already on the board. The 8-letter extension technique."
-  keywords="scrabble, bingo, through, existing, letter"
+<Layout
+  title="Bingo Through an Existing Letter — How to Play All 7 Tiles on the Board"
+  description="Learn the technique of playing through letters already on the board to complete bingos. Master this skill to unlock 50-point bonuses in tight positions. Free guide."
+  keywords="scrabble bingo through letter, play through existing tile, eight letter bingo, scrabble bingo technique, connect to board bingo, extend word bingo"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Playing Bingos Through Existing Letters",
-    "description": "How to spot bingo opportunities that use a tile already on the board. The 8-letter extension technique.",
+    "headline": "Bingo Through an Existing Letter — How to Play All 7 Tiles on the Board",
+    "description": "Learn the technique of playing through letters already on the board to complete bingos in Scrabble.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/bingo-through-existing-letter" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/bingo-through-existing-letter/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What does playing through a letter mean in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Playing through a letter means using a tile already on the board as part of your new word. You place all 7 tiles from your rack plus the existing board tile to form an 8-letter word, earning the 50-point bingo bonus." } },
+      { "@type": "Question", "name": "Do you still get the bingo bonus when playing through a letter?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The bingo bonus requires you to use all 7 tiles from your rack in a single turn. Playing through an existing letter on the board creates an 8-letter word using your 7 tiles plus 1 board tile, which qualifies for the 50-point bonus." } },
+      { "@type": "Question", "name": "How do I find bingos that connect to letters on the board?", "acceptedAnswer": { "@type": "Answer", "text": "Look for isolated letters on the board, especially vowels and common consonants (R, S, T, N). Then check if your 7 tiles plus that letter form a valid 8-letter word. Practice by studying common 8-letter word patterns with one fixed letter." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/bingos/" class="hover:text-blue-400 transition-colors text-gray-300">Bingos</a>
+        <a href="/blog/bingos/" class="hover:text-amber-500 transition-colors text-gray-300">Bingos</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Playing Bingos Through Existing Letters</h1>
+      <BlogCrossLinks title="Bingo Through an Existing Letter" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Bingo Through an Existing Letter</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How to spot bingo opportunities that use a tile already on the board. The 8-letter extension technique.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Most players think of bingos as placing 7 tiles in a row to form a 7-letter word. But the most powerful technique — and the one that separates intermediate from advanced players — is playing <em>through</em> an existing letter on the board to form an 8-letter word. This opens up positions that look impossible and turns tight boards into bingo opportunities.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How Playing Through Works</h2>
+
+      <p class="text-gray-300">When there's a lone letter on the board — say an E from someone's previous play — you can lay your 7 tiles across it, incorporating that E into your word. The result is an 8-letter word using 7 tiles from your rack + 1 from the board. You still earn the bingo bonus because you used all 7 rack tiles.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+        <p class="text-base text-gray-200">Playing through a letter gives you access to <span class="text-white font-medium">8-letter words</span> — a much larger pool than 7-letter words. SOWPODS has roughly 29,000 valid 8-letter words vs 25,000 seven-letter words. More options = more bingos found.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Best Letters to Play Through</h2>
+
+      <p class="text-gray-300">Not all board letters are equally useful. Some produce far more 8-letter combinations than others.</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Letter</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">8-Letter Words</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Why It Works</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Example</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-green-400">E</td><td class="px-4 py-3 text-amber-400">~4,200</td><td class="px-4 py-3 text-gray-400">Most common in English</td><td class="px-4 py-3 text-gray-400">SATIR + E + N = STAINER + E</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-green-400">S</td><td class="px-4 py-3 text-amber-400">~3,800</td><td class="px-4 py-3 text-gray-400">Plurals + verb forms</td><td class="px-4 py-3 text-gray-400">PAINTER + S = PAINTERS</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-green-400">A</td><td class="px-4 py-3 text-amber-400">~3,100</td><td class="px-4 py-3 text-gray-400">Many prefixes use A</td><td class="px-4 py-3 text-gray-400">RETINAL + A = ... </td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-green-400">I</td><td class="px-4 py-3 text-amber-400">~2,900</td><td class="px-4 py-3 text-gray-400">-ING, -TION combos</td><td class="px-4 py-3 text-gray-400">ROASTED + I = ... </td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-green-400">R</td><td class="px-4 py-3 text-amber-400">~2,700</td><td class="px-4 py-3 text-gray-400">-ER, RE- patterns</td><td class="px-4 py-3 text-gray-400">SALTINE + R = ENTRAILS</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Scanning the Board: A Step-by-Step Process</h2>
+
+      <p class="text-gray-300">When you suspect you have bingo-quality tiles but can't form a 7-letter word, scan the board systematically for through-play opportunities.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Board Scanning Process</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300">Identify all exposed letters with open lanes (nothing blocking 8 consecutive squares through that tile).</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300">Note the position within the lane — the board letter can be anywhere in your 8-letter word (2nd letter, 4th, 6th, etc.).</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300">Mentally add that letter to your rack. Now you have 8 letters — can any anagram of those 8 form a word?</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300">Check for common patterns: does adding that letter create -TION, -NESS, -MENT, -STER, RE-, UN-, or OUT-?</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+            <p class="text-sm text-gray-300">Verify the word fits: count squares, check for adjacent tile conflicts, confirm no invalid cross-words.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Common 8-Letter Patterns to Recognise</h2>
+
+      <p class="text-gray-300">These patterns appear repeatedly when playing through letters. Recognising them saves you time during the game.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">-TION endings (through T, I, O, or N)</p>
+          <p class="text-xs text-gray-400">CREATION, RELATION, DONATION, ROTATION — extremely common. If the board has T, I, O, or N exposed and you have the remaining letters, check these first.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">RE- prefix (through R or E)</p>
+          <p class="text-xs text-gray-400">REASTING, RELATING, RETAINED, RESALTING — the RE- prefix opens hundreds of 8-letter bingos through R or E tiles.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">-ING endings (through I, N, or G)</p>
+          <p class="text-xs text-gray-400">STEALING, RELATING, CREATING — any strong 5-letter base + ING through a board letter works beautifully.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">-NESS endings (through N, E, or S)</p>
+          <p class="text-xs text-gray-400">BOLDNESS, COOLNESS, DARKNESS — adjective + NESS through a board letter. High-scoring and overlooked.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/bingo-racks-to-memorise/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Bingo Racks to Memorise — the 6-letter stems that produce the most 7-letter words</span>
+          </a>
+          <a href="/blog/bingo-frequency-by-dictionary/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Bingo Frequency by Dictionary — SOWPODS vs TWL bingo rates</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Prioritise Through-Plays</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Tight boards:</span> When most lanes are blocked, through-plays are often the only bingo option. A single exposed letter in the middle of the board gives you an 8-square lane that might be the only opening.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Triple word access:</span> If a through-play lands on a triple word square, your bingo score jumps from 60-80 points to 100-140. Always check if exposed letters line up with premium squares.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Late game:</span> As the board fills up, 7-letter bingo lanes disappear but through-play opportunities multiply. Every new word creates new exposed letters to play through.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">When your rack is strong but imperfect:</span> You have SATIRE + W. No 7-letter bingo exists. But if the board has an L exposed, WALITERS might work through that L.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">8 letters</p><p class="text-xs text-gray-400">7 from rack + 1 board</p></div>
+          <div><p class="text-xl font-bold text-amber-400">29,000+</p><p class="text-xs text-gray-400">Valid 8-letter words</p></div>
+          <div><p class="text-xl font-bold text-amber-400">50 pts</p><p class="text-xs text-gray-400">Bingo bonus earned</p></div>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/bingo-racks-to-memorise/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Bingo Racks to Memorise</span>
+          </a>
+          <a href="/blog/fishing-for-bingos/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Fishing for Bingos — When to Sacrifice Points</span>
+          </a>
+          <a href="/blog/seven-letter-words-with-common-tiles/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Seven-Letter Words with Common Tiles</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find 8-letter words from your tiles — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

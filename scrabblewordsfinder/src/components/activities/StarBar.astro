@@ -51,7 +51,7 @@
             </a>
           </div>
         </div>
-        <p id="sb-message" class="text-xs text-gray-400 font-medium mt-1"></p>
+        <p id="sb-message" class="text-base text-gray-400 font-medium mt-1"></p>
       </div>
 
 <script is:inline>
@@ -102,20 +102,19 @@
     });
   }
 
-  savedStars.forEach(function(game) { markStarGreen(game); });
+  savedStars.forEach(function(game) {
+    markStarGreen(game);
+    var ticks = document.querySelectorAll('.star-tick[data-game="' + game + '"]');
+    ticks.forEach(function(tick) { tick.classList.remove('hidden'); });
+  });
 
   window.addEventListener('swf-star-earned', function(e) {
     var game = e.detail && e.detail.game;
     if (game) {
       markStarGreen(game);
-      // Show static tick elements for this game
+      // Show static tick elements for this game permanently
       var ticks = document.querySelectorAll('.star-tick[data-game="' + game + '"]');
-      ticks.forEach(function(tick) {
-        tick.classList.remove('hidden');
-        tick.style.opacity = '1';
-        // Fade out after 5 seconds
-        setTimeout(function() { tick.style.transition = 'opacity 0.7s'; tick.style.opacity = '0'; setTimeout(function() { tick.classList.add('hidden'); }, 700); }, 5000);
-      });
+      ticks.forEach(function(tick) { tick.classList.remove('hidden'); });
     }
   });
 
@@ -148,6 +147,8 @@
       // Turn star indicator green permanently for earned stars
       if (stars.indexOf(g.slug) !== -1) {
         markStarGreen(g.slug);
+        var ticks = document.querySelectorAll('.star-tick[data-game="' + g.slug + '"]');
+        ticks.forEach(function(tick) { tick.classList.remove('hidden'); });
       }
     });
     var threshold = data.diamond_threshold || games.length || 6;

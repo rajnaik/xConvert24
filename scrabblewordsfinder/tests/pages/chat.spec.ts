@@ -914,3 +914,96 @@ test.describe('Chat Page — Memorise with Memory WordBench Modal (Negative)', (
     await expect(page.locator('#mwb-modal')).toHaveClass(/hidden/);
   });
 });
+
+
+test.describe('Chat Page — jsPDF & Coaching PDF (Positive)', () => {
+  test('jsPDF script tag is present with correct version 2.5.1', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const script = page.locator('script[src*="jspdf"]');
+    await expect(script).toBeAttached();
+    const src = await script.getAttribute('src');
+    expect(src).toContain('2.5.1');
+    expect(src).toContain('jspdf.umd.min.js');
+  });
+
+  test('jsPDF library loads with 200 status', async ({ page }) => {
+    const responses: { url: string; status: number }[] = [];
+    page.on('response', res => {
+      if (res.url().includes('jspdf')) {
+        responses.push({ url: res.url(), status: res.status() });
+      }
+    });
+    await page.goto(`${BASE}/chat/`);
+    await page.waitForTimeout(2000);
+    expect(responses.length).toBeGreaterThan(0);
+    expect(responses[0].status).toBe(200);
+  });
+
+  test('jsPDF global is available after page load', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    await page.waitForTimeout(2000);
+    const hasJspdf = await page.evaluate(() => {
+      return typeof (window as any).jspdf !== 'undefined' || typeof (window as any).jsPDF !== 'undefined';
+    });
+    expect(hasJspdf).toBe(true);
+  });
+
+  test('coaching-pdf.js script tag is present', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const script = page.locator('script[src="/js/coaching-pdf.js"]');
+    await expect(script).toBeAttached();
+  });
+
+  test('coaching-pdf.js loads with 200 status', async ({ page }) => {
+    const responses: { url: string; status: number }[] = [];
+    page.on('response', res => {
+      if (res.url().includes('coaching-pdf.js')) {
+        responses.push({ url: res.url(), status: res.status() });
+      }
+    });
+    await page.goto(`${BASE}/chat/`);
+    await page.waitForTimeout(1000);
+    expect(responses.length).toBeGreaterThan(0);
+    expect(responses[0].status).toBe(200);
+  });
+});
+
+test.describe('Chat Page — jsPDF & Coaching PDF (Negative)', () => {
+  test('no duplicate jsPDF script tags', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const scripts = page.locator('script[src*="jspdf"]');
+    const count = await scripts.count();
+    expect(count).toBe(1);
+  });
+
+  test('jsPDF does not reference old version 2.5.2 (regression)', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const script = page.locator('script[src*="jspdf"]');
+    const src = await script.getAttribute('src');
+    expect(src).not.toContain('2.5.2');
+  });
+
+  test('jsPDF and coaching-pdf scripts do not cause page errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto(`${BASE}/chat/`);
+    await page.waitForTimeout(3000);
+    const pdfErrors = errors.filter(e =>
+      e.includes('jspdf') || e.includes('jsPDF') || e.includes('coaching-pdf') || e.includes('PDF')
+    );
+    expect(pdfErrors).toHaveLength(0);
+  });
+
+  test('jsPDF is loaded before coaching-pdf.js (correct script order)', async ({ page }) => {
+    await page.goto(`${BASE}/chat/`);
+    const scriptOrder = await page.evaluate(() => {
+      const scripts = Array.from(document.querySelectorAll('script'));
+      const jspdfIdx = scripts.findIndex(s => s.src.includes('jspdf'));
+      const coachingPdfIdx = scripts.findIndex(s => s.src.includes('coaching-pdf.js'));
+      return { jspdfIdx, coachingPdfIdx };
+    });
+    expect(scriptOrder.jspdfIdx).toBeGreaterThanOrEqual(0);
+    expect(scriptOrder.coachingPdfIdx).toBeGreaterThanOrEqual(0);
+    expect(scriptOrder.jspdfIdx).toBeLessThan(scriptOrder.coachingPdfIdx);
+  });
+});

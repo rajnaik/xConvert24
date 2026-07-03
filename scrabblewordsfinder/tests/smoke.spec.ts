@@ -760,3 +760,134 @@ test.describe('@smoke Navigation & Layout', () => {
     expect(box!.width).toBeGreaterThan(300);
   });
 });
+
+// ─────────────────────────────────────────────
+// TRAILING SLASH MIDDLEWARE (20 tests)
+// ─────────────────────────────────────────────
+
+test.describe('@smoke Trailing Slash Middleware', () => {
+  // --- Positive: Pages without trailing slash get 301 redirect ---
+
+  test('GET /activities returns 301 → /activities/', async ({ request }) => {
+    const res = await request.get(`${BASE}/activities`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/activities/');
+  });
+
+  test('GET /terms returns 301 → /terms/', async ({ request }) => {
+    const res = await request.get(`${BASE}/terms`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/terms/');
+  });
+
+  test('GET /faq returns 301 → /faq/', async ({ request }) => {
+    const res = await request.get(`${BASE}/faq`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/faq/');
+  });
+
+  test('GET /blog/what-is-scrabble returns 301 → /blog/what-is-scrabble/', async ({ request }) => {
+    const res = await request.get(`${BASE}/blog/what-is-scrabble`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/blog/what-is-scrabble/');
+  });
+
+  test('GET /about returns 301 → /about/', async ({ request }) => {
+    const res = await request.get(`${BASE}/about`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/about/');
+  });
+
+  test('GET /settings returns 301 → /settings/', async ({ request }) => {
+    const res = await request.get(`${BASE}/settings`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/settings/');
+  });
+
+  test('GET /releases returns 301 → /releases/', async ({ request }) => {
+    const res = await request.get(`${BASE}/releases`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/releases/');
+  });
+
+  test('GET /contact returns 301 → /contact/', async ({ request }) => {
+    const res = await request.get(`${BASE}/contact`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/contact/');
+  });
+
+  // --- Positive: Pages WITH trailing slash serve 200 directly ---
+
+  test('GET /activities/ returns 200 (no redirect)', async ({ request }) => {
+    const res = await request.get(`${BASE}/activities/`);
+    expect(res.status()).toBe(200);
+  });
+
+  test('GET /terms/ returns 200 (no redirect)', async ({ request }) => {
+    const res = await request.get(`${BASE}/terms/`);
+    expect(res.status()).toBe(200);
+  });
+
+  test('GET /blog/ returns 200 (no redirect)', async ({ request }) => {
+    const res = await request.get(`${BASE}/blog/`);
+    expect(res.status()).toBe(200);
+  });
+
+  test('GET / (homepage) returns 200 (no redirect)', async ({ request }) => {
+    const res = await request.get(`${BASE}/`);
+    expect(res.status()).toBe(200);
+  });
+
+  // --- Negative: API routes are NOT redirected ---
+
+  test('GET /api/wotd (no trailing slash) is NOT redirected', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/wotd`, { maxRedirects: 0 });
+    // API without slash should NOT get a 301 — should pass through
+    expect(res.status()).not.toBe(301);
+  });
+
+  test('GET /api/banners (no trailing slash) is NOT redirected', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/banners`, { maxRedirects: 0 });
+    expect(res.status()).not.toBe(301);
+  });
+
+  test('GET /api/site-status (no trailing slash) is NOT redirected', async ({ request }) => {
+    const res = await request.get(`${BASE}/api/site-status`, { maxRedirects: 0 });
+    expect(res.status()).not.toBe(301);
+  });
+
+  // --- Negative: Static assets are NOT redirected ---
+
+  test('GET /favicon.svg is NOT redirected (static asset)', async ({ request }) => {
+    const res = await request.get(`${BASE}/favicon.svg`, { maxRedirects: 0 });
+    expect(res.status()).toBe(200);
+  });
+
+  test('GET /social-card.svg is NOT redirected (static asset)', async ({ request }) => {
+    const res = await request.get(`${BASE}/social-card.svg`, { maxRedirects: 0 });
+    expect(res.status()).toBe(200);
+  });
+
+  test('GET /robots.txt is NOT redirected (static asset)', async ({ request }) => {
+    const res = await request.get(`${BASE}/robots.txt`, { maxRedirects: 0 });
+    expect(res.status()).toBe(200);
+  });
+
+  // --- Negative: Redirect is 301, NOT 307 or 308 ---
+
+  test('redirect is 301 (permanent) not 307 (temporary)', async ({ request }) => {
+    const res = await request.get(`${BASE}/guide`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    // Explicitly NOT 307 or 308
+    expect(res.status()).not.toBe(307);
+    expect(res.status()).not.toBe(308);
+  });
+
+  // --- Positive: Query params are preserved in redirect ---
+
+  test('query params are preserved in trailing slash redirect', async ({ request }) => {
+    const res = await request.get(`${BASE}/contact?subject=bug`, { maxRedirects: 0 });
+    expect(res.status()).toBe(301);
+    expect(res.headers()['location']).toBe('/contact/?subject=bug');
+  });
+});

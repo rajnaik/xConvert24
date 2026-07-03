@@ -133,10 +133,12 @@ const showAds = !isAdmin;
     </script>
   </head>
   <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">
-    {/* Welcome banner — shows after user is registered with avatar */}
+    {showHeader && <Header showSectionLinks={showSectionLinks} variant="main" />}
+
+    {/* Welcome banner — shows below header when user has avatar */}
     {showHeader && !isAdmin && (
-      <div id="welcome-banner" class="hidden mx-auto max-w-6xl px-4 sm:px-6 pt-[5px] pb-0">
-        <div class="flex items-center gap-3 rounded-lg bg-gradient-to-r from-teal-900/40 to-purple-900/30 border border-teal-700/40 px-4 py-2">
+      <div id="welcome-banner" class="hidden mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-0">
+        <div class="flex items-center gap-3 rounded-b-lg bg-gradient-to-r from-teal-900/30 to-purple-900/20 border-x border-b border-teal-700/30 px-4 py-1.5">
           <img id="welcome-avatar" src="/avatars/avatar-1.svg" alt="Your avatar" class="h-9 w-9 rounded-full border-2 border-teal-500/60 shadow-sm" />
           <p class="text-sm text-gray-200">
             <span class="text-gray-400">Welcome to the world of Scrabble —</span>
@@ -154,8 +156,6 @@ const showAds = !isAdmin;
         </div>
       </div>
     )}
-
-    {showHeader && <Header showSectionLinks={showSectionLinks} variant="main" />}
 
     {/* Welcome banner logic — shows when user has an avatar assigned */}
     {showHeader && !isAdmin && (
@@ -256,6 +256,8 @@ const showAds = !isAdmin;
     <!-- Site search bar logic (desktop + mobile) — lazy-loads full index from /api/search-index/ -->
     <script is:inline>
     (function() {
+      var ric = window.requestIdleCallback || function(cb){setTimeout(cb,50)};
+      ric(function() {
       // Minimal inline fallback (site pages only) — available instantly before API fetch
       var PAGES = [
         {t:'Word Solver',u:'/',d:'Find all words from your tiles'},
@@ -361,6 +363,7 @@ const showAds = !isAdmin;
       // Init both desktop and mobile search inputs
       initSearch('dict-search', 'search-find-btn');
       initSearch('dict-search-mobile', 'search-find-btn-mobile');
+    });
     })();
     </script>
 
@@ -417,8 +420,9 @@ const showAds = !isAdmin;
         },
         has: function(key) { return window.__swfStore.getIfValid(key) !== null; }
       };
-      // Purge expired items on every page load
-      window.__swfStore.purgeExpired();
+      // Purge expired items when browser is idle (off critical path)
+      if (window.requestIdleCallback) { window.requestIdleCallback(function() { window.__swfStore.purgeExpired(); }); }
+      else { setTimeout(function() { window.__swfStore.purgeExpired(); }, 0); }
     })();
     </script>
 
@@ -501,8 +505,8 @@ const showAds = !isAdmin;
         } catch(e) {}
       }
 
-      // Send immediately on page load, then every 30 seconds
-      sendHeartbeat();
+      // Send first heartbeat after 3s (off critical path), then every 30 seconds
+      setTimeout(sendHeartbeat, 3000);
       setInterval(sendHeartbeat, 30000);
 
       // Also send on page visibility change (user returns to tab)
@@ -515,6 +519,8 @@ const showAds = !isAdmin;
     <!-- Avatar auto-registration (first visit) -->
     <script is:inline>
     (function() {
+      var ric = window.requestIdleCallback || function(cb){setTimeout(cb,100)};
+      ric(function() {
       if (window.location.pathname.startsWith('/admin')) return;
       var AVATAR_KEY = 'swf-avatar';
       var NAME_KEY = 'swf-display-name';
@@ -574,6 +580,7 @@ const showAds = !isAdmin;
         })
         .catch(function() {});
       }, 1500);
+    });
     })();
     </script>
 

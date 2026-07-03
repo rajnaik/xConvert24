@@ -13,17 +13,24 @@ export const GET: APIRoute = async () => {
   if (!db) return jsonError('DB not configured', 500);
 
   try {
-    const row = await db.prepare('SELECT * FROM site_status WHERE id = 1').first();
+    // Batch both queries into a single D1 round-trip
+    const [statusResult, chatResult] = await db.batch([
+      db.prepare('SELECT * FROM site_status WHERE id = 1'),
+      db.prepare('SELECT COUNT(*) as cnt FROM chatusage'),
+    ]);
+
+    const row = statusResult.results?.[0];
     if (!row) return jsonError('Site status not found', 404);
 
-    // Include total chat usage count
-    let chatusage = 0;
-    try {
-      const cu = await db.prepare('SELECT COUNT(*) as cnt FROM chatusage').first();
-      if (cu) chatusage = cu.cnt;
-    } catch { /* chatusage table may not exist yet */ }
+    const chatusage = chatResult.results?.[0]?.cnt || 0;
 
-    return json({ ...row, chatusage });
+    return new Response(JSON.stringify({ ...row, chatusage }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'private, max-age=10',
+      },
+    });
   } catch (e: any) {
     return jsonError(e.message, 500);
   }

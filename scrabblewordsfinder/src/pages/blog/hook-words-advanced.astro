@@ -1,55 +1,199 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Advanced Hook Words — S, D, R Extensions"
-  description="Beyond basic hooks. Using S-hooks, D-hooks, and R-hooks to score from your opponent's words."
-  keywords="scrabble, hook, words, advanced"
+<Layout
+  title="Advanced Hook Words — Front Hooks, Back Hooks & Multi-Hook Strategy"
+  description="Master advanced hook word strategy in Scrabble. Front hooks, back hooks, multi-hooking, and defensive hook blocking. Expert-level guide for competitive play."
+  keywords="hook words scrabble advanced, front hook scrabble, back hook strategy, multi-hook plays, scrabble hook list, hook words competitive"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Advanced Hook Words — S, D, R Extensions",
-    "description": "Beyond basic hooks. Using S-hooks, D-hooks, and R-hooks to score from your opponent's words.",
+    "headline": "Advanced Hook Words — Front Hooks, Back Hooks & Multi-Hook Strategy",
+    "description": "Master advanced hook word strategy in Scrabble. Front hooks, back hooks, multi-hooking, and defensive hook blocking.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/hook-words-advanced" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/hook-words-advanced/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is a hook word in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A hook word is formed by adding a single letter to the front or back of an existing word on the board. For example, adding C to HEAT makes CHEAT (front hook), or adding S to PLANT makes PLANTS (back hook). Hooks let you score for both the new letter and the perpendicular word you play through that position." } },
+      { "@type": "Question", "name": "What are the best front hooks to memorise?", "acceptedAnswer": { "@type": "Answer", "text": "The most valuable front hooks use uncommon prefixes: C+LOSE=CLOSE, S+LAUGHTER=SLAUGHTER, T+RAINING=TRAINING, B+RANCH=BRANCH, G+RAFT=GRAFT. Focus on hooks that create non-obvious words — opponents often miss defending against front hooks because they don't see the word changing." } },
+      { "@type": "Question", "name": "How do I use hooks defensively in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Block hook spots by playing words that cannot be hooked. Words ending in non-hookable letters (V, Q, J) or words where no valid front-hook exists are defensive plays. Also, avoid leaving your own words in hookable positions near premium squares where an opponent could score big." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
+        <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors text-gray-300">Strategy</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Advanced Hook Words — S, D, R Extensions</h1>
+      <BlogCrossLinks title="Advanced Hook Words" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Advanced Hook Words</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>8 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Beyond basic hooks. Using S-hooks, D-hooks, and R-hooks to score from your opponent's words.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Hooks are the connective tissue of expert Scrabble. While beginners see a word on the board as fixed, experts see it as a launchpad — a single letter added to front or back creates a new word while simultaneously enabling a perpendicular play through that position. Master hooks, and you'll find plays where others see dead ends.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Front Hooks vs Back Hooks</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">→ Back Hooks (Adding to the end)</p>
+          <p class="text-xs text-gray-400">Most common. Adding S, D, R, E, Y to existing words. Everyone knows PLANT→PLANTS. The advanced skill is knowing unusual back hooks: COME→COMER, CAVE→CAVED, TABLE→TABLED.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+          <p class="text-purple-400 font-semibold text-sm mb-1">← Front Hooks (Adding to the start)</p>
+          <p class="text-xs text-gray-400">Much rarer and harder to spot. Adding a letter before the word: C+HEAT=CHEAT, S+WORD=SWORD, G+LOW=GLOW, T+RAIL=TRAIL. Opponents rarely defend against front hooks.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Why Front Hooks Are Better</p>
+        <p class="text-base text-gray-200">Front hooks are <span class="text-white font-medium">less defended against</span> because most players only think about the end of words. A word sitting next to a premium square with an open front-hook position is gold — your opponent likely doesn't even see the threat.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">High-Value Hooks to Memorise</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Base Word</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Front Hook</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Back Hook</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Why It's Valuable</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">HOST</td><td class="px-4 py-3 text-gray-400">G→GHOST</td><td class="px-4 py-3 text-gray-400">S→HOSTS</td><td class="px-4 py-3 text-gray-400">Non-obvious front hook</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">RAFT</td><td class="px-4 py-3 text-gray-400">D→DRAFT, G→GRAFT</td><td class="px-4 py-3 text-gray-400">S→RAFTS, Y→RAFTY</td><td class="px-4 py-3 text-gray-400">Multiple front hooks</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">ITCH</td><td class="px-4 py-3 text-gray-400">B→BITCH, D→DITCH, H→HITCH</td><td class="px-4 py-3 text-gray-400">Y→ITCHY</td><td class="px-4 py-3 text-gray-400">3+ front hook options</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">EARING</td><td class="px-4 py-3 text-gray-400">B→BEARING, W→WEARING</td><td class="px-4 py-3 text-gray-400">S→EARINGS</td><td class="px-4 py-3 text-gray-400">Creates 7-letter words</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">OVER</td><td class="px-4 py-3 text-gray-400">C→COVER, D→DOVER, L→LOVER</td><td class="px-4 py-3 text-gray-400">S→OVERS, T→OVERT</td><td class="px-4 py-3 text-gray-400">Many high-value front hooks</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Multi-Hook Strategy</h2>
+
+      <p class="text-gray-300">Expert players don't just hook one word — they create plays where a single tile simultaneously hooks an existing word AND forms part of a new perpendicular word:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">The perpendicular hook:</span> Place your main word perpendicular to an existing word, with one of your tiles hooking that word. You score for both your full word AND the hooked word.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Double-hook plays:</span> Position your word so it hooks TWO existing words simultaneously. This requires both the first and last letter of your word to form valid hooks.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Setup hooks:</span> Play a word in a position that creates a hook opportunity for YOUR next turn — near a premium square. If your opponent doesn't block, you cash in next turn.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Defensive Hook Blocking</h2>
+
+      <p class="text-gray-300">Hooks work both ways. Stop your opponent from exploiting them:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play unhookable words:</span> Words ending in V, J, or Q are nearly impossible to back-hook. GIVE→no valid back hook. Position these near premium squares.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Block front-hook squares:</span> If your word sits before a TW square with an open front-hook position, place a tile there yourself — even a low-scoring one — to deny the premium.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use S defensively:</span> Adding S to your own word removes the hook opportunity for your opponent. Better to score 2 points yourself than let them score 30 by hooking your word.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/defensive-scrabble-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Defensive Scrabble Strategy — blocking and board control</span>
+          </a>
+          <a href="/blog/setup-moves-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Setup Moves in Scrabble — creating traps for future turns</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Building Your Hook Vocabulary</h2>
+
+      <p class="text-gray-300">Memorising hooks systematically gives you an edge that compounds over time. Start with the 50 most common 4-5 letter words and learn every valid front and back hook for each.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Training Priority</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300">Learn all S-hooks first — most words accept an S back hook, making this the highest-volume category.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300">Learn unusual front hooks: C, G, B, P, W are the most productive front-hook letters beyond S.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300">Learn words that DON'T hook — for defensive awareness near premium squares.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300">Learn 6→7 letter hooks that create bingos — these are the highest-value hooks in the game.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/setup-moves-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Setup Moves in Scrabble</span>
+          </a>
+          <a href="/blog/best-words-for-premium-squares/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Best Words for Premium Squares</span>
+          </a>
+          <a href="/blog/offensive-scrabble-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Offensive Scrabble Strategy</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find hook words for any position — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

@@ -1,55 +1,167 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Tile Turnover Rate — Play More Tiles Per Turn"
-  description="Why playing 5+ tiles per turn accelerates your scoring. The relationship between tile cycling and bingo probability."
-  keywords="scrabble, tile, turnover, rate"
+<Layout
+  title="Tile Turnover Rate — Why Playing More Tiles Wins More Games"
+  description="Understand tile turnover rate in Scrabble. Why playing 5-7 tiles per turn gives you more draws, better racks, and higher win rates. Strategic analysis with data."
+  keywords="tile turnover rate scrabble, tiles per turn strategy, scrabble drawing tiles, play more tiles, scrabble rack refresh, turnover advantage"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Tile Turnover Rate — Play More Tiles Per Turn",
-    "description": "Why playing 5+ tiles per turn accelerates your scoring. The relationship between tile cycling and bingo probability.",
+    "headline": "Tile Turnover Rate — Why Playing More Tiles Wins More Games",
+    "description": "Understand tile turnover rate in Scrabble. Why playing 5-7 tiles per turn gives you more draws, better racks, and higher win rates.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/tile-turnover-rate" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/tile-turnover-rate/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is tile turnover rate in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Tile turnover rate is the average number of tiles you play per turn. A player averaging 5 tiles per turn has a higher turnover rate than one averaging 3 tiles. Higher turnover means you see more of the tile bag throughout the game, giving you more chances to draw blanks, S tiles, and high-value letters." } },
+      { "@type": "Question", "name": "Why does high tile turnover win more Scrabble games?", "acceptedAnswer": { "@type": "Answer", "text": "High turnover creates three advantages: 1) You see more tiles from the bag, increasing your chances of drawing power tiles and blanks. 2) More tiles played = more tiles drawn = fresher racks each turn. 3) You control game pace — faster turnover means fewer turns for your opponent to exploit their tiles. Players who average 5+ tiles per turn win significantly more often." } },
+      { "@type": "Question", "name": "How do I increase my tile turnover in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Prioritise longer words even at slightly lower per-tile scores. A 5-letter word scoring 25 (5 pts/tile) is often better than a 3-letter word scoring 20 (6.7 pts/tile) because you draw 5 new tiles instead of 3. Bingos are the ultimate turnover play — 7 tiles played, 7 new tiles drawn. Exchange when stuck rather than playing 2-letter dumps." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
+        <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors text-gray-300">Strategy</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Tile Turnover Rate — Play More Tiles Per Turn</h1>
+      <BlogCrossLinks title="Tile Turnover Rate" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Tile Turnover Rate</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Why playing 5+ tiles per turn accelerates your scoring. The relationship between tile cycling and bingo probability.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">In Scrabble, the player who sees more tiles wins more games. It's a statistical truth that most players overlook. Every tile you play is a tile you draw — and the more you draw, the higher your chances of getting blanks, S tiles, and power letters. This is the tile turnover advantage.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">100</p><p class="text-xs text-gray-400">Tiles in the bag</p></div>
+          <div><p class="text-xl font-bold text-amber-400">~55</p><p class="text-xs text-gray-400">Tiles seen (high turnover)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">~40</p><p class="text-xs text-gray-400">Tiles seen (low turnover)</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Turnover Advantage</h2>
+
+      <p class="text-gray-300">There are 100 tiles in a standard Scrabble bag. Each player starts with 7. The rest come through drawing — and you only draw when you play tiles. More tiles played = more drawn = more chances at the premium tiles.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">📈 High Turnover Player</p>
+          <p class="text-xs text-gray-400">Averages 5 tiles/turn over 12 turns = 60 tiles played. Sees 67 of 100 tiles (including initial 7). Has drawn both blanks 65% of the time. More bingo opportunities.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">📉 Low Turnover Player</p>
+          <p class="text-xs text-gray-400">Averages 3 tiles/turn over 12 turns = 36 tiles played. Sees 43 of 100 tiles. Draws both blanks only 35% of the time. Fewer chances for premium tiles.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 The Hidden Metric</p>
+        <p class="text-base text-gray-200">Points-per-tile isn't the only metric. A 25-point 5-letter word (<span class="text-white font-medium">5 pts/tile</span>) is often better than a 20-point 3-letter word (<span class="text-white font-medium">6.7 pts/tile</span>) because you draw 2 extra tiles. Those 2 tiles might complete your next bingo.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How to Increase Turnover</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Prioritise longer words:</span> When choosing between plays of similar score, pick the one that uses more tiles. A 22-point 5-letter word beats a 24-point 3-letter word in turnover value.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Fish for bingos:</span> Bingos are the ultimate turnover play — 7 tiles used, 7 new tiles drawn. Even moderate fishing (sacrificing 10-15 points) is justified by the turnover benefit plus the 50-point bonus.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Exchange rather than dump:</span> Playing a 2-letter word for 4 points keeps bad tiles on your rack AND only draws 2. Exchanging 5-6 tiles draws 5-6 fresh ones — much better turnover even though you score zero.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Avoid 2-letter plays when possible:</span> Every 2-letter play means you draw only 2 tiles. You're barely refreshing your rack. Reserve 2-letter plays for power tiles on premium squares (QI, ZA) where the score justifies low turnover.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When Low Turnover Is Correct</h2>
+
+      <p class="text-gray-300">There are exceptions — situations where playing fewer tiles is strategically correct:</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Situation</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Why Low Turnover</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">Power tile on TLS/TWS</td><td class="px-4 py-3 text-gray-400">QI for 31 points justifies 2-tile play</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">Closing the board (ahead)</td><td class="px-4 py-3 text-gray-400">Short parallel plays block without opening lanes</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">Endgame (bag empty)</td><td class="px-4 py-3 text-gray-400">No tiles to draw — turnover irrelevant</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">Fishing (keeping a stem)</td><td class="px-4 py-3 text-gray-400">Playing 1-2 tiles to keep 5-6 for a bingo next turn</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/rack-management-basics/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Rack Management Basics — building better leaves</span>
+          </a>
+          <a href="/blog/fishing-for-bingos/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Fishing for Bingos — the ultimate turnover play</span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/rack-management-basics/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Rack Management Basics</span>
+          </a>
+          <a href="/blog/counting-tiles-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Counting Tiles Strategy</span>
+          </a>
+          <a href="/blog/rack-leave-explained/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Rack Leave Explained</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find longer words to boost your turnover — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

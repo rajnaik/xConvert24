@@ -20,11 +20,19 @@ test.describe('Blog Index — Category Grid — Positive', () => {
 
   test('section headings are visible for each group', async ({ page }) => {
     await page.goto(`${BASE}/blog/`);
-    const headings = ['Learn & Strategy', 'Word Lists', 'Word Validity & Themes', 'Word Patterns', 'Resources', 'Activities'];
+    const headings = ['Learn & Strategy', 'Word Lists', 'Practice & Play', 'Word Validity & Themes', 'Word Patterns', 'Resources', 'Activities'];
     for (const heading of headings) {
       const el = page.locator('.grid.grid-cols-3 p', { hasText: heading }).first();
       await expect(el).toBeVisible();
     }
+  });
+
+  test('Practice & Play section has Activities tile linking to /activities/', async ({ page }) => {
+    await page.goto(`${BASE}/blog/`);
+    // The Practice & Play tile uses purple-500 border styling and 🎯 icon
+    const activitiesTile = page.locator('.grid.grid-cols-3 a[href="/activities/"]').filter({ hasText: '🎯' }).first();
+    await expect(activitiesTile).toBeVisible();
+    await expect(activitiesTile).toContainText('Activities');
   });
 
   test('category tiles link to correct destinations with trailing slashes', async ({ page }) => {
@@ -107,6 +115,21 @@ test.describe('Blog Index — Useful Links Panel — Positive', () => {
     const footerLink = page.locator('#useful-links-content a[href="/blog/useful-links/"]');
     await expect(footerLink).toBeVisible();
     await expect(footerLink).toContainText('View full Useful Links page');
+  });
+});
+
+test.describe('Blog Index — Practice & Play Section — Negative', () => {
+  test('Practice & Play section has exactly one Activities tile with 🎯 icon', async ({ page }) => {
+    await page.goto(`${BASE}/blog/`);
+    const grid = page.locator('.grid.grid-cols-3').first();
+    const practicePlayTiles = grid.locator('a[href="/activities/"]').filter({ hasText: '🎯' });
+    await expect(practicePlayTiles).toHaveCount(1);
+  });
+
+  test('Practice & Play heading appears only once', async ({ page }) => {
+    await page.goto(`${BASE}/blog/`);
+    const headings = page.locator('.grid.grid-cols-3 p', { hasText: 'Practice & Play' });
+    await expect(headings).toHaveCount(1);
   });
 });
 

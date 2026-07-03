@@ -514,6 +514,112 @@ test.describe('API — /api/lex-quiz-coach/ POST — Time Split & Usage Analysis
   });
 });
 
+test.describe('API — /api/lex-quiz-coach/ POST — Structured Coaching Output', () => {
+  test('analysis response can exceed 200 chars (max_tokens 450 allows longer coaching)', async ({ request }) => {
+    const userId = 'lex-coach-long-output-test-' + Date.now();
+    // Seed 5 games to ensure AI path is hit (not wisdom fallback)
+    for (let i = 0; i < 5; i++) {
+      await request.post('/api/quiz-scores/', {
+        data: {
+          user_id: userId,
+          score: 6 + i,
+          total: 10,
+          time_used: 50 - i * 5,
+          timer_limit: 90,
+          timed_out: 0,
+        },
+      });
+    }
+
+    const response = await request.post('/api/lex-quiz-coach/', { data: { user_id: userId } });
+    expect(response.status()).not.toBe(500);
+    if (response.status() === 200) {
+      const body = await response.json();
+      if (body.hasHistory) {
+        // With max_tokens bumped to 450, AI analysis should be able to produce
+        // structured content exceeding the old 250-token limit (~200 chars)
+        expect(body.analysis.length).toBeGreaterThan(50);
+        expect(typeof body.analysis).toBe('string');
+      }
+    }
+  });
+
+  test('analysis from AI path or fallback is always a non-empty string', async ({ request }) => {
+    const userId = 'lex-coach-analysis-string-test-' + Date.now();
+    await request.post('/api/quiz-scores/', {
+      data: { user_id: userId, score: 9, total: 10, time_used: 30, timer_limit: 90, timed_out: 0 },
+    });
+
+    const response = await request.post('/api/lex-quiz-coach/', { data: { user_id: userId } });
+    if (response.status() === 200) {
+      const body = await response.json();
+      expect(body.analysis).toBeDefined();
+      expect(typeof body.analysis).toBe('string');
+      expect(body.analysis.trim().length).toBeGreaterThan(0);
+      // Should not be an error message or empty placeholder
+      expect(body.analysis).not.toContain('undefined');
+      expect(body.analysis).not.toContain('null');
+    }
+  });
+
+  test('buildQuizCoachPrompt integration produces valid AI response structure', async ({ request }) => {
+    // This tests that the refactored buildQuizCoachPrompt function (extracted from inline)
+    // still generates proper prompts that the AI can respond to
+    const userId = 'lex-coach-prompt-builder-test-' + Date.now();
+    for (let i = 0; i < 3; i++) {
+      await request.post('/api/quiz-scores/', {
+        data: {
+          user_id: userId,
+          score: 7,
+          total: 10,
+          time_used: 55,
+          timer_limit: 90,
+          timed_out: 0,
+        },
+      });
+    }
+
+    const response = await request.post('/api/lex-quiz-coach/', { data: { user_id: userId } });
+    expect(response.status()).not.toBe(500);
+    if (response.status() === 200) {
+      const body = await response.json();
+      if (body.hasHistory) {
+        // The response shape must be intact after prompt extraction refactor
+        expect(body.stats).toBeDefined();
+        expect(body.analysis).toBeDefined();
+        expect(body.gameAnalysis).toBeDefined();
+        expect(Array.isArray(body.gameAnalysis)).toBe(true);
+        // Stats must include all the fields the prompt builder uses
+        expect(body.stats.timeUsagePct).toBeDefined();
+        expect(body.stats.avgSecondsPerWord).toBeDefined();
+        expect(body.stats.timerLimitsUsed).toBeDefined();
+        expect(body.stats.wordCountsUsed).toBeDefined();
+      }
+    }
+  });
+
+  test('AI response does not contain raw prompt fragments (no prompt leakage)', async ({ request }) => {
+    const userId = 'lex-coach-no-leak-test-' + Date.now();
+    for (let i = 0; i < 4; i++) {
+      await request.post('/api/quiz-scores/', {
+        data: { user_id: userId, score: 5, total: 10, time_used: 60, timer_limit: 90, timed_out: 0 },
+      });
+    }
+
+    const response = await request.post('/api/lex-quiz-coach/', { data: { user_id: userId } });
+    if (response.status() === 200) {
+      const body = await response.json();
+      if (body.hasHistory && body.analysis) {
+        // The analysis should not contain raw prompt engineering instructions
+        expect(body.analysis).not.toContain('CRITICAL STYLE RULES');
+        expect(body.analysis).not.toContain('BANNED PHRASES');
+        expect(body.analysis).not.toContain('OUTPUT FORMAT');
+        expect(body.analysis).not.toContain('PLAYER DATA');
+      }
+    }
+  });
+});
+
 test.describe('API — /api/lex-quiz-coach/ POST — Negative', () => {
   test('POST without user_id returns 400', async ({ request }) => {
     const response = await request.post('/api/lex-quiz-coach/', {

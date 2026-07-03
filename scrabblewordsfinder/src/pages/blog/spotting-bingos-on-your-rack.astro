@@ -1,55 +1,168 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Spotting Bingos on Your Rack"
-  description="Mental techniques for recognising bingo potential. Pattern matching, stem awareness, and anagram skills."
-  keywords="scrabble, spotting, bingos, on, your, rack"
+<Layout
+  title="Spotting Bingos on Your Rack — Pattern Recognition for 7-Letter Words"
+  description="Develop the pattern recognition skills to spot bingo opportunities on your Scrabble rack. Stem recognition, letter balance clues, and instant triggers. Free guide."
+  keywords="spotting bingos scrabble, pattern recognition scrabble, bingo rack recognition, scrabble stem identification, 7 letter word patterns, recognise bingo potential"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Spotting Bingos on Your Rack",
-    "description": "Mental techniques for recognising bingo potential. Pattern matching, stem awareness, and anagram skills.",
+    "headline": "Spotting Bingos on Your Rack — Pattern Recognition for 7-Letter Words",
+    "description": "Develop the pattern recognition skills to spot bingo opportunities on your Scrabble rack. Stem recognition, letter balance clues, and instant triggers.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/spotting-bingos-on-your-rack" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/spotting-bingos-on-your-rack/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "How do I know if my Scrabble rack has a bingo?", "acceptedAnswer": { "@type": "Answer", "text": "Look for these clues: 2-3 vowels mixed with 4-5 consonants (balanced rack), presence of common bingo letters (RSTLNE), a recognisable 6-letter stem on your rack (SATIRE, RETINA, SALINE), or common word parts like -ING, -TION, RE-, UN-. If you see these signals, spend extra time anagramming — there's likely a bingo hiding." } },
+      { "@type": "Question", "name": "What letter patterns indicate a bingo is likely?", "acceptedAnswer": { "@type": "Answer", "text": "Key patterns: any rack with 5+ of RSTLNEAIO has roughly 30% bingo probability. Racks containing -ING plus 4 common consonants almost always bingo. The combination of one blank tile plus any balanced 6 tiles has over 50% bingo probability. Double letters reduce probability significantly." } },
+      { "@type": "Question", "name": "How do I train myself to recognise bingo stems?", "acceptedAnswer": { "@type": "Answer", "text": "Alphabetise your rack tiles mentally every turn. This standard form makes stems visible: AEINRST → recognise as NASTIER/RETAINS. Practice with flashcards showing 6-letter stems in alphabetical order. After memorising the top 50 stems, you'll automatically recognise them on your rack within seconds." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/bingos/" class="hover:text-blue-400 transition-colors text-gray-300">Bingos</a>
+        <a href="/blog/bingos/" class="hover:text-amber-500 transition-colors text-gray-300">Bingos</a>
       </nav>
+
+      <BlogCrossLinks title="Spotting Bingos on Your Rack" />
 
       <h1 class="text-3xl font-bold text-white mb-4">Spotting Bingos on Your Rack</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Mental techniques for recognising bingo potential. Pattern matching, stem awareness, and anagram skills.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The difference between playing one bingo per game and three isn't vocabulary — it's recognition. Expert players don't try harder to find bingos; they see them instantly because they've trained their brain to recognise the patterns. Here's how to develop that skill.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Three Signals</h2>
+
+      <p class="text-gray-300">Before anagramming, check these three instant indicators that your rack likely contains a bingo:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Signal 1: Letter Balance</p>
+          <p class="text-xs text-gray-400">2-3 vowels + 4-5 consonants = prime bingo territory. Racks with 4+ vowels or 5+ consonants rarely bingo. Count vowels first — if you have 2 or 3, investigate further.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Signal 2: High-Frequency Letters</p>
+          <p class="text-xs text-gray-400">Racks dominated by RSTLNEAIO have the highest bingo probability. Count how many of your 7 tiles are from this set. 5+ of these = strong bingo candidate.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Signal 3: No Duplicates</p>
+          <p class="text-xs text-gray-400">Duplicate tiles kill bingo probability. Two of the same letter reduces valid anagrams by 60-80%. If you have no duplicates and signals 1+2 are positive, there's almost certainly a bingo.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 The Quick Test</p>
+        <p class="text-base text-gray-200">Balance (2-3 vowels) + Frequency (5+ from RSTLNEAIO) + No duplicates = <span class="text-white font-medium">spend 60+ seconds anagramming</span>. If any signal fails, a bingo is unlikely — spend that time on board scanning instead.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Stem Recognition: The Shortcut</h2>
+
+      <p class="text-gray-300">Instead of anagramming all 5,040 arrangements, look for known 6-letter stems on your rack:</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Stem (alphabetised)</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Reads As</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Bingos Formed</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Example</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">AEIRST</td><td class="px-4 py-3 text-gray-400">SATIRE</td><td class="px-4 py-3 text-gray-400">69</td><td class="px-4 py-3 text-gray-400">+N=NASTIER</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">AEINRT</td><td class="px-4 py-3 text-gray-400">RETINA</td><td class="px-4 py-3 text-gray-400">65</td><td class="px-4 py-3 text-gray-400">+G=GRANITE</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">AEILNS</td><td class="px-4 py-3 text-gray-400">SALINE</td><td class="px-4 py-3 text-gray-400">58</td><td class="px-4 py-3 text-gray-400">+T=ELASTIN</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">AEINST</td><td class="px-4 py-3 text-gray-400">TISANE</td><td class="px-4 py-3 text-gray-400">54</td><td class="px-4 py-3 text-gray-400">+R=NASTIER</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">EINORS</td><td class="px-4 py-3 text-gray-400">SENIOR</td><td class="px-4 py-3 text-gray-400">50</td><td class="px-4 py-3 text-gray-400">+T=STONIER</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Instant Bingo Triggers</h2>
+
+      <p class="text-gray-300">These combinations on your rack should trigger immediate "hunt for a bingo" mode:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Blank tile + 6 common letters:</span> A blank plus any balanced 6 tiles has over 50% bingo probability. The blank can fill any gap in your anagram. Always spend maximum time when holding a blank.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">-ING + 4 consonants:</span> I-N-G consumes 3 tiles and any 4 common consonants usually form a word root: STORING, RESTING, POSTING, TILTING, MELTING.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">-TION or -SION + 3 tiles:</span> 4-letter suffixes leave only 3 tiles to form the root. ELATION, STATION, ERATION — the root is tiny and usually obvious.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">S + 6 good tiles:</span> An S at the end means you might have a 6-letter word that pluralises. Check the other 6 tiles for a valid word: SATIRE→SATIRES, REMAIN→REMAINS.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/speed-anagramming-techniques/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Speed Anagramming Techniques — find bingos faster</span>
+          </a>
+          <a href="/blog/fishing-for-bingos/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Fishing for Bingos — setting up your rack for success</span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/seven-letter-words-with-common-tiles/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Seven-Letter Words With Common Tiles</span>
+          </a>
+          <a href="/blog/top-bingo-stems-satire/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Top Bingo Stems: SATIRE</span>
+          </a>
+          <a href="/blog/speed-anagramming-techniques/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Speed Anagramming Techniques</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Check your rack for bingos — enter tiles and find all 7-letter words</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

@@ -24,7 +24,13 @@ export const GET: APIRoute = async ({ url }) => {
       ? await db.prepare(query).bind(...params).all()
       : await db.prepare(query).all();
 
-    return json({ banners: results });
+    return new Response(JSON.stringify({ banners: results }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=30',
+      },
+    });
   } catch (e: any) {
     return jsonError(e.message, 500);
   }

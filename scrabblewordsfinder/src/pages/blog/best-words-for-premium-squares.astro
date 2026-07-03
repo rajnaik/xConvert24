@@ -1,55 +1,195 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Best Words for Premium Squares"
-  description="Which words to aim for when you have access to DL, TL, DW, and TW squares. Premium square target list."
-  keywords="scrabble, best, words, for, premium, squares"
+<Layout
+  title="Best Words for Premium Squares in Scrabble — Maximize DW, TW, DL, TL"
+  description="Learn which words score highest on double and triple word/letter squares. Strategic placement guide with examples. Free Scrabble tips, no sign-up needed."
+  keywords="premium squares scrabble, triple word score words, double letter scrabble, best words premium squares, scrabble board strategy, TW DW squares"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Best Words for Premium Squares",
-    "description": "Which words to aim for when you have access to DL, TL, DW, and TW squares. Premium square target list.",
+    "headline": "Best Words for Premium Squares in Scrabble",
+    "description": "Learn which words score highest on double and triple word/letter squares. Strategic placement guide with examples.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/best-words-for-premium-squares" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/best-words-for-premium-squares/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is the best letter to put on a triple letter square?", "acceptedAnswer": { "@type": "Answer", "text": "Z (10 pts) and Q (10 pts) gain the most from triple letter squares, turning 10 points into 30. X (8 pts) and J (8 pts) are next best, becoming 24 points on a TL." } },
+      { "@type": "Question", "name": "How much is a triple word score worth in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A triple word square multiplies the entire word score by 3. A 7-letter word scoring 15 base points becomes 45 points on a TW square. If you also hit a double letter, the DL applies first, then the entire word is tripled." } },
+      { "@type": "Question", "name": "Can you hit two premium squares with one word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. If a word covers two word-multiplier squares (e.g., two DW squares), the multipliers stack multiplicatively. A word across two DWs gets 2×2 = 4× the base score. A word across DW and TW gets 2×3 = 6× the base score." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/high-scoring/" class="hover:text-blue-400 transition-colors text-gray-300">High Scoring</a>
+        <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors text-gray-300">Strategy</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Best Words for Premium Squares</h1>
+      <BlogCrossLinks title="Best Words for Premium Squares in Scrabble" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Best Words for Premium Squares in Scrabble</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>8 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Which words to aim for when you have access to DL, TL, DW, and TW squares. Premium square target list.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Premium squares are the difference between a casual player and a consistent winner. The standard Scrabble board has 24 double-letter, 12 double-word, 12 triple-letter, and 8 triple-word squares. Knowing which words to aim for — and which tiles to land on premium squares — can double or triple your game scores overnight.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Understanding Score Multipliers</h2>
+
+      <p class="text-gray-300">Premium squares multiply either a single letter's value or the entire word's score. The order of operations matters: letter multipliers apply first, then word multipliers.</p>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">8</p><p class="text-xs text-gray-400">Triple Word squares</p></div>
+          <div><p class="text-xl font-bold text-amber-400">12</p><p class="text-xs text-gray-400">Double Word squares</p></div>
+          <div><p class="text-xl font-bold text-amber-400">12</p><p class="text-xs text-gray-400">Triple Letter squares</p></div>
+          <div><p class="text-xl font-bold text-amber-400">24</p><p class="text-xs text-gray-400">Double Letter squares</p></div>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Multiplier Stacking</p>
+        <p class="text-base text-gray-200">When a word covers <span class="text-white font-medium">two word-multiplier squares</span>, they multiply together. DW + DW = 4×. DW + TW = 6×. TW + TW = 9× (extremely rare but devastating).</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Best Tiles for Triple Letter Squares</h2>
+
+      <p class="text-gray-300">Place your highest-value tiles on TL squares for maximum impact. Here's what each high-value tile becomes on a TL:</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Tile</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Base</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">On DL</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">On TL</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Gain</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-white">Z</td><td class="px-4 py-3">10</td><td class="px-4 py-3">20</td><td class="px-4 py-3 text-green-400 font-bold">30</td><td class="px-4 py-3 text-amber-400">+20</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-white">Q</td><td class="px-4 py-3">10</td><td class="px-4 py-3">20</td><td class="px-4 py-3 text-green-400 font-bold">30</td><td class="px-4 py-3 text-amber-400">+20</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-white">X</td><td class="px-4 py-3">8</td><td class="px-4 py-3">16</td><td class="px-4 py-3 text-green-400 font-bold">24</td><td class="px-4 py-3 text-amber-400">+16</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold text-white">J</td><td class="px-4 py-3">8</td><td class="px-4 py-3">16</td><td class="px-4 py-3 text-green-400 font-bold">24</td><td class="px-4 py-3 text-amber-400">+16</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold text-white">K</td><td class="px-4 py-3">5</td><td class="px-4 py-3">10</td><td class="px-4 py-3 text-green-400 font-bold">15</td><td class="px-4 py-3 text-amber-400">+10</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short Words That Dominate Premium Squares</h2>
+
+      <p class="text-gray-300">You don't need long words to score big. Short words with high-value tiles placed precisely on premium squares consistently outperform longer words played in neutral positions.</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">ZAX (19 base)</p>
+          <p class="text-xs text-gray-400">Z on TL = 30 + A(1) + X(8) = 39 pts. On TW = 57 pts total.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">QI (11 base)</p>
+          <p class="text-xs text-gray-400">Q on TL = 30 + I(1) = 31. On DW with Q on TL = 62 pts.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">JO (9 base)</p>
+          <p class="text-xs text-gray-400">J on TL = 24 + O(1) = 25 pts. Quick, easy dump.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">XI (9 base)</p>
+          <p class="text-xs text-gray-400">X on TL = 24 + I(1) = 25 pts. Creates parallel opportunities.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/understanding-premium-squares/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Understanding Premium Squares — complete board layout guide</span>
+          </a>
+          <a href="/blog/highest-scoring-scrabble-words/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Highest Scoring Scrabble Words — record-breaking plays</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategic Placement Tips</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Target the corners:</span> The four TW squares in each corner (row 1/15, column 1/15) are the highest-value positions on the board. Plan 2-3 moves ahead to reach them.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">DL + TW combos:</span> When a word hits a TW and also places a high tile on a DL, the DL applies to the letter first, then the whole word is tripled. Z on DL within a TW word = Z counts as 20 in the tripled total.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Block opponent access:</span> If you can't reach a TW yourself, play a short word that blocks your opponent from reaching it. Defensive premium play is just as valuable as offensive.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Parallel plays exploit DLs:</span> Playing parallel to an existing word often lands tiles on DL squares while also forming multiple 2-letter words — each one scores independently.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The 9× Dream: Hitting Two Triple Words</h2>
+
+      <p class="text-gray-300">The holy grail of Scrabble is playing a word that spans two TW squares — a 9× multiplier. This is only possible with 7- or 8-letter words that reach from one TW to another across the board edges.</p>
+
+      <div class="not-prose my-8 p-6 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/30 to-yellow-950/20 relative overflow-hidden">
+        <div class="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-amber-500/70">👑 The 9× Play</div>
+        <p class="text-2xl font-black text-white tracking-wider mb-2">TW → TW</p>
+        <p class="text-sm text-amber-300 font-semibold mb-3">3 × 3 = 9× base word score</p>
+        <p class="text-sm text-gray-300 leading-relaxed">A 7-letter bingo scoring 70 base points across two TW squares = 630 points (plus the 50-point bingo bonus = 680). This is tournament-level play and requires precise board setup over several turns.</p>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/understanding-premium-squares/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Understanding Premium Squares</span>
+          </a>
+          <a href="/blog/scrabble-board-layout-explained/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Board Layout Explained</span>
+          </a>
+          <a href="/blog/highest-scoring-4-letter-words/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Highest Scoring 4-Letter Words</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find the best words for any position — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Header Pro Player Link — Tests for the 🏆 Pro Player nav icon
+ * Header Pro Player Link — Tests for the 🎓 Pro Player nav icon
  * Added to Header.astro linking to /blog/roadmap-to-being-a-pro-player/
  */
 
@@ -21,11 +21,11 @@ test.describe('Header Pro Player Link — Positive', () => {
     expect(href).toBe('/blog/roadmap-to-being-a-pro-player/');
   });
 
-  test('pro player link has trophy emoji icon', async ({ page }) => {
+  test('pro player link has graduation cap emoji icon', async ({ page }) => {
     await page.goto(`${BASE}/`);
     const link = page.locator('a[href="/blog/roadmap-to-being-a-pro-player/"]');
     const text = await link.textContent();
-    expect(text).toContain('🏆');
+    expect(text).toContain('🎓');
   });
 
   test('pro player link has tooltip with "Pro Player" text', async ({ page }) => {

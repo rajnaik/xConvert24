@@ -32,8 +32,14 @@ import '../../styles/global.css';
     <!-- Filter indicator -->
     <div id="filter-indicator" class="mb-2 text-xs text-gray-500"></div>
 
+    <!-- Pagination top -->
+    <div id="pagination-top" class="hidden mb-4"></div>
+
     <!-- Users accordion -->
     <div id="users-list" class="space-y-4"></div>
+
+    <!-- Pagination bottom -->
+    <div id="pagination-bottom" class="hidden mt-4"></div>
 
     <!-- Empty state -->
     <div id="empty-state" class="hidden text-center py-12">
@@ -49,13 +55,18 @@ import '../../styles/global.css';
       'q-no-u': { bg: 'bg-fuchsia-900/20', border: 'border-fuchsia-700', text: 'text-fuchsia-300', pill: 'bg-fuchsia-900/30 border-fuchsia-500 text-fuchsia-400', label: '🚫U Q Words' },
       'q-without-u': { bg: 'bg-fuchsia-900/20', border: 'border-fuchsia-700', text: 'text-fuchsia-300', pill: 'bg-fuchsia-900/30 border-fuchsia-500 text-fuchsia-400', label: '🚫U Q Words' },
       'rare-letters': { bg: 'bg-orange-900/20', border: 'border-orange-700', text: 'text-orange-300', pill: 'bg-orange-900/30 border-orange-500 text-orange-400', label: '💎 Rare Letters' },
-      'high-scoring': { bg: 'bg-emerald-900/20', border: 'border-emerald-700', text: 'text-emerald-300', pill: 'bg-emerald-900/30 border-emerald-500 text-emerald-400', label: '🏅 High-Scoring' }
+      'high-scoring': { bg: 'bg-emerald-900/20', border: 'border-emerald-700', text: 'text-emerald-300', pill: 'bg-emerald-900/30 border-emerald-500 text-emerald-400', label: '🏅 High-Scoring' },
+      'Lex AI': { bg: 'bg-cyan-900/20', border: 'border-cyan-700', text: 'text-cyan-300', pill: 'bg-cyan-900/30 border-cyan-500 text-cyan-400', label: '🤖 Lex AI' },
+      'wotd': { bg: 'bg-yellow-900/20', border: 'border-yellow-700', text: 'text-yellow-300', pill: 'bg-yellow-900/30 border-yellow-500 text-yellow-400', label: '📅 WOTD' },
+      'anagram': { bg: 'bg-rose-900/20', border: 'border-rose-700', text: 'text-rose-300', pill: 'bg-rose-900/30 border-rose-500 text-rose-400', label: '🔀 Anagram' }
     };
 
     var users = [];
     var categories = {};
     var activeFilter = 'all';
     var searchQuery = '';
+    var currentPage = 1;
+    var pageSize = 50;
 
     function getColor(cat) {
       return categoryColors[cat] || categoryColors['manual'];
@@ -79,6 +90,41 @@ import '../../styles/global.css';
       '</div>';
     }
 
+    function renderPagination(totalItems, containerId) {
+      var container = document.getElementById(containerId);
+      var totalPages = Math.ceil(totalItems / pageSize);
+      if (totalItems <= pageSize) {
+        container.classList.add('hidden');
+        return;
+      }
+      container.classList.remove('hidden');
+      var start = (currentPage - 1) * pageSize + 1;
+      var end = Math.min(currentPage * pageSize, totalItems);
+
+      var html = '<div class="flex items-center justify-between">' +
+        '<span class="text-xs text-gray-500">Showing ' + start + '–' + end + ' of ' + totalItems + ' users</span>' +
+        '<div class="flex items-center gap-2">' +
+          '<button class="page-prev px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ' +
+            (currentPage <= 1 ? 'border-gray-800 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-gray-300 hover:border-purple-500 hover:text-purple-400') +
+          '"' + (currentPage <= 1 ? ' disabled' : '') + '>&lt; Prev</button>' +
+          '<span class="text-xs text-gray-400">Page ' + currentPage + ' of ' + totalPages + '</span>' +
+          '<button class="page-next px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ' +
+            (currentPage >= totalPages ? 'border-gray-800 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-gray-300 hover:border-purple-500 hover:text-purple-400') +
+          '"' + (currentPage >= totalPages ? ' disabled' : '') + '>Next &gt;</button>' +
+        '</div>' +
+      '</div>';
+
+      container.innerHTML = html;
+      var prev = container.querySelector('.page-prev');
+      var next = container.querySelector('.page-next');
+      if (prev && currentPage > 1) {
+        prev.addEventListener('click', function() { currentPage--; render(); });
+      }
+      if (next && currentPage < totalPages) {
+        next.addEventListener('click', function() { currentPage++; render(); });
+      }
+    }
+
     function render() {
       var filtered = getFilteredUsers();
       var container = document.getElementById('users-list');
@@ -96,14 +142,35 @@ import '../../styles/global.css';
       });
       if (indicator) indicator.textContent = 'Filter: "' + activeFilter + '" → ' + totalFiltered + ' words from ' + filtered.length + ' users';
 
+      // Filter out users who have no words in the active category
+      if (activeFilter !== 'all') {
+        filtered = filtered.filter(function(u) {
+          return u.words.some(function(w) {
+            var wCat = w.category || 'manual';
+            if (activeFilter === 'q-without-u' || activeFilter === 'q-no-u') {
+              return wCat === 'q-without-u' || wCat === 'q-no-u';
+            }
+            return wCat === activeFilter;
+          });
+        });
+      }
+
       if (!filtered.length) {
         container.innerHTML = '';
         empty.classList.remove('hidden');
+        document.getElementById('pagination-top').classList.add('hidden');
+        document.getElementById('pagination-bottom').classList.add('hidden');
         return;
       }
       empty.classList.add('hidden');
 
-      var html = filtered.map(function(u) {
+      // Paginate
+      var totalPages = Math.ceil(filtered.length / pageSize);
+      if (currentPage > totalPages) currentPage = totalPages;
+      var startIdx = (currentPage - 1) * pageSize;
+      var paged = filtered.slice(startIdx, startIdx + pageSize);
+
+      var html = paged.map(function(u) {
         var words = u.words.slice();
         if (activeFilter !== 'all') {
           words = words.filter(function(w) {
@@ -146,6 +213,10 @@ import '../../styles/global.css';
       }).filter(Boolean).join('');
 
       container.innerHTML = html || '<p class="text-gray-500 text-center py-8">No words match this filter.</p>';
+
+      // Render pagination controls
+      renderPagination(filtered.length, 'pagination-top');
+      renderPagination(filtered.length, 'pagination-bottom');
     }
 
     function renderFilters() {
@@ -169,6 +240,7 @@ import '../../styles/global.css';
       container.querySelectorAll('.cat-pill').forEach(function(btn) {
         btn.addEventListener('click', function() {
           activeFilter = btn.dataset.cat;
+          currentPage = 1;
           render();
           renderFilters();
         });
@@ -178,10 +250,11 @@ import '../../styles/global.css';
     // Search handler
     document.getElementById('uid-search').addEventListener('input', function(e) {
       searchQuery = e.target.value;
+      currentPage = 1;
       render();
     });
 
-    fetch('/api/saved-words')
+    fetch('/api/saved-words/')
       .then(function(r) { return r.json(); })
       .then(function(data) {
         users = data.users || [];

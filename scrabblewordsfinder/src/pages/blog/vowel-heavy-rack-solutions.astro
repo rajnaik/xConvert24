@@ -1,55 +1,204 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Vowel-Heavy Rack Solutions"
-  description="What to do when you draw too many vowels. Dump strategies, vowel-heavy words, and rack rebalancing techniques."
-  keywords="scrabble, vowel, heavy, rack, solutions"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Vowel-Heavy Rack Solutions",
-    "description": "What to do when you draw too many vowels. Dump strategies, vowel-heavy words, and rack rebalancing techniques.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/vowel-heavy-rack-solutions" }
-  })} />
+<Layout title="Vowel-Heavy Rack Solutions — What to Do With Too Many Vowels | ScrabbleWordsFinder.com" description="Stuck with 4+ vowels? Learn the best vowel-dump words, when to exchange vs play through, 2-letter vowel combinations, and leave management strategies to prevent vowel flooding." keywords="vowel heavy rack, too many vowels scrabble, vowel dump words, AIOLI scrabble, rack management vowels, exchange tiles, scrabble rack balance">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Vowel-Heavy Rack Solutions — What to Do With Too Many Vowels",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Vowel-Heavy Rack Solutions</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is considered a vowel-heavy rack in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A rack with 4 or more vowels out of 7 tiles is considered vowel-heavy. Racks with 5-6 vowels are severely unbalanced and require immediate corrective action through vowel-dump plays or tile exchange." }},
+    { "@type": "Question", "name": "What are the best vowel-dump words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Top vowel-dump words include AIOLI (5 letters, 3 vowels shed), OURIE (5 letters, 4 vowels), ADIEU (5 letters, 4 vowels), AUDIO (5 letters, 4 vowels), and URAEI (5 letters, 4 vowels). For 2-letter dumps: AA, AE, AI, OE, OI, OU." }},
+    { "@type": "Question", "name": "Should I exchange tiles or play through a vowel-heavy rack?", "acceptedAnswer": { "@type": "Answer", "text": "Play through if you can score 15+ points while shedding 2-3 vowels. Exchange if your rack has 5+ vowels and no viable play scores above 10 points. The break-even threshold is roughly 12-15 points — below that, exchanging is usually better." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">What to do when you draw too many vowels. Dump strategies, vowel-heavy words, and rack rebalancing techniques.</p>
+<nav class="text-sm text-gray-400 mb-6">
+  <a href="/blog/" class="hover:text-amber-400">Blog</a>
+  <span class="mx-2">›</span>
+  <span>Strategy</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
-  </div>
-</BlogLayout>
+<h1 class="text-3xl font-bold mb-2">Vowel-Heavy Rack Solutions</h1>
+<p class="text-sm text-gray-400 mb-6">What to do when your rack looks like a Hawaiian dictionary</p>
+
+<p class="text-lg text-gray-300 leading-relaxed mb-8">You draw your tiles and see A-A-E-I-O-U-T. Six vowels and one lonely consonant. This happens more often than you'd think — the Scrabble bag contains 42 vowels out of 98 tiles (43%). The key isn't panic; it's having a rehearsed strategy for efficiently dumping vowels while maintaining scoring position.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What Constitutes Vowel-Heavy</h2>
+
+<p>The ideal rack balance is 3 vowels and 4 consonants (or 4/3 in some situations). Here's how to categorise your rack imbalance:</p>
+
+<div class="overflow-x-auto my-6">
+<table class="min-w-full text-sm">
+<thead><tr class="border-b border-gray-700"><th class="text-left py-2 text-amber-400">Vowel Count</th><th class="text-left py-2 text-amber-400">Severity</th><th class="text-left py-2 text-amber-400">Action</th></tr></thead>
+<tbody class="text-gray-300">
+<tr class="border-b border-gray-800"><td class="py-2">3 vowels</td><td class="text-green-400">Ideal</td><td>Play normally</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">4 vowels</td><td class="text-yellow-400">Slightly heavy</td><td>Prefer plays that shed 1-2 vowels</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">5 vowels</td><td class="text-orange-400">Heavy</td><td>Use vowel-dump words or exchange 3-4 vowels</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">6 vowels</td><td class="text-red-400">Severe</td><td>Exchange or play multi-vowel word immediately</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">7 vowels</td><td class="text-red-500">Critical</td><td>Exchange 5-6 tiles, keep only useful vowels</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Best Vowel-Dump Words</h2>
+
+<p>These words contain multiple vowels and can rescue a flooded rack. Memorise them by vowel count:</p>
+
+<div class="border border-blue-500/30 bg-blue-950/20 rounded-lg p-4 my-6">
+  <p class="text-blue-300 font-semibold mb-2">4-Vowel Words (Shed 4 vowels in one play)</p>
+  <ul class="text-gray-300 space-y-1 mt-2">
+    <li><strong>ADIEU</strong> — (6 pts) A farewell. Uses A, I, E, U.</li>
+    <li><strong>AUDIO</strong> — (6 pts) Sound reproduction. Uses A, U, I, O.</li>
+    <li><strong>OURIE</strong> — (5 pts) Chilly (Scottish). Uses O, U, I, E.</li>
+    <li><strong>URAEI</strong> — (5 pts) Plural of uraeus. Uses U, A, E, I.</li>
+    <li><strong>LOOIE</strong> — (5 pts) Lieutenant (slang). Uses O, O, I, E.</li>
+  </ul>
+</div>
+
+<div class="border border-purple-500/30 bg-purple-950/20 rounded-lg p-4 my-6">
+  <p class="text-purple-300 font-semibold mb-2">3-Vowel Words (Common and reliable)</p>
+  <ul class="text-gray-300 space-y-1 mt-2">
+    <li><strong>AIOLI</strong> — (5 pts) Garlic mayonnaise. Three vowels out of 5 letters.</li>
+    <li><strong>OORIE</strong> — (5 pts) Cold, chilly. Three vowels.</li>
+    <li><strong>OUIJA</strong> — (12 pts) Spirit board. High-scoring dump with J.</li>
+    <li><strong>NAEVI</strong> — (8 pts) Plural of naevus (birthmarks). Uses A, E, I.</li>
+    <li><strong>AREAE</strong> — (5 pts) Plural of area. Dumps A, E, A, E.</li>
+    <li><strong>AQUAE</strong> — (14 pts) Plural of aqua. Uses Q without U-after pattern.</li>
+  </ul>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Exchange vs Play Through — The Decision Framework</h2>
+
+<p>The eternal question: should you exchange tiles or play a low-scoring word to shed vowels? Here's a structured decision tree:</p>
+
+<ol class="list-decimal pl-6 space-y-3 text-gray-300 my-6">
+  <li><strong>Can you score 20+ while shedding 2+ vowels?</strong> → Always play. Any 20-point vowel-dump word is a great result.</li>
+  <li><strong>Can you score 15-19 while shedding 2+ vowels?</strong> → Play in most situations. Only exchange if you're behind by 50+ and need a bingo.</li>
+  <li><strong>Can you score 10-14 while shedding 2+ vowels?</strong> → Close call. Play if the board is tight or you're ahead. Exchange if you need a momentum shift.</li>
+  <li><strong>Can you only score under 10?</strong> → Exchange 4-5 vowels. The lost turn is offset by much better rack quality next turn.</li>
+  <li><strong>5+ vowels with no vowel-dump word available?</strong> → Exchange immediately. Keeping 5+ vowels hoping to draw consonants is statistically poor.</li>
+</ol>
+
+<div class="border border-amber-500/30 bg-amber-950/10 rounded-lg p-4 my-6">
+  <p class="text-amber-300 font-semibold mb-2">Exchange Statistics</p>
+  <ul class="text-gray-300 space-y-1 mt-2">
+    <li>• Average points lost by exchanging: 22 (opponent's turn score)</li>
+    <li>• Average points gained next turn with balanced rack: 32</li>
+    <li>• Net benefit of exchanging vs playing a 6-point vowel dump: +4 points over 2 turns</li>
+    <li>• Probability of drawing 2+ consonants when exchanging 4 tiles: 78%</li>
+  </ul>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">2-Letter Vowel Combinations for Quick Dumps</h2>
+
+<p>When the board is tight and you just need to shed one or two vowels cheaply, these 2-letter pairs are your toolkit:</p>
+
+<div class="overflow-x-auto my-6">
+<table class="min-w-full text-sm">
+<thead><tr class="border-b border-gray-700"><th class="text-left py-2 text-amber-400">Word</th><th class="text-left py-2 text-amber-400">Score</th><th class="text-left py-2 text-amber-400">Meaning</th><th class="text-left py-2 text-amber-400">Vowels Shed</th></tr></thead>
+<tbody class="text-gray-300">
+<tr class="border-b border-gray-800"><td class="py-2">AA</td><td>2</td><td>Volcanic rock</td><td>2</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">AE</td><td>2</td><td>One (Scottish)</td><td>2</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">AI</td><td>2</td><td>Three-toed sloth</td><td>2</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">OE</td><td>2</td><td>Faroe Islands wind</td><td>2</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">OI</td><td>2</td><td>Interjection</td><td>2</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">OU</td><td>2</td><td>Man (Hawaiian)</td><td>2</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">EA</td><td>2</td><td>A river</td><td>2</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">OO</td><td>2</td><td>Hawaiian bird</td><td>2</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="border border-purple-500/30 bg-purple-950/20 rounded-lg p-4 my-6">
+  <p class="text-purple-300 font-semibold mb-2">Pro Tip</p>
+  <p class="text-gray-300">Playing AA on a Double Word Score gives you 4 points while dumping 2 vowels. It's not glamorous, but it's almost always better than exchanging when you only have 4 vowels. Save your exchange for truly hopeless racks (5+ vowels, no playable dump).</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Preventing Vowel-Heavy Racks Through Leave Management</h2>
+
+<p>The best strategy is prevention. Smart leave management after every play keeps your rack balanced:</p>
+
+<div class="flex flex-wrap gap-2 my-4">
+  <span class="px-3 py-1 bg-indigo-900/40 border border-indigo-500/30 rounded-full text-xs text-indigo-300">Keep 2-3 vowels</span>
+  <span class="px-3 py-1 bg-indigo-900/40 border border-indigo-500/30 rounded-full text-xs text-indigo-300">Shed duplicate vowels</span>
+  <span class="px-3 py-1 bg-indigo-900/40 border border-indigo-500/30 rounded-full text-xs text-indigo-300">Avoid vowel-only leaves</span>
+  <span class="px-3 py-1 bg-indigo-900/40 border border-indigo-500/30 rounded-full text-xs text-indigo-300">Track remaining tiles</span>
+</div>
+
+<ol class="list-decimal pl-6 space-y-3 text-gray-300 my-6">
+  <li><strong>Never leave 3+ vowels behind</strong> — If your best play uses only consonants and leaves you with A-E-I-O, find a slightly lower-scoring play that sheds at least one vowel</li>
+  <li><strong>Prioritise shedding duplicates</strong> — Two As on your rack are much worse than one A and one E. Plays that remove duplicate vowels are worth 3-5 points of sacrifice</li>
+  <li><strong>Track bag composition</strong> — Late in the game, if 8+ vowels remain in the bag and you currently hold 3, consider shedding one preemptively</li>
+  <li><strong>Use blank tiles for consonants</strong> — If you have a blank and a vowel-heavy rack, use the blank as a consonant (S, T, R, N) rather than wasting it as a vowel</li>
+  <li><strong>Value E over other vowels</strong> — E combines with more consonants for bingos. When choosing which vowel to keep, E wins almost always</li>
+</ol>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Vowel-Heavy Words by Score</h2>
+
+<p>For when you want to maximise points while clearing vowels, here are the highest-scoring vowel-heavy plays:</p>
+
+<div class="overflow-x-auto my-6">
+<table class="min-w-full text-sm">
+<thead><tr class="border-b border-gray-700"><th class="text-left py-2 text-amber-400">Word</th><th class="text-left py-2 text-amber-400">Score</th><th class="text-left py-2 text-amber-400">Vowels</th><th class="text-left py-2 text-amber-400">Meaning</th></tr></thead>
+<tbody class="text-gray-300">
+<tr class="border-b border-gray-800"><td class="py-2">OUIJA</td><td>12</td><td>4/5</td><td>Spirit board (contains J=8)</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">AQUAE</td><td>14</td><td>4/5</td><td>Plural of aqua (Q=10)</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">QUEUE</td><td>14</td><td>4/5</td><td>A line of waiting people</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">NAEVI</td><td>8</td><td>3/5</td><td>Birthmarks (V=4)</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">AUDIO</td><td>6</td><td>4/5</td><td>Sound reproduction</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">ADIEU</td><td>6</td><td>4/5</td><td>A farewell</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">AIOLI</td><td>5</td><td>4/5</td><td>Garlic mayonnaise</td></tr>
+<tr class="border-b border-gray-800"><td class="py-2">URAEI</td><td>5</td><td>4/5</td><td>Sacred serpent figures</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="border-l-4 border-indigo-400 pl-4 my-8">
+  <p class="text-indigo-300 font-medium">Related Reading</p>
+  <ul class="mt-2 space-y-1">
+    <li><a href="/blog/consonant-heavy-rack-strategy/" class="text-indigo-400 hover:text-indigo-300">Consonant-Heavy Rack Strategy →</a></li>
+    <li><a href="/blog/dealing-with-bad-tiles/" class="text-indigo-400 hover:text-indigo-300">Dealing With Bad Tiles →</a></li>
+  </ul>
+</div>
+
+<aside class="border border-gray-700 rounded-lg p-4 my-8 bg-gray-900/30">
+  <p class="text-gray-400 font-semibold mb-2">Related Articles</p>
+  <ul class="space-y-1 text-sm">
+    <li><a href="/blog/scrabble-rack-management-tips/" class="text-gray-300 hover:text-amber-400">Rack Management Tips</a></li>
+    <li><a href="/blog/scrabble-managing-vowel-dumps/" class="text-gray-300 hover:text-amber-400">Managing Vowel Dumps</a></li>
+    <li><a href="/blog/scrabble-leave-analysis-guide/" class="text-gray-300 hover:text-amber-400">Leave Analysis Guide</a></li>
+  </ul>
+</aside>
+
+<div class="border border-amber-500/30 bg-amber-950/10 rounded-lg p-6 my-8 text-center">
+  <p class="text-amber-300 font-semibold text-lg mb-2">Find Vowel-Dump Words From Your Rack</p>
+  <p class="text-gray-300 mb-4">Enter your vowel-heavy tiles and instantly see every valid word — sorted by score so you can dump vowels efficiently.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-medium">Try the Word Finder →</a>
+</div>
+
+<a href="/blog/" class="inline-block mt-6 text-sm text-gray-400 hover:text-amber-400">← Back to Blog</a>
+
+</article>
+</div>
+</Layout>

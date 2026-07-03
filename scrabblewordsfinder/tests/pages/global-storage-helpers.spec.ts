@@ -121,14 +121,35 @@ test.describe('Global Storage Helpers — Positive', () => {
     expect(value).toBe('persisted');
   });
 
-  test('purgeExpired runs automatically on page load', async ({ page }) => {
-    // Seed an expired item, then navigate to trigger auto-purge
+  test('purgeExpired runs automatically via idle callback after page load', async ({ page }) => {
+    // Seed an expired item, then navigate — purge fires via requestIdleCallback/setTimeout
     await page.evaluate(() => {
       localStorage.setItem('auto-purge-test', JSON.stringify({ value: 'stale', expiresAt: '2019-01-01T00:00:00.000Z' }));
     });
     await page.reload();
+    // Wait for the idle callback (or setTimeout fallback) to fire and purge expired items
+    await page.waitForFunction(() => localStorage.getItem('auto-purge-test') === null, null, { timeout: 5000 });
     const item = await page.evaluate(() => localStorage.getItem('auto-purge-test'));
     expect(item).toBeNull();
+  });
+
+  test('purgeExpired deferred execution does not block page interactivity', async ({ page }) => {
+    // Verify that __swfStore is immediately usable even before purge completes
+    await page.evaluate(() => {
+      // Seed many expired items to make purge "heavier"
+      for (let i = 0; i < 50; i++) {
+        localStorage.setItem(`bulk-expired-${i}`, JSON.stringify({ value: i, expiresAt: '2018-01-01T00:00:00.000Z' }));
+      }
+    });
+    await page.reload();
+    // __swfStore should be immediately available for reads/writes even while purge is pending
+    const canUseStore = await page.evaluate(() => {
+      window.__swfStore.setWithExpiry('immediate-use', 'works', '2099-01-01T00:00:00.000Z');
+      return window.__swfStore.getIfValid('immediate-use');
+    });
+    expect(canUseStore).toBe('works');
+    // Eventually the expired items get purged
+    await page.waitForFunction(() => localStorage.getItem('bulk-expired-0') === null, null, { timeout: 5000 });
   });
 });
 

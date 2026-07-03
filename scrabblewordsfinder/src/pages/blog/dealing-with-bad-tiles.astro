@@ -1,55 +1,216 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Dealing With Bad Tile Draws"
-  description="Psychology and strategy for when you draw terrible racks. Maintaining composure and minimising damage."
-  keywords="scrabble, dealing, with, bad, tiles"
+<Layout
+  title="Dealing With Bad Tiles — Scrabble Strategy for Terrible Racks"
+  description="Learn how to survive bad tile draws in Scrabble. Strategies for vowel dumps, consonant clusters, duplicate tiles, and when to exchange. Free guide."
+  keywords="bad tiles scrabble, scrabble bad rack, vowel dump scrabble, when to exchange tiles, scrabble strategy bad letters, dealing with duplicates"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Dealing With Bad Tile Draws",
-    "description": "Psychology and strategy for when you draw terrible racks. Maintaining composure and minimising damage.",
+    "headline": "Dealing With Bad Tiles — Scrabble Strategy for Terrible Racks",
+    "description": "Learn how to survive bad tile draws in Scrabble. Strategies for vowel dumps, consonant clusters, duplicate tiles, and when to exchange.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/dealing-with-bad-tiles" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/dealing-with-bad-tiles/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "Should I exchange tiles in Scrabble when I have a bad rack?", "acceptedAnswer": { "@type": "Answer", "text": "Exchange when your rack has no play scoring above 10-12 points AND the tile bag has 7+ tiles remaining. Keep any S, blank, or high-value tile (Z, X, Q with U). Exchange 4-6 tiles rather than all 7 to maintain some rack continuity." } },
+      { "@type": "Question", "name": "What do I do with too many vowels in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Play short vowel-heavy words to dump excess vowels: AA, AI, OE, EAU, AGIO, AIOLI. Target spots near consonant-heavy existing words. If you have 5+ vowels, exchange 3-4 of them rather than trying to play through the imbalance." } },
+      { "@type": "Question", "name": "How do I handle duplicate tiles in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Duplicate tiles reduce your word-making flexibility. Learn words with double letters: LLAMA, COMMITTEE, BASSOON, TEETH. For duplicate high-value tiles, play one immediately even at a lower score to free up your rack for the next turn." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/tournament/" class="hover:text-blue-400 transition-colors text-gray-300">Tournament</a>
+        <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors text-gray-300">Strategy</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Dealing With Bad Tile Draws</h1>
+      <BlogCrossLinks title="Dealing With Bad Tiles" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Dealing With Bad Tiles</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Psychology and strategy for when you draw terrible racks. Maintaining composure and minimising damage.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Every Scrabble player knows the sinking feeling: you draw seven tiles and stare at UUOIIW. No consonants, no scoring power, no obvious words. Bad racks are inevitable — roughly one in four draws will feel unplayable. The difference between average and expert players is what happens next.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Three Types of Bad Racks</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">🟡 Vowel Flood (5+ vowels)</p>
+          <p class="text-xs text-gray-400">Example: A E I O U A E — no consonant structure to build around. Limited to short words and vowel dumps.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">🔵 Consonant Cluster (5+ consonants)</p>
+          <p class="text-xs text-gray-400">Example: B C G K P T W — need to find existing vowels on the board to play through. Often requires an exchange.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">🟣 Duplicate Overload (3+ of same letter)</p>
+          <p class="text-xs text-gray-400">Example: I I I N T S R — duplicates reduce anagram possibilities by 60-80%. Shed extras fast.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Vowel Dump Strategy</h2>
+
+      <p class="text-gray-300">When you're flooded with vowels, your goal is to play 2-3 vowels per turn without scoring zero. Memorise these high-vowel words:</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Score</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Vowels Dumped</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">ADIEU</td><td class="px-4 py-3 text-gray-400">6</td><td class="px-4 py-3 text-gray-400">4</td><td class="px-4 py-3 text-gray-400">Best vowel dump in the game</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">OURIE</td><td class="px-4 py-3 text-gray-400">5</td><td class="px-4 py-3 text-gray-400">4</td><td class="px-4 py-3 text-gray-400">Shivery; SOWPODS only</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">AUDIO</td><td class="px-4 py-3 text-gray-400">6</td><td class="px-4 py-3 text-gray-400">4</td><td class="px-4 py-3 text-gray-400">Common word, easy to place</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">URAEI</td><td class="px-4 py-3 text-gray-400">5</td><td class="px-4 py-3 text-gray-400">4</td><td class="px-4 py-3 text-gray-400">Plural of uraeus (cobra)</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">EAU</td><td class="px-4 py-3 text-gray-400">3</td><td class="px-4 py-3 text-gray-400">3</td><td class="px-4 py-3 text-gray-400">French for water; valid in SOWPODS</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">AGIO</td><td class="px-4 py-3 text-gray-400">5</td><td class="px-4 py-3 text-gray-400">3</td><td class="px-4 py-3 text-gray-400">Currency exchange premium</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+        <p class="text-base text-gray-200">A 6-point vowel dump that leaves you with <span class="text-white font-medium">RSTNE</span> is worth more than a 15-point play that leaves you with <span class="text-white font-medium">UUOII</span>. Always evaluate by rack leave quality, not just immediate score.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Consonant Cluster Survival</h2>
+
+      <p class="text-gray-300">All-consonant racks require the board to save you. Look for existing vowels you can play through:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play through existing vowels:</span> Look for exposed A, E, I, O on the board. Even a simple 3-letter word like CWM or TSK uses no vowels at all.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Know your no-vowel words:</span> CWM, CRWTH, GYM, GLYPH, LYMPH, MYTH, NYMPH, PSYCH, SHY, THY, WHY, PYGMY — all playable without vowels on your rack.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Target hook letters:</span> An exposed -E or -A on the board lets you front-hook or back-hook using only consonants from your rack (SH + E = SHE).</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Exchange if stuck:</span> If no play scores above 8-10 points with a consonant-heavy rack, exchange 4-5 consonants. Keep any S, blank, or power tile (Z, X, J).</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/consonant-heavy-rack-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Consonant-Heavy Rack Strategy — the full playbook</span>
+          </a>
+          <a href="/blog/rack-management-basics/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Rack Management Basics — building better leaves</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Exchange Decision</h2>
+
+      <p class="text-gray-300">Exchanging tiles costs you a turn — roughly 25-30 points of expected value. But sometimes it's the best play:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Exchange When</p>
+          <p class="text-xs text-gray-400">Best play scores under 10 points. Bag has 7+ tiles remaining. You're not more than 60 points behind. Your rack has no S, blank, or power tile worth keeping.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">✗ Don't Exchange When</p>
+          <p class="text-xs text-gray-400">Bag has fewer than 7 tiles. You're significantly behind (need points now). You can score 15+ even with a bad rack. The endgame is approaching.</p>
+        </div>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">25-30</p><p class="text-xs text-gray-400">Expected point cost of exchanging</p></div>
+          <div><p class="text-xl font-bold text-amber-400">4-6</p><p class="text-xs text-gray-400">Optimal tiles to exchange</p></div>
+          <div><p class="text-xl font-bold text-amber-400">7+</p><p class="text-xs text-gray-400">Minimum bag tiles needed</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Psychology: Staying Calm</h2>
+
+      <p class="text-gray-300">Bad tiles trigger tilt. Tilt causes rushed decisions. Rushed decisions compound the damage. Break the cycle:</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Mental Reset Process</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300">Acknowledge the bad draw without emotion. It's random variance, not personal.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300">Shift your goal: instead of "score big", think "minimise damage and improve my leave".</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300">Scan the entire board — bad racks often have a non-obvious 20+ point play hiding in parallel positions.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300">Remember: one bad rack doesn't lose the game. Two panicked plays in a row does.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/consonant-heavy-rack-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Consonant-Heavy Rack Strategy</span>
+          </a>
+          <a href="/blog/vowel-heavy-rack-solutions/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Vowel-Heavy Rack Solutions</span>
+          </a>
+          <a href="/blog/rack-management-basics/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Rack Management Basics</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find playable words from any bad rack — free, instant, no signup</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

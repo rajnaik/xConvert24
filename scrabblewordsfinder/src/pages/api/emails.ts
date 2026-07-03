@@ -17,20 +17,37 @@ export const GET: APIRoute = async ({ url }) => {
   const read = url.searchParams.get('read');
 
   let query = 'SELECT * FROM emails';
+  let countQuery = 'SELECT COUNT(*) as total FROM emails';
   const conditions: string[] = [];
   const params: any[] = [];
 
   if (category) { conditions.push('category = ?'); params.push(category); }
   if (read === '0' || read === '1') { conditions.push('read = ?'); params.push(parseInt(read)); }
 
-  if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
+  if (conditions.length) {
+    const where = ' WHERE ' + conditions.join(' AND ');
+    query += where;
+    countQuery += where;
+  }
   query += ' ORDER BY created_at DESC LIMIT ?';
-  params.push(limit);
 
   try {
-    const { results } = await db.prepare(query).bind(...params).all();
-    const countRow = await db.prepare('SELECT COUNT(*) as total FROM emails').first();
-    return json({ emails: results, total: countRow?.total || 0 });
+    // Batch both queries into a single D1 round-trip
+    const stmts = [
+      db.prepare(query).bind(...params, limit),
+      db.prepare(countQuery).bind(...params),
+    ];
+    const [dataResult, countResult] = await db.batch(stmts);
+    const results = dataResult.results || [];
+    const total = countResult.results?.[0]?.total || 0;
+
+    return new Response(JSON.stringify({ emails: results, total }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'private, max-age=5',
+      },
+    });
   } catch (e: any) {
     return json({ error: e.message }, 500);
   }

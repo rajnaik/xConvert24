@@ -678,6 +678,83 @@ test.describe('Settings Page — Restore Backup Formats — Negative', () => {
   });
 });
 
+test.describe('Settings Page — Coaching Reports — Positive', () => {
+  test('coaching reports section exists with correct heading', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.getByRole('heading', { name: /Coaching Reports/ })).toBeAttached();
+  });
+
+  test('coaching reports section has amber border styling', async ({ page }) => {
+    await page.goto('/settings/');
+    const section = page.locator('div.border-amber-800\\/50.bg-amber-950\\/10');
+    await expect(section).toBeVisible();
+  });
+
+  test('coaching reports description mentions PDF storage and 5-report limit', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.getByText('maximum of 5 reports')).toBeAttached();
+    await expect(page.getByText('Lex coaching reports (PDFs) are stored locally')).toBeAttached();
+  });
+
+  test('coaching reports list container exists', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.locator('#coaching-reports-list')).toBeAttached();
+  });
+
+  test('coaching reports empty message element exists', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.locator('#coaching-reports-empty')).toBeAttached();
+  });
+
+  test('coaching reports section appears between Backup/Restore and Danger Zone', async ({ page }) => {
+    await page.goto('/settings/');
+    const allH2 = page.locator('h2');
+    const texts: string[] = [];
+    const count = await allH2.count();
+    for (let i = 0; i < count; i++) {
+      texts.push((await allH2.nth(i).textContent()) || '');
+    }
+    const backupIndex = texts.findIndex(t => t.includes('Backup & Restore'));
+    const coachingIndex = texts.findIndex(t => t.includes('Coaching Reports'));
+    const dangerIndex = texts.findIndex(t => t.includes('Danger Zone'));
+    expect(coachingIndex).toBeGreaterThan(backupIndex);
+    expect(coachingIndex).toBeLessThan(dangerIndex);
+  });
+});
+
+test.describe('Settings Page — Coaching Reports — Negative', () => {
+  test('no duplicate coaching reports sections exist', async ({ page }) => {
+    await page.goto('/settings/');
+    const headings = page.getByRole('heading', { name: /Coaching Reports/ });
+    await expect(headings).toHaveCount(1);
+  });
+
+  test('only one coaching-reports-list element exists', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.locator('#coaching-reports-list')).toHaveCount(1);
+  });
+
+  test('only one coaching-reports-empty element exists', async ({ page }) => {
+    await page.goto('/settings/');
+    await expect(page.locator('#coaching-reports-empty')).toHaveCount(1);
+  });
+
+  test('coaching reports section does not cause console errors', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', err => errors.push(err.message));
+    await page.goto('/settings/');
+    await page.waitForTimeout(500);
+    const coachingErrors = errors.filter(e => e.toLowerCase().includes('coaching') || e.toLowerCase().includes('report'));
+    expect(coachingErrors).toHaveLength(0);
+  });
+
+  test('empty message is visible when no coaching reports are saved', async ({ page }) => {
+    await page.goto('/settings/');
+    // When no reports exist in localStorage, the empty message should be visible
+    await expect(page.locator('#coaching-reports-empty')).toBeVisible();
+  });
+});
+
 test.describe('Settings Page — Nuke localStorage', () => {
   test('nuke button requires confirmation', async ({ page }) => {
     await page.goto('/settings');

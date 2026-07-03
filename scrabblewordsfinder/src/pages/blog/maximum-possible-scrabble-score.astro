@@ -1,55 +1,206 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Maximum Possible Scrabble Score"
-  description="What is the theoretical highest score achievable in a single game of Scrabble? The math and the records."
-  keywords="scrabble, maximum, possible, scrabble, score"
->
+<Layout title="Maximum Possible Scrabble Score — The Theoretical Limit" description="What's the highest possible score in a single Scrabble game? Explore the theoretical maximum, record-breaking plays, and the maths behind perfect games. Free analysis." keywords="maximum scrabble score, highest possible score scrabble, theoretical max scrabble, record scrabble score, perfect scrabble game, highest single turn score">
+
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Maximum Possible Scrabble Score",
-    "description": "What is the theoretical highest score achievable in a single game of Scrabble? The math and the records.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/maximum-possible-scrabble-score" }
+    "headline": "Maximum Possible Scrabble Score — The Theoretical Limit",
+    "description": "What's the highest possible score in a single Scrabble game? Explore the theoretical maximum, record-breaking plays, and the maths behind perfect games.",
+    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+    "mainEntityOfPage": "https://www.scrabblewordsfinder.com/blog/maximum-possible-scrabble-score/",
+    "datePublished": "2026-07-05",
+    "dateModified": "2026-07-05"
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/high-scoring/" class="hover:text-blue-400 transition-colors text-gray-300">High Scoring</a>
-      </nav>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is the theoretical maximum score in a single Scrabble turn?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The theoretical maximum single-turn score is 1,778 points, achieved by playing OXYPHENBUTAZONE across two Triple Word Score squares while forming multiple crosswords. This requires an extremely specific board setup that is virtually impossible in real play." }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the highest score ever recorded in a real Scrabble game?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The highest verified combined score in a tournament game is 830 points by Michael Cresta in 2006 (NASPA sanctioned). The highest combined two-player total exceeds 1,320 points in competitive play." }
+      },
+      {
+        "@type": "Question",
+        "name": "How does the triple-triple multiplier work in Scrabble?",
+        "acceptedAnswer": { "@type": "Answer", "text": "When a single word covers two Triple Word Score squares simultaneously, the word score is multiplied by 3 twice — giving a 9x multiplier on the entire word's base value. This is the most powerful scoring opportunity on the board." }
+      }
+    ]
+  })} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Maximum Possible Scrabble Score</h1>
+  <main class="max-w-3xl mx-auto px-4 py-10">
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-gray-500 dark:text-gray-400 mb-6" aria-label="Breadcrumb">
+      <a href="/blog/" class="hover:underline">Blog</a>
+      <span class="mx-1">›</span>
+      <a href="/blog/high-scoring-words/" class="hover:underline">High-Scoring</a>
+      <span class="mx-1">›</span>
+      <span class="text-gray-700 dark:text-gray-200">Maximum Possible Score</span>
+    </nav>
+
+    <BlogCrossLinks currentSlug="maximum-possible-scrabble-score" />
+
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">Maximum Possible Scrabble Score — The Theoretical Limit</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Updated July 2026 · 6 min read</p>
+
+    <p class="text-lg text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">Every Scrabble player has wondered: what's the absolute highest score you could ever achieve? The answer involves triple-triple plays, perfect board setups, and a 15-letter word that most people can't even pronounce. Let's break down the maths behind the theoretical maximum.</p>
+
+    <!-- Stat Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-300">1,778</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Theoretical Max (Single Turn)</div>
       </div>
-
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">What is the theoretical highest score achievable in a single game of Scrabble? The math and the records.</p>
-
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-300">830</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Highest Tournament Game</div>
       </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-300">9×</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Triple-Triple Multiplier</div>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-300">365</div>
+        <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Realistic High Turn (QUIZZIFY)</div>
+      </div>
+    </div>
+
+    <!-- Section 1 -->
+    <section class="border-l-4 border-amber-400 pl-5 mb-10">
+      <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">The Theoretical Maximum: 1,778 Points in One Turn</h2>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">The word OXYPHENBUTAZONE — a 15-letter anti-inflammatory medication — is the highest-scoring single play ever calculated. To achieve this mythical 1,778-point turn, the word must stretch across the entire board (all 15 squares in a row), covering both Triple Word Score squares at positions 1 and 15.</p>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">But that's not all. The board must already contain specific letters in cross-word positions so that each letter of OXYPHENBUTAZONE also forms valid perpendicular words, each landing on premium squares. The combined value of the main word (tripled twice = 9× multiplier) plus all crosswords produces the astronomical total.</p>
+      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 my-5">
+        <p class="text-sm text-blue-800 dark:text-blue-200"><strong>Key Insight:</strong> This score is purely theoretical. It requires a board state so specific that no real game could ever produce it. The probability of the right tiles being in the right place at the right time is essentially zero.</p>
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section class="border-l-4 border-amber-400 pl-5 mb-10">
+      <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Triple-Triple Scoring: The 9× Multiplier</h2>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">The most powerful scoring mechanism in Scrabble is the triple-triple — placing a single word across two Triple Word Score (TWS) squares simultaneously. Premium square multipliers compound multiplicatively, not additively.</p>
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden my-5">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Combination</th>
+            <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Multiplier</th>
+            <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Example Score (20pt word)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-2">Single TWS</td><td class="px-4 py-2">3×</td><td class="px-4 py-2">60 points</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-2">Double-Triple (DWS + TWS)</td><td class="px-4 py-2">6×</td><td class="px-4 py-2">120 points</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-2 font-semibold">Triple-Triple (TWS + TWS)</td><td class="px-4 py-2 font-semibold">9×</td><td class="px-4 py-2 font-semibold">180 points</td></tr>
+        </tbody>
+      </table>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">A triple-triple with a 7-letter word also earns the 50-point bingo bonus on top of the 9× multiplier. A high-value triple-triple bingo can easily score 200–400+ points in a single turn, which is why experienced players constantly look for these opportunities.</p>
+    </section>
+
+    <!-- Section 3 -->
+    <section class="border-l-4 border-amber-400 pl-5 mb-10">
+      <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Highest Realistic Single-Turn Scores</h2>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">While 1,778 is the theoretical ceiling, real games produce scores in a more modest (but still impressive) range. Here are some of the highest verified single-turn plays:</p>
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden my-5">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Word</th>
+            <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Score</th>
+            <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Context</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-2 font-mono">QUIZZIFY</td><td class="px-4 py-2">365</td><td class="px-4 py-2">Triple-triple bingo (competitive)</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-2 font-mono">CAZIQUES</td><td class="px-4 py-2">392</td><td class="px-4 py-2">Triple-triple bingo (verified)</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-2 font-mono">OXAZEPAM</td><td class="px-4 py-2">1,458</td><td class="px-4 py-2">Theoretical (specific board state)</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-2 font-mono">OXYPHENBUTAZONE</td><td class="px-4 py-2">1,778</td><td class="px-4 py-2">Theoretical maximum (never played)</td></tr>
+        </tbody>
+      </table>
+      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 my-5">
+        <p class="text-sm text-blue-800 dark:text-blue-200"><strong>Reality Check:</strong> In tournament play, a single turn of 150+ points is exceptional. Scoring 200+ in one turn puts you in elite territory. Anything over 300 is the stuff of legends.</p>
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section class="border-l-4 border-amber-400 pl-5 mb-10">
+      <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Highest Recorded Game Scores</h2>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">Tournament records tell a different story from theoretical maximums. These are verified high scores from sanctioned competitive play:</p>
+      <ul class="list-disc pl-6 text-gray-700 dark:text-gray-300 space-y-2 mb-4">
+        <li><strong>830 points</strong> — Michael Cresta (2006, NASPA-sanctioned club game). The highest individual game score in competitive play.</li>
+        <li><strong>770 points</strong> — Mark Landsberg (1993). Held the record for over a decade.</li>
+        <li><strong>1,320+ combined</strong> — The highest two-player combined score in a verified game, where both players scored heavily off each other's setups.</li>
+      </ul>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">The average competitive Scrabble game sees each player scoring between 350–450 points total. Expert players average 400–500. Reaching 700+ in a single game requires multiple bingos, premium square plays, and often some cooperation from the board state.</p>
+    </section>
+
+    <!-- Section 5 -->
+    <section class="border-l-4 border-amber-400 pl-5 mb-10">
+      <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">The Perfect Game Concept</h2>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">A "perfect game" in Scrabble means every single move is the highest-scoring possible play given the board state, rack, and opponent's moves. Computer analysis has shown that perfect play could theoretically produce combined scores exceeding 3,000 points — but this requires both players to cooperatively maximise scoring opportunities rather than play defensively.</p>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">In practice, defensive play (blocking triple-word squares, denying hot spots) keeps real game scores much lower. The tension between maximising your own score and minimising your opponent's access to premium squares is what makes Scrabble strategically deep.</p>
+      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 my-5">
+        <p class="text-sm text-blue-800 dark:text-blue-200"><strong>Fun Fact:</strong> Computer simulations of "cooperative" Scrabble (where both players try to maximise the total combined score) regularly produce totals above 2,500 points. The limiting factor isn't strategy — it's the finite number of tiles in the bag.</p>
+      </div>
+    </section>
+
+    <!-- Section 6 -->
+    <section class="border-l-4 border-amber-400 pl-5 mb-10">
+      <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">How Premium Squares Compound</h2>
+      <p class="text-gray-700 dark:text-gray-300 mb-4">Understanding how premium squares interact is key to chasing big scores. Letter multipliers apply first, then word multipliers stack multiplicatively:</p>
+      <ol class="list-decimal pl-6 text-gray-700 dark:text-gray-300 space-y-2 mb-4">
+        <li>Calculate the base letter values (applying any DLS or TLS to individual tiles)</li>
+        <li>Sum all letter values for the word total</li>
+        <li>Apply word multipliers in sequence (DWS × 2, TWS × 3)</li>
+        <li>If multiple word multipliers apply, multiply them together (TWS + TWS = ×9)</li>
+        <li>Add the 50-point bingo bonus last (it's not multiplied)</li>
+      </ol>
+      <p class="text-gray-700 dark:text-gray-300">This means a Z on a Triple Letter Score within a Triple-Triple word scores: 10 × 3 (TLS) × 9 (two TWS) = 270 points from a single tile. That's the kind of compounding that makes maximum scores possible.</p>
+    </section>
+
+    <!-- Cross-links -->
+    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-5 mb-8">
+      <h3 class="font-semibold text-indigo-800 dark:text-indigo-200 mb-3">Related Scoring Guides</h3>
+      <ul class="space-y-2 text-sm">
+        <li><a href="/blog/scoring-100-points-single-turn/" class="text-indigo-700 dark:text-indigo-300 hover:underline">→ Scoring 100+ Points in a Single Turn</a></li>
+        <li><a href="/blog/triple-triple-words/" class="text-indigo-700 dark:text-indigo-300 hover:underline">→ Triple-Triple Words: The 9× Multiplier Explained</a></li>
+        <li><a href="/blog/best-words-for-premium-squares/" class="text-indigo-700 dark:text-indigo-300 hover:underline">→ Best Words for Premium Squares</a></li>
+      </ul>
+    </div>
+
+    <!-- Related Articles -->
+    <aside class="border border-gray-200 dark:border-gray-700 rounded-lg p-5 mb-8">
+      <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Related Articles</h3>
+      <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+        <li><a href="/blog/highest-scoring-scrabble-words/" class="hover:underline text-amber-700 dark:text-amber-400">Highest Scoring Scrabble Words</a></li>
+        <li><a href="/blog/highest-scoring-2-letter-plays/" class="hover:underline text-amber-700 dark:text-amber-400">Highest Scoring 2-Letter Plays</a></li>
+        <li><a href="/blog/scrabble-scoring-guide/" class="hover:underline text-amber-700 dark:text-amber-400">Scrabble Scoring Guide for Beginners</a></li>
+      </ul>
+    </aside>
+
+    <!-- CTA -->
+    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg p-6 text-center mb-8">
+      <p class="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">Find Your Highest-Scoring Words</p>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Enter your tiles and discover every possible word — ranked by score, instantly.</p>
+      <a href="/" class="inline-block bg-amber-600 hover:bg-amber-700 text-white font-medium px-6 py-2 rounded-lg transition-colors">Try the Word Finder →</a>
+    </div>
+
+    <a href="/blog/" class="text-sm text-gray-500 dark:text-gray-400 hover:underline">← Back to Blog</a>
+
+  </main>
+</Layout>

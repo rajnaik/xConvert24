@@ -282,6 +282,19 @@ import '../styles/global.css';
       </div>
     </div>
 
+    <!-- Saved Coaching Reports panel -->
+    <div id="saved-reports-panel" class="hidden">
+      <div class="p-4 bg-gray-900/50 border border-cyan-700/50 rounded-xl">
+        <h2 class="text-sm font-semibold text-cyan-300 mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          Saved Reports
+          <span id="saved-reports-count" class="ml-auto text-[10px] text-gray-500">0 / 5</span>
+        </h2>
+        <div id="saved-reports-list" class="flex flex-col gap-2"></div>
+        <p id="saved-reports-empty" class="text-[10px] text-gray-500 italic">No saved reports yet. Generate a coaching analysis and save it.</p>
+      </div>
+    </div>
+
     </div><!-- end right column -->
     </div><!-- end flex row -->
   </main>
@@ -376,6 +389,8 @@ import '../styles/global.css';
   })}></script>
 
   <script is:inline src="/js/coaching-renderers.js"></script>
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script is:inline src="/js/coaching-pdf.js"></script>
   <script is:inline>
   (function() {
     const form = document.getElementById('chat-form');
@@ -1119,22 +1134,22 @@ import '../styles/global.css';
           // If this was a CaB coaching request, append structured graph + timing data
           if (pendingCabCoach) {
             pendingCabCoach = false;
-            appendCabCoachData(textEl);
+            appendCabCoachData(textEl, fullResponse);
           }
           // If this was a Quiz coaching request, append structured graph + timing data
           if (pendingQuizCoach) {
             pendingQuizCoach = false;
-            appendQuizCoachData(textEl);
+            appendQuizCoachData(textEl, fullResponse);
           }
           // If this was a Rack coaching request, append structured graph + timing data
           if (pendingRackCoach) {
             pendingRackCoach = false;
-            appendRackCoachData(textEl);
+            appendRackCoachData(textEl, fullResponse);
           }
           // If this was an Anagram coaching request, append structured graph + timing data
           if (pendingAnagramCoach) {
             pendingAnagramCoach = false;
-            appendAnagramCoachData(textEl);
+            appendAnagramCoachData(textEl, fullResponse);
           }
         } else {
           textEl.textContent = '⚠️ No response received. Please try again.';
@@ -1153,7 +1168,7 @@ import '../styles/global.css';
     });
 
     // --- CaB Coach Structured Data (graph + timing + per-game cards) ---
-    function appendCabCoachData(containerEl) {
+    function appendCabCoachData(containerEl, analysisText) {
       var uid = localStorage.getItem('swf-uid') || '';
       if (!uid) return;
 
@@ -1261,6 +1276,11 @@ import '../styles/global.css';
           }
           cardsHtml += '</div></div>';
           wrapper.insertAdjacentHTML('beforeend', cardsHtml);
+        }
+
+        // PDF Download + Save buttons
+        if (typeof appendCoachingPDFButtons === 'function') {
+          appendCoachingPDFButtons(wrapper, 'cab', analysisText, data.stats || {}, data.phases || null);
         }
 
         containerEl.appendChild(wrapper);
@@ -1528,7 +1548,7 @@ import '../styles/global.css';
     }
 
     // --- Quiz Coach Structured Data (graph + timing + per-game cards) ---
-    function appendQuizCoachData(containerEl) {
+    function appendQuizCoachData(containerEl, analysisText) {
       var uid = localStorage.getItem('swf-uid') || '';
       if (!uid) return;
 
@@ -1593,6 +1613,11 @@ import '../styles/global.css';
         // Per-game cards
         appendCoachGameCards(wrapper, games, 'quiz');
 
+        // PDF Download + Save buttons
+        if (typeof appendCoachingPDFButtons === 'function') {
+          appendCoachingPDFButtons(wrapper, 'quiz', analysisText, data.stats || {}, data.phases || null);
+        }
+
         containerEl.appendChild(wrapper);
         scrollToBottom();
       })
@@ -1600,7 +1625,7 @@ import '../styles/global.css';
     }
 
     // --- Rack Coach Structured Data (graph + per-game cards) ---
-    function appendRackCoachData(containerEl) {
+    function appendRackCoachData(containerEl, analysisText) {
       var uid = localStorage.getItem('swf-uid') || '';
       if (!uid) return;
 
@@ -1641,6 +1666,11 @@ import '../styles/global.css';
         // Per-game cards
         appendCoachGameCards(wrapper, games, 'rack');
 
+        // PDF Download + Save buttons
+        if (typeof appendCoachingPDFButtons === 'function') {
+          appendCoachingPDFButtons(wrapper, 'rack', analysisText, data.stats || {}, data.phases || null);
+        }
+
         containerEl.appendChild(wrapper);
         scrollToBottom();
       })
@@ -1648,7 +1678,7 @@ import '../styles/global.css';
     }
 
     // --- Anagram Coach Structured Data (graph + timing + per-game cards) ---
-    function appendAnagramCoachData(containerEl) {
+    function appendAnagramCoachData(containerEl, analysisText) {
       var uid = localStorage.getItem('swf-uid') || '';
       if (!uid) return;
 
@@ -1712,6 +1742,11 @@ import '../styles/global.css';
 
         // Per-game cards
         appendCoachGameCards(wrapper, games, 'anagram');
+
+        // PDF Download + Save buttons
+        if (typeof appendCoachingPDFButtons === 'function') {
+          appendCoachingPDFButtons(wrapper, 'anagram', analysisText, data.stats || {}, data.phases || null);
+        }
 
         containerEl.appendChild(wrapper);
         scrollToBottom();
@@ -2270,6 +2305,84 @@ import '../styles/global.css';
           ).join('');
         } catch { /* non-critical */ }
       })();
+    })();
+
+    // Saved Reports panel — shows stored coaching PDFs from localStorage
+    (function initSavedReports() {
+      var panel = document.getElementById('saved-reports-panel');
+      var listEl = document.getElementById('saved-reports-list');
+      var emptyEl = document.getElementById('saved-reports-empty');
+      var countEl = document.getElementById('saved-reports-count');
+      if (!panel || !listEl) return;
+
+      function renderReports() {
+        if (typeof getStoredReports !== 'function') return;
+        var reports = getStoredReports();
+
+        if (reports.length === 0) {
+          panel.classList.add('hidden');
+          return;
+        }
+
+        panel.classList.remove('hidden');
+        countEl.textContent = reports.length + ' / 5';
+        emptyEl.classList.toggle('hidden', reports.length > 0);
+
+        var typeIcons = { quiz: '\uD83D\uDCDD', rack: '\uD83C\uDFB2', anagram: '\uD83D\uDD24', cab: '\uD83D\uDC02' };
+        var typeColors = { quiz: 'emerald', rack: 'purple', anagram: 'orange', cab: 'amber' };
+
+        listEl.innerHTML = reports.map(function(r) {
+          var icon = typeIcons[r.type] || '\uD83D\uDCC4';
+          var color = typeColors[r.type] || 'gray';
+          var date = r.date ? new Date(r.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Unknown';
+          return '<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-800/50 border border-gray-700/50 group">' +
+            '<span class="text-sm" aria-hidden="true">' + icon + '</span>' +
+            '<div class="flex-1 min-w-0">' +
+              '<p class="text-xs text-gray-200 font-medium truncate">' + (r.title || 'Report') + '</p>' +
+              '<p class="text-[10px] text-gray-500">' + date + '</p>' +
+            '</div>' +
+            '<button data-report-view="' + r.id + '" class="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-cyan-900/30 border border-cyan-600/40 text-cyan-300 hover:bg-cyan-800/50 hover:border-cyan-400 transition-colors opacity-0 group-hover:opacity-100" title="View PDF">' +
+              '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>' +
+            '</button>' +
+            '<button data-report-delete="' + r.id + '" class="shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-red-900/20 border border-red-600/30 text-red-400 hover:bg-red-800/40 hover:border-red-400 transition-colors opacity-0 group-hover:opacity-100" title="Delete">' +
+              '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
+            '</button>' +
+          '</div>';
+        }).join('');
+
+        // Bind view buttons
+        listEl.querySelectorAll('[data-report-view]').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var id = btn.getAttribute('data-report-view');
+            var reports = getStoredReports();
+            var report = reports.find(function(r) { return r.id === id; });
+            if (report && report.base64) {
+              // Open in new tab
+              var win = window.open('', '_blank');
+              if (win) {
+                win.document.write('<iframe src="' + report.base64 + '" style="width:100%;height:100%;border:none;position:fixed;top:0;left:0;" frameborder="0"></iframe>');
+                win.document.title = report.title || 'Coaching Report';
+              }
+            }
+          });
+        });
+
+        // Bind delete buttons
+        listEl.querySelectorAll('[data-report-delete]').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var id = btn.getAttribute('data-report-delete');
+            if (typeof deleteStoredReport === 'function') {
+              deleteStoredReport(id);
+            }
+          });
+        });
+      }
+
+      // Initial render
+      renderReports();
+
+      // Listen for updates (from save button or delete)
+      window.addEventListener('coaching-reports-updated', renderReports);
     })();
 
     (function initVoiceInput() {

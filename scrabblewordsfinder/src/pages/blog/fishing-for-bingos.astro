@@ -1,55 +1,171 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Fishing for Bingos — When to Hold Back"
-  description="When sacrificing points to keep a bingo-friendly rack is worth it. The math behind fishing plays."
-  keywords="scrabble, fishing, for, bingos"
+<Layout
+  title="Fishing for Bingos — When to Sacrifice Points for a 7-Letter Play"
+  description="Master the art of fishing for bingos in Scrabble. Learn when sacrificing immediate points for a 50-point bonus is the right call. Free strategy guide."
+  keywords="fishing for bingos scrabble, bingo strategy, sacrifice points bingo, 7 letter words scrabble, rack leave bingo, scrabble 50 point bonus"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Fishing for Bingos — When to Hold Back",
-    "description": "When sacrificing points to keep a bingo-friendly rack is worth it. The math behind fishing plays.",
+    "headline": "Fishing for Bingos — When to Sacrifice Points for a 7-Letter Play",
+    "description": "Master the art of fishing for bingos in Scrabble. Learn when sacrificing immediate points for a 50-point bonus is the right call.",
     "datePublished": "2026-06-15",
     "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/fishing-for-bingos" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/fishing-for-bingos/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What does fishing for a bingo mean in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Fishing means deliberately playing fewer tiles (1-2) at a lower score to keep 5-6 strong tiles on your rack, hoping to draw the 1-2 tiles needed to complete a 7-letter bingo worth 50+ bonus points on your next turn." } },
+      { "@type": "Question", "name": "When should I fish for a bingo instead of scoring?", "acceptedAnswer": { "@type": "Answer", "text": "Fish when your rack leave after a small play contains a known bingo stem (SATIRE, RETINA, ALINES), the board has open bingo lanes, the bag has 20+ tiles remaining, and the point difference between your best play and the fishing play is less than 20 points." } },
+      { "@type": "Question", "name": "What are the best bingo stems to fish for?", "acceptedAnswer": { "@type": "Answer", "text": "The top stems by probability are SATIRE, RETINA, SALINE, TISANE, SENIOR, and ARISEN. These 6-letter combinations form the most 7-letter words when combined with any single draw tile. Memorising even the top 5 stems dramatically increases bingo frequency." } }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
       <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
         <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
+        <a href="/blog/bingos/" class="hover:text-amber-500 transition-colors text-gray-300">Bingos</a>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Fishing for Bingos — When to Hold Back</h1>
+      <BlogCrossLinks title="Fishing for Bingos" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Fishing for Bingos</h1>
 
       <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
         <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>8 min read</span>
       </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">When sacrificing points to keep a bingo-friendly rack is worth it. The math behind fishing plays.</p>
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">A bingo — using all seven tiles for a 50-point bonus — swings games. But bingos don't happen by accident at the expert level. They're engineered through deliberate rack management: playing small now to set up big later. This is the art of fishing.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">50</p><p class="text-xs text-gray-400">Bonus points per bingo</p></div>
+          <div><p class="text-xl font-bold text-amber-400">2-3</p><p class="text-xs text-gray-400">Bingos per game (experts)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">~30%</p><p class="text-xs text-gray-400">Probability with top stems</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What Is Fishing?</h2>
+
+      <p class="text-gray-300">Fishing means playing a low-scoring move (1-2 tiles) specifically to keep 5-6 tiles that form a strong bingo stem. You sacrifice immediate points gambling that your next draw completes a 7-letter word.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 The Math</p>
+        <p class="text-base text-gray-200">If your best play scores 28 and your fishing play scores 12, you sacrifice 16 points. If you bingo next turn for 75+ points (average bingo value), the gamble pays <span class="text-white font-medium">+59 net points</span> when it works. Even at 30% success, the expected value often favours fishing.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Fish</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">✓ Fish When</p>
+          <p class="text-xs text-gray-400">Your leave contains a top-20 bingo stem • The board has open 7+ tile lanes • The bag has 20+ tiles remaining • The point gap between plays is less than 20 • You're not critically behind (50+ points down)</p>
+        </div>
+        <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+          <p class="text-red-400 font-semibold text-sm mb-1">✗ Don't Fish When</p>
+          <p class="text-xs text-gray-400">The board is closed (no bingo lanes) • The bag has fewer than 10 tiles • You'd sacrifice 25+ points • Your leave isn't a recognised stem • You're in the endgame</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Bingo Stems to Fish For</h2>
+
+      <p class="text-gray-300">These 6-letter combinations produce the most 7-letter words. If your rack contains one of these stems plus a dumpable tile, fishing is almost always correct:</p>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Stem</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Bingos Formed</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Example</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">SATIRE</td><td class="px-4 py-3 text-gray-400">69</td><td class="px-4 py-3 text-gray-400">SATIRE + N = NASTIER</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">RETINA</td><td class="px-4 py-3 text-gray-400">65</td><td class="px-4 py-3 text-gray-400">RETINA + G = GRANITE</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">SALINE</td><td class="px-4 py-3 text-gray-400">58</td><td class="px-4 py-3 text-gray-400">SALINE + T = ELASTIN</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">TISANE</td><td class="px-4 py-3 text-gray-400">54</td><td class="px-4 py-3 text-gray-400">TISANE + R = NASTIER</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 text-amber-400 font-bold">SENIOR</td><td class="px-4 py-3 text-gray-400">50</td><td class="px-4 py-3 text-gray-400">SENIOR + T = STONIER</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 text-amber-400 font-bold">ARISEN</td><td class="px-4 py-3 text-gray-400">48</td><td class="px-4 py-3 text-gray-400">ARISEN + T = NASTIER</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/top-bingo-stems-satire/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Top Bingo Stems: SATIRE — the king of all stems</span>
+          </a>
+          <a href="/blog/spotting-bingos-on-your-rack/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Spotting Bingos on Your Rack — pattern recognition</span>
+          </a>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Fishing Technique: The One-Tile Dump</h2>
+
+      <p class="text-gray-300">The cleanest fishing play uses exactly one tile, keeping six for maximum bingo probability next turn:</p>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hook an existing word:</span> Add an S, D, or R to a word already on the board. Scores 5-15 points while dumping exactly one tile from your rack.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play a 2-letter word:</span> Simple moves like AX (9), ZA (11), or QI (11) dump one tile with decent points. Perfect when your other 6 tiles form a stem.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Dump the weakest tile:</span> If your rack is SATIRE + V, play the V somewhere. V is the worst tile for bingo combinations. Keep the stem intact.</p>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/bingo-bonus-vs-steady-scoring/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Bingo Bonus vs Steady Scoring</span>
+          </a>
+          <a href="/blog/rack-leave-explained/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Rack Leave Explained</span>
+          </a>
+          <a href="/blog/common-bingo-prefixes/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Common Bingo Prefixes</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
         <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+          <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Check if your rack can bingo — free solver, instant results</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
         </div>
       </div>
 
       <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

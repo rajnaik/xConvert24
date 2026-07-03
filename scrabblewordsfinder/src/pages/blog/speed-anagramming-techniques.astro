@@ -1,55 +1,228 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Speed Anagramming Techniques"
-  description="Train your brain to rearrange letters faster. Mental tricks for spotting anagrams under time pressure."
-  keywords="scrabble, speed, anagramming, techniques"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Speed Anagramming Techniques",
-    "description": "Train your brain to rearrange letters faster. Mental tricks for spotting anagrams under time pressure.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/speed-anagramming-techniques" }
-  })} />
+<Layout title="Speed Anagramming Techniques — Find Words Faster at the Board" description="Master mental techniques for quickly anagramming tiles during Scrabble games. Learn vowel-consonant separation, prefix scanning, and chunk recognition." keywords="speed anagramming, anagram techniques, find words faster, scrabble anagram, tile rearranging, word finding, scrabble strategy, mental techniques">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/bingos/" class="hover:text-blue-400 transition-colors text-gray-300">Bingos</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Speed Anagramming Techniques — Find Words Faster at the Board",
+  "description": "Master mental techniques for quickly anagramming tiles during Scrabble games. Learn vowel-consonant separation, prefix scanning, and chunk recognition.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/speed-anagramming-techniques/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Speed Anagramming Techniques</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is the fastest way to anagram tiles in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The fastest method is vowel-consonant separation: mentally group vowels on one side and consonants on the other. This reveals common patterns like -TION, -ING, or RE- that form the skeleton of longer words." }},
+    { "@type": "Question", "name": "How do professional Scrabble players find words so quickly?", "acceptedAnswer": { "@type": "Answer", "text": "Professionals use chunk recognition — they see letter groups as units rather than individual tiles. They scan for common prefixes (UN-, RE-), suffixes (-ING, -TION), and bingo stems (SATIRE, RETINA) trained through thousands of hours of practice." }},
+    { "@type": "Question", "name": "Can speed anagramming be practised offline?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Draw 7 random tiles, start a 60-second timer, and write down every word you can find. You can also practise with car number plates, shop signs, and random letter groups you encounter throughout the day." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+<div class="max-w-3xl mx-auto px-4">
+  <article class="prose dark:prose-invert prose-gray max-w-none">
+
+    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+      <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+      <span class="mx-1">›</span>
+      <span class="text-gray-600 dark:text-gray-300">Strategy</span>
+    </nav>
+
+    <BlogCrossLinks title="Speed Anagramming Techniques — Find Words Faster at the Board" />
+
+    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+      <time datetime="2026-06-15">June 15, 2026</time>
+      <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+      <span>7 min read</span>
+    </div>
+
+    <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The difference between a good Scrabble player and a great one often comes down to speed. Not clock management, but how quickly you look at seven tiles and see words hiding inside them. Speed anagramming is a trainable skill — these techniques will help you find words faster under pressure.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Technique 1 — Vowel-Consonant Separation</h2>
+
+    <p>The first step with any rack is mentally splitting it into vowels and consonants. This simple reorganisation reveals patterns invisible when tiles sit in random order.</p>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+      <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Example</p>
+      <p class="text-base text-gray-200">Random rack: <span class="text-white font-medium">T R A I N E S</span></p>
+      <p class="text-base text-gray-200 mt-1">After separation: <span class="text-amber-400 font-medium">A I E</span> | <span class="text-cyan-400 font-medium">T R N S</span></p>
+      <p class="text-sm text-gray-400 mt-2">3 vowels + 4 consonants = balanced rack with bingo potential. The consonant cluster TRNS suggests -TION or TRANS- patterns.</p>
+    </div>
+
+    <p>This works because English follows predictable vowel-consonant patterns. A balanced rack (3 vowels + 4 consonants) almost always contains multiple words. Heavy vowel racks (4+) signal words like IDEA, ARIA, or suffixes like -ATE.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Technique 2 — Prefix and Suffix Scanning</h2>
+
+    <p>Before trying to see whole words, scan for common beginnings and endings. If you spot one, mentally set those tiles aside and focus on what remains.</p>
+
+    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <p class="text-amber-400 font-semibold text-sm mb-1">🏷️ High-Value Prefixes</p>
+        <p class="text-xs text-gray-400">UN- (2), RE- (2), OUT- (3), OVER- (4), MIS- (3), PRE- (3), DIS- (3), NON- (3), SUB- (3)</p>
       </div>
+      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <p class="text-amber-400 font-semibold text-sm mb-1">🏷️ High-Value Suffixes</p>
+        <p class="text-xs text-gray-400">-ING (3), -TION (4), -ER (2), -ED (2), -LY (2), -NESS (4), -MENT (4), -ABLE (4), -IST (3)</p>
+      </div>
+    </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Train your brain to rearrange letters faster. Mental tricks for spotting anagrams under time pressure.</p>
+    <div class="not-prose my-6 p-5 rounded-xl border border-green-500/30 bg-green-950/10">
+      <p class="text-sm font-semibold text-green-400 uppercase tracking-wider mb-2">✅ Power Move</p>
+      <p class="text-base text-gray-200">If you spot <span class="text-white font-medium">-ING</span> in your rack, you only need to anagram the remaining 4 tiles. Four tiles are far easier to work with than seven.</p>
+    </div>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Technique 3 — Alphabetical Ordering</h2>
+
+    <p>Tournament players rearrange their physical tiles into alphabetical order. This seems minor but has a powerful effect: your brain stops seeing "random" and starts recognising familiar letter sequences.</p>
+
+    <div class="not-prose my-6 grid grid-cols-1 gap-4">
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Eliminates scanning cost:</span> You always know where each letter sits — no more hunting.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Reveals digraphs:</span> Adjacent alphabetical letters often form pairs (ST, TH, DE).</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Builds pattern memory:</span> AEIRST always looks the same — you start recognising SATIRE stems instantly.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Reduces cognitive load:</span> Frees brainpower for actual word-finding instead of tile-hunting.</p>
+      </div>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Technique 4 — Chunk Recognition</h2>
+
+    <p>Expert players do not see individual letters — they see chunks. Just as experienced readers process words as units, experienced Scrabble players see tile groups as building blocks.</p>
+
+    <div class="overflow-x-auto not-prose my-6">
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Chunk</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Forms Part Of</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">QU</td><td class="px-4 py-3">Always together — treat as one unit</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">TH</td><td class="px-4 py-3">THE, THAT, WITH, THEM, THEIR</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">SH</td><td class="px-4 py-3">SHIP, SHARE, SHOUT, SHIFT</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">IGHT</td><td class="px-4 py-3">LIGHT, NIGHT, TIGHT, SIGHT</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">TION</td><td class="px-4 py-3">NATION, STATION, RATION</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">NESS</td><td class="px-4 py-3">KINDNESS, SADNESS, WEAKNESS</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+      <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+      <div class="grid gap-2">
+        <a href="/blog/bingo-racks-to-memorise/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Bingo Racks to Memorise — productive stems for chunk-based recognition</span>
+        </a>
+        <a href="/blog/spotting-bingos-on-your-rack/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Spotting Bingos on Your Rack — applying these techniques to find 7-letter plays</span>
+        </a>
+      </div>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Technique 5 — The 30-Second Routine</h2>
+
+    <p>When nothing jumps out immediately, use this systematic routine to cover all angles within half a minute:</p>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+      <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 The 30-Second Routine</p>
+      <div class="space-y-3">
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+          <p class="text-sm text-gray-300">Separate vowels and consonants (3 seconds)</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+          <p class="text-sm text-gray-300">Scan for prefixes and suffixes (5 seconds)</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+          <p class="text-sm text-gray-300">Alphabetise mentally (3 seconds)</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+          <p class="text-sm text-gray-300">Look for chunks and stems (10 seconds)</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+          <p class="text-sm text-gray-300">Try elimination method if stuck (9 seconds)</p>
         </div>
       </div>
+    </div>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Daily Practice Drills</h2>
+
+    <p>Speed anagramming improves dramatically with consistent practice. Even five minutes daily makes a measurable difference within two weeks.</p>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+      <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+        <div><p class="text-xl font-bold text-amber-400">5 min</p><p class="text-xs text-gray-400">Daily practice</p></div>
+        <div><p class="text-xl font-bold text-amber-400">2 weeks</p><p class="text-xs text-gray-400">To see results</p></div>
+        <div><p class="text-xl font-bold text-amber-400">30 sec</p><p class="text-xs text-gray-400">Target per rack</p></div>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+    </div>
+
+    <div class="not-prose my-6 grid grid-cols-1 gap-4">
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Minutes 1-2:</span> Draw 7 tiles, find the longest word within 30 seconds. Repeat 4 times.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Minutes 3-4:</span> Take a known 7-letter word, scramble it, time yourself unscrambling. Beat your record.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Minute 5:</span> Car plate game — take any 3-4 letters you see and find all words containing them.</p>
+      </div>
+    </div>
+
+    <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+      <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+      <div class="grid gap-3">
+        <a href="/blog/bingo-racks-to-memorise/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Bingo Racks to Memorise</span>
+        </a>
+        <a href="/blog/spotting-bingos-on-your-rack/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Spotting Bingos on Your Rack</span>
+        </a>
+        <a href="/blog/scrabble-anagram-solving-tips/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Anagram Solving Tips</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Test your anagramming — enter tiles and see every valid word instantly</p>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+      </div>
+    </div>
+
+    <div class="not-prose mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+    </div>
+
+  </article>
+</div>
+
+</Layout>

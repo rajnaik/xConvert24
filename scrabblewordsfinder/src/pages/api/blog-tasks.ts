@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ request }) => {
   if (status) { query += ' AND status = ?'; binds.push(status); }
   if (readyStatus) { query += ' AND ready_status = ?'; binds.push(readyStatus); }
 
-  query += ' ORDER BY id ASC LIMIT ? OFFSET ?';
+  query += ' ORDER BY priority DESC, id ASC LIMIT ? OFFSET ?';
   binds.push(Number(limit), Number(offset));
 
   const { results } = await db.prepare(query).bind(...binds).all();
