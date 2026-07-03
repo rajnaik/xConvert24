@@ -2,93 +2,139 @@ import { test, expect } from '@playwright/test';
 
 const PAGE = '/blog/two-letter-words-complete-strategy/';
 
-test.describe('Two-Letter Words Complete Strategy — High-Value Section — Positive', () => {
+test.describe('Two-Letter Words Complete Strategy — Structure — Positive', () => {
 
   test('page loads with 200 status', async ({ page }) => {
     const response = await page.goto(PAGE);
     expect(response?.status()).toBe(200);
   });
 
-  test('high-value two-letter words heading exists', async ({ page }) => {
+  test('h1 heading is visible', async ({ page }) => {
     await page.goto(PAGE);
-    const heading = page.locator('h2', { hasText: 'The High-Value Two-Letter Words' });
-    await expect(heading).toBeVisible();
+    const h1 = page.locator('h1', { hasText: 'Two-Letter Words Complete Strategy' });
+    await expect(h1).toBeVisible();
   });
 
-  test('word badges display all 8 high-value words', async ({ page }) => {
+  test('breadcrumb nav with Blog link and Strategy category', async ({ page }) => {
     await page.goto(PAGE);
-    const expectedWords = ['QI', 'ZA', 'ZO', 'XI', 'XU', 'JO', 'KA', 'KI'];
-    for (const word of expectedWords) {
-      const badge = page.locator('span.text-white.font-bold', { hasText: new RegExp(`^${word}$`) });
-      await expect(badge).toBeVisible();
-    }
+    const blogLink = page.locator('nav a[href="/blog/"]');
+    await expect(blogLink).toBeVisible();
+    const categorySpan = page.locator('nav span', { hasText: 'Strategy' });
+    await expect(categorySpan).toBeVisible();
   });
 
-  test('word badges show point values', async ({ page }) => {
+  test('all 6 section headings are visible', async ({ page }) => {
     await page.goto(PAGE);
-    const pointBadges = page.locator('span.text-amber-400.text-xs');
-    const count = await pointBadges.count();
-    expect(count).toBeGreaterThanOrEqual(8);
+    await expect(page.locator('h2', { hasText: 'Parallel Play Scoring — The Hidden Power' })).toBeVisible();
+    await expect(page.locator('h2', { hasText: 'The Complete Tier List' })).toBeVisible();
+    await expect(page.locator('h2', { hasText: /Vowel Dumps/ })).toBeVisible();
+    await expect(page.locator('h2', { hasText: 'Premium Square Targeting' })).toBeVisible();
+    await expect(page.locator('h2', { hasText: 'Blocking and Defensive 2-Letter Plays' })).toBeVisible();
+    await expect(page.locator('h2', { hasText: 'Training Your Parallel Play Vision' })).toBeVisible();
   });
 
-  test('QI explanation card is visible with content', async ({ page }) => {
+  test('tier list table exists with 5 rows', async ({ page }) => {
     await page.goto(PAGE);
-    const card = page.locator('span.text-purple-400', { hasText: 'QI (11 pts):' });
-    await expect(card).toBeVisible();
+    const tableRows = page.locator('table tbody tr');
+    await expect(tableRows).toHaveCount(5);
   });
 
-  test('ZA explanation card is visible with content', async ({ page }) => {
+  test('tier list table contains Power tier with QI', async ({ page }) => {
     await page.goto(PAGE);
-    const card = page.locator('span.text-purple-400', { hasText: 'ZA (11 pts):' });
-    await expect(card).toBeVisible();
+    const powerRow = page.locator('table tbody tr', { hasText: 'Power' });
+    await expect(powerRow).toBeVisible();
+    await expect(powerRow).toContainText('QI');
   });
 
-  test('XI and XU explanation card is visible', async ({ page }) => {
+  test('premium square stat strip shows scoring values', async ({ page }) => {
     await page.goto(PAGE);
-    const card = page.locator('span.text-purple-400', { hasText: 'XI and XU (9 pts each):' });
-    await expect(card).toBeVisible();
+    await expect(page.locator('text=31 pts')).toBeVisible();
+    await expect(page.getByText('ZA on TLS', { exact: true })).toBeVisible();
   });
 
-  test('JO explanation card is visible', async ({ page }) => {
+  test('CTA block links to word finder', async ({ page }) => {
     await page.goto(PAGE);
-    const card = page.locator('span.text-purple-400', { hasText: 'JO (9 pts):' });
-    await expect(card).toBeVisible();
+    const ctaLink = page.locator('a', { hasText: 'Open Word Finder →' });
+    await expect(ctaLink).toBeVisible();
+    await expect(ctaLink).toHaveAttribute('href', '/');
   });
 });
 
 test.describe('Two-Letter Words Complete Strategy — Cross-Links — Positive', () => {
 
-  test('dig deeper section exists', async ({ page }) => {
+  test('dig deeper section exists with links', async ({ page }) => {
     await page.goto(PAGE);
-    const heading = page.locator('text=Dig Deeper');
-    await expect(heading).toBeVisible();
+    await expect(page.locator('text=Dig Deeper')).toBeVisible();
   });
 
-  test('cross-link to two-letter-words hub has correct href', async ({ page }) => {
+  test('dig deeper links to highest-scoring-2-letter-plays', async ({ page }) => {
     await page.goto(PAGE);
-    const section = page.locator('div').filter({ hasText: /Dig Deeper/ }).last();
-    const link = section.locator('a[href="/blog/two-letter-words/"]');
+    const link = page.locator('a[href="/blog/highest-scoring-2-letter-plays/"]').first();
     await expect(link).toBeVisible();
   });
 
-  test('cross-link to best-two-letter-words-scrabble has correct href', async ({ page }) => {
+  test('dig deeper links to two-letter-scrabble-words-complete-list', async ({ page }) => {
     await page.goto(PAGE);
-    const section = page.locator('div').filter({ hasText: /Dig Deeper/ }).last();
-    const link = section.locator('a[href="/blog/best-two-letter-words-scrabble/"]');
+    const link = page.locator('a[href="/blog/two-letter-scrabble-words-complete-list/"]');
     await expect(link).toBeVisible();
   });
 
-  test('cross-link labels contain descriptive text', async ({ page }) => {
+  test('related articles section has 3 links', async ({ page }) => {
     await page.goto(PAGE);
-    const section = page.locator('div').filter({ hasText: /Dig Deeper/ }).last();
-    const hubLink = section.locator('a[href="/blog/two-letter-words/"]');
-    await expect(hubLink).toContainText('Two-Letter Words Hub');
-    const bestLink = section.locator('a[href="/blog/best-two-letter-words-scrabble/"]');
-    await expect(bestLink).toContainText('Best Two-Letter Words');
+    const aside = page.locator('aside');
+    await expect(aside.locator('a')).toHaveCount(3);
+  });
+
+  test('related articles include best-two-letter-words-scrabble', async ({ page }) => {
+    await page.goto(PAGE);
+    const aside = page.locator('aside');
+    const link = aside.locator('a[href="/blog/best-two-letter-words-scrabble/"]');
+    await expect(link).toBeVisible();
+  });
+
+  test('related articles include rare-two-letter-scrabble-words', async ({ page }) => {
+    await page.goto(PAGE);
+    const aside = page.locator('aside');
+    const link = aside.locator('a[href="/blog/rare-two-letter-scrabble-words/"]');
+    await expect(link).toBeVisible();
   });
 });
 
-test.describe('Two-Letter Words Complete Strategy — High-Value Section — Negative', () => {
+test.describe('Two-Letter Words Complete Strategy — Schema — Positive', () => {
+
+  test('Article schema is present with correct headline', async ({ page }) => {
+    await page.goto(PAGE);
+    const schemas = page.locator('script[type="application/ld+json"]');
+    const count = await schemas.count();
+    let foundArticle = false;
+    for (let i = 0; i < count; i++) {
+      const text = await schemas.nth(i).textContent();
+      if (text && text.includes('"@type":"Article"')) {
+        foundArticle = true;
+        expect(text).toContain('Two-Letter Words Complete Strategy');
+      }
+    }
+    expect(foundArticle).toBe(true);
+  });
+
+  test('FAQPage schema is present with 3 questions', async ({ page }) => {
+    await page.goto(PAGE);
+    const schemas = page.locator('script[type="application/ld+json"]');
+    const count = await schemas.count();
+    let foundFAQ = false;
+    for (let i = 0; i < count; i++) {
+      const text = await schemas.nth(i).textContent();
+      if (text && text.includes('"@type":"FAQPage"')) {
+        foundFAQ = true;
+        const parsed = JSON.parse(text);
+        expect(parsed.mainEntity).toHaveLength(3);
+      }
+    }
+    expect(foundFAQ).toBe(true);
+  });
+});
+
+test.describe('Two-Letter Words Complete Strategy — Negative', () => {
 
   test('no console errors on page load', async ({ page }) => {
     const errors: string[] = [];
@@ -98,33 +144,37 @@ test.describe('Two-Letter Words Complete Strategy — High-Value Section — Neg
     expect(errors).toHaveLength(0);
   });
 
-  test('no duplicate high-value heading', async ({ page }) => {
+  test('no duplicate h1 headings', async ({ page }) => {
     await page.goto(PAGE);
-    const headings = page.locator('h2', { hasText: 'The High-Value Two-Letter Words' });
-    await expect(headings).toHaveCount(1);
+    const h1s = page.locator('h1');
+    await expect(h1s).toHaveCount(1);
   });
 
-  test('no duplicate QI badges', async ({ page }) => {
+  test('no self-referencing links', async ({ page }) => {
     await page.goto(PAGE);
-    const qiBadges = page.locator('span.text-white.font-bold', { hasText: /^QI$/ });
-    await expect(qiBadges).toHaveCount(1);
-  });
-
-  test('cross-links do not self-reference this page', async ({ page }) => {
-    await page.goto(PAGE);
-    const selfLink = page.locator('a[href="/blog/two-letter-words-complete-strategy/"]');
+    const selfLink = page.locator('article a[href="/blog/two-letter-words-complete-strategy/"]');
     await expect(selfLink).toHaveCount(0);
   });
 
-  test('cross-links are not broken (no empty href)', async ({ page }) => {
+  test('no empty href links in content', async ({ page }) => {
     await page.goto(PAGE);
-    const section = page.locator('div').filter({ hasText: 'Dig Deeper' }).last();
-    const links = section.locator('a');
-    const count = await links.count();
-    expect(count).toBeGreaterThan(0);
+    const allLinks = page.locator('article a');
+    const count = await allLinks.count();
     for (let i = 0; i < count; i++) {
-      const href = await links.nth(i).getAttribute('href');
+      const href = await allLinks.nth(i).getAttribute('href');
       expect(href?.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  test('all internal links have trailing slash', async ({ page }) => {
+    await page.goto(PAGE);
+    const internalLinks = page.locator('article a[href^="/"]');
+    const count = await internalLinks.count();
+    for (let i = 0; i < count; i++) {
+      const href = await internalLinks.nth(i).getAttribute('href');
+      if (href && !href.includes('#') && !href.match(/\.\w+$/)) {
+        expect(href).toMatch(/\/$/);
+      }
     }
   });
 });
