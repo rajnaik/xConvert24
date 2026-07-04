@@ -1,55 +1,148 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words With All Vowels (No Consonants)"
-  description="Valid Scrabble words made entirely of vowels. Emergency plays when your rack is vowel-heavy."
-  keywords="scrabble, words, with, all, vowels"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words With All Vowels (No Consonants)",
-    "description": "Valid Scrabble words made entirely of vowels. Emergency plays when your rack is vowel-heavy.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-with-all-vowels" }
-  })} />
+<Layout title="Words With All Vowels — Vowel-Only Scrabble Words | ScrabbleWordsFinder.com" description="Find valid Scrabble words made entirely (or almost entirely) of vowels. Essential knowledge for vowel-heavy racks — AA, AI, OE, EAU and more." keywords="all vowel words scrabble, vowel only words, words made of vowels, aa scrabble word, eau scrabble, vowel dump words scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/high-scoring/" class="hover:text-blue-400 transition-colors text-gray-300">High Scoring</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words With All Vowels — Vowel-Only Scrabble Words",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words With All Vowels (No Consonants)</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What Scrabble words are made only of vowels?", "acceptedAnswer": { "@type": "Answer", "text": "Valid vowel-only words include AA (2 pts), AI (2 pts), OE (2 pts), and EAU (3 pts). In SOWPODS, additional options like EUOUAE (6 pts) — a medieval musical term — provide longer vowel-only plays." }},
+    { "@type": "Question", "name": "Is AA a valid Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! AA is valid in both SOWPODS and TWL. It refers to a type of rough lava. Despite scoring only 2 points, AA is essential for parallel plays and tight board positions when your rack is vowel-heavy." }},
+    { "@type": "Question", "name": "What is the longest vowel-only Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "EUOUAE (6 letters) is considered the longest vowel-only word valid in SOWPODS. It's a medieval musical mnemonic. In TWL, EAU (3 letters) is the longest commonly accepted vowel-only word." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Valid Scrabble words made entirely of vowels. Emergency plays when your rack is vowel-heavy.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/word-lists/" class="hover:text-amber-500 transition-colors">Word Lists</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words With All Vowels</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words With All Vowels — Vowel-Only Scrabble Words</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 4 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">When your rack looks like a bowl of alphabet soup — all vowels, no consonants — you need words made entirely of vowel tiles. These rare but valid words let you play without exchanging, keeping your turn while dumping excess vowels. Every competitive player memorises these.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Complete Vowel-Only Words</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AA</span><span class="text-blue-400 text-xs">2 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AE</span><span class="text-blue-400 text-xs">2 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AI</span><span class="text-blue-400 text-xs">2 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OE</span><span class="text-blue-400 text-xs">2 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OI</span><span class="text-blue-400 text-xs">2 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">EAU</span><span class="text-blue-400 text-xs">3 pts</span></span>
+</div>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Dictionary Note</p>
+  <p class="text-base text-gray-200">Some vowel-only words are <span class="text-white font-medium">SOWPODS-only</span> (AE, OE, OI). Always verify which dictionary your game uses before playing these. AA, AI, and EAU are valid in both TWL and SOWPODS.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">High-Vowel Words (1 Consonant Max)</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Vowels</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">ADIEU</td><td class="px-4 py-3 text-amber-600 font-bold">6</td><td class="px-4 py-3">4 of 5</td><td class="px-4 py-3">Only D is consonant</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">AUDIO</td><td class="px-4 py-3 text-amber-600 font-bold">6</td><td class="px-4 py-3">4 of 5</td><td class="px-4 py-3">Only D is consonant</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">OURIE</td><td class="px-4 py-3 text-amber-600 font-bold">5</td><td class="px-4 py-3">4 of 5</td><td class="px-4 py-3">Only R is consonant</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">URAEI</td><td class="px-4 py-3 text-amber-600 font-bold">5</td><td class="px-4 py-3">4 of 5</td><td class="px-4 py-3">Only R is consonant</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">LOOIE</td><td class="px-4 py-3 text-amber-600 font-bold">5</td><td class="px-4 py-3">4 of 5</td><td class="px-4 py-3">Only L is consonant</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">OORIE</td><td class="px-4 py-3 text-amber-600 font-bold">5</td><td class="px-4 py-3">4 of 5</td><td class="px-4 py-3">Only R is consonant (SOWPODS)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy for Vowel-Heavy Racks</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play before exchanging:</span> Even AA for 2 points is better than losing your turn to exchange. You dump a vowel, keep your turn, and draw a fresh tile that's likely a consonant.</p>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Stack parallel plays:</span> AA parallel to an existing word creates two plays in one — the 2-letter word vertically PLUS whatever you form horizontally. This multiplies your meagre vowel score.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Premium squares save vowel plays:</span> AA on a double-word square = 4 points. EAU through a triple-letter = 5 points. Always look for premium square access before settling for a basic vowel dump.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-using-all-5-vowels/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Using All 5 Vowels — A, E, I, O, U together</span>
+    </a>
+    <a href="/blog/words-with-no-vowels-except-y/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words With No Vowels Except Y — the opposite problem</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-using-all-5-vowels/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Using All 5 Vowels</span>
+    </a>
+    <a href="/blog/vowel-heavy-rack-solutions/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Vowel-Heavy Rack Solutions</span>
+    </a>
+    <a href="/blog/words-with-no-vowels-except-y/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words With No Vowels Except Y</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Rack full of vowels? Find every playable word</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

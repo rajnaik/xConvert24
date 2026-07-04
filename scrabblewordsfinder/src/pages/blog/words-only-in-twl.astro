@@ -1,55 +1,158 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Only in TWL (Not SOWPODS)"
-  description="Words valid in North American Scrabble but not international. TWL-exclusive entries."
-  keywords="scrabble, words, only, in, twl"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Only in TWL (Not SOWPODS)",
-    "description": "Words valid in North American Scrabble but not international. TWL-exclusive entries.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-only-in-twl" }
-  })} />
+<Layout title="Words Only in TWL — Valid in North America But Not SOWPODS | ScrabbleWordsFinder.com" description="Discover words valid in TWL (North American Scrabble) but not in SOWPODS. Learn which exclusive words North American players can use that international players cannot." keywords="twl only words, twl vs sowpods, north american scrabble words, twl exclusive, words not in sowpods, naspa dictionary">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/dictionaries/" class="hover:text-blue-400 transition-colors text-gray-300">Dictionaries</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Only in TWL — Valid in North America But Not SOWPODS",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Only in TWL (Not SOWPODS)</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Are there words valid in TWL but not SOWPODS?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, but very few — approximately 600-800 words are in TWL but not SOWPODS. This is because SOWPODS was designed to be a superset of both dictionaries, but some recent TWL additions haven't been incorporated into SOWPODS yet." }},
+    { "@type": "Question", "name": "What is TWL in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "TWL (Tournament Word List) is the official Scrabble dictionary for North American tournaments, maintained by NASPA. It contains approximately 187,000 words — about 93,000 fewer than SOWPODS." }},
+    { "@type": "Question", "name": "Why do TWL and SOWPODS have different words?", "acceptedAnswer": { "@type": "Answer", "text": "Different governing bodies maintain each dictionary with different criteria. NASPA (North America) tends to be more conservative, while WESPA (international) accepts broader vocabulary including regional English variants from Commonwealth countries." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Words valid in North American Scrabble but not international. TWL-exclusive entries.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/dictionaries/" class="hover:text-amber-500 transition-colors">Dictionaries</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Only in TWL</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Only in TWL — Valid in North America But Not SOWPODS</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">While SOWPODS is designed as a superset containing almost all TWL words, a small number of entries — roughly 600-800 — exist only in TWL. These are typically very recent additions that NASPA approved before the international committee incorporated them, or Americanisms the international body hasn't accepted.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">TWL vs SOWPODS Overview</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">~187K</p><p class="text-xs text-gray-400">TWL total words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">~280K</p><p class="text-xs text-gray-400">SOWPODS total words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">~700</p><p class="text-xs text-gray-400">TWL-exclusive words</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why TWL-Only Words Exist</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">⏰ Timing Gaps</p>
+    <p class="text-xs text-gray-400">NASPA releases updates on a different schedule than WESPA. New TWL additions may take 1-3 years to appear in SOWPODS.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">🇺🇸 Americanisms</p>
+    <p class="text-xs text-gray-400">Some American slang and cultural terms are accepted by NASPA but rejected by the international committee as too regional.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">📋 Different Criteria</p>
+    <p class="text-xs text-gray-400">NASPA and WESPA use different linguistic standards for what constitutes a "valid English word" — leading to occasional disagreements.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">🔄 Recent Additions</p>
+    <p class="text-xs text-gray-400">Words added in TWL's latest update (2023) may not appear in SOWPODS until its next revision cycle.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy for Dictionary Awareness</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Always verify before playing:</span> If you're switching between online platforms (some use TWL, some use SOWPODS), a word you used last game may not be valid this game. Our finder shows both dictionaries.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">TWL-exclusive words are rare:</span> Unlike the ~40,000 SOWPODS exclusives, TWL-only words number under 1,000. Focus your study time on SOWPODS exclusives if you play both formats.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Challenge wisely:</span> If an opponent plays a word you don't recognise, consider whether you're playing TWL or SOWPODS before challenging. A SOWPODS-valid word challenged in a SOWPODS game costs YOU points.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Dictionary Comparison Cheat Sheet</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">✓ TWL Advantages</p>
+    <p class="text-xs text-gray-400">Smaller dictionary means fewer obscure words to memorise. Focused on North American English. Used in NASPA tournaments, most US clubs, and many online platforms by default.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">✓ SOWPODS Advantages</p>
+    <p class="text-xs text-gray-400">93,000 more words = more scoring options. Used internationally (WESPA). More loanwords, slang, and archaic terms accepted. QI alone changes Q-tile strategy entirely.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+  <p class="text-base text-gray-200">The TWL-only list is <span class="text-white font-medium">tiny compared to SOWPODS exclusives</span>. If you learn SOWPODS, you automatically know 99.6% of TWL. The reverse isn't true — TWL players miss ~40,000 valid international words.</p>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-only-in-sowpods/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Only in SOWPODS — international exclusives</span>
+    </a>
+    <a href="/blog/scrabble-dictionaries-languages-weird-words/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Dictionaries, Languages & Weird Words</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-only-in-sowpods/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Only in SOWPODS</span>
+    </a>
+    <a href="/blog/new-words-added-2026/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">New Words Added 2026</span>
+    </a>
+    <a href="/blog/how-scrabble-dictionaries-update/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">How Scrabble Dictionaries Update</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Check any word against TWL and SOWPODS side by side</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

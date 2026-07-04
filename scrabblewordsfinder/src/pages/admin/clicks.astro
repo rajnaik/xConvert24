@@ -94,6 +94,12 @@ import '../../styles/global.css';
       </select>
       <button id="refresh-btn" class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">🔄 Refresh</button>
       <button id="sound-toggle" class="h-9 px-4 rounded-lg border border-gray-600 text-sm font-medium text-gray-300 hover:bg-gray-800 transition-colors">🔇 Sound Off</button>
+      <select id="sound-picker" class="h-9 px-2 rounded-lg border border-gray-600 bg-gray-900 text-sm text-gray-300">
+        <option value="/media/bell-gong.wav">🔔 Bell Gong</option>
+        <option value="/media/bugle-call.wav">🎺 Bugle Call</option>
+        <option value="/media/fog-horn.wav">🚢 Fog Horn</option>
+        <option value="/media/toon-horn.wav">📯 Toon Horn</option>
+      </select>
       <input type="text" id="search-input" placeholder="Search all fields..." class="h-9 px-3 rounded-lg border border-gray-600 bg-gray-900 text-sm text-gray-200 w-44" />
       <button id="search-btn" class="h-9 px-4 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-colors">🔍</button>    </div>
 
@@ -221,17 +227,32 @@ import '../../styles/global.css';
       soundEnabled = !soundEnabled;
       localStorage.setItem('swf_clicks_sound', soundEnabled ? 'on' : 'off');
       updateSoundBtn();
-      // Play test gong when enabling sound
+      // Play test sound when enabling
       if (soundEnabled) {
         gongAudio.currentTime = 0;
         gongAudio.play().catch(() => { console.log('Audio blocked — click page first'); });
       }
     });
 
-    // Pre-load audio element
-    const gongAudio = new Audio('/media/bell-gong.wav');
+    // Sound picker
+    const soundPicker = document.getElementById('sound-picker');
+    const savedSound = localStorage.getItem('swf_clicks_sound_file') || '/media/bell-gong.wav';
+    soundPicker.value = savedSound;
+
+    // Pre-load audio element with selected sound
+    const gongAudio = new Audio(savedSound);
     gongAudio.volume = 0.4;
     gongAudio.load();
+
+    soundPicker.addEventListener('change', () => {
+      const newSrc = soundPicker.value;
+      localStorage.setItem('swf_clicks_sound_file', newSrc);
+      gongAudio.src = newSrc;
+      gongAudio.load();
+      // Play preview
+      gongAudio.currentTime = 0;
+      gongAudio.play().catch(() => {});
+    });
 
     // Unlock audio on first user interaction with the page
     let audioUnlocked = false;

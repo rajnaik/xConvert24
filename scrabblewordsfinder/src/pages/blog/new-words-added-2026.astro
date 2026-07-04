@@ -1,55 +1,233 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="New Words Added to Scrabble Dictionaries in 2026"
-  description="Latest additions to SOWPODS and TWL. Words newly valid for tournament play this year."
-  keywords="scrabble, new, words, added, 2026"
+<Layout
+  title="New Words Added to Scrabble Dictionaries in 2026 — Latest Updates"
+  description="Explore the latest words added to SOWPODS and TWL Scrabble dictionaries. Free guide to new valid plays from tech, food culture, and social media."
+  keywords="new scrabble words 2026, dictionary updates scrabble, sowpods new words, twl additions, recent scrabble words, scrabble dictionary changes"
 >
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "New Words Added to Scrabble Dictionaries in 2026",
-    "description": "Latest additions to SOWPODS and TWL. Words newly valid for tournament play this year.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/new-words-added-2026" }
-  })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/dictionaries/" class="hover:text-blue-400 transition-colors text-gray-300">Dictionaries</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "New Words Added to Scrabble Dictionaries in 2026",
+  "description": "Explore the latest words added to SOWPODS and TWL Scrabble dictionaries. Free guide to new valid plays from tech, food culture, and social media.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/new-words-added-2026/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">New Words Added to Scrabble Dictionaries in 2026</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How often are Scrabble dictionaries updated?", "acceptedAnswer": { "@type": "Answer", "text": "SOWPODS (used internationally) and TWL (used in North America) are updated every few years. Major revisions add hundreds of new words reflecting changes in everyday language, technology, and culture." }},
+    { "@type": "Question", "name": "How do new words get added to the Scrabble dictionary?", "acceptedAnswer": { "@type": "Answer", "text": "Dictionary committees review words that have entered common usage and appear in major published dictionaries like Collins and Merriam-Webster. Words must be 2-15 letters with no hyphens, apostrophes, or diacritics." }},
+    { "@type": "Question", "name": "Can I use newly added words in tournament play immediately?", "acceptedAnswer": { "@type": "Answer", "text": "Once a dictionary edition is officially released and adopted by tournament organisers (NASPA or WESPA), all words in that edition are valid. There is usually a transition period announced before a new edition becomes official." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+<div class="max-w-3xl mx-auto px-4">
+  <article class="prose dark:prose-invert prose-gray max-w-none">
+
+    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+      <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+      <span class="mx-1">›</span>
+      <span class="text-gray-600 dark:text-gray-300">Dictionaries</span>
+    </nav>
+
+    <BlogCrossLinks title="New Words Added to Scrabble Dictionaries in 2026" />
+
+    <h1 class="text-3xl font-bold mb-2">New Words Added to Scrabble Dictionaries in 2026</h1>
+
+    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+      <time datetime="2026-06-15">June 15, 2026</time>
+      <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+      <span>7 min read</span>
+    </div>
+
+    <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Scrabble dictionaries evolve with language. Every update brings hundreds of new words reflecting how we actually speak — from tech jargon that's gone mainstream to food terms borrowed from other cultures. Knowing these additions before your opponents gives you a real competitive edge at the board.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Technology & Digital Culture Additions</h2>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+      <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+        <div><p class="text-xl font-bold text-amber-400">VLOG</p><p class="text-xs text-gray-400">8 pts</p></div>
+        <div><p class="text-xl font-bold text-amber-400">EMOJI</p><p class="text-xs text-gray-400">14 pts</p></div>
+        <div><p class="text-xl font-bold text-amber-400">CRYPTO</p><p class="text-xs text-gray-400">13 pts</p></div>
+        <div><p class="text-xl font-bold text-amber-400">FINTECH</p><p class="text-xs text-gray-400">15 pts</p></div>
       </div>
+    </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Latest additions to SOWPODS and TWL. Words newly valid for tournament play this year.</p>
+    <div class="overflow-x-auto not-prose my-6">
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Meaning</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Dictionary</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">VLOG</td><td class="px-4 py-3">8</td><td class="px-4 py-3">A video blog</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">EMOJI</td><td class="px-4 py-3">14</td><td class="px-4 py-3">A digital pictogram</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">BITCOIN</td><td class="px-4 py-3">11</td><td class="px-4 py-3">A cryptocurrency</td><td class="px-4 py-3">SOWPODS</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">FINTECH</td><td class="px-4 py-3">15</td><td class="px-4 py-3">Financial technology</td><td class="px-4 py-3">SOWPODS</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">STAN</td><td class="px-4 py-3">4</td><td class="px-4 py-3">An obsessive fan</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">CRYPTO</td><td class="px-4 py-3">13</td><td class="px-4 py-3">Digital currency</td><td class="px-4 py-3">Both</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+    <p>Technology words tend to be consonant-heavy and use common letter patterns. VLOG is particularly useful — only 4 letters, 8 points, and it hooks to VLOGS easily. EMOJI uses the high-value J tile productively in a common word everyone knows.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Food & Culture Words</h2>
+
+    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <p class="text-amber-400 font-semibold text-sm mb-1">🍜 From Asian Cuisines</p>
+        <p class="text-xs text-gray-400">UMAMI (9pts) — savoury taste · RAMEN (7pts) — noodle soup · BOBA (8pts) — tapioca tea · KIMCHI (17pts) — fermented veg</p>
+      </div>
+      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+        <p class="text-green-400 font-semibold text-sm mb-1">🌍 From Global Trends</p>
+        <p class="text-xs text-gray-400">MATCHA (13pts) — powdered tea · KOMBUCHA (21pts) — fermented drink · TAHINI (9pts) — sesame paste · HALLOUMI (13pts) — cheese</p>
+      </div>
+    </div>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+      <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+      <p class="text-base text-gray-200">Food words from other cultures enter Scrabble dictionaries once they become commonly used in English. <span class="text-white font-medium">KIMCHI scores 17 points</span> thanks to the K, and <span class="text-white font-medium">KOMBUCHA is a powerful 21-point play</span>. These words often surprise opponents who assume they're too foreign to be valid.</p>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Social Media & Lifestyle Additions</h2>
+
+    <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">SELFIE</span><span class="text-blue-400 text-xs">9 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">BINGE</span><span class="text-blue-400 text-xs">8 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">TWERK</span><span class="text-blue-400 text-xs">12 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">SLAY</span><span class="text-blue-400 text-xs">7 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">FOMO</span><span class="text-blue-400 text-xs">9 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">ADULTING</span><span class="text-blue-400 text-xs">10 pts</span>
+      </span>
+    </div>
+
+    <p>Slang that becomes widely understood eventually enters the dictionary. SELFIE, BINGE (in the streaming sense), and FOMO have all made it into recent editions. These are often short, tile-efficient words that play well on tight boards and are unlikely to be challenged.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How New Words Enter the Scrabble Dictionary</h2>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+      <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 The Dictionary Pipeline</p>
+      <div class="space-y-3">
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+          <p class="text-sm text-gray-300">A word enters common usage and appears in published writing regularly</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+          <p class="text-sm text-gray-300">Major dictionaries (Collins, Merriam-Webster) add it to their editions</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+          <p class="text-sm text-gray-300">Scrabble dictionary committees review candidates meeting criteria</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+          <p class="text-sm text-gray-300">Words must be 2-15 letters, no hyphens, no apostrophes, no diacritics</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+          <p class="text-sm text-gray-300">Accepted words are included in the next official edition release</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">6</span>
+          <p class="text-sm text-gray-300">Tournament organisers announce adoption date for competitive play</p>
         </div>
       </div>
+    </div>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+    <p>Not every trendy word makes it. Abbreviations (LOL, BRB) are excluded because they're acronyms. Proper nouns (Google, TikTok) never qualify. Words with non-standard characters (naïve, café) must be playable without diacritics. The process typically takes 3-5 years from mainstream usage to dictionary inclusion.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Competitive Advantage: Learn Them First</h2>
+
+    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+        <p class="text-green-400 font-semibold text-sm mb-1">✓ Why New Words Matter</p>
+        <p class="text-xs text-gray-400">Opponents may challenge valid new words — gaining you a free turn. New short words expand tight-board options. Food/tech words use common letter combos efficiently.</p>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <p class="text-amber-400 font-semibold text-sm mb-1">📅 When to Study</p>
+        <p class="text-xs text-gray-400">Study new additions before each tournament season. Players who memorise the latest updates gain free turns from failed challenges and find plays opponents haven't learned.</p>
+      </div>
+    </div>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+      <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+      <div class="grid gap-2">
+        <a href="/blog/how-scrabble-dictionaries-update/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">How Scrabble Dictionaries Update — the full editorial process</span>
+        </a>
+        <a href="/blog/foreign-words-valid-in-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Foreign Words Valid in Scrabble — borrowed terms that are legal plays</span>
+        </a>
+      </div>
+    </div>
+
+    <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+      <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+      <div class="grid gap-3">
+        <a href="/blog/words-only-in-sowpods/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Only in SOWPODS</span>
+        </a>
+        <a href="/blog/words-only-in-twl/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Only in TWL</span>
+        </a>
+        <a href="/blog/scrabble-dictionary-apps/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Dictionary Apps</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">
+          🔗 Check any word against both dictionaries instantly — free, no signup
+        </p>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">
+          Open Word Finder →
+        </a>
+      </div>
+    </div>
+
+    <div class="not-prose mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+    </div>
+
+  </article>
+</div>
+
+</Layout>

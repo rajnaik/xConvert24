@@ -1,55 +1,190 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Scrabble vs Words With Friends — Key Differences"
-  description="How Scrabble and Words With Friends differ. Scoring, dictionaries, board layout, and gameplay comparisons."
-  keywords="scrabble, scrabble, vs, words, with, friends"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Scrabble vs Words With Friends — Key Differences",
-    "description": "How Scrabble and Words With Friends differ. Scoring, dictionaries, board layout, and gameplay comparisons.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-vs-words-with-friends" }
-  })} />
+<Layout title="Scrabble vs Words With Friends — Key Differences Explained | ScrabbleWordsFinder.com" description="Compare Scrabble and Words With Friends: board layout, scoring, dictionaries, tile distribution, and strategic differences. Learn which skills transfer between games." keywords="scrabble vs words with friends, words with friends differences, scrabble comparison, WWF vs scrabble, word game comparison, SOWPODS vs ENABLE">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <h1 class="text-3xl font-bold text-white mb-4">Scrabble vs Words With Friends — Key Differences</h1>
+<!-- Breadcrumb -->
+<nav class="not-prose text-sm text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500">Blog</a>
+  <span>›</span>
+  <span class="text-gray-700 dark:text-gray-300">Scrabble vs Words With Friends</span>
+</nav>
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<h1 class="text-3xl font-bold mb-4">Scrabble vs Words With Friends — Key Differences Explained</h1>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How Scrabble and Words With Friends differ. Scoring, dictionaries, board layout, and gameplay comparisons.</p>
+<p>Scrabble and Words With Friends look nearly identical at first glance — both are crossword-style word games on a grid with premium squares. But the differences in board layout, scoring, tile distribution, and dictionaries create surprisingly distinct strategic experiences. A top Scrabble player won't automatically dominate in WWF, and vice versa.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<!-- Stat Strip -->
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="grid grid-cols-3 gap-4 text-center">
+    <div><span class="text-xl font-bold text-amber-400">1948</span><br><span class="text-sm text-gray-400">Scrabble created</span></div>
+    <div><span class="text-xl font-bold text-amber-400">2009</span><br><span class="text-sm text-gray-400">WWF launched</span></div>
+    <div><span class="text-xl font-bold text-amber-400">15×15</span><br><span class="text-sm text-gray-400">both use same grid</span></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Board Layout Differences</h2>
+
+<p>Both games use a 15×15 grid, but the placement of premium squares is completely different. This fundamentally changes opening strategy and board control:</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Feature</th><th class="p-2 text-left">Scrabble</th><th class="p-2 text-left">Words With Friends</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Centre square</td><td class="p-2">Double Word Score (★)</td><td class="p-2">No bonus (plain)</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Triple Word squares</td><td class="p-2">8 (corners + edges)</td><td class="p-2">8 (different positions)</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Triple Letter squares</td><td class="p-2">12</td><td class="p-2">12 (repositioned)</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Premium symmetry</td><td class="p-2">Rotational + diagonal</td><td class="p-2">Rotational only</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Opening word bonus</td><td class="p-2">×2 (DWS on centre)</td><td class="p-2">×1 (no bonus on centre)</td></tr>
+  </tbody>
+</table>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Key Impact:</strong> The absence of a centre DWS in WWF means opening words score roughly half what they would in Scrabble. This makes going first less of an advantage in WWF.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Scoring Differences</h2>
+
+<p>Individual tile values differ between the two games. Some letters are worth more in WWF, others less:</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Worth MORE in WWF</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>J: 10 pts (vs 8 in Scrabble)</li>
+      <li>X: 8 pts (same)</li>
+      <li>Z: 10 pts (same)</li>
+      <li>H: 4 pts (vs 4, same)</li>
+      <li>D: 2 pts (same)</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">Worth LESS in WWF</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>Q: 10 pts (same, but fewer valid Q words)</li>
+      <li>K: 5 pts (same)</li>
+      <li>Overall: WWF scores tend slightly lower per game</li>
+      <li>Bingo bonus: 35 pts in WWF (vs 50 in Scrabble)</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Dictionary Differences</h2>
+
+<p>This is the biggest difference for serious players. The dictionaries are entirely different word lists:</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Aspect</th><th class="p-2 text-left">Scrabble</th><th class="p-2 text-left">Words With Friends</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Dictionary used</td><td class="p-2">SOWPODS (international) or TWL (North America)</td><td class="p-2">ENABLE + custom additions</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Total words</td><td class="p-2">~280,000 (SOWPODS)</td><td class="p-2">~173,000 (ENABLE)</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Offensive words</td><td class="p-2">Included in SOWPODS, removed from tournament play in some regions</td><td class="p-2">Many removed</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Updates</td><td class="p-2">Every few years (Collins/Hasbro)</td><td class="p-2">Irregular additions by Zynga</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Notable exclusions</td><td class="p-2">Few — very permissive</td><td class="p-2">Many valid Scrabble words rejected</td></tr>
+  </tbody>
+</table>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Practical Impact:</strong> Words like QI, ZA, and XI are valid in Scrabble but some may not be accepted in WWF. Always check the specific dictionary if switching between games.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tile Distribution Comparison</h2>
+
+<p>The number of each letter in the tile bag differs slightly between games:</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <h3 class="font-semibold text-amber-400 mb-2">Scrabble (100 tiles)</h3>
+    <p class="text-sm text-gray-300">E×12, A×9, I×9, O×8, N×6, R×6, T×6 — heavily vowel-weighted with 2 blanks</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <h3 class="font-semibold text-purple-400 mb-2">WWF (104 tiles)</h3>
+    <p class="text-sm text-gray-300">E×13, A×9, I×8, O×8, N×5, R×6, T×7 — slightly different distribution with 2 blanks</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategic Implications</h2>
+
+<p>The combined differences mean strategy that works in one game doesn't always transfer:</p>
+
+<ul>
+  <li><strong>Bingo value</strong> — 50 points in Scrabble vs 35 in WWF. Fishing for bingos is more rewarding in Scrabble</li>
+  <li><strong>Opening play</strong> — less valuable in WWF (no centre DWS), so going second isn't as disadvantaged</li>
+  <li><strong>Short words</strong> — some 2-letter words valid in Scrabble don't work in WWF. Parallel plays may fail</li>
+  <li><strong>Premium square access</strong> — different positions mean memorised TWS approaches from Scrabble won't apply</li>
+  <li><strong>Challenges</strong> — Scrabble has a penalty for wrong challenges; WWF simply rejects invalid words with no penalty</li>
+  <li><strong>Tile swapping</strong> — WWF allows swap + play; Scrabble requires forfeiting your turn</li>
+</ul>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-3">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-1">Skills That Transfer</h3>
+    <p class="text-sm text-gray-300">Anagramming ability, vocabulary knowledge, rack management, hook awareness, and general crossword-building intuition all transfer perfectly between both games.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-1">Skills That Don't Transfer</h3>
+    <p class="text-sm text-gray-300">Premium square positioning, opening book moves, specific 2-letter word lists, and board control techniques are game-specific and need separate practice.</p>
+  </div>
+</div>
+
+<!-- Cross-Links -->
+<div class="not-prose my-8 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <h3 class="text-indigo-400 font-semibold mb-2">Related Guides</h3>
+  <ul class="space-y-1 text-sm">
+    <li><a href="/blog/scrabble-dictionary-apps/" class="text-indigo-400 hover:underline">Scrabble Dictionary Apps →</a></li>
+    <li><a href="/blog/scrabble-word-checker-tools/" class="text-indigo-400 hover:underline">Scrabble Word Checker Tools →</a></li>
+  </ul>
+</div>
+
+<!-- Related Articles Aside -->
+<aside class="not-prose my-8 p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors">
+  <h3 class="font-semibold text-gray-200 mb-2">You might also enjoy</h3>
+  <ul class="space-y-1 text-sm text-gray-400">
+    <li><a href="/blog/scrabble-rules-explained/" class="hover:text-amber-400">Scrabble Rules Explained →</a></li>
+    <li><a href="/blog/online-vs-board-scrabble/" class="hover:text-amber-400">Online vs Board Scrabble →</a></li>
+    <li><a href="/blog/scrabble-scoring-guide/" class="hover:text-amber-400">Scrabble Scoring Guide →</a></li>
+  </ul>
+</aside>
+
+<!-- CTA -->
+<div class="not-prose my-8 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Check words against official Scrabble dictionaries</p>
+  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Our word finder validates against both SOWPODS and TWL — know exactly what's legal before you play.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors">Try the Word Finder →</a>
+</div>
+
+<div class="text-center mt-8">
+  <a href="/blog/" class="text-sm text-gray-500 hover:text-amber-500">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble vs Words With Friends — Key Differences Explained",
+  "description": "Compare Scrabble and Words With Friends: board layout, scoring, dictionaries, tile distribution, and strategic differences.",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What's the main difference between Scrabble and Words With Friends?", "acceptedAnswer": { "@type": "Answer", "text": "The biggest differences are the dictionary (SOWPODS/TWL vs ENABLE), board layout (premium square positions), and bingo bonus (50 pts in Scrabble vs 35 in WWF)." }},
+    { "@type": "Question", "name": "Do the same words work in both Scrabble and Words With Friends?", "acceptedAnswer": { "@type": "Answer", "text": "No. Scrabble uses SOWPODS (~280,000 words) or TWL, while WWF uses ENABLE (~173,000 words). Many valid Scrabble words are rejected in WWF." }},
+    { "@type": "Question", "name": "Is Words With Friends easier than Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "WWF has no penalty for invalid word attempts (the app just rejects them), making it more forgiving. Scrabble's challenge system means playing an invalid word can cost you your turn." }}
+  ]
+})} />
+
+</Layout>

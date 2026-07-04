@@ -1,55 +1,199 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Best Scrabble Dictionary Apps"
-  description="Top apps for checking word validity. Free and paid options for SOWPODS and TWL lookups."
-  keywords="scrabble, scrabble, dictionary, apps"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Best Scrabble Dictionary Apps",
-    "description": "Top apps for checking word validity. Free and paid options for SOWPODS and TWL lookups.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-dictionary-apps" }
-  })} />
+<Layout title="Best Scrabble Dictionary Apps — Word Lookup Tools for Players" description="Compare the best Scrabble dictionary apps for word lookups, validity checks, and definitions. Find apps that use SOWPODS, TWL, and Collins dictionaries." keywords="scrabble dictionary apps, word checker apps, scrabble word lookup, SOWPODS app, TWL dictionary, Collins Scrabble Words, offline word checker">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Best Scrabble Dictionary Apps — Word Lookup Tools for Players",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "url": "https://www.scrabblewordsfinder.com/blog/scrabble-dictionary-apps/"
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Best Scrabble Dictionary Apps</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What dictionary do most Scrabble apps use?", "acceptedAnswer": { "@type": "Answer", "text": "Most competitive Scrabble apps use either SOWPODS (international) or TWL06 (North America). Collins Scrabble Words is the official international tournament dictionary and contains over 280,000 valid words." }},
+    { "@type": "Question", "name": "Can I use a Scrabble dictionary app offline?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, several apps like Collins Scrabble Words and Word Judge offer offline mode with the full dictionary downloaded to your device. This is ideal for tournament play where internet access may be limited." }},
+    { "@type": "Question", "name": "Are Scrabble dictionary apps allowed in tournaments?", "acceptedAnswer": { "@type": "Answer", "text": "During a tournament game, electronic devices are not permitted. However, dictionary apps are invaluable for study, practice, and post-game analysis between rounds." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Top apps for checking word validity. Free and paid options for SOWPODS and TWL lookups.</p>
+<nav class="text-sm text-gray-500 mb-6">
+  <a href="/" class="hover:text-amber-500">Home</a> &rsaquo;
+  <a href="/blog/" class="hover:text-amber-500">Blog</a> &rsaquo;
+  <span class="text-gray-400">Scrabble Dictionary Apps</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks currentSlug={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Best Scrabble Dictionary Apps — Word Lookup Tools for Players</h1>
+<p class="text-sm text-gray-500 mb-6">Published June 15, 2026 · 6 min read</p>
+
+<p class="text-lg leading-relaxed mb-8">A reliable dictionary app is every Scrabble player's best training partner. Whether you need to verify a challenged word, study obscure two-letter gems, or explore anagram possibilities, the right app makes all the difference between casual play and competitive confidence.</p>
+
+<div class="grid grid-cols-3 gap-4 my-8 p-4 rounded-lg border border-amber-500/30 bg-amber-950/10">
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">280K+</span><br><span class="text-xs text-gray-400">SOWPODS Words</span></div>
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">187K+</span><br><span class="text-xs text-gray-400">TWL06 Words</span></div>
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">6+</span><br><span class="text-xs text-gray-400">Top Apps Reviewed</span></div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Understanding Scrabble Dictionaries</h2>
+
+<p>Before choosing an app, it helps to understand the dictionaries that power them. Tournament Scrabble uses two main word lists, and your app must match the one used in your region or club.</p>
+
+<div class="overflow-x-auto my-6">
+<table class="w-full text-sm">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Dictionary</th><th class="p-2 text-left">Full Name</th><th class="p-2 text-left">Region</th><th class="p-2 text-left">Word Count</th></tr></thead>
+  <tbody>
+    <tr><td class="p-2">SOWPODS</td><td class="p-2">Collins Scrabble Words (CSW)</td><td class="p-2">International</td><td class="p-2">~280,000</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">TWL06</td><td class="p-2">Tournament Word List</td><td class="p-2">North America</td><td class="p-2">~187,000</td></tr>
+    <tr><td class="p-2">OSPD</td><td class="p-2">Official Scrabble Players Dictionary</td><td class="p-2">Casual (US/CA)</td><td class="p-2">~100,000</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>SOWPODS includes every word from both TWL and the international Collins list. If a word is valid in TWL, it is always valid in SOWPODS — but not vice versa. This distinction matters when choosing your app's dictionary setting.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Dictionary Apps Compared</h2>
+
+<div class="grid md:grid-cols-2 gap-4 my-6">
+  <div class="p-4 rounded-lg border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Collins Scrabble Words</h3>
+    <p class="text-sm text-gray-300">The official app from Collins. Full CSW dictionary with definitions, anagram solver, and offline mode. The gold standard for international players.</p>
+    <span class="text-xs text-gray-500 mt-2 block">iOS & Android · Paid</span>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-lg border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">Word Judge</h3>
+    <p class="text-sm text-gray-300">Lightweight validity checker supporting both SOWPODS and TWL. Instant results, no ads in premium version, works offline after initial download.</p>
+    <span class="text-xs text-gray-500 mt-2 block">iOS & Android · Free/Paid</span>
+  </div>
+  <div class="p-4 rounded-lg border border-purple-500/30 bg-purple-950/10">
+    <h3 class="font-semibold text-purple-400 mb-2">Zyzzyva</h3>
+    <p class="text-sm text-gray-300">Desktop powerhouse for serious study. Quizzing, word lists, probability data, anagram search, and cardbox spaced repetition system.</p>
+    <span class="text-xs text-gray-500 mt-2 block">Windows/Mac/Linux · Free</span>
+  </div>
+  <div class="p-4 rounded-lg border border-amber-500/30 bg-amber-950/10">
+    <h3 class="font-semibold text-amber-400 mb-2">Lexulous Dictionary</h3>
+    <p class="text-sm text-gray-300">Built into the Lexulous game platform. Quick word checks with definitions. Best for casual players who want in-game verification.</p>
+    <span class="text-xs text-gray-500 mt-2 block">Web & Mobile · Free</span>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Key Features to Look For</h2>
+
+<p>Not all dictionary apps are equal. Here are the features that separate a great Scrabble dictionary from a basic word checker:</p>
+
+<div class="space-y-3 my-6">
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Anagram Solving</span> — Enter tiles, get all valid words. Essential for rack study and finding bingos you might miss.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Wildcard/Blank Support</span> — Use ? or * for blank tiles. Lets you explore what words are possible with your actual rack.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Hook Display</span> — Shows which letters can be added before or after a word. Critical for extending plays on the board.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Offline Mode</span> — Full dictionary available without internet. Necessary for tournament venues and travel.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Definitions</span> — Meaning alongside validity. Helps build vocabulary and understand words you're playing.
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Offline vs Online — When Each Matters</h2>
+
+<p>Tournament players need offline access because phones are banned during games but used between rounds for study. Online apps suit casual home play where connectivity is not an issue and cloud sync keeps your data safe.</p>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-1">💡 Pro Tip</p>
+  <p class="text-sm text-gray-300">Download your dictionary app's word list for offline use before tournament day. Nothing is worse than being unable to study during breaks because venue Wi-Fi is unreliable.</p>
+</div>
+
+<p>Online-only apps like web-based checkers have the advantage of always being up-to-date when new words are added to official dictionaries. The latest CSW updates happen annually, and online tools reflect changes immediately.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Free vs Paid — Is It Worth Upgrading?</h2>
+
+<p>Free dictionary apps typically offer basic word validation. Paid versions add features that serious players rely on daily:</p>
+
+<div class="overflow-x-auto my-6">
+<table class="w-full text-sm">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Feature</th><th class="p-2 text-left">Free Apps</th><th class="p-2 text-left">Paid Apps</th></tr></thead>
+  <tbody>
+    <tr><td class="p-2">Word validity check</td><td class="p-2">✅</td><td class="p-2">✅</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Definitions</td><td class="p-2">Limited</td><td class="p-2">Full</td></tr>
+    <tr><td class="p-2">Anagram solver</td><td class="p-2">Basic</td><td class="p-2">Advanced with filters</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Offline mode</td><td class="p-2">❌</td><td class="p-2">✅</td></tr>
+    <tr><td class="p-2">Hook/extension lists</td><td class="p-2">❌</td><td class="p-2">✅</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Quizzing & study tools</td><td class="p-2">❌</td><td class="p-2">✅</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>For casual players, free apps are perfectly adequate. If you attend clubs or tournaments, the paid upgrade pays for itself quickly through improved word knowledge and study efficiency.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Choosing the Right App for Your Level</h2>
+
+<p>Your ideal dictionary app depends on where you are in your Scrabble journey. A beginner overwhelmed by 280,000 words needs a different tool than a tournament veteran drilling bingo stems.</p>
+
+<div class="space-y-3 my-6">
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Casual family players:</span> A free web-based checker is all you need. Validate disputed words quickly and get back to the game.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Club players:</span> Word Judge or Collins app with offline mode. You need to study between rounds and verify words without Wi-Fi.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Tournament competitors:</span> Zyzzyva on desktop for deep study. Its spaced repetition system and probability tools are unmatched.
+  </div>
+</div>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-2">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-word-checker-tools/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Word Checker Tools — free online validators compared</span>
+    </a>
+    <a href="/blog/scrabble-vs-words-with-friends/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble vs Words With Friends — dictionary and rule differences</span>
+    </a>
+  </div>
+</div>
+
+<aside class="mt-10 border-t border-gray-700 pt-6">
+  <h3 class="text-sm font-semibold text-gray-400 mb-3">Related Articles</h3>
+  <ul class="space-y-2">
+    <li><a href="/blog/scrabble-word-checker-tools/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Scrabble Word Checker Tools — Verify Any Word Instantly</a></li>
+    <li><a href="/blog/scrabble-vs-words-with-friends/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Scrabble vs Words With Friends — Dictionary Differences</a></li>
+    <li><a href="/blog/scrabble-variants-and-house-rules/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Scrabble Variants & House Rules</a></li>
+  </ul>
+</aside>
+
+<div class="mt-10 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-2">Check Any Word Instantly</p>
+  <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Use our free realtime solver — type your tiles and get every valid word ranked by score.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors">Open Word Finder →</a>
+</div>
+
+<div class="mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+</Layout>

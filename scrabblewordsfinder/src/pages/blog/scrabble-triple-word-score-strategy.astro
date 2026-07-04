@@ -1,41 +1,197 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout title="Scrabble Triple Word Score Strategy — Reaching & Blocking TWS" description="Master Triple Word Score strategy in Scrabble: reaching TWS squares, defensive blocking, and maximizing multipliers. Turn 15-point words into 45-point plays." keywords="scrabble triple word score, TWS strategy scrabble, triple word square, blocking triple word, scrabble premium squares, maximizing multipliers scrabble">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Scrabble Triple Word Score Strategy — Reaching & Blocking TWS","description":"Master Triple Word Score strategy: reaching TWS, defensive blocking, and maximizing score multipliers.","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/scrabble-triple-word-score-strategy"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many Triple Word Score squares are on a Scrabble board?","acceptedAnswer":{"@type":"Answer","text":"There are 8 Triple Word Score (TWS) squares on a standard Scrabble board, located at the four corners and four edge midpoints. They're the most powerful premium squares — tripling the entire word score."}},{"@type":"Question","name":"How do you reach a Triple Word Score in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"TWS squares are at the board edges, requiring 7-8 tiles from center to reach. The most common approach is extending an existing word toward the edge, or playing parallel to a word that's already near the edge row/column."}},{"@type":"Question","name":"How do you block Triple Word Score access?","acceptedAnswer":{"@type":"Answer","text":"Block TWS by: playing short words that don't extend toward edges, placing tiles on squares adjacent to TWS so opponents can't form words through them, and avoiding leaving vowels near TWS that make hooking easy."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12"><article class="prose prose-invert prose-gray max-w-none">
-    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Strategy</span></nav>
-    <h1 class="text-3xl font-bold text-white mb-4">Scrabble Triple Word Score Strategy — Reaching & Blocking TWS</h1>
-    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>6 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-    <p class="text-lg leading-relaxed text-gray-300 mb-8">Triple Word Score squares are the nuclear option of Scrabble — they triple your entire word's value in one shot. A modest 15-point word becomes 45 points on TWS. But they're double-edged: if you open a path to TWS without using it yourself, you've just handed your opponent a potential 40+ point swing.</p>
-    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><div class="flex flex-wrap items-center justify-center gap-6 text-center"><div><p class="text-xl font-bold text-amber-400">8</p><p class="text-xs text-gray-400">TWS Squares</p></div><div><p class="text-xl font-bold text-amber-400">3×</p><p class="text-xs text-gray-400">Word Multiplier</p></div><div><p class="text-xl font-bold text-amber-400">9×</p><p class="text-xs text-gray-400">Triple-Triple</p></div><div><p class="text-xl font-bold text-amber-400">45+</p><p class="text-xs text-gray-400">Typical TWS Score</p></div></div></div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Reaching Triple Word Squares</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Extend toward edges:</span> TWS squares sit on rows 1, 8, 15 and columns 1, 8, 15. Build words that reach these edge positions — a 5-letter word starting from row 3 reaches the corner TWS at row 1.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">TLS + TWS combo:</span> Some board positions let you place a high-value letter on TLS while the word lands on TWS. X on TLS (24pts for X alone) in a word on TWS = devastating. That's 24 × 3 = 72 contribution from one letter.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hook into TWS:</span> If a word ends one square before TWS, adding a single letter (hook) that extends to TWS triples the entire new word. Look for S-hooks, -ED hooks, and -ER hooks near edges.</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Defensive Blocking</h2>
-    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">✓ Play adjacent to TWS</p><p class="text-xs text-gray-400">A tile next to TWS blocks words from reaching through it</p></div>
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">✓ Use short words near edges</p><p class="text-xs text-gray-400">Short plays near TWS score modestly but deny your opponent</p></div>
-      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10"><p class="text-red-400 font-semibold text-sm mb-1">✗ Leave vowels near TWS</p><p class="text-xs text-gray-400">Vowels near TWS make it easy for opponents to hook words through</p></div>
-      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10"><p class="text-red-400 font-semibold text-sm mb-1">✗ Open lanes to edges</p><p class="text-xs text-gray-400">Words extending toward edges create paths your opponent can exploit</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Maximizing Multipliers</h2>
-    <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">TLS+TWS</span><span class="text-blue-400 text-xs">9× letter</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">DLS+TWS</span><span class="text-blue-400 text-xs">6× letter</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">TWS+TWS</span><span class="text-blue-400 text-xs">9× word</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">Bingo+TWS</span><span class="text-blue-400 text-xs">50+3× word</span></span>
-    </div>
-    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20"><p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p><p class="text-base text-gray-200">The <span class="text-white font-medium">triple-triple</span> (word spanning two TWS squares) multiplies by 9× and is the highest possible single-play multiplier. Combined with a bingo, a triple-triple can score 200+ points in one turn — game-ending plays that competitive players dream about.</p></div>
-    <aside class="border-t border-gray-800 mt-12 pt-8 not-prose"><h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3><div class="grid gap-3"><a href="/blog/scrabble-board-control-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Board Control Strategy — Opening vs Closing</span></a><a href="/blog/understanding-premium-squares/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Understanding Premium Squares</span></a></div></aside>
-    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl"><div class="flex items-center justify-between gap-4 flex-wrap"><p class="text-sm text-blue-300 font-medium">🔤 Find words that reach TWS — free Scrabble solver, no sign-up</p><a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a></div></div>
-    <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-  </article></div>
-</BlogLayout>
+<Layout title="Scrabble Triple Word Score Strategy — Reaching & Using TWS | ScrabbleWordsFinder.com" description="Master Triple Word Score strategy in Scrabble. Learn TWS square positions, how to reach them, defensive blocking tactics, and how to combine TWS with high-value tiles." keywords="scrabble triple word score, TWS strategy, triple word score squares, scrabble premium squares, scrabble board strategy, triple triple scrabble">
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<!-- Breadcrumb -->
+<nav class="not-prose text-sm text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500">Blog</a>
+  <span>›</span>
+  <span class="text-gray-700 dark:text-gray-300">Scrabble Triple Word Score Strategy</span>
+</nav>
+
+<h1 class="text-3xl font-bold mb-4">Scrabble Triple Word Score Strategy — Reaching & Using TWS</h1>
+
+<p>Triple Word Score squares are the most powerful positions on the Scrabble board. A single well-placed word on a TWS can swing a game by 60+ points. Mastering when to reach for them, when to block them, and how to combine them with high-value tiles separates intermediate players from experts.</p>
+
+<!-- Stat Strip -->
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="grid grid-cols-3 gap-4 text-center">
+    <div><span class="text-xl font-bold text-amber-400">8</span><br><span class="text-sm text-gray-400">TWS squares on board</span></div>
+    <div><span class="text-xl font-bold text-amber-400">3×</span><br><span class="text-sm text-gray-400">word score multiplier</span></div>
+    <div><span class="text-xl font-bold text-amber-400">9×</span><br><span class="text-sm text-gray-400">max with triple-triple</span></div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">TWS Square Positions</h2>
+
+<p>The 8 Triple Word Score squares are arranged symmetrically at the outer edges and corners of the 15×15 board:</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Position</th><th class="p-2 text-left">Coordinates</th><th class="p-2 text-left">Access Difficulty</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Top-left corner</td><td class="p-2">1A</td><td class="p-2">Hard — requires 7+ letter reach</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Top-right corner</td><td class="p-2">1O</td><td class="p-2">Hard — same corner difficulty</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Bottom-left corner</td><td class="p-2">15A</td><td class="p-2">Hard — often reached in endgame</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Bottom-right corner</td><td class="p-2">15O</td><td class="p-2">Hard — rarely accessed early</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Top-middle</td><td class="p-2">1H</td><td class="p-2">Medium — 7 squares from centre</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Bottom-middle</td><td class="p-2">15H</td><td class="p-2">Medium — mirror of top</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Left-middle</td><td class="p-2">8A</td><td class="p-2">Medium — directly left of centre</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Right-middle</td><td class="p-2">8O</td><td class="p-2">Medium — directly right of centre</td></tr>
+  </tbody>
+</table>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How to Reach TWS Squares</h2>
+
+<p>Getting to a TWS requires planning 2-3 turns ahead. Here are the primary access routes:</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">The Ladder Approach</h3>
+    <p class="text-sm text-gray-300">Build words incrementally toward the edge. Place a 4-letter word, then extend toward the TWS on your next turn.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">The Bingo Stretch</h3>
+    <p class="text-sm text-gray-300">A 7-letter word from centre reaches the edge TWS squares directly. Plan bingos to land on row 1, 15, column A, or O.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <h3 class="font-semibold text-purple-400 mb-2">The Hook Extension</h3>
+    <p class="text-sm text-gray-300">Hook an existing word near the edge. Adding an S or prefix/suffix can reach a TWS without using all 7 tiles.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <h3 class="font-semibold text-amber-400 mb-2">Parallel Play</h3>
+    <p class="text-sm text-gray-300">Play a word parallel to an existing edge word, letting your final tile land on TWS. Creates multiple scoring words simultaneously.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Block Opponents</h2>
+
+<p>Defence is just as important as offence. Blocking a TWS your opponent is targeting can save 40+ points:</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Blocking Rule:</strong> If your opponent's last word is within 3 squares of a TWS, assume they're aiming for it. Place a short word that occupies the critical squares between their word and the TWS.</p>
+</div>
+
+<ul>
+  <li><strong>Dead-end blocking</strong> — place a word ending with an uncommon letter (V, J, Q) next to the TWS so extending through it is nearly impossible</li>
+  <li><strong>Sacrifice blocking</strong> — play a low-scoring word specifically to prevent a high-scoring TWS play. A 12-point block that prevents a 45-point TWS play is a net gain of 33</li>
+  <li><strong>Congestion blocking</strong> — fill the area around the TWS with short perpendicular words, making it impossible to build a long word through it</li>
+  <li><strong>Pre-emptive blocking</strong> — early in the game, avoid opening lines that lead to corner TWS squares</li>
+</ul>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Combining TWS with High-Value Tiles</h2>
+
+<p>The real power of TWS comes from combining it with premium letter tiles:</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Tile on TWS</th><th class="p-2 text-left">Base Points</th><th class="p-2 text-left">After 3× Word</th><th class="p-2 text-left">Example Word (tripled)</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2 font-mono">Z (10)</td><td class="p-2">10</td><td class="p-2">30+</td><td class="p-2">ZAP = 42 pts</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-mono">Q (10)</td><td class="p-2">10</td><td class="p-2">30+</td><td class="p-2">QI = 33 pts</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2 font-mono">X (8)</td><td class="p-2">8</td><td class="p-2">24+</td><td class="p-2">AX = 27 pts</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-mono">J (8)</td><td class="p-2">8</td><td class="p-2">24+</td><td class="p-2">JO = 27 pts</td></tr>
+  </tbody>
+</table>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Advanced Tip:</strong> If a Double Letter Score (DLS) square sits on the same word as a TWS, the letter bonus applies FIRST, then the entire word is tripled. A Z on DLS in a TWS word scores: (10×2)×3 = 60 points just for that letter's contribution.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Triple-Triple — Scrabble's Holy Grail</h2>
+
+<p>A triple-triple occurs when a single word covers TWO Triple Word Score squares simultaneously. The word score is multiplied by 3, then by 3 again — meaning ×9 total. This is the single highest-scoring play possible in Scrabble.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <h3 class="font-semibold text-amber-400 mb-2">Requirements</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>Word must span from one TWS to another</li>
+      <li>Both TWS squares must be unused (fresh)</li>
+      <li>Usually requires a 7+ letter word (bingo)</li>
+      <li>Only possible on rows 1, 8, 15 or columns A, H, O</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Potential Scores</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>Average bingo (75 pts) × 9 = 675+ pts</li>
+      <li>Add 50-point bingo bonus = 725+ total</li>
+      <li>Theoretical max single play: 1,778 pts</li>
+      <li>Realistic max in play: 300-500 pts</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Defensive Blocking Strategies</h2>
+
+<p>The best defence against TWS is controlling board openness. Here's when to prioritise blocking over scoring:</p>
+
+<ul>
+  <li><strong>You're ahead by 30+ points</strong> — protect your lead by blocking open TWS lanes</li>
+  <li><strong>Opponent has a strong rack</strong> — if they're holding tiles after a big draw, block aggressively</li>
+  <li><strong>Late game (fewer than 20 tiles left)</strong> — every point matters, prevent comeback plays</li>
+  <li><strong>Corner TWS untouched</strong> — if both corners on a side are open, one play could hit a triple-triple</li>
+</ul>
+
+<!-- Cross-Links -->
+<div class="not-prose my-8 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <h3 class="text-indigo-400 font-semibold mb-2">Related Guides</h3>
+  <ul class="space-y-1 text-sm">
+    <li><a href="/blog/scrabble-board-control-strategy/" class="text-indigo-400 hover:underline">Scrabble Board Control Strategy →</a></li>
+    <li><a href="/blog/scrabble-endgame-strategy/" class="text-indigo-400 hover:underline">Scrabble Endgame Strategy →</a></li>
+  </ul>
+</div>
+
+<!-- Related Articles Aside -->
+<aside class="not-prose my-8 p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors">
+  <h3 class="font-semibold text-gray-200 mb-2">You might also enjoy</h3>
+  <ul class="space-y-1 text-sm text-gray-400">
+    <li><a href="/blog/best-words-for-premium-squares/" class="hover:text-amber-400">Best Words for Premium Squares →</a></li>
+    <li><a href="/blog/scoring-100-points-single-turn/" class="hover:text-amber-400">Scoring 100+ Points in a Single Turn →</a></li>
+    <li><a href="/blog/highest-scoring-scrabble-words/" class="hover:text-amber-400">Highest Scoring Scrabble Words →</a></li>
+  </ul>
+</aside>
+
+<!-- CTA -->
+<div class="not-prose my-8 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Find high-scoring words for premium squares</p>
+  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Enter your tiles and see every possible word ranked by score — perfect for TWS planning.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors">Try the Word Finder →</a>
+</div>
+
+<div class="text-center mt-8">
+  <a href="/blog/" class="text-sm text-gray-500 hover:text-amber-500">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Triple Word Score Strategy — Reaching & Using TWS",
+  "description": "Master Triple Word Score strategy in Scrabble. Learn TWS square positions, how to reach them, defensive blocking tactics, and how to combine TWS with high-value tiles.",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How many Triple Word Score squares are on a Scrabble board?", "acceptedAnswer": { "@type": "Answer", "text": "There are 8 Triple Word Score (TWS) squares on a standard 15×15 Scrabble board, positioned symmetrically at the outer edges and corners." }},
+    { "@type": "Question", "name": "What is a triple-triple in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A triple-triple occurs when a single word covers two TWS squares simultaneously, multiplying the word score by 9 (3×3). It's the highest-scoring single play possible." }},
+    { "@type": "Question", "name": "Should I block Triple Word Score squares?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — when you're ahead or in the endgame, blocking open TWS lanes prevents opponents from making comeback plays. A low-scoring block that prevents a 45+ point TWS play is strategically sound." }}
+  ]
+})} />
+
+</Layout>

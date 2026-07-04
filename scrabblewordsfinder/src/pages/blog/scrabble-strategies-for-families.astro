@@ -1,55 +1,191 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Scrabble Strategies for Family Game Night"
-  description="Tips for making Scrabble fun for all ages. Handicapping, team play, and keeping it competitive but friendly."
-  keywords="scrabble, scrabble, strategies, for, families"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Scrabble Strategies for Family Game Night",
-    "description": "Tips for making Scrabble fun for all ages. Handicapping, team play, and keeping it competitive but friendly.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-strategies-for-families" }
-  })} />
+<Layout title="Scrabble Strategies for Families — Tips for Fun Game Nights | ScrabbleWordsFinder.com" description="Learn family-friendly Scrabble strategies including handicapping for mixed ages, cooperative play variants, and tips for keeping game night fun for everyone." keywords="scrabble family strategy, family game night scrabble, scrabble with kids, scrabble handicap rules, cooperative scrabble, mixed age scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <h1 class="text-3xl font-bold text-white mb-4">Scrabble Strategies for Family Game Night</h1>
+<!-- Breadcrumb -->
+<nav class="not-prose text-sm text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500">Blog</a>
+  <span>›</span>
+  <span class="text-gray-700 dark:text-gray-300">Scrabble Strategies for Families</span>
+</nav>
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<h1 class="text-3xl font-bold mb-4">Scrabble Strategies for Families — Tips for Fun Game Nights</h1>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Tips for making Scrabble fun for all ages. Handicapping, team play, and keeping it competitive but friendly.</p>
+<p>Scrabble is one of the best board games for families — it builds vocabulary, encourages strategic thinking, and creates memorable moments. But when a 10-year-old plays against a parent with 20 years of word knowledge, the experience can quickly become frustrating. The key is balancing competition with fun so everyone stays engaged.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<!-- Stat Strip -->
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="grid grid-cols-3 gap-4 text-center">
+    <div><span class="text-xl font-bold text-amber-400">100</span><br><span class="text-sm text-gray-400">tiles in a standard game</span></div>
+    <div><span class="text-xl font-bold text-amber-400">2-4</span><br><span class="text-sm text-gray-400">ideal family players</span></div>
+    <div><span class="text-xl font-bold text-amber-400">45min</span><br><span class="text-sm text-gray-400">average family game</span></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Handicapping for Mixed Ages</h2>
+
+<p>Handicapping evens the playing field without dumbing down the game. Here are proven methods that keep younger players competitive while still challenging experienced adults.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Point Head Start</h3>
+    <p class="text-sm text-gray-300">Give younger players 30-50 points at the start. Adjust each game based on previous margins.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">Extra Tiles</h3>
+    <p class="text-sm text-gray-300">Let kids draw 8-9 tiles instead of 7. More options mean more playable words.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <h3 class="font-semibold text-purple-400 mb-2">Dictionary Access</h3>
+    <p class="text-sm text-gray-300">Allow younger players to use a dictionary or word list during their turn without penalty.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <h3 class="font-semibold text-amber-400 mb-2">Double Word Score</h3>
+    <p class="text-sm text-gray-300">Kids get double points on all words under 4 letters — rewards them for playing what they know.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Cooperative Play Variants</h2>
+
+<p>Not every family game night needs to be competitive. Cooperative Scrabble teaches the same skills without the frustration of losing.</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Variant</th><th class="p-2 text-left">How It Works</th><th class="p-2 text-left">Best For</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Team Scrabble</td><td class="p-2">Pair an adult with each child — discuss plays together</td><td class="p-2">Ages 6-9</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Target Score</td><td class="p-2">Everyone works together to reach a combined score goal</td><td class="p-2">All ages</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Word Chain</td><td class="p-2">Each word must start with the last letter of the previous word</td><td class="p-2">Ages 8+</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Theme Night</td><td class="p-2">Only words from a chosen category count for bonus points</td><td class="p-2">Ages 10+</td></tr>
+  </tbody>
+</table>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Keeping It Fun — The Golden Rules</h2>
+
+<p>The fastest way to kill a family game night is making it feel like homework. These rules keep the energy light and the smiles frequent.</p>
+
+<!-- Purple Tip -->
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Pro Tip:</strong> Set a 2-minute turn timer for adults but give kids unlimited time. This prevents one player from overthinking while others wait.</p>
+</div>
+
+<ul>
+  <li><strong>Celebrate creativity</strong> — praise unusual words even if they score low</li>
+  <li><strong>No shaming</strong> — never mock a misspelled attempt or simple word</li>
+  <li><strong>Teach during play</strong> — explain why a word scores well instead of just playing it</li>
+  <li><strong>Short games</strong> — stop after 45 minutes even if tiles remain. Nobody enjoys a 2-hour slog</li>
+  <li><strong>Rotate first player</strong> — let the youngest go first each time</li>
+</ul>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Managing Different Skill Levels</h2>
+
+<p>A family of four might have a tournament-level dad, a casual mum, a teen who texts constantly, and an 8-year-old learning to spell. Here's how to make it work:</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-3">
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <h3 class="font-semibold text-amber-400 mb-1">The Expert</h3>
+    <p class="text-sm text-gray-300">Challenge yourself: only play words of 5+ letters, or avoid using S hooks. Self-imposed limits make the game interesting for you without crushing others.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-1">The Casual Player</h3>
+    <p class="text-sm text-gray-300">Play normally — you're the bridge between the expert and the kids. Your natural play level sets the pace.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-1">The Beginner</h3>
+    <p class="text-sm text-gray-300">Use the handicap system. Getting close to winning (even with help) builds confidence and the desire to play again.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Best Words for Kids to Learn</h2>
+
+<p>Kids don't need to memorize SOWPODS. Focus on high-value short words they already know:</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Word</th><th class="p-2 text-left">Points</th><th class="p-2 text-left">Why It's Great</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2 font-mono">ZAP</td><td class="p-2">14</td><td class="p-2">Fun to say, high-value Z tile</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-mono">JAW</td><td class="p-2">13</td><td class="p-2">Common word, uses premium J</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2 font-mono">FOX</td><td class="p-2">13</td><td class="p-2">Kids love animals, high-value X</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-mono">QUIZ</td><td class="p-2">22</td><td class="p-2">Uses Q without U — impressive play</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2 font-mono">WAX</td><td class="p-2">13</td><td class="p-2">Simple word, big points</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-mono">JOY</td><td class="p-2">13</td><td class="p-2">Positive word, easy to remember</td></tr>
+  </tbody>
+</table>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Scoring Modifications That Work</h2>
+
+<p>Standard Scrabble scoring can discourage beginners. Try these family-friendly modifications:</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Strategy Tip:</strong> Use "bonus bucks" — give 5 bonus points for any word that makes the whole family laugh, or 10 bonus points for using a word nobody else knows. This rewards creativity over raw word knowledge.</p>
+</div>
+
+<ul>
+  <li><strong>No negative scores</strong> — leftover tiles don't subtract from your total</li>
+  <li><strong>Bonus for longest word</strong> — 10 extra points for the longest word each round</li>
+  <li><strong>Learning bonus</strong> — 5 points for playing a word you've never used before</li>
+  <li><strong>All-play round</strong> — everyone tries to make the best word from the same 7 tiles</li>
+</ul>
+
+<!-- Cross-Links -->
+<div class="not-prose my-8 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <h3 class="text-indigo-400 font-semibold mb-2">Related Guides</h3>
+  <ul class="space-y-1 text-sm">
+    <li><a href="/blog/scrabble-for-kids-guide/" class="text-indigo-400 hover:underline">Scrabble for Kids — Complete Guide →</a></li>
+    <li><a href="/blog/scrabble-variants-and-house-rules/" class="text-indigo-400 hover:underline">Scrabble Variants & House Rules →</a></li>
+  </ul>
+</div>
+
+<!-- Related Articles Aside -->
+<aside class="not-prose my-8 p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors">
+  <h3 class="font-semibold text-gray-200 mb-2">You might also enjoy</h3>
+  <ul class="space-y-1 text-sm text-gray-400">
+    <li><a href="/blog/common-scrabble-mistakes/" class="hover:text-amber-400">Common Scrabble Mistakes →</a></li>
+    <li><a href="/blog/beginner-scrabble-strategy/" class="hover:text-amber-400">Beginner Scrabble Strategy →</a></li>
+    <li><a href="/blog/scrabble-scoring-guide/" class="hover:text-amber-400">Scrabble Scoring Guide →</a></li>
+  </ul>
+</aside>
+
+<!-- CTA -->
+<div class="not-prose my-8 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Need help finding family-friendly words?</p>
+  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Our free word finder shows all valid words from any set of letters — perfect for settling family disputes.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors">Try the Word Finder →</a>
+</div>
+
+<div class="text-center mt-8">
+  <a href="/blog/" class="text-sm text-gray-500 hover:text-amber-500">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Strategies for Families — Tips for Fun Game Nights",
+  "description": "Learn family-friendly Scrabble strategies including handicapping for mixed ages, cooperative play variants, and tips for keeping game night fun for everyone.",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How do you make Scrabble fair for different ages?", "acceptedAnswer": { "@type": "Answer", "text": "Use handicapping methods like giving younger players a 30-50 point head start, extra tiles, or dictionary access during their turns." }},
+    { "@type": "Question", "name": "Can you play Scrabble cooperatively?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — popular cooperative variants include Team Scrabble (adult-child pairs), Target Score (combined goal), and Theme Night (category bonuses)." }},
+    { "@type": "Question", "name": "What are good Scrabble words for kids?", "acceptedAnswer": { "@type": "Answer", "text": "Focus on short, high-value words kids already know: ZAP (14 pts), FOX (13 pts), JAW (13 pts), QUIZ (22 pts), and JOY (13 pts)." }}
+  ]
+})} />
+
+</Layout>

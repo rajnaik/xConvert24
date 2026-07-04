@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Foreign Words Valid in Scrabble"
-  description="Borrowed words from other languages that are legal in English Scrabble. TOFU, EMOJI, MANGA and more."
-  keywords="scrabble, foreign, words, valid, in, scrabble"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Foreign Words Valid in Scrabble",
-    "description": "Borrowed words from other languages that are legal in English Scrabble. TOFU, EMOJI, MANGA and more.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/foreign-words-valid-in-scrabble" }
-  })} />
+<Layout title="Foreign Words Valid in Scrabble — Loanwords You Can Play | ScrabbleWordsFinder.com" description="Discover foreign loanwords that are valid in Scrabble dictionaries. From QI to TOFU, learn which borrowed words score big in SOWPODS and TWL." keywords="foreign words scrabble, loanwords scrabble, valid foreign words, scrabble borrowed words, sowpods loanwords, international scrabble words">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/dictionaries/" class="hover:text-blue-400 transition-colors text-gray-300">Dictionaries</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Foreign Words Valid in Scrabble — Loanwords You Can Play",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Foreign Words Valid in Scrabble</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Are foreign words allowed in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — if a foreign word has been adopted into English and appears in the official Scrabble dictionary (SOWPODS or TWL), it's valid. Words like QI, TOFU, KARATE, and TSUNAMI are all playable because they've entered common English usage." }},
+    { "@type": "Question", "name": "What is the best foreign loanword in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "QI (Chinese: life force) is arguably the most valuable — it's only 2 letters, scores 11 points, and uses the difficult Q tile without needing U. Other high-value loanwords include QOPH (19 pts), WAQF (19 pts), and HAJJ (21 pts)." }},
+    { "@type": "Question", "name": "Do SOWPODS and TWL accept different foreign words?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. SOWPODS (international) is more permissive with loanwords than TWL (North American). SOWPODS contains around 279,000 words versus TWL's 187,000. Many foreign-origin words valid in SOWPODS are not accepted in TWL." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Borrowed words from other languages that are legal in English Scrabble. TOFU, EMOJI, MANGA and more.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/dictionaries/" class="hover:text-amber-500 transition-colors">Dictionaries</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Foreign Words Valid in Scrabble</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Foreign Words Valid in Scrabble — Loanwords You Can Play</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 6 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">English is a magpie language — it borrows freely from every tongue it encounters. Many of those borrowed words are now valid in Scrabble dictionaries, giving you access to unusual letter combinations and high-scoring plays that most opponents won't expect.</p>
+
+<p>From Arabic to Yiddish, Japanese to Hindi, thousands of loanwords have become legitimate Scrabble plays. Knowing them gives you a vocabulary edge that pure English speakers often miss — and many of these words use high-value tiles extremely well.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">High-Scoring Loanwords by Origin</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Origin</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Meaning</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">HAJJ</td><td class="px-4 py-3">Arabic</td><td class="px-4 py-3 text-amber-600 font-bold">21</td><td class="px-4 py-3">Islamic pilgrimage</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WAQF</td><td class="px-4 py-3">Arabic</td><td class="px-4 py-3 text-amber-600 font-bold">19</td><td class="px-4 py-3">Religious endowment</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QOPH</td><td class="px-4 py-3">Hebrew</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">Hebrew letter</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">JEUX</td><td class="px-4 py-3">French</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">Games (SOWPODS)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">KANJI</td><td class="px-4 py-3">Japanese</td><td class="px-4 py-3 text-amber-600 font-bold">16</td><td class="px-4 py-3">Chinese characters</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">KVETCH</td><td class="px-4 py-3">Yiddish</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">To complain</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Loanwords by Language Family</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">🇯🇵 Japanese</p>
+    <p class="text-xs text-gray-400">TOFU, KARATE, TSUNAMI, SAKE, SUMO, JUDO, RAMEN, SENSEI, SHOGUN, BONSAI</p>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+    <p class="text-blue-400 font-semibold text-sm mb-2">🇮🇳 Hindi/Urdu</p>
+    <p class="text-xs text-gray-400">KARMA, YOGA, GURU, JUNGLE, THUG, AVATAR, NIRVANA, LOOT, SHAMPOO, VERANDA</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">🇸🇦 Arabic</p>
+    <p class="text-xs text-gray-400">ALGEBRA, ZENITH, NADIR, HAJJ, WADI, HAREM, SHEIKH, FALAFEL, HOOKAH, SOUK</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+    <p class="text-purple-400 font-semibold text-sm mb-2">🇩🇪 German/Yiddish</p>
+    <p class="text-xs text-gray-400">KVETCH, KIBITZ, SCHMUCK, ANGST, KITSCH, WANDERLUST, ZEITGEIST, DOPPELGANGER</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Q-Without-U Loanwords</h2>
+
+<p>The most strategically valuable loanwords are those using Q without U — essential knowledge for managing the dreaded Q tile.</p>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QI</span><span class="text-blue-400 text-xs">11 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QOPH</span><span class="text-blue-400 text-xs">18 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QADI</span><span class="text-blue-400 text-xs">14 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QAID</span><span class="text-blue-400 text-xs">14 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QANAT</span><span class="text-blue-400 text-xs">14 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WAQF</span><span class="text-blue-400 text-xs">19 pts</span></span>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">🔗 Related Guides</p>
+  <div class="grid gap-2">
+    <a href="/blog/best-q-words-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Best Q Words for Scrabble — complete Q strategy guide</span>
+    </a>
+    <a href="/blog/words-only-in-sowpods/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Only in SOWPODS — international-only valid words</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">SOWPODS vs TWL: Loanword Differences</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">92K</p><p class="text-xs text-gray-400">More words in SOWPODS</p></div>
+    <div><p class="text-xl font-bold text-amber-400">Many</p><p class="text-xs text-gray-400">Are loanwords</p></div>
+    <div><p class="text-xl font-bold text-amber-400">Check</p><p class="text-xs text-gray-400">Before tournament play</p></div>
+  </div>
+</div>
+
+<p>If you study loanwords for SOWPODS tournaments, be careful — many won't work in TWL games. Words like JEUX (French, games) and ZAX (a slate-cutting tool) are SOWPODS-only. Always confirm which dictionary your event uses before relying on borrowed vocabulary.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips for Loanwords</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Know your dictionary:</span> If playing SOWPODS (international), you have access to thousands more loanwords than TWL. Words like JEUX, QAIDS, and ZAX are SOWPODS-only. Always confirm which dictionary your game uses.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Memorise short loanwords:</span> Two and three-letter loanwords like QI, ZA (pizza), KA (Egyptian spirit), and TAO provide enormous flexibility for parallel plays and tight board positions.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Challenge bluffs confidently:</span> Opponents may play fake foreign-sounding words hoping you won't challenge. If a word looks like a loanword but you've never seen it in study lists, challenge it.</p>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/how-scrabble-dictionaries-update/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">How Scrabble Dictionaries Update</span>
+    </a>
+    <a href="/blog/new-words-added-2026/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">New Words Added in 2026</span>
+    </a>
+    <a href="/blog/words-only-in-twl/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Only in TWL</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Check any loanword's validity instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

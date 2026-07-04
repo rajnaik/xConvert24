@@ -1,55 +1,161 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Setting Up a Scrabble Game"
-  description="Step-by-step guide to setting up a Scrabble game. Tile drawing, first player, and board orientation."
-  keywords="scrabble, setting, up, a, scrabble, game"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Setting Up a Scrabble Game",
-    "description": "Step-by-step guide to setting up a Scrabble game. Tile drawing, first player, and board orientation.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/setting-up-a-scrabble-game" }
-  })} />
+<Layout title="Setting Up a Scrabble Game — Board, Tiles & Racks Guide | ScrabbleWordsFinder.com" description="Learn how to set up a Scrabble game correctly. Complete guide to board placement, tile distribution, rack setup, and who goes first." keywords="setting up scrabble, scrabble setup guide, how to set up scrabble, scrabble board setup, scrabble tile distribution, scrabble rules setup">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Setting Up a Scrabble Game — Board, Tiles & Racks Guide",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Setting Up a Scrabble Game</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How many tiles does each player start with in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Each player draws 7 tiles from the bag at the start of the game. After each turn, players replenish their rack back to 7 tiles until the bag is empty." }},
+    { "@type": "Question", "name": "Who goes first in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Each player draws one tile from the bag — the player who draws closest to A goes first. Blanks beat all letters. If there's a tie, redraw. Return tiles to the bag after determining order." }},
+    { "@type": "Question", "name": "How many tiles are in a Scrabble game?", "acceptedAnswer": { "@type": "Answer", "text": "A standard English Scrabble game contains 100 tiles: 98 letter tiles and 2 blank tiles. The distribution varies by letter — E has 12 tiles while Q, Z, X, J, and K have only 1 each." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Step-by-step guide to setting up a Scrabble game. Tile drawing, first player, and board orientation.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/beginner-guides/" class="hover:text-amber-500 transition-colors">Beginner Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Setting Up a Game</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Setting Up a Scrabble Game — Board, Tiles & Racks Guide</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 4 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Getting a Scrabble game started correctly takes less than 2 minutes once you know the steps. From placing the board to drawing your first tiles, this guide covers everything you need for a properly set-up game — whether it's your first time or you need a quick refresher on the official rules.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What You Need</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">1</p><p class="text-xs text-gray-400">15×15 game board</p></div>
+    <div><p class="text-xl font-bold text-amber-400">100</p><p class="text-xs text-gray-400">Letter tiles</p></div>
+    <div><p class="text-xl font-bold text-amber-400">2-4</p><p class="text-xs text-gray-400">Tile racks</p></div>
+    <div><p class="text-xl font-bold text-amber-400">1</p><p class="text-xs text-gray-400">Tile bag</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Step-by-Step Setup</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+  <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Setup Process</p>
+  <div class="space-y-3">
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+      <p class="text-sm text-gray-300">Place the board on a flat surface with all players able to reach comfortably. Ensure the centre star square is visible to everyone.</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+      <p class="text-sm text-gray-300">Put all 100 tiles face-down into the tile bag. Shake or mix thoroughly so tiles are randomly distributed.</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+      <p class="text-sm text-gray-300">Give each player a tile rack. Place racks so other players cannot see your tiles.</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+      <p class="text-sm text-gray-300">Determine who goes first: each player draws 1 tile — closest to A starts (blanks beat all letters). Return tiles to bag.</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+      <p class="text-sm text-gray-300">Each player draws 7 tiles from the bag and places them on their rack. Don't show other players! You're ready to begin.</p>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tile Distribution</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">Most Common Tiles</p>
+    <p class="text-xs text-gray-400">E×12, A×9, I×9, O×8, N×6, R×6, T×6, L×4, S×4, U×4</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-2">Rarest Tiles (1 each)</p>
+    <p class="text-xs text-gray-400">Q(10pts), Z(10pts), X(8pts), J(8pts), K(5pts) + 2 Blanks(0pts)</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Common Setup Mistakes</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Not mixing tiles enough:</span> Give the bag a good 10-second shake. Tiles tend to settle in layers — if you just reach in, you may get letter clusters from manufacturing.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Forgetting the centre rule:</span> The first word MUST cover the centre star square. Many beginners place their first word anywhere — this is invalid and earns no double-word bonus.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Wrong tile count:</span> Always verify you have exactly 100 tiles before starting. Missing tiles (often blanks or S tiles) completely change game balance.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/how-to-play-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">How to Play Scrabble — complete rules and turn flow</span>
+    </a>
+    <a href="/blog/scrabble-scoring-guide/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Scoring Guide — how points work</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-rules-explained/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Rules Explained</span>
+    </a>
+    <a href="/blog/scrabble-tile-bag-distribution/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Tile Bag Distribution</span>
+    </a>
+    <a href="/blog/understanding-premium-squares/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Understanding Premium Squares</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Game set up? Find your best opening word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

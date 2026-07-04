@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Medical Terms Valid in Scrabble"
-  description="Medical and scientific words legal in Scrabble. High-scoring technical vocabulary for competitive play."
-  keywords="scrabble, medical, terms, valid, scrabble"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Medical Terms Valid in Scrabble",
-    "description": "Medical and scientific words legal in Scrabble. High-scoring technical vocabulary for competitive play.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/medical-terms-valid-scrabble" }
-  })} />
+<Layout title="Medical Terms Valid in Scrabble — High-Scoring Health Vocabulary | ScrabbleWordsFinder.com" description="Discover medical and anatomy words valid in Scrabble. From ZYGOMA to QUININE, learn health vocabulary that scores big on the board." keywords="medical words scrabble, anatomy scrabble words, health terms scrabble, valid medical scrabble, science words scrabble, medical vocabulary game">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/dictionaries/" class="hover:text-blue-400 transition-colors text-gray-300">Dictionaries</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Medical Terms Valid in Scrabble — High-Scoring Health Vocabulary",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Medical Terms Valid in Scrabble</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Are medical terms valid in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — many medical terms that have entered common English usage are valid in both SOWPODS and TWL. Words like ZYGOMA (bone), QUININE (medicine), TRACHEA (anatomy), and SCALPEL (instrument) are all playable. However, highly technical Latin/Greek terms may not be included." }},
+    { "@type": "Question", "name": "What are the highest-scoring medical words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "ZYGOTIC (21 pts), QUININE (16 pts), ZYMOTIC (23 pts), and OXYTOCIN (20 pts) rank among the top medical terms. Words using Z, Q, X, or Y tiles combined with medical roots score exceptionally well." }},
+    { "@type": "Question", "name": "Is SCALPEL a valid Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. SCALPEL is valid in both SOWPODS and TWL, scoring 11 points. Medical instruments that have become common English words (stethoscope, syringe, scalpel, forceps) are typically valid." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Medical and scientific words legal in Scrabble. High-scoring technical vocabulary for competitive play.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/word-lists/" class="hover:text-amber-500 transition-colors">Word Lists</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Medical Terms Valid in Scrabble</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Medical Terms Valid in Scrabble — High-Scoring Health Vocabulary</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Medical vocabulary is a goldmine for Scrabble players. These words often use unusual letter combinations (ZY, PH, XY) that score well and confuse opponents who might challenge perfectly valid terms. From anatomy to pharmacology, here are the medical words worth knowing.</p>
+
+<p>Healthcare professionals have a natural advantage in Scrabble — their everyday vocabulary includes hundreds of valid words that casual players have never encountered. Even if you're not in medicine, learning these terms adds powerful weapons to your arsenal.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring Medical Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Category</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Meaning</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">ZYMOTIC</td><td class="px-4 py-3 text-amber-600 font-bold">23</td><td class="px-4 py-3">Disease</td><td class="px-4 py-3">Relating to fermentation</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">ZYGOTIC</td><td class="px-4 py-3 text-amber-600 font-bold">21</td><td class="px-4 py-3">Biology</td><td class="px-4 py-3">Relating to a zygote</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">OXYTOCIN</td><td class="px-4 py-3 text-amber-600 font-bold">20</td><td class="px-4 py-3">Hormone</td><td class="px-4 py-3">Bonding hormone</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">ZYGOMA</td><td class="px-4 py-3 text-amber-600 font-bold">21</td><td class="px-4 py-3">Anatomy</td><td class="px-4 py-3">Cheekbone arch</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QUININE</td><td class="px-4 py-3 text-amber-600 font-bold">16</td><td class="px-4 py-3">Pharmacology</td><td class="px-4 py-3">Anti-malarial drug</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">THYROID</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">Anatomy</td><td class="px-4 py-3">Neck gland</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Medical Words by Category</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">🦴 Anatomy</p>
+    <p class="text-xs text-gray-400">FEMUR, TIBIA, ULNA, FIBULA, TRACHEA, SPLEEN, THYMUS, CORTEX, AORTA, ZYGOMA</p>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+    <p class="text-blue-400 font-semibold text-sm mb-2">💊 Pharmacology</p>
+    <p class="text-xs text-gray-400">QUININE, ASPIRIN, OPIATE, STATIN, SERUM, TOXIN, DOSAGE, BOLUS, ELIXIR</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+    <p class="text-purple-400 font-semibold text-sm mb-2">🔬 Conditions</p>
+    <p class="text-xs text-gray-400">EDEMA, TRAUMA, HERNIA, ANGINA, ANEMIA, SEPSIS, THROMBOSIS, CYSTIC</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">🏥 Instruments</p>
+    <p class="text-xs text-gray-400">SCALPEL, FORCEPS, SUTURE, LANCET, CATHETER, SPLINT, CLAMP, TROCAR</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short Medical Words for Tight Boards</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">PUS</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ORB</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OVA</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">CYST</span><span class="text-blue-400 text-xs">9 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VEIN</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">BILE</span><span class="text-blue-400 text-xs">6 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Anatomy Bingo Words</h2>
+
+<p>Many anatomy terms are 7+ letters, making them bingo candidates with the 50-point bonus. Learning these gives you an edge when you draw medical-sounding letter combinations:</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">TRACHEA</p><p class="text-xs text-gray-400">12 + 50 bonus</p></div>
+    <div><p class="text-xl font-bold text-amber-400">STERNUM</p><p class="text-xs text-gray-400">9 + 50 bonus</p></div>
+    <div><p class="text-xl font-bold text-amber-400">CRANIUM</p><p class="text-xs text-gray-400">11 + 50 bonus</p></div>
+  </div>
+</div>
+
+<p>TRACHEA is especially useful — it uses all common tiles (T,R,A,C,H,E,A) and scores 62 points as a bingo. STERNUM and CRANIUM both use common letter distributions you'll draw regularly.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Challenge bait:</span> Medical words like ZYMOTIC or OXYTOCIN look obscure enough that opponents often challenge them — wasting their turn under NASPA rules while your valid word stands.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">PH and XY combos:</span> Medical Latin/Greek roots often contain PH (pharmacy, phase) and XY (oxygen, pyxis). These letter combinations score well and hook into existing board words.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Plurals and extensions:</span> Many anatomy words have useful extensions: AORTA→AORTAS, TIBIA→TIBIAE/TIBIAS, FEMUR→FEMURS. Learn both singular and plural forms.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">🔗 Related Guides</p>
+  <div class="grid gap-2">
+    <a href="/blog/foreign-words-valid-in-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Foreign Words Valid in Scrabble — Latin-origin medical terms</span>
+    </a>
+    <a href="/blog/music-words-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Music Words in Scrabble — another specialist vocabulary guide</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/best-z-words-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Best Z Words for Scrabble</span>
+    </a>
+    <a href="/blog/best-x-words-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Best X Words for Scrabble</span>
+    </a>
+    <a href="/blog/highest-scoring-scrabble-words/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Highest Scoring Scrabble Words</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Check if any medical term is valid in SOWPODS or TWL</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

@@ -1,49 +1,176 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Scrabble Words from Electricity — High-Voltage Terms That Score"
-  description="Electrical terms valid in Scrabble with full scoring. VOLTAGE (11pts), WATTAGE (11pts), OHMS (9pts). Power up your game with electricity vocabulary."
-  keywords="scrabble electricity words, voltage scrabble points, wattage scrabble, ohms scrabble, electrical terms scrabble, power words scrabble, circuit words scrabble"
->
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Scrabble Words from Electricity — High-Voltage Terms That Score","description":"Electrical terms valid in Scrabble with full scoring. VOLTAGE (11pts), WATTAGE (11pts), OHMS (9pts).","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/scrabble-words-from-electricity"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is VOLTAGE a valid Scrabble word?","acceptedAnswer":{"@type":"Answer","text":"Yes! VOLTAGE scores 11 points (V=4, O=1, L=1, T=1, A=1, G=2, E=1). It's a 7-letter word making it a bingo candidate worth 61 points with the 50-point bonus."}},{"@type":"Question","name":"Can you play WATTAGE in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"Yes. WATTAGE scores 11 points (W=4, A=1, T=1, T=1, A=1, G=2, E=1). Another 7-letter bingo candidate from electrical vocabulary, valid in both TWL and SOWPODS."}},{"@type":"Question","name":"What electrical words score highest in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"SPARKING scores 15 points, VOLTAGE and WATTAGE each score 11, and OHMS scores 9. Words with W=4, V=4, and K=5 tiles tend to score highest in this category."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Word Lists</span></nav>
-      <h1 class="text-3xl font-bold text-white mb-4">Scrabble Words from Electricity — High-Voltage Terms That Score</h1>
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>5 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Strategy for Electrical Words</h2>
-      <div class="not-prose my-6 grid grid-cols-1 gap-4">
-        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">VOLTAGE and WATTAGE are natural bingos:</span> Both are exactly 7 letters. If you see V-O-L-T-A-G-E or W-A-T-T-A-G-E on your rack, play them immediately for 11 base + 50 bonus = 61 points.</p></div>
-        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">OHMS is a 4-letter power play:</span> At 9 points from just 4 tiles, OHMS gives 2.25 points per tile — excellent efficiency. The H=4 does the heavy lifting.</p></div>
-        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hook with S plurals:</span> VOLTS, WATTS, FUSES, OHMS — all take S naturally, making them easy parallel plays beside existing words.</p></div>
-      </div>
-      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
-        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
-        <p class="text-base text-gray-200">Electrical words are <span class="text-white font-medium">V-tile and W-tile specialists</span>. Both tiles are worth 4 points, and electricity vocabulary uses them heavily — VOLTAGE, VOLTS, WATTAGE, WATTS, WIRED. When you draw V or W, think electrical.</p>
-      </div>
-      <aside class="border-t border-gray-800 mt-12 pt-8 not-prose">
-        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
-        <div class="grid gap-3">
-          <a href="/blog/scrabble-words-from-clocks/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words from Clocks</span></a>
-          <a href="/blog/scrabble-words-from-astronomy-planets/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words from Astronomy Planets</span></a>
-          <a href="/blog/scrabble-words-from-chemistry-elements/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words from Chemistry Elements</span></a>
-          <a href="/blog/scrabble-words-from-geology/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words from Geology</span></a>
-          <a href="/blog/scrabble-words-from-science/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words from Science</span></a>
-          <a href="/blog/scrabble-words-from-technology/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words from Technology</span></a>
-        </div>
-      </aside>
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl shadow-sm">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find every valid electrical word instantly — free Scrabble solver, no sign-up</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
-        </div>
-      </div>
-      <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-    </article>
+<Layout title="Scrabble Words From Electricity — Valid Electrical Terms | ScrabbleWordsFinder.com" description="Discover valid Scrabble words from the world of electricity. From OHM to VOLTAGE, find high-scoring electrical terms for your next game." keywords="scrabble words electricity, electrical scrabble words, ohm scrabble, volt scrabble, watt scrabble word, science words scrabble">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Words From Electricity — Valid Electrical Terms",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is OHM a valid Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, OHM is valid in both SOWPODS and TWL dictionaries. It scores 8 points (O1+H4+M3) and is one of the most useful 3-letter electrical terms in Scrabble." }},
+    { "@type": "Question", "name": "What electrical words score highest in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "QUARTZ (24 pts), ELECTRIFY (17 pts), and KILOWATT (15 pts) are among the highest-scoring electrical terms. Words with Q, Z, X, or K tiles score best." }},
+    { "@type": "Question", "name": "Is VOLTAGE a valid Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, VOLTAGE is valid in both SOWPODS and TWL. It scores 11 points as a 7-letter word and can earn a 50-point bingo bonus if played using all 7 rack tiles." }}
+  ]
+})} />
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/word-lists/" class="hover:text-amber-500 transition-colors">Word Lists</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words From Electricity</span>
+</nav>
+
+<BlogCrossLinks current={slug} />
+
+<h1 class="text-3xl font-bold mb-2">Scrabble Words From Electricity — Valid Electrical Terms</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The world of electricity is packed with short, high-scoring words perfect for Scrabble. From the 3-letter powerhouse OHM to bingo-worthy VOLTAGE and AMPERAGE, electrical vocabulary gives you access to uncommon letter combinations that most opponents won't challenge.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring Electrical Words</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">40+</p><p class="text-xs text-gray-400">Valid electrical terms</p></div>
+    <div><p class="text-xl font-bold text-amber-400">24 pts</p><p class="text-xs text-gray-400">QUARTZ (highest)</p></div>
+    <div><p class="text-xl font-bold text-amber-400">3–9</p><p class="text-xs text-gray-400">Letter range</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Meaning</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QUARTZ</td><td class="px-4 py-3 text-amber-600 font-bold">24</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Crystal used in oscillators</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">KILOWATT</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">8</td><td class="px-4 py-3">1000 watts of power</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">VOLTAGE</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Electric potential difference</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WATTAGE</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Amount of electrical power</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">AMPERE</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Unit of electric current</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">OHM</td><td class="px-4 py-3 text-amber-600 font-bold">8</td><td class="px-4 py-3">3</td><td class="px-4 py-3">Unit of resistance</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WATT</td><td class="px-4 py-3 text-amber-600 font-bold">7</td><td class="px-4 py-3">4</td><td class="px-4 py-3">Unit of power</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">VOLT</td><td class="px-4 py-3 text-amber-600 font-bold">7</td><td class="px-4 py-3">4</td><td class="px-4 py-3">Unit of potential</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short Electrical Words for Tight Boards</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OHM</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ARC</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ION</span><span class="text-blue-400 text-xs">3 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VOLT</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WATT</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">FUSE</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WIRE</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">COIL</span><span class="text-blue-400 text-xs">6 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Electrical Categories for Scrabble</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+    <p class="text-cyan-400 font-semibold text-sm mb-2">⚡ Units & Measures</p>
+    <p class="text-xs text-gray-400">OHM, VOLT, WATT, AMPERE, FARAD, HENRY, JOULE, COULOMB</p>
+  </div>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">🔌 Components</p>
+    <p class="text-xs text-gray-400">FUSE, COIL, WIRE, RELAY, DIODE, ANODE, CATHODE, RESISTOR</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">🔋 Phenomena</p>
+    <p class="text-xs text-gray-400">ARC, SURGE, SPARK, PULSE, STATIC, CHARGE, CURRENT</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">🏗️ Bingo Candidates (7+ letters)</p>
+    <p class="text-xs text-gray-400">VOLTAGE, WATTAGE, AMPERAGE, KILOWATT, RESISTOR, CIRCUIT</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips for Electrical Words</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">OHM is your secret weapon:</span> At 8 points for just 3 letters, OHM averages 2.67 points per tile — better than most 5-letter words. Use it to score in tight spaces.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hook with S plurals:</span> OHMS, VOLTS, WATTS, ARCS, FUSES — all valid. Add an S to an existing electrical word on the board for easy parallel plays.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Bingo with VOLTAGE:</span> If you have V-O-L-T-A-G-E on your rack, that's a guaranteed 50-point bonus plus 11 base points. Look for open lanes on the board.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-words-from-science/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Words From Science — chemistry, biology & physics terms</span>
+    </a>
+    <a href="/blog/scrabble-words-from-technology/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Words From Technology — digital and computing vocabulary</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-words-from-chemistry-elements/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words From Chemistry Elements</span>
+    </a>
+    <a href="/blog/scrabble-science-words/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Science Words</span>
+    </a>
+    <a href="/blog/scrabble-words-from-space/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words From Space</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every electrical word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

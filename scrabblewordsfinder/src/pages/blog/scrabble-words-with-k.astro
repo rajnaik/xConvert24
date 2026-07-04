@@ -1,41 +1,173 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout title="Scrabble Words With K — The 5-Point Singleton" description="Master K words in Scrabble: KAYAK (16pts), KNACK (15pts), QUIRKY (22pts). Only 1 K tile in the bag — learn how to manage and maximize this rare 5-point letter." keywords="scrabble words with k, k words scrabble, kayak scrabble, knack scrabble, quirky scrabble, k tile strategy, high scoring k words">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Scrabble Words With K — The 5-Point Singleton","description":"Master K words in Scrabble with scoring breakdowns and management strategy for the only K tile in the bag.","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/scrabble-words-with-k"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many K tiles are in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"There is only 1 K tile in a standard Scrabble game, worth 5 points. This makes K the rarest mid-value tile and one you must deploy strategically when you draw it."}},{"@type":"Question","name":"What is the highest-scoring K word in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"QUIRKY scores 22 points without premium squares, combining Q (10pts) with K (5pts) and Y (4pts). It's one of the few words that uses both Q and K together."}},{"@type":"Question","name":"Should you save K for premium squares?","acceptedAnswer":{"@type":"Answer","text":"Yes — K on a DLS gives 10 points from one tile, and on TLS gives 15. If a premium square is accessible within 1-2 turns, hold K rather than playing it on a regular square for just 5 points."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12"><article class="prose prose-invert prose-gray max-w-none">
-    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Strategy</span></nav>
-    <h1 class="text-3xl font-bold text-white mb-4">Scrabble Words With K — The 5-Point Singleton</h1>
-    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>5 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-    <p class="text-lg leading-relaxed text-gray-300 mb-8">K is worth 5 points with only 1 tile in the entire bag — making it the rarest mid-value letter. When you draw K, you've got a tile that demands respect: enough points to be valuable on premium squares, but awkward enough in English that it can clog your rack if you don't know the right words.</p>
-    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><div class="flex flex-wrap items-center justify-center gap-6 text-center"><div><p class="text-xl font-bold text-amber-400">5</p><p class="text-xs text-gray-400">Points per K</p></div><div><p class="text-xl font-bold text-amber-400">1</p><p class="text-xs text-gray-400">K Tile in Bag</p></div><div><p class="text-xl font-bold text-amber-400">22</p><p class="text-xs text-gray-400">Top Score (QUIRKY)</p></div><div><p class="text-xl font-bold text-amber-400">15</p><p class="text-xs text-gray-400">K on TLS</p></div></div></div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Top K Words by Score</h2>
-    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">🏆 QUIRKY</p><p class="text-xs text-gray-400">22 points · 6 letters · Q+K+Y triple threat</p></div>
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">🏆 KAYAK</p><p class="text-xs text-gray-400">16 points · 5 letters · Double K usage</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⭐ KNACK</p><p class="text-xs text-gray-400">15 points · 5 letters · CK ending power</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⭐ VODKA</p><p class="text-xs text-gray-400">13 points · 5 letters · K+V combo</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">K Management Strategy</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hold for premium squares:</span> K on DLS = 10 points, on TLS = 15. With only one K in the game, it's worth waiting 1-2 turns for a premium square rather than dumping it on a regular tile.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">-CK endings are your friend:</span> KNACK, KNOCK, BRICK, STUCK — the CK pattern appears in hundreds of words. If C is on the board, hook K onto it for instant plays.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">KN- silent K openers:</span> KNACK, KNIFE, KNEEL, KNOT — players forget these because the K is silent in speech. In Scrabble, that silent K is worth 5 free points.</p></div>
-    </div>
-    <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">KITE</span><span class="text-blue-400 text-xs">8pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">DUKE</span><span class="text-blue-400 text-xs">9pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">KALE</span><span class="text-blue-400 text-xs">8pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">INK</span><span class="text-blue-400 text-xs">7pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OAK</span><span class="text-blue-400 text-xs">7pts</span></span>
-    </div>
-    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20"><p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p><p class="text-base text-gray-200">Since there's only <span class="text-white font-medium">1 K in the entire game</span>, once it's played you can stop thinking about K-words entirely. Track it — if it's on the board, free up mental space for other letters.</p></div>
-    <aside class="border-t border-gray-800 mt-12 pt-8 not-prose"><h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3><div class="grid gap-3"><a href="/blog/scrabble-words-with-v/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words With V — Strategy for the 4-Point Tile</span></a><a href="/blog/scrabble-words-with-y/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words With Y — Vowel Substitute Power</span></a></div></aside>
-    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl"><div class="flex items-center justify-between gap-4 flex-wrap"><p class="text-sm text-blue-300 font-medium">🔤 Find all K words instantly — free Scrabble solver, no sign-up</p><a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a></div></div>
-    <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-  </article></div>
-</BlogLayout>
+<Layout title="Best Scrabble Words With K — Strategy & High Scorers | ScrabbleWordsFinder.com" description="Master K tile strategy in Scrabble. Find the best words with K, learn when to hold or play this 5-point consonant for maximum scoring." keywords="scrabble words with k, k words scrabble, best k scrabble words, k tile strategy, high scoring k words, 5 point tiles scrabble">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Best Scrabble Words With K — Strategy & High Scorers",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How many points is K worth in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "K is worth 5 points in Scrabble — the same as J and one of only 4 tiles at that value. There's only 1 K tile in the standard bag, making it relatively rare and valuable." }},
+    { "@type": "Question", "name": "What short words with K score highest in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "KA (6 pts) and KI (6 pts) are the best 2-letter K words. For 3 letters, ZAK (16 pts) and KEX (14 pts) deliver excellent point density. KAYAK (15 pts) uses K twice for 5 letters." }},
+    { "@type": "Question", "name": "Should I hold K for a better play or use it early?", "acceptedAnswer": { "@type": "Answer", "text": "Generally play K within 1-2 turns of drawing it. Holding K too long hurts rack flexibility since it pairs with limited vowels. Aim for 12+ points per K play — anything less wastes its potential." }}
+  ]
+})} />
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words With K</span>
+</nav>
+
+<BlogCrossLinks current={slug} />
+
+<h1 class="text-3xl font-bold mb-2">Best Scrabble Words With K — Strategy & High Scorers</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">K is Scrabble's quiet powerhouse — 5 points with only 1 tile in the bag. Unlike flashier tiles like Q or Z, K combines easily with common letters (CK, KE, KI, NK) and creates short, punchy words perfect for tight boards. A well-placed K on a double-letter square delivers 10 points from a single tile.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">K Tile at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">5 pts</p><p class="text-xs text-gray-400">Tile value</p></div>
+    <div><p class="text-xl font-bold text-amber-400">1</p><p class="text-xs text-gray-400">Tile in bag</p></div>
+    <div><p class="text-xl font-bold text-amber-400">CK NK KE KI</p><p class="text-xs text-gray-400">Common combos</p></div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring K Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">KAYAK</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Uses K twice (rare!)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">QUIRKY</td><td class="px-4 py-3 text-amber-600 font-bold">22</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Q(10)+K(5)+Y(4)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">KNACK</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">5</td><td class="px-4 py-3">K+CK ending</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">KAYAKS</td><td class="px-4 py-3 text-amber-600 font-bold">16</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Plural adds 1 pt</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">KICK</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">4</td><td class="px-4 py-3">K(5)+CK(8) double K</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">KIOSK</td><td class="px-4 py-3 text-amber-600 font-bold">9</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Double K opportunity</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">HAWK</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">4</td><td class="px-4 py-3">H(4)+W(4)+K(5)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Essential Short K Words</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">KA</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">KI</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">KEX</span><span class="text-blue-400 text-xs">14 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">KAB</span><span class="text-blue-400 text-xs">9 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">INK</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OAK</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">YAK</span><span class="text-blue-400 text-xs">10 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">K Tile Strategy</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Don't hoard K:</span> With only 1 tile in the bag, your opponent knows you have it if they track tiles. Play K within 2 turns of drawing it to maintain rack flexibility and avoid predictability.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Target DLS with K:</span> K on a double-letter square = 10 points from one tile. That's more than most entire 3-letter words. Prioritise DLS placement whenever K is in your rack.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">CK endings are gold:</span> BACK, DECK, KICK, LOCK, TUCK — CK ending words are everywhere and score well. If an existing word ends near a premium square, adding CK can create huge parallel plays.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">K Combo Patterns Worth Memorising</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+  <p class="text-base text-gray-200">K appears in <span class="text-white font-medium">three dominant patterns</span>: CK endings (BACK, DECK, KICK), KN beginnings (KNACK, KNIFE, KNOT), and NK middles (THINK, DRINK, BLANK). Each unlocks dozens of valid words.</p>
+</div>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">-CK Endings (most common)</p>
+    <p class="text-xs text-gray-400">BACK, DECK, FLICK, KNOCK, QUICK, STACK, TRICK, WHACK — adds K(5)+C(3) = 8 points to roots</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">KN- Beginnings</p>
+    <p class="text-xs text-gray-400">KNACK, KNAVE, KNEE, KNIFE, KNIGHT, KNIT, KNOB, KNOCK, KNOT, KNOW — silent K adds 5 free pts</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-words-with-h/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Words With H — 4-point consonant strategies</span>
+    </a>
+    <a href="/blog/words-containing-k/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing K — full list of K-containing words</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-words-with-h/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With H</span>
+    </a>
+    <a href="/blog/scrabble-words-with-v/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With V</span>
+    </a>
+    <a href="/blog/best-q-words-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Best Q Words in Scrabble</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Got a K on your rack? Find every word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

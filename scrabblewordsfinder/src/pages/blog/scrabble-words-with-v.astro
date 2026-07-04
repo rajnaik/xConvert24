@@ -1,41 +1,172 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout title="Scrabble Words With V — Strategy for the 4-Point Tile" description="Master V words in Scrabble: VORTEX (16pts), VOYAGE (13pts), VIVID (12pts), VALVE (11pts). Only 2 V tiles in the bag — learn placement tips to maximize every play." keywords="scrabble words with v, v words scrabble, vortex scrabble, voyage scrabble, vivid scrabble, v tile strategy, high scoring v words">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Scrabble Words With V — Strategy for the 4-Point Tile","description":"Master V words in Scrabble with scoring breakdowns and strategic placement tips for the rare V tile.","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/scrabble-words-with-v"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many V tiles are in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"There are only 2 V tiles in a standard Scrabble game, each worth 4 points. This scarcity makes V a semi-premium tile that deserves careful placement on bonus squares."}},{"@type":"Question","name":"What is the highest-scoring V word in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"VORTEX scores 16 points without any premium squares, combining V (4pts) with X (8pts). On a Double Word Score, that jumps to 32 points."}},{"@type":"Question","name":"What are the best short V words for tight board positions?","acceptedAnswer":{"@type":"Answer","text":"VEX (13pts), VOW (9pts), VIA (6pts), and VAT (6pts) are excellent short V words. VEX is especially powerful at 13 points for just 3 letters thanks to the X bonus."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12"><article class="prose prose-invert prose-gray max-w-none">
-    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Strategy</span></nav>
-    <h1 class="text-3xl font-bold text-white mb-4">Scrabble Words With V — Strategy for the 4-Point Tile</h1>
-    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>5 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-    <p class="text-lg leading-relaxed text-gray-300 mb-8">V is worth 4 points with only 2 tiles in the bag. That scarcity makes it a tile you don't want stranded on your rack at game end. The key is knowing enough V words to deploy it quickly and profitably — ideally on premium squares where that 4-point base value multiplies fast.</p>
-    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><div class="flex flex-wrap items-center justify-center gap-6 text-center"><div><p class="text-xl font-bold text-amber-400">4</p><p class="text-xs text-gray-400">Points per V</p></div><div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">V Tiles in Bag</p></div><div><p class="text-xl font-bold text-amber-400">16</p><p class="text-xs text-gray-400">Top Score (VORTEX)</p></div><div><p class="text-xl font-bold text-amber-400">8</p><p class="text-xs text-gray-400">V on DLS</p></div></div></div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Top V Words by Score</h2>
-    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">🏆 VORTEX</p><p class="text-xs text-gray-400">16 points · 6 letters · V+X power combo</p></div>
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">🏆 VOYAGE</p><p class="text-xs text-gray-400">13 points · 6 letters · Common word</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⭐ VIVID</p><p class="text-xs text-gray-400">12 points · 5 letters · Double V usage</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⭐ VALVE</p><p class="text-xs text-gray-400">11 points · 5 letters · Everyday vocab</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">V Placement Tips</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Target DLS/TLS:</span> V on a Double Letter Score gives 8 points from one tile. On Triple Letter, that's 12 — more than most full words score by themselves.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play V early:</span> With only 2 in the bag, V becomes a liability late-game. Deploy it mid-game when board options are open and premium squares are still accessible.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">VEX is your escape valve:</span> At 13 points for 3 letters, VEX is one of the most efficient V plays available. Use it when the board is tight or you need to dump V quickly.</p></div>
-    </div>
-    <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VEX</span><span class="text-blue-400 text-xs">13pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VOW</span><span class="text-blue-400 text-xs">9pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VIBE</span><span class="text-blue-400 text-xs">9pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VENT</span><span class="text-blue-400 text-xs">7pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VIA</span><span class="text-blue-400 text-xs">6pts</span></span>
-    </div>
-    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20"><p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p><p class="text-base text-gray-200">V pairs beautifully with high-value consonants. <span class="text-white font-medium">VORTEX (X=8)</span>, <span class="text-white font-medium">VODKA (K=5)</span>, and <span class="text-white font-medium">VIVID (double V)</span> all stack premium letters for explosive scores without premium squares.</p></div>
-    <aside class="border-t border-gray-800 mt-12 pt-8 not-prose"><h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3><div class="grid gap-3"><a href="/blog/scrabble-words-with-w/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words With W — Another 4-Point Tile</span></a><a href="/blog/scrabble-words-with-k/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words With K — The 5-Point Singleton</span></a></div></aside>
-    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl"><div class="flex items-center justify-between gap-4 flex-wrap"><p class="text-sm text-blue-300 font-medium">🔤 Find all V words instantly — free Scrabble solver, no sign-up</p><a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a></div></div>
-    <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-  </article></div>
-</BlogLayout>
+<Layout title="Best Scrabble Words With V — Strategy & High Scorers | ScrabbleWordsFinder.com" description="Master V tile strategy in Scrabble. Discover the best words with V, learn when to dump this tricky 4-point consonant, and avoid common V pitfalls." keywords="scrabble words with v, v words scrabble, best v scrabble words, v tile strategy, high scoring v words, difficult scrabble tiles">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Best Scrabble Words With V — Strategy & High Scorers",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How many V tiles are in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "There are 2 V tiles in the standard Scrabble bag, each worth 4 points. V is considered one of the trickier tiles because it cannot end most English words and requires vowel support nearby." }},
+    { "@type": "Question", "name": "What are the best short words with V in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "VAV (9 pts, SOWPODS), VEX (13 pts), VOW (9 pts), and VIM (8 pts) are top short V words. The 2-letter words are limited but essential — only a few dictionaries accept them." }},
+    { "@type": "Question", "name": "Why is V considered difficult in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "V is hard because it almost always needs a vowel adjacent, cannot end most words (unlike B, D, K), and has few 2-letter word options. Players often get stuck with V late in the game when vowels are scarce." }}
+  ]
+})} />
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words With V</span>
+</nav>
+
+<BlogCrossLinks current={slug} />
+
+<h1 class="text-3xl font-bold mb-2">Best Scrabble Words With V — Strategy & High Scorers</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">V is Scrabble's most awkward 4-point tile. While H and Y pair flexibly with consonants, V almost always demands a vowel next to it and refuses to sit at the end of words. Smart players know V words by heart so they can dump it quickly without sacrificing points. Learn these patterns and V becomes an asset, not a liability.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">V Tile at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">4 pts</p><p class="text-xs text-gray-400">Tile value</p></div>
+    <div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Tiles in bag</p></div>
+    <div><p class="text-xl font-bold text-amber-400">Vowel hungry</p><p class="text-xs text-gray-400">Almost always needs A/E/I/O</p></div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring V Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">VEX</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">3</td><td class="px-4 py-3">V(4)+X(8) power combo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">VIXEN</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">5</td><td class="px-4 py-3">V(4)+X(8) in 5 letters</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">VIVIFY</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Double V + Y(4) + F(4)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">VALVE</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Double V word</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">VIVID</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Double V + D(2)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">VERVE</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Double V bookends</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">VOW</td><td class="px-4 py-3 text-amber-600 font-bold">9</td><td class="px-4 py-3">3</td><td class="px-4 py-3">V(4)+W(4) no vowel needed</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Quick V Dumps (Play Fast)</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VIM</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VIA</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VIE</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VAN</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VOW</span><span class="text-blue-400 text-xs">9 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AVE</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OVA</span><span class="text-blue-400 text-xs">6 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">V Tile Strategy</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Dump V early:</span> V gets harder to play as the game progresses because vowels dry up. Play V within 1-2 turns — even a modest 6-8 point play beats getting stuck with it at endgame.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">VEX is your best friend:</span> At 13 points for just 3 letters, VEX is one of the highest point-per-tile words in the game (4.3 avg). Always check if X is available when you draw V.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Know your V-ending words:</span> Most English words don't end in V, but REV, DEV, GOV, LUV, and TAV are all valid. These are essential for parallel plays when V must go at the end of your word.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">V-Ending Words You Must Know</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+  <p class="text-base text-gray-200">Most English words don't end in V, but Scrabble has valid exceptions. Memorise these <span class="text-white font-medium">V-ending words</span> for when V lands at the end of your play: REV, DEV, GOV, LUV, TAV, LAV, GAV, NAV, SAV, VIV, SPIV, PERV.</p>
+</div>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">REV</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">DEV</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">GOV</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">LUV</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">TAV</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">SPIV</span><span class="text-blue-400 text-xs">9 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">PERV</span><span class="text-blue-400 text-xs">9 pts</span></span>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-words-with-w/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Words With W — another 4-point consonant guide</span>
+    </a>
+    <a href="/blog/words-containing-v/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing V — complete list for rack searches</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-words-with-h/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With H</span>
+    </a>
+    <a href="/blog/scrabble-words-with-k/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With K</span>
+    </a>
+    <a href="/blog/consonant-heavy-rack-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Consonant-Heavy Rack Strategy</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Stuck with a V? Find every playable word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

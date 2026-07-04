@@ -1,55 +1,217 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Music Words Valid in Scrabble"
-  description="Musical terms for Scrabble. FORTE, PIANO, TEMPO, JAZZ and scoring with music vocabulary."
-  keywords="scrabble, music, words, scrabble"
+<Layout
+  title="Music Words Valid in Scrabble — Instruments, Genres & Notation"
+  description="Discover music terminology that scores big in Scrabble. From instruments to genres, notation to dynamics — free guide to valid musical words."
+  keywords="music words scrabble, musical terms scrabble, instrument words, genre words scrabble, high scoring music words, scrabble vocabulary"
 >
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Music Words Valid in Scrabble",
-    "description": "Musical terms for Scrabble. FORTE, PIANO, TEMPO, JAZZ and scoring with music vocabulary.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/music-words-scrabble" }
-  })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Music Words Valid in Scrabble — Instruments, Genres & Notation",
+  "description": "Discover music terminology that scores big in Scrabble. From instruments to genres, notation to dynamics — free guide to valid musical words.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/music-words-scrabble/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Music Words Valid in Scrabble</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is JAZZ a valid Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, JAZZ is valid in both SOWPODS and TWL dictionaries, scoring 29 points. It's one of the highest-scoring four-letter music words thanks to the J and double Z." }},
+    { "@type": "Question", "name": "What are the best short music words for Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Short high-scoring music words include JAZZ (29), JIVE (14), HYMN (12), and WALTZ (17). Two-letter solfège notes FA, TI, DO, RE, MI, LA, and SO are all valid." }},
+    { "@type": "Question", "name": "Are Italian musical notation terms valid in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Many notation terms are valid: FORTE, PIANO, LARGO, CLEF, REST, SHARP, FLAT, BASS, TREBLE, CODA, SEGNO, and STAVE. Italian tempo markings like ALLEGRO, ANDANTE, and PRESTO are also playable." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+<div class="max-w-3xl mx-auto px-4">
+  <article class="prose dark:prose-invert prose-gray max-w-none">
+
+    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+      <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+      <span class="mx-1">›</span>
+      <span class="text-gray-600 dark:text-gray-300">Word Lists</span>
+    </nav>
+
+    <BlogCrossLinks title="Music Words Valid in Scrabble" />
+
+    <h1 class="text-3xl font-bold mb-2">Music Words Valid in Scrabble</h1>
+
+    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+      <time datetime="2026-06-15">June 15, 2026</time>
+      <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+      <span>6 min read</span>
+    </div>
+
+    <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Music terminology is a goldmine for Scrabble players. From Italian tempo markings to instrument names, hundreds of musical words are valid in competitive play. Many use uncommon letter combinations that opponents won't challenge — and some score surprisingly well thanks to J, Z, X, and K tiles.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">High-Scoring Music Words</h2>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+      <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+        <div><p class="text-xl font-bold text-amber-400">JAZZ</p><p class="text-xs text-gray-400">29 pts</p></div>
+        <div><p class="text-xl font-bold text-amber-400">JAZZY</p><p class="text-xs text-gray-400">33 pts</p></div>
+        <div><p class="text-xl font-bold text-amber-400">WALTZ</p><p class="text-xs text-gray-400">17 pts</p></div>
+        <div><p class="text-xl font-bold text-amber-400">KAZOO</p><p class="text-xs text-gray-400">18 pts</p></div>
       </div>
+    </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Musical terms for Scrabble. FORTE, PIANO, TEMPO, JAZZ and scoring with music vocabulary.</p>
+    <div class="overflow-x-auto not-prose my-6">
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Category</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Dictionary</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">JAZZ</td><td class="px-4 py-3">29</td><td class="px-4 py-3">Genre</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">JAZZY</td><td class="px-4 py-3">33</td><td class="px-4 py-3">Adjective</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">KAZOO</td><td class="px-4 py-3">18</td><td class="px-4 py-3">Instrument</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">WALTZ</td><td class="px-4 py-3">17</td><td class="px-4 py-3">Dance/Form</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">FUNKY</td><td class="px-4 py-3">15</td><td class="px-4 py-3">Genre adj.</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">JIVE</td><td class="px-4 py-3">14</td><td class="px-4 py-3">Genre/Dance</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono">HYMN</td><td class="px-4 py-3">12</td><td class="px-4 py-3">Song type</td><td class="px-4 py-3">Both</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono">POLKA</td><td class="px-4 py-3">11</td><td class="px-4 py-3">Dance/Form</td><td class="px-4 py-3">Both</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Words by Category: Instruments, Genres & Notation</h2>
+
+    <div class="not-prose my-6 grid grid-cols-1 gap-4">
+      <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+        <p class="text-blue-400 font-semibold text-sm mb-1">🎸 Instruments</p>
+        <p class="text-xs text-gray-400">LYRE, LUTE, OBOE, TUBA, FIFE, DRUM, GONG, HARP, VIOLA, CELLO, PIANO, ORGAN, BANJO, SITAR, TABOR, KAZOO, REBEC, SHAWM, CORNET, BUGLE</p>
       </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+        <p class="text-green-400 font-semibold text-sm mb-1">🎶 Genres & Styles</p>
+        <p class="text-xs text-gray-400">JAZZ, JIVE, FUNK, PUNK, ROCK, FOLK, SOUL, RAGA, OPERA, MOTET, FUGUE, WALTZ, POLKA, BLUES, SALSA, SAMBA, RUMBA, DISCO, METAL</p>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-purple-400 font-semibold text-sm mb-1">🎵 Notation & Dynamics</p>
+        <p class="text-xs text-gray-400">CLEF, REST, NOTE, FLAT, BASS, CODA, FORTE, PIANO, LARGO, TEMPO, STAVE, SEGNO, SHARP, TREBLE, CHORD, OCTAVE, QUAVER, MINIM</p>
+      </div>
+    </div>
+
+    <p>Italian tempo markings are particularly useful — opponents often challenge them assuming they're foreign words. ALLEGRO, ANDANTE, PRESTO, ADAGIO, and LARGO are all valid and rarely challenged successfully. VIVACE and RUBATO work in SOWPODS.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short Music Words for Tight Boards</h2>
+
+    <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">FA</span><span class="text-blue-400 text-xs">5 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">TI</span><span class="text-blue-400 text-xs">2 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">DO</span><span class="text-blue-400 text-xs">3 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">RE</span><span class="text-blue-400 text-xs">2 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">MI</span><span class="text-blue-400 text-xs">4 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">LA</span><span class="text-blue-400 text-xs">2 pts</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">SO</span><span class="text-blue-400 text-xs">2 pts</span>
+      </span>
+    </div>
+
+    <p>The solfège scale gives you seven valid two-letter words — DO, RE, MI, FA, SO, LA, TI. These are essential for tight board positions where only 2-3 letter plays fit. FA is especially useful because F is worth 4 points and it hooks easily (FAD, FAN, FAT, FAX, FAY).</p>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+      <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Three-Letter Music Gems</p>
+      <p class="text-base text-gray-200">OCA (5), HUM (8), <span class="text-white font-medium">JAM (12)</span>, <span class="text-white font-medium">JIG (11)</span>, RAP (5), <span class="text-white font-medium">SKA (7)</span>, DUB (6), OOH (6), BOP (7), HIP (8)</p>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy: Using Music Words Effectively</h2>
+
+    <div class="not-prose my-6 grid grid-cols-1 gap-4">
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Bluff-proof plays:</span> Italian terms (ALLEGRO, FORTE, LARGO) are rarely challenged — opponents assume they're foreign and invalid, but they're not.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">High-value dumping:</span> KAZOO, BANJO, and JIVE all use high-value tiles efficiently while clearing difficult letters from your rack.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Vowel-less option:</span> HYMN has no vowel — great for consonant-heavy racks when you need to play without vowels.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Awkward tile combo:</span> WALTZ uses W and Z together — clears two of the trickiest tiles in a single play.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Vowel dump:</span> FUGUE is one of few words with two U's — helps offload excess vowels while scoring reasonably.</p>
+      </div>
+    </div>
+
+    <p>Music words often contain uncommon letter pairings that open hook opportunities. LYRE hooks to LYRES and LYRIC. CHORD extends to CHORDS. FORTE becomes FORTES. Learning the extensions multiplies their value.</p>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+      <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+      <div class="grid gap-2">
+        <a href="/blog/medical-terms-valid-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Medical Terms Valid in Scrabble — another specialist vocabulary goldmine</span>
+        </a>
+        <a href="/blog/foreign-words-valid-in-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Foreign Words Valid in Scrabble — borrowed terms that are legal plays</span>
+        </a>
+      </div>
+    </div>
+
+    <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+      <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+      <div class="grid gap-3">
+        <a href="/blog/longest-common-scrabble-words/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Longest Common Scrabble Words</span>
+        </a>
+        <a href="/blog/best-j-words-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Best J Words for Scrabble</span>
+        </a>
+        <a href="/blog/words-containing-ph/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing PH</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">
+          🔗 Find every valid word from your rack — instantly, no signup
+        </p>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">
+          Open Word Finder →
+        </a>
+      </div>
+    </div>
+
+    <div class="not-prose mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+    </div>
+
+  </article>
+</div>
+
+</Layout>

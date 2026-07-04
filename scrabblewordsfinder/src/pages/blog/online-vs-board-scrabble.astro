@@ -1,55 +1,211 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Online vs Board Scrabble — Key Differences"
-  description="How online Scrabble differs from in-person play. Timer differences, interface effects, and skill transfer."
-  keywords="scrabble, online, vs, board, scrabble"
+<Layout
+  title="Online vs Board Scrabble — Comparing Digital and Physical Play"
+  description="Compare online and physical Scrabble. Discover pros and cons of each format, how skills transfer, platform options, and digital etiquette. Free guide."
+  keywords="online scrabble vs board, digital scrabble, scrabble apps comparison, physical scrabble, online scrabble platforms, scrabble format differences"
 >
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Online vs Board Scrabble — Key Differences",
-    "description": "How online Scrabble differs from in-person play. Timer differences, interface effects, and skill transfer.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/online-vs-board-scrabble" }
-  })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/tournament/" class="hover:text-blue-400 transition-colors text-gray-300">Tournament</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Online vs Board Scrabble — Comparing Digital and Physical Play",
+  "description": "Compare online and physical Scrabble. Discover pros and cons of each format, how skills transfer, platform options, and digital etiquette.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/online-vs-board-scrabble/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Online vs Board Scrabble — Key Differences</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is online Scrabble easier than board Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Not necessarily. Online Scrabble removes physical distractions but adds its own challenges: you cannot read opponents' body language, the pace is different, and some platforms allow untimed play which changes strategy significantly." }},
+    { "@type": "Question", "name": "Do online Scrabble skills transfer to board play?", "acceptedAnswer": { "@type": "Answer", "text": "Core skills like anagramming, vocabulary knowledge, and strategic thinking transfer well. However, board skills like tile tracking by watching the bag, reading opponent hesitation, and managing a physical clock need separate practice." }},
+    { "@type": "Question", "name": "What is the best platform for competitive online Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "For competitive players, Woogles.io offers rated games with SOWPODS and TWL dictionaries, timed play, and tournament features. Internet Scrabble Club (ISC) has a long history. For casual play, Words With Friends has the largest player base." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+<div class="max-w-3xl mx-auto px-4">
+  <article class="prose dark:prose-invert prose-gray max-w-none">
+
+    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+      <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+      <span class="mx-1">›</span>
+      <span class="text-gray-600 dark:text-gray-300">Beginner Guides</span>
+    </nav>
+
+    <BlogCrossLinks title="Online vs Board Scrabble" />
+
+    <h1 class="text-3xl font-bold mb-2">Online vs Board Scrabble — Comparing Digital and Physical Play</h1>
+
+    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+      <time datetime="2026-06-15">June 15, 2026</time>
+      <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+      <span>7 min read</span>
+    </div>
+
+    <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Whether you play on a wooden board with family or compete online against strangers worldwide, Scrabble is the same game at its core. But the format changes the experience in meaningful ways — from timing and etiquette to available tools and social dynamics. Here's an honest comparison to help you get the most from both.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Pros & Cons: Side by Side</h2>
+
+    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+        <p class="text-green-400 font-semibold text-sm mb-1">🖥️ Online Scrabble — Pros</p>
+        <p class="text-xs text-gray-400">Play anytime, anywhere, any opponent · Auto-scoring eliminates errors · Instant word validation (no disputes) · Rated games track progress · Post-game analysis built in</p>
       </div>
-
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How online Scrabble differs from in-person play. Timer differences, interface effects, and skill transfer.</p>
-
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
+      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+        <p class="text-red-400 font-semibold text-sm mb-1">🖥️ Online Scrabble — Cons</p>
+        <p class="text-xs text-gray-400">No physical social interaction · Screen fatigue in long sessions · Temptation to use external tools · Less tactile satisfaction · Can feel impersonal</p>
       </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+        <p class="text-green-400 font-semibold text-sm mb-1">🎲 Board Scrabble — Pros</p>
+        <p class="text-xs text-gray-400">Face-to-face social bonding · Tactile tile placement · Read opponent body language · No screen time required · Full physical tile tracking</p>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+        <p class="text-red-400 font-semibold text-sm mb-1">🎲 Board Scrabble — Cons</p>
+        <p class="text-xs text-gray-400">Need a willing opponent nearby · Manual scoring causes errors · Challenge disputes need dictionary · Setup and cleanup time · Limited to local players</p>
+      </div>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Key Differences in Rules & Timing</h2>
+
+    <div class="overflow-x-auto not-prose my-6">
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Aspect</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Online</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Board (Tournament)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Time control</td><td class="px-4 py-3">Varies: untimed, 15min, 25min</td><td class="px-4 py-3">25 min per player (standard)</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">Word validation</td><td class="px-4 py-3">Instant — invalid plays rejected</td><td class="px-4 py-3">Challenge system — risk a turn</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Scoring</td><td class="px-4 py-3">Automatic</td><td class="px-4 py-3">Manual (both verify)</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">Tile tracking</td><td class="px-4 py-3">Some show remaining tiles</td><td class="px-4 py-3">Track manually from bag</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Dictionary</td><td class="px-4 py-3">Platform decides</td><td class="px-4 py-3">Set by organiser</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">Blanks</td><td class="px-4 py-3">Designate immediately</td><td class="px-4 py-3">Placed then declared</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+      <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 The Challenge Difference</p>
+      <p class="text-base text-gray-200">Online, invalid words are simply <span class="text-white font-medium">rejected with no penalty</span> — encouraging exploratory plays. On the board, challenges carry risk: if you challenge a valid word, <span class="text-white font-medium">you lose your turn</span>. This makes board Scrabble more psychologically complex.</p>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Platform Options for Online Play</h2>
+
+    <div class="not-prose my-6 grid grid-cols-1 gap-4">
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-purple-400 font-semibold text-sm mb-1">🏆 Competitive</p>
+        <p class="text-xs text-gray-400">Woogles.io — rated, timed, SOWPODS/TWL · ISC — classic, established community · NASPA Live — official tournament events online</p>
+      </div>
+      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <p class="text-amber-400 font-semibold text-sm mb-1">🎮 Casual</p>
+        <p class="text-xs text-gray-400">Words With Friends — largest player base · Scrabble GO — official app · Wordfeud — cross-platform, multiple languages</p>
+      </div>
+      <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+        <p class="text-cyan-400 font-semibold text-sm mb-1">🧠 Practice & Study</p>
+        <p class="text-xs text-gray-400">Quackle — strong AI opponent for analysis · Zyzzyva — word study and quiz tool · Our Solver — instant rack analysis and scoring</p>
+      </div>
+    </div>
+
+    <p>For serious improvement, use competitive platforms with timed games. Untimed casual games develop vocabulary but not the time-pressure decision making that board tournaments demand. Mix both for well-rounded development.</p>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+      <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+      <div class="grid gap-2">
+        <a href="/blog/scrabble-vs-words-with-friends/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble vs Words With Friends — key rule and scoring differences</span>
+        </a>
+        <a href="/blog/scrabble-dictionary-apps/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Dictionary Apps — best tools for word study</span>
+        </a>
+      </div>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Skills That Transfer Between Formats</h2>
+
+    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+        <p class="text-green-400 font-semibold text-sm mb-1">✓ Transfers Well</p>
+        <p class="text-xs text-gray-400">Vocabulary and word knowledge · Anagramming ability · Board vision and pattern recognition · Rack leave evaluation · Strategic tile placement · Hook word awareness</p>
+      </div>
+      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+        <p class="text-red-400 font-semibold text-sm mb-1">✗ Needs Separate Practice</p>
+        <p class="text-xs text-gray-400">Physical clock management · Tile tracking from the bag · Reading opponent behaviour · Challenge decisions (risk/reward) · Manual score verification · Tournament stamina</p>
+      </div>
+    </div>
+
+    <p>The good news is that the most important skills — vocabulary depth and strategic thinking — transfer perfectly between formats. The format-specific skills (clock handling, reading body language) can be developed in parallel once you have the core word knowledge.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Online Etiquette & Fair Play</h2>
+
+    <div class="not-prose my-6 grid grid-cols-1 gap-4">
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">No external tools:</span> Don't use word finders or solvers during rated games — it's universally considered poor sportsmanship.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Resign gracefully:</span> If you're losing badly, resign rather than abandoning the game mid-play and wasting your opponent's time.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Exploratory plays are fine:</span> The absence of challenge penalties online means trying speculative words is accepted etiquette, not cheating.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Don't stall:</span> Running down the clock to frustrate opponents is unsportsmanlike. Play at a reasonable pace or resign.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Report cheaters:</span> Use the platform's reporting system for genuine cheaters rather than accusing in chat.</p>
+      </div>
+    </div>
+
+    <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+      <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+      <div class="grid gap-3">
+        <a href="/blog/how-to-improve-at-scrabble-fast/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">How to Improve at Scrabble Fast</span>
+        </a>
+        <a href="/blog/preparing-for-first-tournament/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Preparing for Your First Tournament</span>
+        </a>
+        <a href="/blog/scrabble-variants-and-house-rules/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Variants and House Rules</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">
+          🔗 Practice your word skills — instant results, no signup needed
+        </p>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">
+          Open Word Finder →
+        </a>
+      </div>
+    </div>
+
+    <div class="not-prose mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+    </div>
+
+  </article>
+</div>
+
+</Layout>

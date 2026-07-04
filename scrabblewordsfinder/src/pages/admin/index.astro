@@ -576,13 +576,18 @@ import '../../styles/global.css';
       document.getElementById('badges-a-earners')!.textContent = String(d.stats.usersWithBadge);
     }).catch(() => {});
 
-    // Users stats
+    // Users stats + Avatars multi-visit
     fetch('/api/users/').then(r => r.json()).then(d => {
       document.getElementById('users-a-total')!.textContent = String(d.summary.totalUsers);
       document.getElementById('users-a-clicks')!.textContent = String(d.summary.totalClicks);
       document.getElementById('users-a-games')!.textContent = String(d.summary.totalGamesPlayed);
       document.getElementById('users-a-solver')!.textContent = String(d.summary.totalSolverUses);
       document.getElementById('users-a-returning')!.textContent = String(d.summary.totalReturning);
+      document.getElementById('avatars-a-returning')!.textContent = String(d.summary.totalReturning);
+    }).catch(() => {});
+    // Avatars total users (from admin API)
+    fetch('/api/users/admin/?limit=1&offset=0').then(r => r.json()).then(d => {
+      document.getElementById('avatars-a-total')!.textContent = String(d.total);
     }).catch(() => {});
 
     // Telemetry quick check (inline, same as /admin/telemetry page)

@@ -1,55 +1,154 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words With W Not Followed by Vowel"
-  description="Unusual W words for Scrabble. CWM, TWP and other W-consonant combinations."
-  keywords="scrabble, words, with, w, not, followed, by, vowel"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words With W Not Followed by Vowel",
-    "description": "Unusual W words for Scrabble. CWM, TWP and other W-consonant combinations.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-with-w-not-followed-by-vowel" }
-  })} />
+<Layout title="Words With W Not Followed By Vowel — Unusual Scrabble Patterns | ScrabbleWordsFinder.com" description="Discover valid Scrabble words where W isn't followed by a vowel. WR words, W-ending words, and rare consonant clusters that surprise opponents." keywords="w not followed by vowel, wr words scrabble, w consonant cluster, unusual w words, w ending words scrabble, wry scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words With W Not Followed By Vowel — Unusual Scrabble Patterns",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words With W Not Followed by Vowel</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Can W appear without a vowel after it in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! W can appear before R (WRIST, WRITE, WRY), at the end of words (BOW, COW, DEW), or in rare patterns like CWM (a geographic term). These words are all valid in both SOWPODS and TWL." }},
+    { "@type": "Question", "name": "What is CWM in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "CWM (10 pts) is a valid Scrabble word meaning a valley-shaped bowl on a mountainside, from Welsh. It contains W with no adjacent vowel and is one of the few English words with no vowel at all (Y not needed)." }},
+    { "@type": "Question", "name": "What WR words score highest in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "WRACK (14 pts), WRECK (14 pts), and WRATH (11 pts) top the WR scoring list. The silent W adds 4 points to each word while the R carries the pronunciation. WRY (9 pts) is the shortest high-scorer." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Unusual W words for Scrabble. CWM, TWP and other W-consonant combinations.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/word-lists/" class="hover:text-amber-500 transition-colors">Word Lists</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">W Not Followed By Vowel</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words With W Not Followed By Vowel — Unusual Scrabble Patterns</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Most players assume W always needs a vowel after it — WA, WE, WI, WO. But Scrabble rewards knowing exceptions. WR words (WRACK, WRING, WRY), W-ending words (BOW, DEW, JAW), and the exotic CWM break this "rule" and give you plays opponents don't expect.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">W + Consonant Patterns</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+    <p class="text-cyan-400 font-semibold text-sm mb-2">WR- (W before R)</p>
+    <p class="text-xs text-gray-400">WRACK (14), WRATH (11), WRECK (14), WREN (7), WRING (9), WRIST (8), WRITE (8), WRONG (9), WRY (9)</p>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">-W Endings (W at end)</p>
+    <p class="text-xs text-gray-400">BOW (8), COW (8), DEW (7), JAW (13), MEW (8), NEW (6), OW (5), RAW (6), SAW (6), VOW (9), YEW (9)</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">-WN Endings</p>
+    <p class="text-xs text-gray-400">BROWN (10), CLOWN (10), CROWN (10), DOWN (8), FROWN (11), GOWN (8), GROWN (9), SHOWN (11), TOWN (7)</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">Exotic: CWM</p>
+    <p class="text-xs text-gray-400">CWM (10 pts) — a cirque or valley bowl. No vowel at all! One of Scrabble's rarest valid patterns from Welsh.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scorers (W Without Following Vowel)</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Pattern</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WRACK</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">WR-</td><td class="px-4 py-3">W(4)+R+A+C(3)+K(5)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WRECK</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">WR-</td><td class="px-4 py-3">W(4)+R+E+C(3)+K(5)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">JAW</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">-W</td><td class="px-4 py-3">J(8)+A+W(4)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">FROWN</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">-WN</td><td class="px-4 py-3">F(4)+R+O+W(4)+N</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">CWM</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">No vowel</td><td class="px-4 py-3">C(3)+W(4)+M(3) — zero vowels!</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">CROWN</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">-WN</td><td class="px-4 py-3">C(3)+R+O+W(4)+N</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WRY</td><td class="px-4 py-3 text-amber-600 font-bold">9</td><td class="px-4 py-3">WR-</td><td class="px-4 py-3">W(4)+R+Y(4) — no vowel!</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">CWM is the ultimate surprise:</span> At 10 points with no vowel and only 3 tiles, CWM is perfect for tight boards where vowel access is limited. Most opponents will challenge it — and lose their turn.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">W-ending words for parallel plays:</span> -OW, -AW, -EW endings let you place W at the end of a row, creating multiple crosswords. BOW parallel to an existing word can score 15+ points easily.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">WRY needs no vowels at all:</span> W(4)+R(1)+Y(4) = 9 points using zero traditional vowels. Combined with CWM, these are your lifelines when vowels run dry.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-words-with-w/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Words With W — full W tile strategy</span>
+    </a>
+    <a href="/blog/words-containing-wr/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing WR — complete WR word list</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-words-with-w/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With W</span>
+    </a>
+    <a href="/blog/words-with-silent-letters/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words With Silent Letters</span>
+    </a>
+    <a href="/blog/words-with-no-vowels-except-y/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words With No Vowels Except Y</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles — find unusual W patterns instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

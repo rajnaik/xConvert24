@@ -17,7 +17,8 @@ export const GET: APIRoute = async ({ url }) => {
   const db = (env as any).DB;
   if (!db) return json({ error: 'DB not configured' }, 500);
 
-  const limit = Math.min(parseInt(url.searchParams.get('limit') || '100'), 500);
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 10000);
+  const offset = parseInt(url.searchParams.get('offset') || '0');
   const set = url.searchParams.get('set');
   const sent = url.searchParams.get('sent');
   const id = url.searchParams.get('id');
@@ -48,19 +49,27 @@ export const GET: APIRoute = async ({ url }) => {
     query += where;
     countQuery += where;
   }
-  query += ' ORDER BY id ASC LIMIT ?';
+  query += ' ORDER BY id ASC LIMIT ? OFFSET ?';
 
   try {
     const stmts = [
-      db.prepare(query).bind(...params, limit),
+      db.prepare(query).bind(...params, limit, offset),
       db.prepare(countQuery).bind(...params),
     ];
     const [dataResult, countResult] = await db.batch(stmts);
     const results = dataResult.results || [];
     const total = countResult.results?.[0]?.total || 0;
-    const sentCount = results.filter((r: any) => r.sent === 1).length;
 
-    return json({ leads: results, total, sent_count: sentCount });
+    // Get global sent count (across all records, ignoring filters)
+    const globalStats = await db.prepare("SELECT COUNT(*) as total, SUM(sent) as sent_count FROM campaign_leads").first();
+    const globalTotal = globalStats?.total || 0;
+    const globalSent = globalStats?.sent_count || 0;
+
+    // Get all distinct batch names with stats for the filter dropdown
+    const batchResult = await db.prepare("SELECT batch, COUNT(*) as total, SUM(sent) as sent_count FROM campaign_leads WHERE batch != '' GROUP BY batch ORDER BY CAST(SUBSTR(batch, 6) AS INTEGER)").all();
+    const batches = (batchResult.results || []).map((r: any) => ({ name: r.batch, total: r.total, sent: r.sent_count }));
+
+    return json({ leads: results, total, sent_count: globalSent, global_total: globalTotal, limit, offset, batches });
   } catch (e: any) {
     return json({ error: e.message }, 500);
   }
@@ -92,6 +101,16 @@ export const PUT: APIRoute = async ({ request }) => {
 
   try {
     const body = await request.json();
+
+    // Bulk batch update: { batch_update: true, batch: 'Batch1', sent: 1 }
+    if (body.batch_update && body.batch) {
+      const sent = body.sent ? 1 : 0;
+      const sentAt = sent ? new Date().toISOString().split('T')[0] : null;
+      await db.prepare('UPDATE campaign_leads SET sent = ?, sent_at = ? WHERE batch = ?')
+        .bind(sent, sentAt, body.batch).run();
+      return json({ success: true, batch: body.batch, sent });
+    }
+
     const { id, ...fields } = body;
     if (!id) return json({ error: 'id is required' }, 400);
 

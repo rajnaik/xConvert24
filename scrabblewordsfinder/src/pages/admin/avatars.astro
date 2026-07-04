@@ -57,12 +57,12 @@ import '../../styles/global.css';
         <thead>
           <tr class="border-b border-gray-800 text-left">
             <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Avatar</th>
-            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Display Name</th>
-            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">User ID</th>
-            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Location</th>
+            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase cursor-pointer hover:text-teal-400 transition-colors select-none" data-sort="display_name">Display Name <span class="sort-arrow"></span></th>
+            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase cursor-pointer hover:text-teal-400 transition-colors select-none" data-sort="user_id">User ID <span class="sort-arrow"></span></th>
+            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase cursor-pointer hover:text-teal-400 transition-colors select-none" data-sort="location">Location <span class="sort-arrow"></span></th>
             <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Device</th>
-            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Visits</th>
-            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Last Seen</th>
+            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase cursor-pointer hover:text-teal-400 transition-colors select-none" data-sort="visit_count">Visits <span class="sort-arrow"></span></th>
+            <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase cursor-pointer hover:text-teal-400 transition-colors select-none" data-sort="last_seen">Last Seen <span class="sort-arrow"></span></th>
             <th class="px-4 py-3 text-xs font-medium text-gray-400 uppercase">Actions</th>
           </tr>
         </thead>
@@ -172,6 +172,47 @@ import '../../styles/global.css';
     </div>
   </div>
 
+  <!-- Visit Details Modal -->
+  <div id="visit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div class="w-full max-w-xl mx-4 rounded-2xl border border-purple-700/50 bg-gray-900 p-6 shadow-2xl max-h-[80vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">👥</span>
+          <div>
+            <h2 class="text-lg font-bold text-white" id="visit-modal-name">—</h2>
+            <p class="text-xs text-gray-400" id="visit-modal-uid">—</p>
+          </div>
+        </div>
+        <button id="visit-modal-close" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
+      <!-- Visit Summary -->
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="rounded-lg bg-purple-950/20 border border-purple-500/30 p-3 text-center">
+          <p class="text-lg font-bold text-purple-400" id="visit-total-count">—</p>
+          <p class="text-[10px] text-gray-400">Total Visits</p>
+        </div>
+        <div class="rounded-lg bg-blue-950/20 border border-blue-500/30 p-3 text-center">
+          <p class="text-lg font-bold text-blue-400" id="visit-active-days">—</p>
+          <p class="text-[10px] text-gray-400">Active Days</p>
+        </div>
+        <div class="rounded-lg bg-teal-950/20 border border-teal-500/30 p-3 text-center">
+          <p class="text-lg font-bold text-teal-400" id="visit-first-seen">—</p>
+          <p class="text-[10px] text-gray-400">First Seen</p>
+        </div>
+      </div>
+      <!-- Visit Timeline -->
+      <div class="rounded-xl border border-gray-700 bg-gray-800/40 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wider mb-3">Visit Timeline (by day)</p>
+        <div id="visit-timeline" class="space-y-2 max-h-60 overflow-y-auto">
+          <p class="text-xs text-gray-500">Loading...</p>
+        </div>
+      </div>
+      <div class="mt-4 text-right">
+        <button id="visit-modal-done" class="px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-gray-400 hover:text-white transition-colors">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="fixed bottom-6 right-6 z-50 hidden rounded-xl border border-gray-700 bg-gray-900 px-5 py-3 shadow-2xl">
     <p id="toast-msg" class="text-sm text-white"></p>
@@ -212,6 +253,8 @@ import '../../styles/global.css';
     var totalUsers = 0;
     var searchQuery = '';
     var debounceTimer = null;
+    var currentSort = { field: null, dir: 'asc' };
+    var cachedUsers = [];
 
     function showToast(msg, type) {
       var toast = document.getElementById('toast');
@@ -261,6 +304,7 @@ import '../../styles/global.css';
 
         totalUsers = data.total;
         var users = data.users || [];
+        cachedUsers = users;
 
         // Stats
         document.getElementById('stat-total').textContent = totalUsers;
@@ -307,40 +351,16 @@ import '../../styles/global.css';
 
         // Table
         var tbody = document.getElementById('users-tbody');
-        if (users.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No users found.</td></tr>';
+        if (currentSort.field) {
+          sortUsers(currentSort.field);
         } else {
-          tbody.innerHTML = users.map(function(u) {
-            var loc = [u.city, u.country].filter(Boolean).join(', ') || '—';
-            var device = [u.browser, u.os, u.device_type].filter(Boolean).join(' / ') || '—';
-            return '<tr class="border-b border-gray-800/50 hover:bg-gray-800/30 cursor-pointer transition-colors" data-user=\'' + JSON.stringify(u).replace(/'/g, '&#39;') + '\'>' +
-              '<td class="px-4 py-3"><img src="/avatars/avatar-' + (u.avatar_id || 1) + '.svg" class="h-9 w-9 rounded-full border border-gray-700" alt="Avatar ' + u.avatar_id + '" /></td>' +
-              '<td class="px-4 py-3 font-medium text-white">' + (u.display_name || '—') + '</td>' +
-              '<td class="px-4 py-3 font-mono text-xs text-gray-500">' + (u.user_id || '').slice(0, 12) + '...</td>' +
-              '<td class="px-4 py-3 text-gray-400 text-xs">' + loc + '</td>' +
-              '<td class="px-4 py-3 text-gray-400 text-xs">' + device + '</td>' +
-              '<td class="px-4 py-3 text-gray-300">' + (u.visit_count || 1) + '</td>' +
-              '<td class="px-4 py-3 text-gray-400 text-xs">' + formatDate(u.last_seen) + '</td>' +
-              '<td class="px-4 py-3"><button class="edit-btn px-2 py-1 rounded bg-teal-600/20 border border-teal-600/40 text-xs text-teal-300 hover:bg-teal-600/40">Edit</button> <button class="view-btn px-2 py-1 rounded bg-blue-600/20 border border-blue-600/40 text-xs text-blue-300 hover:bg-blue-600/40">View</button></td>' +
-            '</tr>';
-          }).join('');
+          renderTable(users);
         }
 
         // Pagination
         document.getElementById('pagination-info').textContent = 'Showing ' + (currentOffset + 1) + '-' + Math.min(currentOffset + PAGE_SIZE, totalUsers) + ' of ' + totalUsers;
         document.getElementById('prev-btn').disabled = currentOffset === 0;
         document.getElementById('next-btn').disabled = currentOffset + PAGE_SIZE >= totalUsers;
-
-        // Row click handlers
-        tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
-          row.addEventListener('click', function(e) {
-            if (e.target.closest('.edit-btn')) {
-              openEditModal(JSON.parse(this.dataset.user));
-            } else if (e.target.closest('.view-btn')) {
-              openViewModal(JSON.parse(this.dataset.user));
-            }
-          });
-        });
       } catch (err) {
         document.getElementById('users-tbody').innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-red-400">Error loading users: ' + err.message + '</td></tr>';
       }
@@ -456,6 +476,65 @@ import '../../styles/global.css';
       }
     }
 
+    async function showVisitDetails(user) {
+      var modal = document.getElementById('visit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.getElementById('visit-modal-name').textContent = user.display_name || '—';
+      document.getElementById('visit-modal-uid').textContent = user.user_id;
+      document.getElementById('visit-total-count').textContent = user.visit_count || '—';
+      document.getElementById('visit-first-seen').textContent = user.created_at ? user.created_at.slice(0, 10) : '—';
+      document.getElementById('visit-timeline').innerHTML = '<p class="text-xs text-gray-500">Loading click history...</p>';
+      document.getElementById('visit-active-days').textContent = '—';
+
+      try {
+        var res = await fetch('/api/clicks/?user_id=' + encodeURIComponent(user.user_id) + '&limit=500');
+        if (!res.ok) throw new Error('Failed to load clicks');
+        var data = await res.json();
+        var clicks = data.clicks || [];
+
+        if (clicks.length === 0) {
+          document.getElementById('visit-timeline').innerHTML = '<p class="text-xs text-gray-500 italic">No click history found for this user.</p>';
+          document.getElementById('visit-active-days').textContent = '0';
+          return;
+        }
+
+        // Group by day
+        var dayMap = {};
+        clicks.forEach(function(c) {
+          var day = (c.created_at || '').slice(0, 10);
+          if (!day) return;
+          if (!dayMap[day]) dayMap[day] = { count: 0, pages: new Set(), elements: new Set() };
+          dayMap[day].count++;
+          if (c.url) dayMap[day].pages.add(c.url);
+          if (c.ui_element) dayMap[day].elements.add(c.ui_element);
+        });
+
+        var days = Object.keys(dayMap).sort().reverse();
+        document.getElementById('visit-active-days').textContent = days.length;
+
+        document.getElementById('visit-timeline').innerHTML = days.map(function(day) {
+          var d = dayMap[day];
+          var pageList = Array.from(d.pages).slice(0, 5).join(', ');
+          return '<div class="flex items-start gap-3 p-2 rounded-lg bg-gray-900/60 border border-gray-700/40">' +
+            '<div class="shrink-0 w-2 h-2 rounded-full bg-purple-400 mt-1.5"></div>' +
+            '<div class="min-w-0 flex-1">' +
+              '<p class="text-xs font-medium text-white">' + day + '</p>' +
+              '<p class="text-[10px] text-gray-400">' + d.count + ' clicks · ' + d.pages.size + ' pages</p>' +
+              (pageList ? '<p class="text-[10px] text-gray-500 truncate">' + pageList + '</p>' : '') +
+            '</div>' +
+          '</div>';
+        }).join('');
+      } catch (err) {
+        document.getElementById('visit-timeline').innerHTML = '<p class="text-xs text-red-400">Error: ' + err.message + '</p>';
+      }
+    }
+
+    function closeVisitModal() {
+      document.getElementById('visit-modal').classList.add('hidden');
+      document.getElementById('visit-modal').classList.remove('flex');
+    }
+
     // Event Listeners
     document.getElementById('modal-close').addEventListener('click', closeModal);
     document.getElementById('modal-cancel').addEventListener('click', closeModal);
@@ -468,6 +547,13 @@ import '../../styles/global.css';
     document.getElementById('view-modal-done').addEventListener('click', closeViewModal);
     document.getElementById('view-modal').addEventListener('click', function(e) {
       if (e.target === this) closeViewModal();
+    });
+
+    // Visit Details Modal listeners
+    document.getElementById('visit-modal-close').addEventListener('click', closeVisitModal);
+    document.getElementById('visit-modal-done').addEventListener('click', closeVisitModal);
+    document.getElementById('visit-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeVisitModal();
     });
 
     // Avatar Usage toggle
@@ -597,6 +683,101 @@ import '../../styles/global.css';
         document.getElementById('modal-avatar-img').src = '/avatars/avatar-' + id + '.svg';
         renderAvatarGrid(id);
       }
+    });
+
+    function sortUsers(field) {
+      if (currentSort.field === field) {
+        currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSort.field = field;
+        currentSort.dir = 'asc';
+      }
+      var sorted = cachedUsers.slice().sort(function(a, b) {
+        var valA, valB;
+        if (field === 'location') {
+          valA = [a.city, a.country].filter(Boolean).join(', ').toLowerCase();
+          valB = [b.city, b.country].filter(Boolean).join(', ').toLowerCase();
+        } else if (field === 'visit_count') {
+          valA = a.visit_count || 1;
+          valB = b.visit_count || 1;
+        } else if (field === 'last_seen') {
+          valA = a.last_seen || '';
+          valB = b.last_seen || '';
+        } else {
+          valA = (a[field] || '').toString().toLowerCase();
+          valB = (b[field] || '').toString().toLowerCase();
+        }
+        if (field === 'visit_count') {
+          return currentSort.dir === 'asc' ? valA - valB : valB - valA;
+        }
+        if (valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
+        if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
+        return 0;
+      });
+      renderTable(sorted);
+      updateSortArrows();
+    }
+
+    function updateSortArrows() {
+      document.querySelectorAll('th[data-sort] .sort-arrow').forEach(function(arrow) {
+        var th = arrow.closest('th');
+        if (th.dataset.sort === currentSort.field) {
+          arrow.textContent = currentSort.dir === 'asc' ? ' ▲' : ' ▼';
+          th.classList.add('text-teal-400');
+          th.classList.remove('text-gray-400');
+        } else {
+          arrow.textContent = '';
+          th.classList.remove('text-teal-400');
+          th.classList.add('text-gray-400');
+        }
+      });
+    }
+
+    function renderTable(users) {
+      var tbody = document.getElementById('users-tbody');
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No users found.</td></tr>';
+      } else {
+        tbody.innerHTML = users.map(function(u) {
+          var loc = [u.city, u.country].filter(Boolean).join(', ') || '—';
+          var device = [u.browser, u.os, u.device_type].filter(Boolean).join(' / ') || '—';
+          var multiIcon = u.visit_count > 1 ? '<button class="multi-visit-btn mr-1 text-purple-400 hover:text-purple-300 transition-colors" title="Multi-visit user — click for details">👥</button>' : '';
+          return '<tr class="border-b border-gray-800/50 hover:bg-gray-800/30 cursor-pointer transition-colors" data-user=\'' + JSON.stringify(u).replace(/'/g, '&#39;') + '\'>' +
+            '<td class="px-4 py-3"><img src="/avatars/avatar-' + (u.avatar_id || 1) + '.svg" class="h-9 w-9 rounded-full border border-gray-700" alt="Avatar ' + u.avatar_id + '" /></td>' +
+            '<td class="px-4 py-3 font-medium text-white">' + multiIcon + (u.display_name || '—') + '</td>' +
+            '<td class="px-4 py-3 font-mono text-xs text-gray-500"><span class="select-all">' + (u.user_id || '').slice(0, 12) + '...</span><button class="copy-uid-btn ml-1 text-gray-500 hover:text-teal-400 transition-colors" title="Copy full User ID" data-uid="' + (u.user_id || '') + '">📋</button></td>' +
+            '<td class="px-4 py-3 text-gray-400 text-xs">' + loc + '</td>' +
+            '<td class="px-4 py-3 text-gray-400 text-xs">' + device + '</td>' +
+            '<td class="px-4 py-3 text-gray-300">' + (u.visit_count || 1) + '</td>' +
+            '<td class="px-4 py-3 text-gray-400 text-xs">' + formatDate(u.last_seen) + '</td>' +
+            '<td class="px-4 py-3"><button class="edit-btn px-2 py-1 rounded bg-teal-600/20 border border-teal-600/40 text-xs text-teal-300 hover:bg-teal-600/40">Edit</button> <button class="view-btn px-2 py-1 rounded bg-blue-600/20 border border-blue-600/40 text-xs text-blue-300 hover:bg-blue-600/40">View</button></td>' +
+          '</tr>';
+        }).join('');
+      }
+      // Row click handlers
+      tbody.querySelectorAll('tr[data-user]').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+          if (e.target.closest('.copy-uid-btn')) {
+            var uid = e.target.closest('.copy-uid-btn').dataset.uid;
+            navigator.clipboard.writeText(uid).then(function() {
+              showToast('Copied: ' + uid, 'success');
+            });
+          } else if (e.target.closest('.edit-btn')) {
+            openEditModal(JSON.parse(this.dataset.user));
+          } else if (e.target.closest('.view-btn')) {
+            openViewModal(JSON.parse(this.dataset.user));
+          } else if (e.target.closest('.multi-visit-btn')) {
+            showVisitDetails(JSON.parse(this.dataset.user));
+          }
+        });
+      });
+    }
+
+    // Sort header click handlers
+    document.querySelectorAll('th[data-sort]').forEach(function(th) {
+      th.addEventListener('click', function() {
+        sortUsers(this.dataset.sort);
+      });
     });
 
     // Initial load

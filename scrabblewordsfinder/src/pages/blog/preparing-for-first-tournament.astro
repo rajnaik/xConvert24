@@ -1,55 +1,278 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Preparing for Your First Scrabble Tournament"
-  description="Everything you need to know before your first rated event. What to bring, what to expect, how to prepare mentally."
-  keywords="scrabble, preparing, for, first, tournament"
+<Layout
+  title="Preparing for Your First Scrabble Tournament — Complete Guide | ScrabbleWordsFinder"
+  description="Everything you need to know before your first competitive Scrabble tournament. What to bring, how to study, etiquette rules, round structure, and managing nerves."
+  keywords="first scrabble tournament, scrabble tournament preparation, competitive scrabble beginner, scrabble tournament tips, scrabble competition guide, tournament etiquette"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Preparing for Your First Scrabble Tournament",
-    "description": "Everything you need to know before your first rated event. What to bring, what to expect, how to prepare mentally.",
+    "headline": "Preparing for Your First Scrabble Tournament — Complete Guide",
+    "description": "Everything you need to know before your first competitive Scrabble tournament. What to bring, how to study, etiquette rules, and managing nerves.",
     "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/preparing-for-first-tournament" }
+    "publisher": {
+      "@type": "Organization",
+      "name": "ScrabbleWordsFinder.com",
+      "url": "https://www.scrabblewordsfinder.com/"
+    }
+  })} />
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What should I bring to my first Scrabble tournament?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Bring a chess clock (or digital timer), a pen and notepad for tile tracking, water and snacks, a comfortable cushion if games are long, and your positive attitude. Most tournaments provide boards, tiles, and score sheets."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How are Scrabble tournaments structured?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Most tournaments run 6-12 rounds over 1-2 days. You play a different opponent each round, matched by win record (Swiss-style pairing). Games are timed — typically 25 minutes per player. Your final ranking depends on wins, then spread (cumulative point difference)."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to memorise the entire dictionary before competing?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Focus on all two-letter words (107 in SOWPODS), common three-letter words, and high-value short words with Q, Z, X, and J. Knowing the twos alone gives you a significant edge over casual players entering their first event."
+        }
+      }
+    ]
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/tournament/" class="hover:text-blue-400 transition-colors text-gray-300">Tournament</a>
+  <div class="max-w-3xl mx-auto px-4 py-10">
+    <article class="prose dark:prose-invert max-w-none">
+      <nav class="text-sm text-zinc-500 mb-6" aria-label="Breadcrumb">
+        <a href="/blog/" class="hover:text-amber-600">Blog</a>
+        <span class="mx-1">/</span>
+        <a href="/blog/tournament/" class="hover:text-amber-600">Tournament</a>
+        <span class="mx-1">/</span>
+        <span class="text-zinc-800 dark:text-zinc-200">Preparing for First Tournament</span>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Preparing for Your First Scrabble Tournament</h1>
+      <BlogCrossLinks slug={slug} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+      <h1 class="text-3xl font-bold mb-2">Preparing for Your First Scrabble Tournament</h1>
+      <p class="text-sm text-zinc-500 mb-6">Published June 15, 2026</p>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Everything you need to know before your first rated event. What to bring, what to expect, how to prepare mentally.</p>
+      <p class="lead text-lg text-zinc-700 dark:text-zinc-300 mb-8">
+        Your first Scrabble tournament is equal parts thrilling and terrifying. The good news: everyone remembers being the new player, and the community is welcoming. The better news: with a few weeks of focused preparation, you can show up confident and competitive. Here's your complete guide.
+      </p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What to Bring — Your Tournament Kit</h2>
+
+      <p>Most venues provide boards and tile sets, but you're responsible for your own timing equipment and personal supplies. Here's the essential checklist:</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 my-6">
+        <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4">
+          <div class="font-semibold text-emerald-800 dark:text-emerald-200 mb-2">Essential Gear</div>
+          <ul class="text-sm text-zinc-700 dark:text-zinc-300 space-y-1">
+            <li>Chess clock or digital timer</li>
+            <li>Pen + spare pen</li>
+            <li>Tile tracking sheet (or notepad)</li>
+            <li>Score sheet (often provided)</li>
+            <li>Water bottle</li>
+          </ul>
+        </div>
+        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+          <div class="font-semibold text-blue-800 dark:text-blue-200 mb-2">Comfort & Logistics</div>
+          <ul class="text-sm text-zinc-700 dark:text-zinc-300 space-y-1">
+            <li>Snacks (energy bars, fruit)</li>
+            <li>Cushion for hard chairs</li>
+            <li>Light jacket (venues can be cold)</li>
+            <li>Phone charger</li>
+            <li>Cash for entry fee (if not prepaid)</li>
+          </ul>
         </div>
       </div>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <p>Leave at home: dictionaries (you can't reference them mid-game), electronic devices on the table, and any anxiety about being "not good enough." Everyone starts somewhere.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Study Priorities — What to Learn First</h2>
+
+      <p>You can't memorise 280,000 words in a week. Focus on high-impact areas that give you the biggest competitive edge per hour of study:</p>
+
+      <div class="overflow-x-auto my-6">
+        <table class="min-w-full text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg">
+          <thead class="bg-zinc-100 dark:bg-zinc-800">
+            <tr>
+              <th class="px-4 py-2 text-left">Priority</th>
+              <th class="px-4 py-2 text-left">Topic</th>
+              <th class="px-4 py-2 text-left">Word Count</th>
+              <th class="px-4 py-2 text-left">Study Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t border-zinc-200 dark:border-zinc-700">
+              <td class="px-4 py-2"><span class="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs font-medium">#1</span></td>
+              <td class="px-4 py-2">All two-letter words</td>
+              <td class="px-4 py-2">107 words</td>
+              <td class="px-4 py-2">3-5 days</td>
+            </tr>
+            <tr class="border-t border-zinc-200 dark:border-zinc-700">
+              <td class="px-4 py-2"><span class="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-xs font-medium">#2</span></td>
+              <td class="px-4 py-2">Q-without-U words</td>
+              <td class="px-4 py-2">~30 words</td>
+              <td class="px-4 py-2">1-2 days</td>
+            </tr>
+            <tr class="border-t border-zinc-200 dark:border-zinc-700">
+              <td class="px-4 py-2"><span class="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-xs font-medium">#3</span></td>
+              <td class="px-4 py-2">Common 3-letter words</td>
+              <td class="px-4 py-2">~200 key words</td>
+              <td class="px-4 py-2">1 week</td>
+            </tr>
+            <tr class="border-t border-zinc-200 dark:border-zinc-700">
+              <td class="px-4 py-2"><span class="inline-block px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs font-medium">#4</span></td>
+              <td class="px-4 py-2">SATIRE/RETINA bingo stems</td>
+              <td class="px-4 py-2">~100 bingos</td>
+              <td class="px-4 py-2">2 weeks</td>
+            </tr>
+            <tr class="border-t border-zinc-200 dark:border-zinc-700">
+              <td class="px-4 py-2"><span class="inline-block px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs font-medium">#5</span></td>
+              <td class="px-4 py-2">Hook words (front and back)</td>
+              <td class="px-4 py-2">Ongoing</td>
+              <td class="px-4 py-2">Ongoing</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Knowing all 107 two-letter words alone puts you ahead of most first-time tournament players. These tiny words are the backbone of parallel plays and tight board positions.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Etiquette Rules — What's Expected</h2>
+
+      <p>Tournament Scrabble has unwritten (and some written) rules that differ from kitchen-table games. Knowing these prevents awkward moments:</p>
+
+      <div class="space-y-3 my-6">
+        <div class="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+          <span class="text-lg">🤝</span>
+          <div>
+            <div class="font-medium text-zinc-800 dark:text-zinc-200">Greet your opponent</div>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">Shake hands, introduce yourself. Brief and friendly — no extended chat during play.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+          <span class="text-lg">⏱️</span>
+          <div>
+            <div class="font-medium text-zinc-800 dark:text-zinc-200">Hit the clock after every move</div>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">Place tiles, announce score, then press the clock. Forgetting the clock is the #1 newbie mistake.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+          <span class="text-lg">🚫</span>
+          <div>
+            <div class="font-medium text-zinc-800 dark:text-zinc-200">No talking during play</div>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">Save commentary for after the game. Don't discuss moves, react to draws, or narrate your thought process aloud.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+          <span class="text-lg">📋</span>
+          <div>
+            <div class="font-medium text-zinc-800 dark:text-zinc-200">Record every move</div>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">Write down the word played and score each turn. This resolves disputes and helps you review later.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+          <span class="text-lg">✅</span>
+          <div>
+            <div class="font-medium text-zinc-800 dark:text-zinc-200">Challenges are normal</div>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">Don't take it personally if your word is challenged. It's part of the game. Challenge theirs too when unsure.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What to Expect — Round Structure & Rating</h2>
+
+      <p>Tournament format varies by size, but here's the typical structure for a one-day club event:</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6">
+        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">6-8</div>
+          <div class="text-sm text-zinc-600 dark:text-zinc-400">Rounds per day</div>
+        </div>
+        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">50 min</div>
+          <div class="text-sm text-zinc-600 dark:text-zinc-400">Per game (25 min each)</div>
+        </div>
+        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">Swiss</div>
+          <div class="text-sm text-zinc-600 dark:text-zinc-400">Pairing system used</div>
+        </div>
+      </div>
+
+      <p>After round 1, winners play winners and losers play losers (Swiss pairing). This means you'll quickly face players at your level. Your initial rating is provisional — it takes 10-15 games to stabilise. Don't stress about your first rating; it's just a starting point.</p>
+
+      <p><strong>Spread matters:</strong> If two players have equal wins, the tiebreaker is cumulative spread (total of your scores minus opponents' scores across all games). This is why even in lost games, you should try to minimise the margin.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Managing Nerves — Mental Preparation</h2>
+
+      <p>Tournament nerves are real, even for experienced players. Here's how to channel that energy positively:</p>
+
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-5 my-6">
+        <h3 class="font-semibold text-amber-800 dark:text-amber-200 mb-3">Pre-Game Routine</h3>
+        <ol class="space-y-2 text-sm text-zinc-700 dark:text-zinc-300 list-decimal list-inside">
+          <li>Arrive 15 minutes early — settle in, find your table, set up your clock</li>
+          <li>Take three deep breaths before drawing tiles</li>
+          <li>Focus on <em>process</em> (find the best play) not <em>outcome</em> (win/lose)</li>
+          <li>After a bad move, mentally "flush" it — the next turn is all that matters</li>
+          <li>Between rounds, walk around, hydrate, and reset mentally</li>
+        </ol>
+      </div>
+
+      <div class="flex flex-wrap gap-2 my-6">
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Set a realistic goal (e.g., win 2 of 7)</span>
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Accept that losses teach more than wins</span>
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Ask opponents for post-game analysis</span>
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Don't compare yourself to veterans</span>
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Enjoy the atmosphere</span>
+      </div>
+
+      <p>Most players report that their nerves settled completely after the first game. The anticipation is worse than the reality. Once tiles are on the board, instinct and preparation take over.</p>
+
+      <!-- Cross-links -->
+      <div class="mt-10 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+        <h3 class="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mb-2">More Tournament Resources</h3>
+        <ul class="text-sm space-y-1">
+          <li><a href="/blog/mental-stamina-tournament-scrabble/" class="text-indigo-600 dark:text-indigo-400 hover:underline">Mental Stamina in Tournament Scrabble →</a></li>
+          <li><a href="/blog/how-to-challenge-in-scrabble/" class="text-indigo-600 dark:text-indigo-400 hover:underline">How to Challenge in Scrabble →</a></li>
+        </ul>
+      </div>
+
+      <!-- Related articles -->
+      <aside class="mt-10 border-t border-zinc-200 dark:border-zinc-700 pt-6">
+        <h3 class="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Related Articles</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/blog/how-to-improve-at-scrabble-fast/" class="text-amber-700 dark:text-amber-400 hover:underline">How to Improve at Scrabble Fast</a></li>
+          <li><a href="/blog/scrabble-club-etiquette/" class="text-amber-700 dark:text-amber-400 hover:underline">Scrabble Club Etiquette</a></li>
+          <li><a href="/blog/scrabble-rating-system-explained/" class="text-amber-700 dark:text-amber-400 hover:underline">Scrabble Rating System Explained</a></li>
+        </ul>
+      </aside>
+
+      <!-- CTA -->
+      <div class="mt-10 bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700 rounded-xl p-6 text-center">
+        <h3 class="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">Practice Before Your Tournament</h3>
+        <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">Drill your word knowledge with our free solver — test racks, find bingos, and build confidence.</p>
+        <a href="/" class="inline-block px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium text-sm transition-colors">Open Word Finder →</a>
+      </div>
+
+      <div class="mt-8 text-center">
+        <a href="/blog/" class="text-sm text-zinc-500 hover:text-amber-600 transition-colors">← Back to Blog</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

@@ -23,7 +23,7 @@ import '../../styles/global.css';
     <p class="text-gray-400 mb-6">Manage outreach leads from the <code class="text-xs bg-gray-800 px-1.5 py-0.5 rounded">campaign_leads</code> table. Track who you've emailed and responses.</p>
 
     <!-- Stats -->
-    <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-5 gap-4 mb-6">
       <div class="rounded-lg bg-gray-800/60 p-4">
         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Leads</p>
         <p class="text-2xl font-bold text-white" id="stat-total">—</p>
@@ -40,6 +40,17 @@ import '../../styles/global.css';
         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Campaign Set</p>
         <p class="text-2xl font-bold text-blue-400" id="stat-set">1</p>
       </div>
+      <div class="rounded-lg bg-gray-800/60 p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-700/60 transition-colors" id="download-extract-tile">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Download Extract</p>
+        <p class="text-xl font-bold text-purple-400">📥</p>
+        <p class="text-[10px] text-gray-500 mt-1 download-status">Excel (68 sheets)</p>
+      </div>
+    </div>
+
+    <!-- Batch Status Panel -->
+    <div class="mb-6 p-4 rounded-xl border border-gray-700 bg-gray-800/40">
+      <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Batch Status — Toggle Sent</h3>
+      <div id="batch-toggles" class="flex flex-wrap gap-3"></div>
     </div>
 
     <!-- Filters + Actions -->
@@ -56,17 +67,37 @@ import '../../styles/global.css';
       <button id="add-btn" class="h-9 px-4 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors ml-auto">+ Add Lead</button>
     </div>
 
+    <!-- Extract Range -->
+    <div class="flex items-center gap-3 mb-4 p-3 rounded-lg bg-gray-800/40 border border-gray-700">
+      <span class="text-xs text-gray-400">Extract:</span>
+      <input id="extract-from" type="number" min="1" placeholder="From" class="h-8 w-20 px-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm text-center" />
+      <span class="text-gray-500">→</span>
+      <input id="extract-to" type="number" min="1" placeholder="To" class="h-8 w-20 px-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm text-center" />
+      <button id="extract-btn" class="h-8 px-4 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-colors">Extract</button>
+    </div>
+
+    <!-- Extract Result Bubble -->
+    <div id="extract-bubble" class="hidden mb-4 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 relative">
+      <button id="extract-close" class="absolute top-2 right-3 text-gray-400 hover:text-white text-lg">&times;</button>
+      <p class="text-xs text-purple-400 uppercase tracking-wider font-semibold mb-2">Extracted Records</p>
+      <pre id="extract-content" class="text-xs text-gray-300 whitespace-pre-wrap max-h-64 overflow-y-auto"></pre>
+      <button id="extract-copy" class="mt-3 h-7 px-3 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs font-medium transition-colors">Copy to Clipboard</button>
+      <button id="extract-save" class="mt-3 ml-2 h-7 px-3 rounded-lg bg-blue-700 hover:bg-blue-600 text-white text-xs font-medium transition-colors">Save to Disk</button>
+    </div>
+
     <!-- Table -->
     <div class="overflow-x-auto rounded-xl border border-gray-800">
       <table class="w-full text-sm">
         <thead class="bg-gray-800/80">
           <tr>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">#</th>
             <th class="px-3 py-2 text-left text-gray-400 font-medium">School</th>
             <th class="px-3 py-2 text-left text-gray-400 font-medium">Email</th>
             <th class="px-3 py-2 text-left text-gray-400 font-medium">Contact</th>
             <th class="px-3 py-2 text-left text-gray-400 font-medium">Town</th>
             <th class="px-3 py-2 text-center text-gray-400 font-medium">Sent</th>
             <th class="px-3 py-2 text-left text-gray-400 font-medium">Sent At</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">Batch</th>
             <th class="px-3 py-2 text-center text-gray-400 font-medium">Actions</th>
           </tr>
         </thead>
@@ -74,6 +105,12 @@ import '../../styles/global.css';
       </table>
     </div>
     <p class="text-xs text-gray-500 mt-2" id="row-count"></p>
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-4">
+      <button id="prev-btn" class="h-8 px-4 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm hover:bg-gray-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">&lt; Prev</button>
+      <span id="page-info" class="text-sm text-gray-400"></span>
+      <button id="next-btn" class="h-8 px-4 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm hover:bg-gray-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">Next &gt;</button>
+    </div>
 
     <!-- View/Edit Modal -->
     <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70">
@@ -135,6 +172,8 @@ import '../../styles/global.css';
 
   <script is:inline>
     let currentId = null;
+    let currentOffset = 0;
+    const PAGE_SIZE = 50;
 
     async function loadLeads() {
       const sent = document.getElementById('filter-sent').value;
@@ -142,33 +181,60 @@ import '../../styles/global.css';
       const params = new URLSearchParams();
       if (sent) params.set('sent', sent);
       if (batch) params.set('batch', batch);
+      params.set('limit', PAGE_SIZE);
+      params.set('offset', currentOffset);
 
       const res = await fetch('/api/campaign-leads/?' + params.toString());
       const data = await res.json();
       if (!data.leads) return;
 
-      document.getElementById('stat-total').textContent = data.total;
+      document.getElementById('stat-total').textContent = data.global_total || data.total;
       document.getElementById('stat-sent').textContent = data.sent_count;
-      document.getElementById('stat-pending').textContent = data.total - data.sent_count;
+      document.getElementById('stat-pending').textContent = (data.global_total || data.total) - data.sent_count;
 
-      // Populate batch filter dropdown from data
+      // Populate batch filter dropdown and batch toggles from API
       const batchSelect = document.getElementById('filter-batch');
       const currentBatch = batchSelect.value;
-      const batches = [...new Set(data.leads.map(l => l.batch).filter(Boolean))].sort();
+      const batches = data.batches || [];
+      const batchNames = batches.map(b => b.name);
       const existingOpts = [...batchSelect.options].map(o => o.value).filter(Boolean);
-      if (JSON.stringify(batches) !== JSON.stringify(existingOpts)) {
-        batchSelect.innerHTML = '<option value="">All Batches</option>' + batches.map(b => `<option value="${b}" ${b === currentBatch ? 'selected' : ''}>${b}</option>`).join('');
+      if (JSON.stringify(batchNames) !== JSON.stringify(existingOpts)) {
+        batchSelect.innerHTML = '<option value="">All Batches</option>' + batchNames.map(b => `<option value="${b}" ${b === currentBatch ? 'selected' : ''}>${b}</option>`).join('');
       }
 
+      // Render batch toggle cards
+      const toggleContainer = document.getElementById('batch-toggles');
+      toggleContainer.innerHTML = batches.map(b => {
+        const allSent = b.sent === b.total;
+        return `
+          <div class="flex items-center gap-2 px-3 py-2 rounded-lg border ${allSent ? 'border-green-500/40 bg-green-950/20' : 'border-gray-600 bg-gray-900/50'}">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" class="sr-only peer batch-toggle" data-batch="${b.name}" ${allSent ? 'checked' : ''} />
+              <div class="w-9 h-5 bg-gray-600 peer-checked:bg-green-500 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+            </label>
+            <span class="text-sm text-gray-300 font-medium">${b.name}</span>
+            <span class="text-xs text-gray-500">(${b.sent}/${b.total})</span>
+          </div>`;
+      }).join('');
+
+      // Pagination state
+      const totalPages = Math.ceil(data.total / PAGE_SIZE);
+      const currentPage = Math.floor(currentOffset / PAGE_SIZE) + 1;
+      document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+      document.getElementById('prev-btn').disabled = currentOffset === 0;
+      document.getElementById('next-btn').disabled = currentOffset + PAGE_SIZE >= data.total;
+
       const tbody = document.getElementById('leads-table');
-      tbody.innerHTML = data.leads.map(l => `
+      tbody.innerHTML = data.leads.map((l, idx) => `
         <tr class="hover:bg-gray-800/50 transition-colors">
+          <td class="px-3 py-2 text-gray-500 text-xs">${currentOffset + idx + 1}</td>
           <td class="px-3 py-2 text-gray-200 font-medium">${esc(l.school_name)}</td>
           <td class="px-3 py-2 text-gray-400 text-xs">${esc(l.email)}</td>
           <td class="px-3 py-2 text-gray-300 text-xs">${esc(l.contact_person)}</td>
           <td class="px-3 py-2 text-gray-400 text-xs">${esc(l.town)}</td>
           <td class="px-3 py-2 text-center">${l.sent ? '<span class="text-green-400">✓</span>' : '<span class="text-gray-600">—</span>'}</td>
           <td class="px-3 py-2 text-gray-400 text-xs">${l.sent_at || '—'}</td>
+          <td class="px-3 py-2 text-gray-400 text-xs">${esc(l.batch || '—')}</td>
           <td class="px-3 py-2 text-center">
             <button onclick="viewLead(${l.id})" class="text-blue-400 hover:text-blue-300 text-xs mr-2">View</button>
             <button onclick="markSent(${l.id})" class="text-green-400 hover:text-green-300 text-xs ${l.sent ? 'hidden' : ''}">Mark Sent</button>
@@ -276,9 +342,131 @@ import '../../styles/global.css';
       loadLeads();
     });
 
-    document.getElementById('filter-sent').addEventListener('change', loadLeads);
-    document.getElementById('filter-batch').addEventListener('change', loadLeads);
+    document.getElementById('filter-sent').addEventListener('change', () => { currentOffset = 0; loadLeads(); });
+    document.getElementById('filter-batch').addEventListener('change', () => { currentOffset = 0; loadLeads(); });
     document.getElementById('refresh-btn').addEventListener('click', loadLeads);
+    document.getElementById('prev-btn').addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - PAGE_SIZE); loadLeads(); });
+    document.getElementById('next-btn').addEventListener('click', () => { currentOffset += PAGE_SIZE; loadLeads(); });
+
+    // Batch toggle delegation
+    document.getElementById('batch-toggles').addEventListener('change', async (e) => {
+      if (!e.target.classList.contains('batch-toggle')) return;
+      const batch = e.target.dataset.batch;
+      const sent = e.target.checked ? 1 : 0;
+      await fetch('/api/campaign-leads/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ batch_update: true, batch, sent })
+      });
+      loadLeads();
+    });
+
+    // Extract range
+    document.getElementById('extract-btn').addEventListener('click', async () => {
+      const from = parseInt(document.getElementById('extract-from').value) || 1;
+      const to = parseInt(document.getElementById('extract-to').value) || from;
+      if (to < from) return alert('To must be >= From');
+      const limit = to - from + 1;
+      const offset = from - 1;
+      const batch = document.getElementById('filter-batch').value;
+      const sent = document.getElementById('filter-sent').value;
+      const params = new URLSearchParams({ limit, offset });
+      if (batch) params.set('batch', batch);
+      if (sent) params.set('sent', sent);
+
+      const res = await fetch('/api/campaign-leads/?' + params.toString());
+      const data = await res.json();
+      if (!data.leads || !data.leads.length) return alert('No records found in that range');
+
+      const text = data.leads.map((l) => `${l.school_name}, ${l.email}, ${l.contact_person}`).join('\n');
+      document.getElementById('extract-content').textContent = text;
+      document.getElementById('extract-bubble').classList.remove('hidden');
+    });
+
+    document.getElementById('extract-close').addEventListener('click', () => {
+      document.getElementById('extract-bubble').classList.add('hidden');
+    });
+
+    document.getElementById('extract-copy').addEventListener('click', () => {
+      const text = document.getElementById('extract-content').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        document.getElementById('extract-copy').textContent = 'Copied!';
+        setTimeout(() => { document.getElementById('extract-copy').textContent = 'Copy to Clipboard'; }, 2000);
+      });
+    });
+
+    document.getElementById('extract-save').addEventListener('click', () => {
+      const text = document.getElementById('extract-content').textContent;
+      const blob = new Blob([text], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'campaign-leads-extract.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // Download Extract — all records as multi-sheet XLSX (1 sheet per batch)
+    document.getElementById('download-extract-tile').addEventListener('click', async () => {
+      const statusEl = document.querySelector('#download-extract-tile .download-status');
+      statusEl.textContent = 'Loading library...';
+
+      // Load SheetJS from CDN if not already loaded
+      if (!window.XLSX) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      statusEl.textContent = 'Fetching data...';
+      const res = await fetch('/api/campaign-leads/?limit=5000&offset=0');
+      const data = await res.json();
+      if (!data.leads || !data.leads.length) { statusEl.textContent = 'No data'; return; }
+
+      statusEl.textContent = 'Building workbook...';
+      const wb = XLSX.utils.book_new();
+
+      // Group leads by batch
+      const batches = {};
+      data.leads.forEach(l => {
+        if (!batches[l.batch]) batches[l.batch] = [];
+        batches[l.batch].push(l);
+      });
+
+      // Sort batch names numerically
+      const sortedBatches = Object.keys(batches).sort((a, b) => {
+        const na = parseInt(a.replace('Batch', '')) || 0;
+        const nb = parseInt(b.replace('Batch', '')) || 0;
+        return na - nb;
+      });
+
+      // Create one sheet per batch
+      sortedBatches.forEach(batchName => {
+        const rows = batches[batchName].map(l => ({
+          'School Name': l.school_name,
+          'Email': l.email,
+          'Contact Person': l.contact_person,
+          'Role': l.role,
+          'Town': l.town,
+          'Sent': l.sent ? 'Yes' : 'No',
+          'Sent At': l.sent_at || ''
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+        // Set column widths
+        ws['!cols'] = [{wch:35},{wch:35},{wch:25},{wch:18},{wch:18},{wch:6},{wch:12}];
+        XLSX.utils.book_append_sheet(wb, ws, batchName);
+      });
+
+      // Download
+      XLSX.writeFile(wb, 'campaign-leads-all-batches.xlsx');
+      statusEl.textContent = 'All records (CSV)';
+    });
 
     loadLeads();
   </script>

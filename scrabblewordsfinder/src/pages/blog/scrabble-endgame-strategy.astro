@@ -1,38 +1,195 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout title="Scrabble Endgame Strategy — Tile Counting & Playing Out First" description="Master Scrabble endgame: tile counting, playing out first for the bonus, strategic passing, and subtracting opponent tiles. Win close games with precision play." keywords="scrabble endgame strategy, playing out first scrabble, tile counting scrabble, endgame bonus scrabble, strategic passing, scrabble final moves">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Scrabble Endgame Strategy — Tile Counting & Playing Out First","description":"Master Scrabble endgame tactics: tile counting, going-out bonus, strategic passing, and deducing opponent tiles.","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/scrabble-endgame-strategy"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What happens when you play out first in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"When you play your last tile, your opponent subtracts the face value of their remaining tiles from their score, and that same value is added to YOUR score. This double swing makes going out first worth roughly 2× your opponent's remaining tile value."}},{"@type":"Question","name":"When should you pass in the Scrabble endgame?","acceptedAnswer":{"@type":"Answer","text":"Pass when: you're ahead and your opponent is stuck with high-value tiles they can't play (the penalty grows), or when every available play would open a TWS for your opponent. Passing is also correct when you have no legal plays."}},{"@type":"Question","name":"How do you count tiles in the Scrabble endgame?","acceptedAnswer":{"@type":"Answer","text":"Subtract tiles on the board + tiles on your rack from 100 (total tiles). This gives your opponent's exact rack. Knowing their tiles lets you block their best plays and calculate whether going out first is worth more than a higher-scoring play."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12"><article class="prose prose-invert prose-gray max-w-none">
-    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Strategy</span></nav>
-    <h1 class="text-3xl font-bold text-white mb-4">Scrabble Endgame Strategy — Tile Counting & Playing Out First</h1>
-    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>6 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-    <p class="text-lg leading-relaxed text-gray-300 mb-8">The endgame begins when the tile bag is empty. From this point, you have perfect information — you can deduce your opponent's exact tiles. Games are won and lost in these final moves, where the going-out bonus creates scoring swings of 20-40 points.</p>
-    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><div class="flex flex-wrap items-center justify-center gap-6 text-center"><div><p class="text-xl font-bold text-amber-400">2×</p><p class="text-xs text-gray-400">Going-Out Swing</p></div><div><p class="text-xl font-bold text-amber-400">100</p><p class="text-xs text-gray-400">Total Tiles</p></div><div><p class="text-xl font-bold text-amber-400">20-40</p><p class="text-xs text-gray-400">Avg Endgame Swing</p></div><div><p class="text-xl font-bold text-amber-400">0</p><p class="text-xs text-gray-400">Tiles in Bag</p></div></div></div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Playing Out First</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">The double swing:</span> Going out means your opponent loses their remaining tile values AND you gain them. If they hold Q-V (14pts face value), the swing is 28 points — enough to flip most close games.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Low score ≠ bad play:</span> A 6-point word that empties your rack is often better than a 20-point word that leaves tiles. Calculate: play score + going-out bonus vs higher score without bonus.</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Strategic Passing</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Pass when ahead:</span> If you're leading and your opponent holds Q/Z/V with no valid plays, passing forces them to pass too. After 3 consecutive passes (6 total), the game ends and they eat their tile penalties.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Don't pass when behind:</span> You need points to catch up. Even if your only play gives your opponent access to a good square, you must score or you'll lose by attrition.</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Subtracting Opponent Tiles</h2>
-    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">✓ Track high-value tiles</p><p class="text-xs text-gray-400">Know where Q, Z, X, J are — on board or opponent's rack</p></div>
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">✓ Count remaining tiles</p><p class="text-xs text-gray-400">100 - board tiles - your rack = opponent's rack</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⚡ Block their plays</p><p class="text-xs text-gray-400">If they hold V, block the only V-playable spots</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⚡ Force stuck tiles</p><p class="text-xs text-gray-400">Make Q/Z unplayable and they eat the penalty</p></div>
-    </div>
-    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20"><p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p><p class="text-base text-gray-200">The endgame is <span class="text-white font-medium">chess, not word-finding</span>. You already know every tile in play. The winner is the player who calculates the full sequence — not just the next move, but every move until game end.</p></div>
-    <aside class="border-t border-gray-800 mt-12 pt-8 not-prose"><h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3><div class="grid gap-3"><a href="/blog/how-to-count-tiles-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">How to Count Tiles in Scrabble</span></a><a href="/blog/scrabble-board-control-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Board Control Strategy</span></a></div></aside>
-    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl"><div class="flex items-center justify-between gap-4 flex-wrap"><p class="text-sm text-blue-300 font-medium">🔤 Plan endgame moves with tile tracking — free solver, no sign-up</p><a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a></div></div>
-    <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-  </article></div>
-</BlogLayout>
+<Layout title="Scrabble Endgame Strategy — Tile Tracking & Spread Management" description="Master Scrabble endgame strategy with tile tracking, Q-stick avoidance, spread management, and techniques for closing out games when the bag is empty." keywords="scrabble endgame strategy, tile tracking scrabble, spread management, Q-stick, scrabble bag empty, endgame tiles, closing out scrabble">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Endgame Strategy — Tile Tracking & Spread Management",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "url": "https://www.scrabblewordsfinder.com/blog/scrabble-endgame-strategy/"
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "When does the endgame begin in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The endgame begins when the tile bag is empty and both players can see exactly how many tiles remain. At this point, perfect information becomes available through tile tracking, and strategy shifts dramatically from rack management to board control and opponent deduction." }},
+    { "@type": "Question", "name": "What is a Q-stick in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A Q-stick means being stuck with the Q tile at game end without a U or valid QI/QOPH spot. The Q costs 10 points as a penalty, and your opponent gains those points. Avoiding Q-stick is a key endgame priority — dump the Q early or keep a U as insurance." }},
+    { "@type": "Question", "name": "How does spread management work in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Spread management means playing to maximise your point margin over your opponent. In tournaments, cumulative spread is a tiebreaker. In the endgame, this means choosing high-scoring plays over safe plays when ahead, or blocking premium squares when behind to limit opponent scoring." }}
+  ]
+})} />
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<nav class="text-sm text-gray-500 mb-6">
+  <a href="/" class="hover:text-amber-500">Home</a> &rsaquo;
+  <a href="/blog/" class="hover:text-amber-500">Blog</a> &rsaquo;
+  <span class="text-gray-400">Scrabble Endgame Strategy</span>
+</nav>
+
+<BlogCrossLinks currentSlug={slug} />
+
+<h1 class="text-3xl font-bold mb-2">Scrabble Endgame Strategy — Tile Tracking & Spread Management</h1>
+<p class="text-sm text-gray-500 mb-6">Published June 15, 2026 · 7 min read</p>
+
+<p class="text-lg leading-relaxed mb-8">The endgame is where club and tournament Scrabble is won and lost. Once the bag empties, the game transforms from probabilistic to deterministic — you can deduce exactly which tiles your opponent holds. Players who master endgame technique consistently gain 20-40 points over those who simply play their best-scoring word each turn.</p>
+
+<div class="grid grid-cols-3 gap-4 my-8 p-4 rounded-lg border border-amber-500/30 bg-amber-950/10">
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">100</span><br><span class="text-xs text-gray-400">Tiles in Standard Bag</span></div>
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">7-12</span><br><span class="text-xs text-gray-400">Turns in Endgame</span></div>
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">2x</span><br><span class="text-xs text-gray-400">Leftover Penalty</span></div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When Does the Endgame Begin?</h2>
+
+<p>Strictly, the endgame starts when the tile bag is empty. But skilled players begin preparing 3-5 turns earlier by tracking tiles and planning their exit strategy. The transition happens when you can count the remaining tiles and narrow down opponent holdings.</p>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-1">💡 Key Insight</p>
+  <p class="text-sm text-gray-300">When 7 or fewer tiles remain in the bag, you should already know which tiles your opponent probably holds. Start adjusting your strategy based on what they are likely to play.</p>
+</div>
+
+<p>The game fundamentally changes at this point. During the mid-game, you play for your own rack quality. In the endgame, you play both sides of the board — maximising your score while minimising your opponent's options.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tile Tracking Techniques</h2>
+
+<p>Tile tracking means keeping a running tally of which tiles have been played. Since there are exactly 100 tiles with known quantities of each letter, subtracting played tiles reveals what remains unseen.</p>
+
+<div class="overflow-x-auto my-6">
+<table class="w-full text-sm">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Method</th><th class="p-2 text-left">Difficulty</th><th class="p-2 text-left">Accuracy</th><th class="p-2 text-left">Best For</th></tr></thead>
+  <tbody>
+    <tr><td class="p-2">Full tracking (all 27 tiles)</td><td class="p-2">Hard</td><td class="p-2">Perfect</td><td class="p-2">Tournament players</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Power tile tracking (JQXZ + blanks)</td><td class="p-2">Medium</td><td class="p-2">High</td><td class="p-2">Club players</td></tr>
+    <tr><td class="p-2">Vowel/consonant ratio</td><td class="p-2">Easy</td><td class="p-2">Moderate</td><td class="p-2">Beginners</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">S and blank tracking only</td><td class="p-2">Easy</td><td class="p-2">Good</td><td class="p-2">Casual competitive</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="space-y-3 my-6">
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Track the S tiles</span> — Four S tiles exist. Knowing if your opponent has one tells you whether they can pluralise for a big score.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Track the blanks</span> — Two blanks exist. An unplayed blank means your opponent could have a bingo waiting.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Count vowels remaining</span> — If the unseen pool is vowel-heavy, your opponent likely has a clunky rack with limited options.
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Q-Stick Scenarios & Prevention</h2>
+
+<p>Getting stuck with the Q at game end (a "Q-stick") costs you 10 points in penalties and gifts your opponent 10 points — a 20-point swing. Avoiding this trap is one of the most critical endgame skills.</p>
+
+<div class="grid md:grid-cols-2 gap-4 my-6">
+  <div class="p-4 rounded-lg border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Prevention Strategies</h3>
+    <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
+      <li>Play the Q early when U-spots are still open</li>
+      <li>Keep QI available (requires I + open board spot)</li>
+      <li>Hold a U as insurance if Q is unplayed</li>
+      <li>Learn Q-without-U words: QI, QOPH, QADI, QANAT</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-lg border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">When Opponent Has Q</h3>
+    <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
+      <li>Block the I-column plays (prevent QI)</li>
+      <li>Close down open U-adjacent spots</li>
+      <li>Play defensively to end the game quickly</li>
+      <li>Force them to pass by blocking all Q-plays</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Playing for Spread</h2>
+
+<p>In tournaments, your cumulative spread (total point differential across all games) breaks ties. This means the endgame is not just about winning — it is about winning by as much as possible, or losing by as little as possible.</p>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-1">💡 Tournament Thinking</p>
+  <p class="text-sm text-gray-300">When winning comfortably, play your highest-scoring option even if it opens the board. When losing badly, play defensively to minimise the damage. Every point of spread matters across a 20+ game tournament.</p>
+</div>
+
+<p>The player who goes out first gains double the value of their opponent's remaining tiles. If your opponent holds QVWX (28 points), going out earns you 56 bonus points. This makes racing to empty your rack the dominant endgame strategy when ahead.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Closing Out Games</h2>
+
+<p>The final 2-3 turns require precise calculation. You know exactly what your opponent holds, and you should simulate their best responses to each of your possible plays.</p>
+
+<div class="space-y-3 my-6">
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Go-out plays</span> — If you can empty your rack this turn, calculate whether the bonus (2× opponent tiles) exceeds a higher-scoring play that leaves tiles.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Set-up plays</span> — Sometimes scoring less this turn to guarantee going out next turn is the optimal line.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Blocking plays</span> — If behind, block your opponent's best out-play even if it means scoring fewer points yourself.
+  </div>
+</div>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-2">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/psychology-of-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Psychology of Scrabble — reading opponents and managing tilt</span>
+    </a>
+    <a href="/blog/scrabble-board-control-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Board Control Strategy — opening lanes and blocking opponents</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Common Endgame Mistakes</h2>
+
+<p>Even experienced players fall into these traps when the bag empties. Awareness alone eliminates most of these errors:</p>
+
+<div class="space-y-3 my-6">
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Ignoring the out-play bonus:</span> Going out first gives you 2× your opponent's remaining tiles. A 25-point play that empties your rack often beats a 40-point play that leaves tiles behind.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Opening the board when ahead:</span> When you are winning, keep the board tight. Every open lane is an opportunity for your opponent to close the gap with a big play.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Not counting tiles:</span> With 14 or fewer tiles unseen, you should know every letter your opponent holds. If you do not, you are guessing — and guessing loses endgames.
+  </div>
+</div>
+
+<aside class="mt-10 border-t border-gray-700 pt-6">
+  <h3 class="text-sm font-semibold text-gray-400 mb-3">Related Articles</h3>
+  <ul class="space-y-2">
+    <li><a href="/blog/psychology-of-scrabble/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Psychology of Scrabble — Mental Game & Opponent Reading</a></li>
+    <li><a href="/blog/scrabble-board-control-strategy/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Scrabble Board Control Strategy</a></li>
+    <li><a href="/blog/counting-tiles-strategy/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Counting Tiles Strategy — Track What Remains</a></li>
+  </ul>
+</aside>
+
+<div class="mt-10 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-2">Practice Your Endgame Vocabulary</p>
+  <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Find all valid words from your remaining tiles — our solver shows every option ranked by score.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors">Open Word Finder →</a>
+</div>
+
+<div class="mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+</Layout>

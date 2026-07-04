@@ -1,43 +1,182 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout title="Scrabble Words With H — Premium Square Mastery" description="Master H words in Scrabble: PHARYNX (22pts), RHYTHM (17pts), WHARF (14pts). H=4pts with 2 tiles — learn to place H on premium squares for maximum multiplier value." keywords="scrabble words with h, h words scrabble, pharynx scrabble, rhythm scrabble, wharf scrabble, h tile strategy, high scoring h words">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Scrabble Words With H — Premium Square Mastery","description":"Master H words in Scrabble with scoring breakdowns and premium square placement strategy.","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/scrabble-words-with-h"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many H tiles are in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"There are 2 H tiles in a standard Scrabble game, each worth 4 points. H combines well with other consonants in digraphs like TH, SH, WH, CH, and PH for versatile word-building."}},{"@type":"Question","name":"What is the highest-scoring H word in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"PHARYNX scores 22 points without premium squares, combining PH digraph with Y (4pts) and X (8pts). It's a powerful 7-letter play that also earns the 50-point bingo bonus."}},{"@type":"Question","name":"Why is H good on premium squares?","acceptedAnswer":{"@type":"Answer","text":"H on a DLS gives 8 points from one tile, and H appears in so many common words (THE, HAS, THAT) that premium square access is frequent. Place H on TLS for 12 points — then multiply with DWS/TWS for devastating combos."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12"><article class="prose prose-invert prose-gray max-w-none">
-    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Strategy</span></nav>
-    <h1 class="text-3xl font-bold text-white mb-4">Scrabble Words With H — Premium Square Mastery</h1>
-    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>5 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-    <p class="text-lg leading-relaxed text-gray-300 mb-8">H is the workhorse of English digraphs — TH, SH, WH, CH, PH all rely on it. At 4 points with 2 tiles in the bag, H offers consistent value because it appears in so many common words. The trick is positioning: H on premium squares transforms ordinary plays into high-scoring opportunities.</p>
-    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><div class="flex flex-wrap items-center justify-center gap-6 text-center"><div><p class="text-xl font-bold text-amber-400">4</p><p class="text-xs text-gray-400">Points per H</p></div><div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">H Tiles in Bag</p></div><div><p class="text-xl font-bold text-amber-400">22</p><p class="text-xs text-gray-400">Top Score (PHARYNX)</p></div><div><p class="text-xl font-bold text-amber-400">5</p><p class="text-xs text-gray-400">Digraphs (TH/SH/WH/CH/PH)</p></div></div></div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Top H Words by Score</h2>
-    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">🏆 PHARYNX</p><p class="text-xs text-gray-400">22 points · 7 letters · Bingo eligible</p></div>
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">🏆 RHYTHM</p><p class="text-xs text-gray-400">17 points · 6 letters · No standard vowels</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⭐ WHARF</p><p class="text-xs text-gray-400">14 points · 5 letters · W+H stack</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⭐ HATCH</p><p class="text-xs text-gray-400">13 points · 5 letters · Double H value</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">H on Premium Squares</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">H + DWS is devastating:</span> Place a 5-letter H word across a DWS and you're looking at 20-28 points easily. WHARF on DWS = 28 points. HATCH on DWS = 26 points.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Digraph versatility:</span> TH, SH, WH, CH, PH — H combines with 5 different consonants for digraphs. This means H almost always has a valid play regardless of what else is on your rack.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">RHYTHM needs no vowels:</span> Like MYTH and HYMN, RHYTHM uses no standard vowels (only Y). When your rack is vowel-starved, H-words with Y are your lifeline.</p></div>
-    </div>
-    <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HASH</span><span class="text-blue-400 text-xs">10pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HYPE</span><span class="text-blue-400 text-xs">12pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HEXED</span><span class="text-blue-400 text-xs">16pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">THAW</span><span class="text-blue-400 text-xs">10pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">SHAWL</span><span class="text-blue-400 text-xs">11pts</span></span>
-    </div>
-    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20"><p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p><p class="text-base text-gray-200">H is the <span class="text-white font-medium">most versatile 4-point tile</span> because of digraphs. While V and W need specific letter combos, H works with T, S, W, C, and P — giving you play options in almost any board state.</p></div>
-    <aside class="border-t border-gray-800 mt-12 pt-8 not-prose"><h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3><div class="grid gap-3"><a href="/blog/scrabble-words-with-w/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words With W — Maximize Your 4-Point Tile</span></a><a href="/blog/scrabble-words-with-v/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words With V — Strategy for the 4-Point Tile</span></a>
-          <a href="/blog/scrabble-words-from-surfing/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words from Surfing</span></a>
-</div></aside>
-    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl"><div class="flex items-center justify-between gap-4 flex-wrap"><p class="text-sm text-blue-300 font-medium">🔤 Find all H words instantly — free Scrabble solver, no sign-up</p><a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a></div></div>
-    <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-  </article></div>
-</BlogLayout>
+<Layout title="Best Scrabble Words With H — Strategy & High Scorers | ScrabbleWordsFinder.com" description="Master H tile strategy in Scrabble. Find the best words with H, learn placement tips, and score big with this versatile 4-point consonant." keywords="scrabble words with h, h words scrabble, best h scrabble words, h tile strategy, high scoring h words, scrabble h strategy">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Best Scrabble Words With H — Strategy & High Scorers",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How many points is H worth in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "H is worth 4 points in Scrabble, making it a mid-value consonant. There are 2 H tiles in the standard English bag, so using them effectively is important for consistent scoring." }},
+    { "@type": "Question", "name": "What are the best 2-letter words with H?", "acceptedAnswer": { "@type": "Answer", "text": "SH (5 pts), AH (5 pts), OH (5 pts), EH (5 pts), and HA (5 pts) are all valid. These are essential for parallel plays and tight board positions where space is limited." }},
+    { "@type": "Question", "name": "What high-scoring words use H in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "WHIZ (19 pts), JAZZ hands aside — HAZELNUT (20 pts with bingo), HAPHAZARD (27 pts), and HIGHJACK (28 pts) are among the strongest H words when premium squares align." }}
+  ]
+})} />
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words With H</span>
+</nav>
+
+<BlogCrossLinks current={slug} />
+
+<h1 class="text-3xl font-bold mb-2">Best Scrabble Words With H — Strategy & High Scorers</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">H is a workhorse tile in Scrabble — worth 4 points with only 2 in the bag. It pairs beautifully with S, T, C, and W to form common digraphs (SH, TH, CH, WH), and its 4-point value means even short H words outperform most longer plays. Master the H tile and you'll consistently outpace opponents who waste it on low-value spots.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">H Tile at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">4 pts</p><p class="text-xs text-gray-400">Tile value</p></div>
+    <div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Tiles in bag</p></div>
+    <div><p class="text-xl font-bold text-amber-400">SH TH CH WH</p><p class="text-xs text-gray-400">Key digraphs</p></div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring H Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">HIJACK</td><td class="px-4 py-3 text-amber-600 font-bold">22</td><td class="px-4 py-3">6</td><td class="px-4 py-3">J(8)+K(5)+H(4)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WHIZ</td><td class="px-4 py-3 text-amber-600 font-bold">19</td><td class="px-4 py-3">4</td><td class="px-4 py-3">Z(10)+W(4)+H(4)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">HAZY</td><td class="px-4 py-3 text-amber-600 font-bold">19</td><td class="px-4 py-3">4</td><td class="px-4 py-3">Z(10)+Y(4)+H(4)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">HYPER</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">5</td><td class="px-4 py-3">H(4)+Y(4)+P(3)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">HAVOC</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">5</td><td class="px-4 py-3">H(4)+V(4)+C(3)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">HUTCH</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Double H value + C(3)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">CHAMP</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">5</td><td class="px-4 py-3">C(3)+H(4)+M(3)+P(3)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Essential 2 & 3-Letter H Words</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">SH</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AH</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OH</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HA</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HI</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HEX</span><span class="text-blue-400 text-xs">13 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HOX</span><span class="text-blue-400 text-xs">13 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HEW</span><span class="text-blue-400 text-xs">9 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">H Tile Strategy</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Pair with power tiles:</span> H combines with Z (HAZEL, HAZE), X (HEX, HOAX), J (HAJ), and K (HOOK, HAWK) for massive point density. Prioritise these combos over common words.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use digraph hooks:</span> Adding H before existing words creates hooks — SH+OW=SHOW, CH+AMP=CHAMP, TH+AT=THAT. Check the board for words you can front-hook with H digraphs.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Premium square targeting:</span> At 4 points base, H on a double-letter becomes 8 points from a single tile. Place H on DLS whenever possible — it's worth more than most tiles on premium squares.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">H Digraph Power Plays</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+  <p class="text-base text-gray-200">H forms <span class="text-white font-medium">four major digraphs</span> in English: SH, TH, CH, and WH. Each creates hundreds of valid words. Knowing which digraph your rack supports is the first step to maximising H's 4-point contribution.</p>
+</div>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">SH- Words</p>
+    <p class="text-xs text-gray-400">SHOW, SHIP, SHACK, SHRUB, SHRIMP — SH is the most common H digraph in English</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">TH- Words</p>
+    <p class="text-xs text-gray-400">THICK, THUMP, THROB, THROW — TH words are everywhere and score consistently</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">CH- Words</p>
+    <p class="text-xs text-gray-400">CHAMP, CHUNK, CHIRP, CHECK — CH + K endings (CHECK, CHUCK) score highest</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">WH- Words</p>
+    <p class="text-xs text-gray-400">WHIZ, WHACK, WHALE, WHISK — WH combines two 4-point tiles for 8-point openings</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-words-with-k/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Words With K — another 5-point consonant strategy</span>
+    </a>
+    <a href="/blog/words-starting-with-h/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Starting With H — full alphabetical list</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-words-with-v/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With V</span>
+    </a>
+    <a href="/blog/scrabble-words-with-w/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With W</span>
+    </a>
+    <a href="/blog/scrabble-words-with-y/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With Y</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your H tiles and find every word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

@@ -1,55 +1,186 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="How Scrabble Dictionaries Get Updated"
-  description="The process behind adding and removing words from official Scrabble dictionaries. Who decides and how often."
-  keywords="scrabble, how, scrabble, dictionaries, update"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "How Scrabble Dictionaries Get Updated",
-    "description": "The process behind adding and removing words from official Scrabble dictionaries. Who decides and how often.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/how-scrabble-dictionaries-update" }
-  })} />
+<Layout title="How Scrabble Dictionaries Update — SOWPODS & TWL Revision Process | ScrabbleWordsFinder.com" description="Learn how official Scrabble dictionaries get updated. The process behind adding and removing words from SOWPODS and TWL explained." keywords="scrabble dictionary update, sowpods update process, twl revision, new scrabble words, how words added scrabble, official scrabble dictionary">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/dictionaries/" class="hover:text-blue-400 transition-colors text-gray-300">Dictionaries</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How Scrabble Dictionaries Update — SOWPODS & TWL Revision Process",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">How Scrabble Dictionaries Get Updated</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How often is the official Scrabble dictionary updated?", "acceptedAnswer": { "@type": "Answer", "text": "The TWL (Tournament Word List) is typically updated every 4-5 years by NASPA. SOWPODS (Collins Scrabble Words) follows a similar cycle but is managed by Collins Dictionary editors. The most recent major updates were in 2014 (TWL06→OWL2014) and ongoing Collins editions." }},
+    { "@type": "Question", "name": "Who decides what words get added to the Scrabble dictionary?", "acceptedAnswer": { "@type": "Answer", "text": "For TWL, the NASPA Dictionary Committee reviews submissions and evidence of word usage. For SOWPODS/Collins Scrabble Words, Collins Dictionary editors evaluate words based on their appearance in published sources, frequency of use, and established English dictionaries." }},
+    { "@type": "Question", "name": "Can I suggest a word to be added to the Scrabble dictionary?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. NASPA accepts word suggestions from the public. You need to provide evidence the word appears in reputable published sources. Collins also considers submissions through their dictionary feedback channels. However, acceptance typically takes years." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">The process behind adding and removing words from official Scrabble dictionaries. Who decides and how often.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/dictionaries/" class="hover:text-amber-500 transition-colors">Dictionaries</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">How Scrabble Dictionaries Update</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">How Scrabble Dictionaries Update — SOWPODS & TWL Revision Process</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 6 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The Scrabble dictionary isn't static — it evolves as the English language grows. New words enter through a rigorous vetting process, while controversial terms can be removed. Understanding how this works helps you stay ahead of dictionary changes and anticipate which words might become valid next.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Two Major Dictionaries</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+    <p class="text-blue-400 font-semibold text-sm mb-2">📘 TWL (Tournament Word List)</p>
+    <p class="text-xs text-gray-400">Used in North America. ~187,000 words. Managed by NASPA (North American Scrabble Players Association). More conservative with loanwords and informal terms.</p>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">📗 SOWPODS (Collins Scrabble Words)</p>
+    <p class="text-xs text-gray-400">Used internationally. ~279,000 words. Managed by Collins Dictionary editors. More permissive — includes words from all major English dictionaries worldwide.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">279K</p><p class="text-xs text-gray-400">SOWPODS words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">187K</p><p class="text-xs text-gray-400">TWL words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">4-5 yrs</p><p class="text-xs text-gray-400">Update cycle</p></div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Update Process Step by Step</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+  <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 How a Word Gets Added</p>
+  <div class="space-y-3">
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+      <p class="text-sm text-gray-300">Word appears consistently in published English sources (books, newspapers, academic journals)</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+      <p class="text-sm text-gray-300">Dictionary committee collects citations and evidence of sustained usage over multiple years</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+      <p class="text-sm text-gray-300">Committee votes on inclusion — word must meet criteria for established English usage</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+      <p class="text-sm text-gray-300">Accepted words are added to the next edition and announced to the Scrabble community</p>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What Gets Words Removed</h2>
+
+<p>Word removal is rare but does happen. The most significant removal event was in 2020 when NASPA removed approximately 236 slurs and offensive terms from the tournament word list.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">⚠️ Reasons for Removal</p>
+    <p class="text-xs text-gray-400">Offensive or hateful content, words deemed archaic beyond recovery, words entered in error (misspellings or fabrications that slipped through), and trademark issues (proper nouns that were incorrectly included).</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/famous-scrabble-controversies/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Famous Scrabble Controversies — the word removal debate in detail</span>
+    </a>
+    <a href="/blog/new-words-added-2026/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">New Words Added in 2026 — the latest dictionary additions</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">SOWPODS vs TWL: Key Differences</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Aspect</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">TWL</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">SOWPODS</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Total words</td><td class="px-4 py-3">~187,000</td><td class="px-4 py-3">~279,000</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">Governing body</td><td class="px-4 py-3">NASPA</td><td class="px-4 py-3">Collins</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Region</td><td class="px-4 py-3">North America</td><td class="px-4 py-3">International</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">Loanword policy</td><td class="px-4 py-3">Conservative</td><td class="px-4 py-3">Permissive</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Offensive words</td><td class="px-4 py-3">Removed (2020)</td><td class="px-4 py-3">Under review</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Staying Current with Dictionary Changes</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Follow NASPA/WESPA announcements:</span> Both organisations publish new word lists months before they take effect in tournaments, giving players time to study additions.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Study new additions in batches:</span> When hundreds of words are added at once, prioritise short words (2-5 letters) and those using high-value tiles — they'll impact your game most.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use updated word checkers:</span> Online tools like ScrabbleWordsFinder update their databases when new dictionaries are released. Always verify against the latest edition.</p>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/foreign-words-valid-in-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Foreign Words Valid in Scrabble</span>
+    </a>
+    <a href="/blog/words-only-in-sowpods/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Only in SOWPODS</span>
+    </a>
+    <a href="/blog/scrabble-dictionary-apps/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Dictionary Apps</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Check words against SOWPODS and TWL instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

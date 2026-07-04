@@ -1,55 +1,154 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words With Silent Letters in Scrabble"
-  description="KNIGHT, PSYCHOLOGY, RHYTHM — words with silent letters that are valid and useful in Scrabble."
-  keywords="scrabble, words, with, silent, letters"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words With Silent Letters in Scrabble",
-    "description": "KNIGHT, PSYCHOLOGY, RHYTHM — words with silent letters that are valid and useful in Scrabble.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-with-silent-letters" }
-  })} />
+<Layout title="Words With Silent Letters — Scrabble Scoring Guide | ScrabbleWordsFinder.com" description="Master silent letter words in Scrabble. KN, WR, GH, PS words score high because silent letters still count for points. KNIGHT, WRACK, GNOME and more." keywords="silent letter words scrabble, kn words scrabble, wr words, gh words scrabble, silent k words, silent w words, psalm scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words With Silent Letters — Scrabble Scoring Guide",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words With Silent Letters in Scrabble</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Do silent letters count for points in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! Every tile placed on the board scores its point value regardless of pronunciation. KNIGHT scores K(5)+N(1)+I(1)+G(2)+H(4)+T(1)=14 points — the silent K and GH still contribute 11 of those points." }},
+    { "@type": "Question", "name": "What are the best silent letter words for Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "KNIGHT (14 pts), WRACK (14 pts), PSALM (9 pts), GNAW (8 pts), and KNIFE (12 pts) are excellent plays. Silent letters like K, W, G, and P add points without affecting pronunciation, making these words score higher than they sound." }},
+    { "@type": "Question", "name": "Which silent letter patterns are most useful in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "KN- (KNACK, KNIFE, KNIGHT), WR- (WRACK, WRITE, WRING), GN- (GNAW, GNOME), and PS- (PSALM, PSYCHE) are the most useful. KN words are especially valuable because K is worth 5 points and appears 'free' to opponents." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">KNIGHT, PSYCHOLOGY, RHYTHM — words with silent letters that are valid and useful in Scrabble.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/word-lists/" class="hover:text-amber-500 transition-colors">Word Lists</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words With Silent Letters</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words With Silent Letters — Scrabble Scoring Guide</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Silent letters are a Scrabble player's best friend. In speech, the K in KNIGHT is invisible — but on the board, it adds 5 points. Words with KN-, WR-, GH, GN-, and PS- patterns let you place high-value tiles that opponents often forget are valid, creating scoring opportunities hidden in plain sight.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Silent Letter Patterns</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+    <p class="text-cyan-400 font-semibold text-sm mb-2">🔇 Silent K (KN-)</p>
+    <p class="text-xs text-gray-400">KNACK (15), KNIFE (12), KNIGHT (14), KNIT (8), KNOB (10), KNOCK (15), KNOT (8), KNOW (11)</p>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">🔇 Silent W (WR-)</p>
+    <p class="text-xs text-gray-400">WRACK (14), WRAP (9), WRATH (11), WRECK (14), WRING (9), WRIST (8), WRITE (8), WRONG (9)</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">🔇 Silent G (GN-)</p>
+    <p class="text-xs text-gray-400">GNAW (8), GNARL (6), GNASH (9), GNAT (5), GNOME (8), GNU (4)</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">🔇 Silent P (PS-, PN-)</p>
+    <p class="text-xs text-gray-400">PSALM (9), PSYCHE (16), PSEUDO (9), PTERODACTYL (N/A—too long), PNEUMONIA (N/A)</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring Silent Letter Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Silent</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Hidden Points</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">PSYCHE</td><td class="px-4 py-3 text-amber-600 font-bold">16</td><td class="px-4 py-3">P</td><td class="px-4 py-3">P adds 3 pts silently</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">KNACK</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">K</td><td class="px-4 py-3">K adds 5 pts silently</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">KNOCK</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">K</td><td class="px-4 py-3">K adds 5 pts silently</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WRACK</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">W</td><td class="px-4 py-3">W adds 4 pts silently</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WRECK</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">W</td><td class="px-4 py-3">W adds 4 pts silently</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">KNIGHT</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">K, GH</td><td class="px-4 py-3">K(5)+GH(6) = 11 silent pts!</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">KNIFE</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">K</td><td class="px-4 py-3">K adds 5 pts silently</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">KN words are K tile gold:</span> KNACK, KNIFE, KNIGHT, KNOCK — these let you use the 5-point K tile in words that sound like they start with N. Opponents often forget KN words exist and miss them.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">WR opens W tile plays:</span> If the board has an R in a playable position, check if you can extend with W to make WR- words. WRING, WRIST, WRITE — the W adds 4 "free" points.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Silent GH in endings:</span> KNIGHT,UGHT patterns (BOUGHT, FOUGHT, TAUGHT) — GH adds 6 points (G2+H4) while contributing nothing to pronunciation. These are bingo-length word builders.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-containing-kn/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing KN — complete silent K list</span>
+    </a>
+    <a href="/blog/words-containing-wr/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing WR — silent W patterns</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-containing-gh/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing GH</span>
+    </a>
+    <a href="/blog/scrabble-words-with-k/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With K</span>
+    </a>
+    <a href="/blog/scrabble-words-with-w/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With W</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find high-scoring silent letter words from your rack</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

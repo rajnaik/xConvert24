@@ -1,55 +1,193 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Scrabble Glossary — Key Terms Explained"
-  description="Every Scrabble term you need to know. Bingo, hook, leave, rack, stem, and 30+ more defined."
-  keywords="scrabble, scrabble, glossary, terms"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Scrabble Glossary — Key Terms Explained",
-    "description": "Every Scrabble term you need to know. Bingo, hook, leave, rack, stem, and 30+ more defined.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-glossary-terms" }
-  })} />
+<Layout title="Scrabble Glossary — Essential Terms Every Player Should Know" description="Complete Scrabble glossary with 25+ essential terms defined. Learn what bingo, hook, leave, phoney, parallel play, and other key Scrabble vocabulary mean." keywords="scrabble glossary, scrabble terms, scrabble vocabulary, bingo scrabble, hook word, rack leave, phoney scrabble, scrabble definitions">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Glossary — Essential Terms Every Player Should Know",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "url": "https://www.scrabblewordsfinder.com/blog/scrabble-glossary-terms/"
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Scrabble Glossary — Key Terms Explained</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is a bingo in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A bingo is when a player uses all 7 tiles from their rack in a single turn. This earns a 50-point bonus on top of the word's regular score. Bingos are the most exciting plays in Scrabble and strong players average 1-2 per game." }},
+    { "@type": "Question", "name": "What does 'leave' mean in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The leave is the set of tiles remaining on your rack after you make a play. Good leave management means choosing plays that leave you with a balanced, flexible rack for future turns rather than just maximising the current turn's score." }},
+    { "@type": "Question", "name": "What is a phoney in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "A phoney is a word played that is not in the official dictionary. If unchallenged, it stays on the board and scores normally. If challenged and found invalid, the player loses their turn. Playing phoneys is a legitimate strategy in competitive Scrabble." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Every Scrabble term you need to know. Bingo, hook, leave, rack, stem, and 30+ more defined.</p>
+<nav class="text-sm text-gray-500 mb-6">
+  <a href="/" class="hover:text-amber-500">Home</a> &rsaquo;
+  <a href="/blog/" class="hover:text-amber-500">Blog</a> &rsaquo;
+  <span class="text-gray-400">Scrabble Glossary</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks currentSlug={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Scrabble Glossary — Essential Terms Every Player Should Know</h1>
+<p class="text-sm text-gray-500 mb-6">Published June 15, 2026 · 7 min read</p>
+
+<p class="text-lg leading-relaxed mb-8">Scrabble has its own language. Walk into any club or tournament and you will hear players discussing "leaves", "hooks", "phoneys", and "bingo stems." This glossary defines the essential terms so you can follow the conversation and level up your game understanding.</p>
+
+<div class="grid grid-cols-3 gap-4 my-8 p-4 rounded-lg border border-amber-500/30 bg-amber-950/10">
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">25+</span><br><span class="text-xs text-gray-400">Terms Defined</span></div>
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">A-Z</span><br><span class="text-xs text-gray-400">Organised</span></div>
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">All Levels</span><br><span class="text-xs text-gray-400">Beginner to Expert</span></div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Core Game Terms</h2>
+
+<p>These are the foundational terms every player encounters from their first game onwards:</p>
+
+<div class="space-y-3 my-6">
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Bingo</span> — Playing all 7 tiles in a single turn, earning a 50-point bonus. The highest-impact play in Scrabble.
   </div>
-</BlogLayout>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Blank</span> — A wild tile (2 in the bag) that can represent any letter but scores zero points. The most valuable tile in the game.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Challenge</span> — Questioning the validity of an opponent's word. If invalid, they lose their turn. If valid, the challenger loses their next turn (in some rule sets).
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Exchange</span> — Swapping 1-7 tiles with the bag instead of playing a word. Costs your entire turn but can rescue a terrible rack.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Rack</span> — The holder displaying your 7 tiles. Only you can see your rack during play.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Tile Bag</span> — The cloth bag containing 100 letter tiles at game start. Players draw blindly to replenish their rack.
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy & Technique Terms</h2>
+
+<p>Once you move past casual play, these terms describe the strategies that separate good players from great ones:</p>
+
+<div class="overflow-x-auto my-6">
+<table class="w-full text-sm">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Term</th><th class="p-2 text-left">Definition</th><th class="p-2 text-left">Example</th></tr></thead>
+  <tbody>
+    <tr><td class="p-2 font-medium">Hook</td><td class="p-2">Adding a letter before or after an existing word to form a new word</td><td class="p-2">Adding S to CARE → CARES, or H to EAR → HEAR</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-medium">Leave</td><td class="p-2">The tiles remaining on your rack after making a play</td><td class="p-2">Playing TRAIN from TRAINED leaves ED</td></tr>
+    <tr><td class="p-2 font-medium">Parallel Play</td><td class="p-2">Playing a word alongside an existing word, creating multiple 2-letter combinations</td><td class="p-2">Placing MINT above AREA, making MA, IR, NE, TA</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-medium">Fishing</td><td class="p-2">Making a low-scoring play to keep tiles that might form a bingo next turn</td><td class="p-2">Playing just AT from SATIRE to keep S,I,R,E,? for a bingo draw</td></tr>
+    <tr><td class="p-2 font-medium">Dump</td><td class="p-2">Playing a low-scoring word primarily to get rid of bad tiles</td><td class="p-2">Playing QI just to remove the Q from your rack</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-medium">Spread</td><td class="p-2">The cumulative point difference across tournament games (tiebreaker)</td><td class="p-2">Winning 450-380 gives you +70 spread</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Board Position Terms</h2>
+
+<p>Understanding board geography is essential for both offensive and defensive play:</p>
+
+<div class="grid md:grid-cols-2 gap-4 my-6">
+  <div class="p-4 rounded-lg border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Premium Squares</h3>
+    <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
+      <li><strong>DL</strong> — Double Letter Score (light blue)</li>
+      <li><strong>TL</strong> — Triple Letter Score (dark blue)</li>
+      <li><strong>DW</strong> — Double Word Score (pink)</li>
+      <li><strong>TW</strong> — Triple Word Score (red)</li>
+      <li><strong>Star</strong> — Centre square (counts as DW)</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-lg border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">Board Zones</h3>
+    <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
+      <li><strong>Hotspot</strong> — Open premium square anyone can reach</li>
+      <li><strong>Lane</strong> — An open row/column leading to a TW</li>
+      <li><strong>Dead zone</strong> — Blocked area with no scoring potential</li>
+      <li><strong>Floater</strong> — Isolated word with open hooks</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Competitive & Tournament Terms</h2>
+
+<p>These terms come up in club and tournament settings where formal rules and rating systems apply:</p>
+
+<div class="space-y-3 my-6">
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Phoney</span> — A word played that is not in the official dictionary. Stays on board if unchallenged.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Clock</span> — The chess clock used in tournaments. Each player gets 25 minutes; overtime costs 10 points per minute.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Rating</span> — A numerical ranking (similar to chess Elo) showing competitive strength. Club players range from 800-1200; experts 1600+.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Tile Tracking</span> — Keeping a written record of which tiles have been played to deduce opponent's rack.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Endgame</span> — The phase after the bag empties when both players can deduce remaining tiles with certainty.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Q-stick</span> — Being stuck with the Q tile at game end, costing 10 penalty points.
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Dictionary & Word Study Terms</h2>
+
+<p>Players who study the dictionary encounter these terms describing word properties and relationships:</p>
+
+<div class="overflow-x-auto my-6">
+<table class="w-full text-sm">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Term</th><th class="p-2 text-left">Meaning</th></tr></thead>
+  <tbody>
+    <tr><td class="p-2 font-medium">SOWPODS</td><td class="p-2">The international tournament dictionary (Collins Scrabble Words) — ~280,000 words</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-medium">TWL</td><td class="p-2">Tournament Word List used in North America — ~187,000 words</td></tr>
+    <tr><td class="p-2 font-medium">Bingo Stem</td><td class="p-2">A 6-letter combination that forms many 7-letter words (e.g., SATIRE, RETINA)</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-medium">Anagram</td><td class="p-2">A word formed by rearranging all letters of another word (LISTEN → SILENT)</td></tr>
+    <tr><td class="p-2 font-medium">Front Hook</td><td class="p-2">A letter that can be added before a word to make a new word (B + EACH = BEACH)</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-medium">Back Hook</td><td class="p-2">A letter added after a word (FARM + S = FARMS, or FARM + ED = FARMED)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-1">💡 Learning Path</p>
+  <p class="text-sm text-gray-300">Start by learning the core game terms, then add strategy terms as your play improves. Tournament terms can wait until you join a club. The vocabulary grows naturally with experience.</p>
+</div>
+
+<p>New to Scrabble? Our <a href="/blog/scrabble-for-kids-guide/" class="text-amber-500 hover:underline">Scrabble for kids guide</a> explains the game in accessible terms. For competitive progression, read about the <a href="/blog/scrabble-rating-system-explained/" class="text-amber-500 hover:underline">Scrabble rating system</a> to understand how rankings work.</p>
+
+<aside class="mt-10 border-t border-gray-700 pt-6">
+  <h3 class="text-sm font-semibold text-gray-400 mb-3">Related Articles</h3>
+  <ul class="space-y-2">
+    <li><a href="/blog/scrabble-for-kids-guide/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Scrabble for Kids — A Fun Guide to Getting Started</a></li>
+    <li><a href="/blog/scrabble-rating-system-explained/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Scrabble Rating System Explained</a></li>
+    <li><a href="/blog/how-to-play-scrabble/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">How to Play Scrabble — Complete Rules Guide</a></li>
+  </ul>
+</aside>
+
+<div class="mt-10 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-2">Put Your Vocabulary to Work</p>
+  <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Now you know the terms — try our free solver to practice finding bingos, hooks, and parallel plays from any rack.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors">Open Word Finder →</a>
+</div>
+
+<div class="mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+</Layout>

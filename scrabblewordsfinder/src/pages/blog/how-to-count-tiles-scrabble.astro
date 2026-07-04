@@ -1,40 +1,181 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout title="How to Count Tiles in Scrabble — Tile Tracking Guide" description="Master tile tracking in Scrabble: count what's been played, calculate what remains in the bag, and deduce your opponent's rack for strategic advantage." keywords="scrabble tile tracking, count tiles scrabble, tile counting strategy, what tiles are left scrabble, deduce opponent rack, scrabble tile distribution">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"How to Count Tiles in Scrabble — Tile Tracking Guide","description":"Master tile tracking: count played tiles, calculate remaining distribution, and deduce opponent racks.","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/how-to-count-tiles-scrabble"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do you track tiles in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"Keep a reference sheet with all 100 tiles listed. Cross off each letter as it's played on the board. At any point, uncrossed letters minus your rack = what's in the bag + opponent's rack. This gets more precise as the game progresses."}},{"@type":"Question","name":"Is tile tracking allowed in tournament Scrabble?","acceptedAnswer":{"@type":"Answer","text":"Yes — tile tracking is completely legal and expected in competitive play. Players use a pre-printed tracking sheet showing all tile distributions. It's considered a fundamental skill, not cheating."}},{"@type":"Question","name":"When should you start counting tiles?","acceptedAnswer":{"@type":"Answer","text":"Start from the first move. Track every tile played on the board throughout the game. The information becomes most valuable in the midgame (when you can predict likely draws) and critical in the endgame (when you can deduce exact opponent tiles)."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12"><article class="prose prose-invert prose-gray max-w-none">
-    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Strategy</span></nav>
-    <h1 class="text-3xl font-bold text-white mb-4">How to Count Tiles in Scrabble — Tile Tracking Guide</h1>
-    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>6 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-    <p class="text-lg leading-relaxed text-gray-300 mb-8">Tile tracking is the single biggest skill gap between casual and competitive Scrabble players. Knowing what's left in the bag transforms guesswork into calculation. By the endgame, you can deduce your opponent's exact rack — and plan accordingly.</p>
-    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><div class="flex flex-wrap items-center justify-center gap-6 text-center"><div><p class="text-xl font-bold text-amber-400">100</p><p class="text-xs text-gray-400">Total Tiles</p></div><div><p class="text-xl font-bold text-amber-400">27</p><p class="text-xs text-gray-400">Unique Letters</p></div><div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Blank Tiles</p></div><div><p class="text-xl font-bold text-amber-400">12</p><p class="text-xs text-gray-400">E Tiles (most)</p></div></div></div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">What's Been Played</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use a tracking sheet:</span> Print the full tile distribution (A×9, B×2, C×2... Z×1, Blank×2). Cross off each letter as it appears on the board. This takes 2 seconds per turn and gives enormous advantage.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Track high-value first:</span> If you can't track everything, focus on Q, Z, X, J, blanks, and S tiles. Knowing whether Q is still in the bag changes your strategy dramatically.</p></div>
+<Layout title="How to Count Tiles in Scrabble — Tile Tracking Guide | ScrabbleWordsFinder.com" description="Learn tile tracking in Scrabble. Know which tiles remain in the bag, predict opponent's rack, and gain a strategic edge with counting techniques." keywords="scrabble tile counting, tile tracking scrabble, count tiles scrabble, scrabble bag tracking, remaining tiles scrabble, tile distribution scrabble">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Count Tiles in Scrabble — Tile Tracking Guide",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How many tiles are in a Scrabble bag?", "acceptedAnswer": { "@type": "Answer", "text": "A standard English Scrabble game has 100 tiles: 98 letter tiles plus 2 blanks. The distribution ranges from 1 tile (J, K, Q, X, Z) to 12 tiles (E). Knowing these counts is essential for tile tracking." }},
+    { "@type": "Question", "name": "Is tile tracking allowed in competitive Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Tile tracking is completely legal and expected in tournament play. Players use a tracking sheet listing all 100 tiles and cross off letters as they appear on the board. It's considered a core competitive skill." }},
+    { "@type": "Question", "name": "When should I start tracking tiles?", "acceptedAnswer": { "@type": "Answer", "text": "Start from the very first move. Cross off each letter played (including your own rack). Tracking becomes most critical in the endgame when fewer than 7 tiles remain in the bag — at that point you can deduce your opponent's exact rack." }}
+  ]
+})} />
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors">Strategy</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">How to Count Tiles in Scrabble</span>
+</nav>
+
+<BlogCrossLinks current={slug} />
+
+<h1 class="text-3xl font-bold mb-2">How to Count Tiles in Scrabble — Tile Tracking Guide</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Tile tracking is one of the most powerful legal advantages in competitive Scrabble. By keeping a running count of which tiles have been played, you can predict what your opponent holds, plan your endgame, and make better strategic decisions throughout the match.</p>
+
+<p>Every tournament player tracks tiles — it's considered a fundamental skill, not an advanced technique. The sooner you start, the faster your game improves. Here's exactly how to do it.</p>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Why Tracking Matters</p>
+  <p class="text-base text-gray-200">Players who track tiles gain <span class="text-white font-medium">perfect information</span> in the endgame. When fewer than 7 tiles remain in the bag, you can calculate your opponent's exact rack and plan accordingly — turning the last few moves into a solved puzzle.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Standard Tile Distribution</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">100</p><p class="text-xs text-gray-400">Total tiles</p></div>
+    <div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Blank tiles</p></div>
+    <div><p class="text-xl font-bold text-amber-400">42</p><p class="text-xs text-gray-400">Vowel tiles</p></div>
+    <div><p class="text-xl font-bold text-amber-400">56</p><p class="text-xs text-gray-400">Consonant tiles</p></div>
+  </div>
+</div>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Count</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Letters</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-amber-600">12</td><td class="px-4 py-3">E</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-amber-600">9</td><td class="px-4 py-3">A, I</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-amber-600">8</td><td class="px-4 py-3">O</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-amber-600">6</td><td class="px-4 py-3">N, R, T</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-amber-600">4</td><td class="px-4 py-3">D, L, S, U</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-amber-600">3</td><td class="px-4 py-3">G</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-amber-600">2</td><td class="px-4 py-3">B, C, F, H, M, P, V, W, Y, Blank</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-amber-600">1</td><td class="px-4 py-3">J, K, Q, X, Z</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How to Track Tiles During a Game</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+  <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Tracking Method</p>
+  <div class="space-y-3">
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+      <p class="text-sm text-gray-300">Write out all 26 letters with their counts on a tracking sheet before the game starts</p>
     </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">What Remains in the Bag</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">The formula:</span> Remaining = Total distribution - Board tiles - Your rack. If 3 of 9 A's are on the board and you hold 1, there are 5 A's between the bag and opponent's rack.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Draw probability:</span> Knowing the bag composition helps you decide whether to exchange. If 8 of 12 E's are gone and you need vowels, the bag is vowel-poor — exchanging might not help.</p></div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+      <p class="text-sm text-gray-300">After each turn (yours and opponent's), cross off the letters played on the board</p>
     </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Deducing Opponent's Rack</h2>
-    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">✓ Empty bag = perfect info</p><p class="text-xs text-gray-400">100 - board - your rack = their exact tiles</p></div>
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">✓ Watch their exchanges</p><p class="text-xs text-gray-400">If they exchange 4 tiles, they likely had vowel/consonant imbalance</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⚡ Block accordingly</p><p class="text-xs text-gray-400">If they hold Q with no U on board, block QI spots</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⚡ Predict their moves</p><p class="text-xs text-gray-400">Knowing their tiles means knowing their best possible plays</p></div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+      <p class="text-sm text-gray-300">Subtract your own rack tiles from the remaining count to determine what's in the bag + opponent's rack</p>
     </div>
-    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20"><p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p><p class="text-base text-gray-200">Tile tracking isn't optional at the competitive level — <span class="text-white font-medium">every tournament player does it</span>. Start with just tracking the power tiles (Q, Z, X, J, S, blanks) and build up to full tracking as it becomes habit.</p></div>
-    <aside class="border-t border-gray-800 mt-12 pt-8 not-prose"><h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3><div class="grid gap-3"><a href="/blog/scrabble-endgame-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Endgame Strategy</span></a><a href="/blog/tile-tracking-guide/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Tile Tracking Guide — Advanced Techniques</span></a>
-          <a href="/blog/scrabble-tile-tracking-methods/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Tile Tracking Methods in Scrabble</span></a>
-</div></aside>
-    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl"><div class="flex items-center justify-between gap-4 flex-wrap"><p class="text-sm text-blue-300 font-medium">🔤 Track tiles with our probability panel — free Scrabble solver</p><a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a></div></div>
-    <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-  </article></div>
-</BlogLayout>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+      <p class="text-sm text-gray-300">When the bag empties (both players stop drawing), you know your opponent's exact tiles</p>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tracking Sheet Template</h2>
+
+<p>Most tournament players use a pre-printed tracking sheet with all 26 letters and their counts. As each letter appears on the board, they cross off one instance. Here's what a mid-game tracking sheet reveals:</p>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Mid-Game Example</p>
+  <p class="text-base text-gray-200">After 10 turns, if your tracking shows <span class="text-white font-medium">all 4 S tiles played</span>, you know no one can pluralise a word for the rest of the game. If <span class="text-white font-medium">both blanks are gone</span>, bingo probability drops sharply for everyone.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategic Benefits of Tracking</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Endgame advantage:</span> When you know your opponent's exact rack, you can block their best plays, avoid opening triple-word squares they can use, and set up your own winning plays.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Power tile awareness:</span> Tracking the S tiles (4 total), blanks (2), and high-point tiles (J, Q, X, Z) tells you whether offensive or defensive play is appropriate.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Bingo probability:</span> If most common bingo-friendly letters (SATIRE, RETINA stems) are already played, the chance of your opponent holding a bingo drops significantly.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">🔗 Related Guides</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-tile-bag-distribution/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Tile Bag Distribution — full breakdown of every letter</span>
+    </a>
+    <a href="/blog/scrabble-endgame-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Endgame Strategy — using tile knowledge to win close games</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/counting-tiles-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Counting Tiles Strategy</span>
+    </a>
+    <a href="/blog/defensive-scrabble-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Defensive Scrabble Strategy</span>
+    </a>
+    <a href="/blog/endgame-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Endgame Strategy</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 See tile probability for your rack in real time</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

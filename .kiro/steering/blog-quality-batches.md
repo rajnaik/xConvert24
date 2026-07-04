@@ -21,7 +21,7 @@ Audit date: July 3, 2026. Goal: Bring all 736 below-threshold blog pages up to i
 | Batch | Tier | Type | Pages | Est. | Status |
 |-------|------|------|-------|------|--------|
 | 1 | STUB | Strategy/Bingo/Tournament | 31 | 5h | ✅ Done (Jul 3, 2026) |
-| 2 | STUB | Prefix/Suffix/Pattern guides | 60 | 10h | Pending |
+| 2 | STUB | Prefix/Suffix/Pattern guides | 60 | 10h | ✅ Done (Jul 3, 2026) |
 | 3 | STUB | Specialty word lists | 50 | 8.5h | Pending |
 | 4 | THIN | "words-from-X" themed (first 60) | 60 | 8h | Pending |
 | 5 | THIN | "words-from-X" themed (next 54) | 54 | 7h | Pending |

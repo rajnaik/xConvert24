@@ -1,55 +1,210 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Playing Scrabble With a Lead"
-  description="How to protect a lead in Scrabble. Board control, defensive plays, and avoiding giving opponents comeback opportunities."
-  keywords="scrabble, playing, scrabble, with, a, lead"
+<Layout
+  title="Playing Scrabble With a Lead — Strategy Guide | ScrabbleWordsFinder"
+  description="Master the art of protecting your lead in Scrabble. Learn board control, defensive placement, exchange timing, and clock management when you're ahead."
+  keywords="scrabble lead strategy, playing ahead scrabble, defensive scrabble, board control, protect lead scrabble, close the board scrabble"
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Playing Scrabble With a Lead",
-    "description": "How to protect a lead in Scrabble. Board control, defensive plays, and avoiding giving opponents comeback opportunities.",
+    "headline": "Playing Scrabble With a Lead — Strategy Guide",
+    "description": "Master the art of protecting your lead in Scrabble. Learn board control, defensive placement, exchange timing, and clock management when you're ahead.",
     "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/playing-scrabble-with-a-lead" }
+    "publisher": {
+      "@type": "Organization",
+      "name": "ScrabbleWordsFinder.com",
+      "url": "https://www.scrabblewordsfinder.com/"
+    }
+  })} />
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Should I play defensively when I have a big lead in Scrabble?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. When you hold a lead of 50+ points, your primary goal shifts from scoring to denying your opponent high-scoring opportunities. Close the board by blocking triple-word squares and avoiding opening new lanes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "When should I exchange tiles while ahead in Scrabble?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Exchange when your rack is unplayable and your lead is large enough to absorb the lost turn. If you're 80+ points ahead with a rack of UUIVVQO, exchanging is safer than forcing a weak play that opens the board."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I manage the clock when leading in Scrabble?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Use your time wisely but don't rush. If you're ahead on points and time, play steadily to maintain pressure. If your opponent is in time trouble, play at a comfortable pace — their clock is an additional advantage for you."
+        }
+      }
+    ]
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
+  <div class="max-w-3xl mx-auto px-4 py-10">
+    <article class="prose dark:prose-invert max-w-none">
+      <nav class="text-sm text-zinc-500 mb-6" aria-label="Breadcrumb">
+        <a href="/blog/" class="hover:text-amber-600">Blog</a>
+        <span class="mx-1">/</span>
+        <a href="/blog/strategy/" class="hover:text-amber-600">Strategy</a>
+        <span class="mx-1">/</span>
+        <span class="text-zinc-800 dark:text-zinc-200">Playing With a Lead</span>
       </nav>
 
-      <h1 class="text-3xl font-bold text-white mb-4">Playing Scrabble With a Lead</h1>
+      <BlogCrossLinks slug={slug} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+      <h1 class="text-3xl font-bold mb-2">Playing Scrabble With a Lead</h1>
+      <p class="text-sm text-zinc-500 mb-6">Published June 15, 2026</p>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How to protect a lead in Scrabble. Board control, defensive plays, and avoiding giving opponents comeback opportunities.</p>
+      <p class="lead text-lg text-zinc-700 dark:text-zinc-300 mb-8">
+        Scoring big early feels great — but converting a lead into a win is where strategy separates casual players from competitive ones. When you're ahead, the game shifts from offence to controlled defence. Here's how to lock in your advantage and deny your opponent a comeback.
+      </p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Close the Board — Board Control Basics</h2>
+
+      <p>The single most important concept when leading: <strong>close the board</strong>. An open board with available triple-word squares is an invitation for your opponent to swing the score. Your job is to eliminate those opportunities.</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-6">
+        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">Block TWS</div>
+          <div class="text-sm text-zinc-600 dark:text-zinc-400">Place tiles adjacent to triple-word squares</div>
+        </div>
+        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">Short Words</div>
+          <div class="text-sm text-zinc-600 dark:text-zinc-400">Prefer 3-4 letter plays that don't extend lanes</div>
+        </div>
+        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">Avoid Edges</div>
+          <div class="text-sm text-zinc-600 dark:text-zinc-400">Don't create paths to premium edge squares</div>
         </div>
       </div>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <p>Play parallel to existing words rather than extending outward. Every tile you place near the board's centre keeps the action contained. Words that reach toward the edges open scoring lanes your opponent can exploit.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Defensive Tile Placement</h2>
+
+      <p>Beyond blocking premium squares, think about which tiles you're leaving on the board. Certain letters create more hooking opportunities than others.</p>
+
+      <div class="overflow-x-auto my-6">
+        <table class="min-w-full text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg">
+          <thead class="bg-zinc-100 dark:bg-zinc-800">
+            <tr>
+              <th class="px-4 py-2 text-left">Risk Level</th>
+              <th class="px-4 py-2 text-left">Letters</th>
+              <th class="px-4 py-2 text-left">Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t border-zinc-200 dark:border-zinc-700">
+              <td class="px-4 py-2"><span class="inline-block px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-xs font-medium">High</span></td>
+              <td class="px-4 py-2 font-mono">S, E, D, R</td>
+              <td class="px-4 py-2">Hook onto almost any word (plurals, -ED, -ER)</td>
+            </tr>
+            <tr class="border-t border-zinc-200 dark:border-zinc-700">
+              <td class="px-4 py-2"><span class="inline-block px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-xs font-medium">Medium</span></td>
+              <td class="px-4 py-2 font-mono">A, I, N, T</td>
+              <td class="px-4 py-2">Common in bingo stems, enable extensions</td>
+            </tr>
+            <tr class="border-t border-zinc-200 dark:border-zinc-700">
+              <td class="px-4 py-2"><span class="inline-block px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs font-medium">Low</span></td>
+              <td class="px-4 py-2 font-mono">Q, Z, X, J</td>
+              <td class="px-4 py-2">Few hooking options, hard to build on</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>When you're ahead, avoid ending words with S or creating open E endings near premium squares. Instead, use your high-risk tiles yourself in contained positions.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Exchange vs Play</h2>
+
+      <p>A common dilemma: you're 70 points ahead but stuck with QUUVWII. Should you force a weak play or exchange? The answer depends on your lead size and the board state.</p>
+
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-5 my-6">
+        <h3 class="font-semibold text-amber-800 dark:text-amber-200 mb-3">Exchange Decision Framework</h3>
+        <ul class="space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
+          <li><span class="font-medium text-green-700 dark:text-green-400">Exchange if:</span> Lead is 80+ points AND the board is already closed AND your rack has no reasonable play over 10 points</li>
+          <li><span class="font-medium text-amber-700 dark:text-amber-400">Consider if:</span> Lead is 50-80 points AND you can exchange without opening the board</li>
+          <li><span class="font-medium text-red-700 dark:text-red-400">Don't exchange if:</span> Lead is under 50 points OR any play (even 12 points) keeps the board tight</li>
+        </ul>
+      </div>
+
+      <p>Remember: exchanging gives your opponent a free turn. That's only acceptable when your rack is truly dead and your positional advantage is overwhelming. A 15-point play that blocks a triple-word lane is almost always better than exchanging.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Clock Management With a Lead</h2>
+
+      <p>In timed games, your clock is a resource — and when leading, it becomes a strategic weapon.</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+          <div class="font-semibold text-zinc-800 dark:text-zinc-200 mb-2">You're ahead on time</div>
+          <p class="text-sm text-zinc-600 dark:text-zinc-400">Play steadily. Use 60-90 seconds per move to find the most defensive play. No need to rush — your opponent feels the pressure of being behind on both score and clock.</p>
+        </div>
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+          <div class="font-semibold text-zinc-800 dark:text-zinc-200 mb-2">Opponent is in time trouble</div>
+          <p class="text-sm text-zinc-600 dark:text-zinc-400">Don't speed up to "help" them. Play your normal pace. Their time pressure forces hasty moves and missed opportunities — that's your advantage compounding.</p>
+        </div>
+      </div>
+
+      <p>One critical mistake: don't use excessive time when you're <em>behind</em> on the clock but ahead on points. In that scenario, play efficient moves quickly. A 10-point penalty for overtime can erase a close lead.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Avoiding Complacency — The Comeback Trap</h2>
+
+      <p>The most dangerous moment in Scrabble is when you feel safe. A 60-point lead can evaporate in two turns if your opponent lands a bingo on an open triple-word lane. Stay disciplined.</p>
+
+      <div class="flex flex-wrap gap-2 my-6">
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Track remaining high-value tiles</span>
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Count remaining S tiles</span>
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Watch for bingo-prone racks</span>
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Never open TWS after move 10</span>
+        <span class="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full text-sm text-zinc-700 dark:text-zinc-300">Maintain board awareness every turn</span>
+      </div>
+
+      <p>The pros call this "playing with respect." You respect your opponent's ability to score big if given the chance. A 100-point lead played carelessly is less safe than a 40-point lead played with total board control.</p>
+
+      <!-- Cross-links -->
+      <div class="mt-10 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+        <h3 class="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mb-2">Related Strategy Guides</h3>
+        <ul class="text-sm space-y-1">
+          <li><a href="/blog/defensive-scrabble-strategy/" class="text-indigo-600 dark:text-indigo-400 hover:underline">Defensive Scrabble Strategy →</a></li>
+          <li><a href="/blog/board-openness-control/" class="text-indigo-600 dark:text-indigo-400 hover:underline">Board Openness Control →</a></li>
+        </ul>
+      </div>
+
+      <!-- Related articles -->
+      <aside class="mt-10 border-t border-zinc-200 dark:border-zinc-700 pt-6">
+        <h3 class="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Related Articles</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/blog/coming-from-behind-scrabble/" class="text-amber-700 dark:text-amber-400 hover:underline">Coming From Behind in Scrabble</a></li>
+          <li><a href="/blog/scrabble-endgame-strategy/" class="text-amber-700 dark:text-amber-400 hover:underline">Scrabble Endgame Strategy</a></li>
+          <li><a href="/blog/scrabble-board-control-strategy/" class="text-amber-700 dark:text-amber-400 hover:underline">Board Control Strategy</a></li>
+        </ul>
+      </aside>
+
+      <!-- CTA -->
+      <div class="mt-10 bg-gradient-to-r from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 border border-amber-200 dark:border-amber-700 rounded-xl p-6 text-center">
+        <h3 class="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">Find Your Best Defensive Plays</h3>
+        <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">Use our free solver to find short, board-closing words from any rack — instantly.</p>
+        <a href="/" class="inline-block px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium text-sm transition-colors">Open Word Finder →</a>
+      </div>
+
+      <div class="mt-8 text-center">
+        <a href="/blog/" class="text-sm text-zinc-500 hover:text-amber-600 transition-colors">← Back to Blog</a>
       </div>
     </article>
   </div>
-</BlogLayout>
+</Layout>

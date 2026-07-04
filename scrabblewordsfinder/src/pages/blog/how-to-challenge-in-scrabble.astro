@@ -1,55 +1,185 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="How to Challenge in Scrabble"
-  description="Rules for challenging words in Scrabble. When to challenge, penalties, and dictionary lookup procedures."
-  keywords="scrabble, how, to, challenge, in, scrabble"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "How to Challenge in Scrabble",
-    "description": "Rules for challenging words in Scrabble. When to challenge, penalties, and dictionary lookup procedures.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/how-to-challenge-in-scrabble" }
-  })} />
+<Layout title="How to Challenge in Scrabble — Rules, Penalties & Strategy | ScrabbleWordsFinder.com" description="Master the Scrabble challenge rules. Learn when to challenge, penalty systems, and strategic bluffing tactics for tournament and casual play." keywords="scrabble challenge rules, how to challenge scrabble, scrabble word challenge, challenge penalty scrabble, scrabble bluffing, dispute word scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Challenge in Scrabble — Rules, Penalties & Strategy",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">How to Challenge in Scrabble</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What happens when you challenge a word in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The challenged word is looked up in the official dictionary. If invalid, the player removes their tiles and loses their turn. Under NASPA rules, if the word IS valid, the challenger loses their next turn. Under WESPA rules (single challenge), there's no penalty for a failed challenge." }},
+    { "@type": "Question", "name": "When can you challenge in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "You must challenge BEFORE the next player draws new tiles. Once tiles are drawn, the previous play is accepted. In tournament play, you must announce 'Challenge' or 'Hold' before your opponent draws." }},
+    { "@type": "Question", "name": "Can you challenge multiple words at once in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. When a play creates multiple new words (through parallel plays or crosswords), you can challenge the entire play. If ANY of the new words formed is invalid, the entire play is removed." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Rules for challenging words in Scrabble. When to challenge, penalties, and dictionary lookup procedures.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/beginner-guides/" class="hover:text-amber-500 transition-colors">Beginner Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">How to Challenge in Scrabble</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">How to Challenge in Scrabble — Rules, Penalties & Strategy</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The challenge is one of Scrabble's most dramatic mechanics — a high-stakes gamble that can swing a game in either direction. Knowing when to challenge (and when to let a suspicious word slide) is a skill that separates strong players from great ones.</p>
+
+<p>In casual games, disputes are often resolved by looking up a dictionary. In tournaments, the rules are stricter — and the penalties are real. A well-timed challenge can rescue a game; a bad one can hand your opponent a free turn.</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Challenge systems</p></div>
+    <div><p class="text-xl font-bold text-amber-400">1 turn</p><p class="text-xs text-gray-400">NASPA penalty</p></div>
+    <div><p class="text-xl font-bold text-amber-400">0</p><p class="text-xs text-gray-400">WESPA penalty</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Challenge Rules by Format</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+    <p class="text-blue-400 font-semibold text-sm mb-2">🇺🇸 NASPA (Double Challenge)</p>
+    <p class="text-xs text-gray-400">If the word is invalid → player removes tiles, loses turn. If the word IS valid → challenger loses their next turn. High risk, high reward — discourages frivolous challenges.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">🌍 WESPA (Single Challenge)</p>
+    <p class="text-xs text-gray-400">If the word is invalid → player removes tiles, loses turn. If the word IS valid → play continues normally with no penalty. Encourages challenging anything suspicious.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Challenge Window</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <p class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">⏱️ Timing Rules</p>
+  <div class="space-y-3">
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-amber-900/50 border border-amber-500/40 flex items-center justify-center text-xs text-amber-300 font-bold">1</span>
+      <p class="text-sm text-gray-300">Opponent places tiles and announces their score</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-amber-900/50 border border-amber-500/40 flex items-center justify-center text-xs text-amber-300 font-bold">2</span>
+      <p class="text-sm text-gray-300">You say "Hold" to pause them from drawing new tiles</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-amber-900/50 border border-amber-500/40 flex items-center justify-center text-xs text-amber-300 font-bold">3</span>
+      <p class="text-sm text-gray-300">Announce "Challenge" — the word is looked up by a director or adjudication device</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-amber-900/50 border border-amber-500/40 flex items-center justify-center text-xs text-amber-300 font-bold">4</span>
+      <p class="text-sm text-gray-300">Once opponent draws tiles, the challenge window closes — the word stands</p>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Challenge</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-1">✓ Good Times to Challenge</p>
+    <p class="text-xs text-gray-400">High-scoring plays you've never seen before, words using unusual letter combos, plays in crucial endgame moments, words that "look wrong" despite familiar roots.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">✗ Bad Times to Challenge</p>
+    <p class="text-xs text-gray-400">Short common words (2-3 letters), words you half-recognise, when you're ahead comfortably, low-scoring plays that don't change the game outcome.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Art of Bluffing (Phoney Plays)</h2>
+
+<p>Playing a non-word intentionally — known as a "phoney" — is a legal and common tactic in competitive Scrabble. If unchallenged, the word stays on the board and scores normally.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Confidence sells:</span> Place your phoney quickly and confidently. Hesitation signals uncertainty and invites challenges. Top players practice their poker face for phoney plays.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use plausible phoneys:</span> Words that look like they could be real (familiar prefixes + suffixes) are much harder to challenge than completely random letter strings.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Risk calculation:</span> Under NASPA rules, a successful phoney on a 40-point play effectively gives you a 65+ point swing (your 40 gained + opponent's lost turn). Under WESPA, the risk is lower because challenges are free.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Challenge Etiquette</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Be polite:</span> Say "I'd like to challenge" calmly. Never slam the table or accuse your opponent of cheating. Challenges are a normal part of the game.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Don't fish for information:</span> Asking "Is that really a word?" before deciding to challenge is considered poor etiquette. Either challenge or accept the play.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Accept results gracefully:</span> Whether your challenge succeeds or fails, move on without commentary. Dwelling on challenges disrupts the flow and your opponent's concentration.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/famous-scrabble-controversies/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Famous Scrabble Controversies — challenge disputes that made headlines</span>
+    </a>
+    <a href="/blog/preparing-for-first-tournament/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Preparing for Your First Tournament — including challenge etiquette</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-rules-explained/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Rules Explained</span>
+    </a>
+    <a href="/blog/scrabble-etiquette/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Etiquette</span>
+    </a>
+    <a href="/blog/common-illegal-words-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Common Illegal Words in Scrabble</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Verify any word before you challenge — free and instant</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

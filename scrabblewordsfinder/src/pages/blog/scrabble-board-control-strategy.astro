@@ -1,38 +1,182 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout title="Scrabble Board Control Strategy — Opening vs Closing the Board" description="Master board control in Scrabble: when to open vs close the board, controlling premium square access, and defensive plays that win games without big scores." keywords="scrabble board control, open vs closed board scrabble, scrabble defensive strategy, premium square control, scrabble positional play, board management scrabble">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Scrabble Board Control Strategy — Opening vs Closing the Board","description":"Master board control in Scrabble: opening vs closing, premium square access, and defensive positional plays.","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/scrabble-board-control-strategy"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What does it mean to open or close the board in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"Opening the board means creating new lanes and access points for longer words and premium squares. Closing means blocking those lanes and restricting play options. Open boards favor players with bingo-ready racks; closed boards favor players with short power words."}},{"@type":"Question","name":"When should you play defensively in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"Play defensively when you're ahead by 30+ points, when your opponent likely has a bingo (they drew 7 tiles recently), or when TWS/DWS squares become accessible. Deny your opponent opportunities rather than maximizing your own score."}},{"@type":"Question","name":"How do you control premium squares in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"Control premium squares by: playing words that don't create access to TWS for your opponent, blocking open lanes that lead to DWS/TWS, and using short words to take premium squares yourself before your opponent can reach them."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12"><article class="prose prose-invert prose-gray max-w-none">
-    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Strategy</span></nav>
-    <h1 class="text-3xl font-bold text-white mb-4">Scrabble Board Control Strategy — Opening vs Closing the Board</h1>
-    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>6 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-    <p class="text-lg leading-relaxed text-gray-300 mb-8">Scrabble isn't just about finding the highest-scoring word — it's about controlling the board. Every play you make either opens new opportunities or shuts them down. The best players think two moves ahead: where will this word let my opponent play, and what does it give me next turn?</p>
-    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><div class="flex flex-wrap items-center justify-center gap-6 text-center"><div><p class="text-xl font-bold text-amber-400">8</p><p class="text-xs text-gray-400">TWS Squares</p></div><div><p class="text-xl font-bold text-amber-400">17</p><p class="text-xs text-gray-400">DWS Squares</p></div><div><p class="text-xl font-bold text-amber-400">24</p><p class="text-xs text-gray-400">DLS Squares</p></div><div><p class="text-xl font-bold text-amber-400">12</p><p class="text-xs text-gray-400">TLS Squares</p></div></div></div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Opening the Board</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">When to open:</span> Open the board when you have a bingo-ready rack (good balance of vowels/consonants with common letters like SATIRE). Open lanes let you place 7-letter words for the 50-point bonus.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">How to open:</span> Play words that extend into empty areas of the board. Use letters near TWS rows/columns to create new anchor points. Leave vowels adjacent to premium squares.</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Closing the Board</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">When to close:</span> Close the board when you're ahead and want to protect your lead. Also close when your opponent likely has a bingo — restrict their 7+ letter options by blocking open lanes.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">How to close:</span> Play parallel to existing words (stacking). Use short words that don't extend into empty regions. Block the squares adjacent to TWS so no word can reach the triple.</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Defensive Plays</h2>
-    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">✓ Block TWS access</p><p class="text-xs text-gray-400">Play next to a TWS so your opponent can't reach it with a long word</p></div>
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">✓ Dead-end lanes</p><p class="text-xs text-gray-400">Create words that end at board edges with no extension possibilities</p></div>
-      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10"><p class="text-red-400 font-semibold text-sm mb-1">✗ Open TWS lanes</p><p class="text-xs text-gray-400">Don't leave a clear path from a played word to a TWS for your opponent</p></div>
-      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10"><p class="text-red-400 font-semibold text-sm mb-1">✗ Vowel gifts</p><p class="text-xs text-gray-400">Don't place vowels adjacent to TWS — they make it easy for opponents to hook</p></div>
-    </div>
-    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20"><p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p><p class="text-base text-gray-200">The player who <span class="text-white font-medium">controls the board controls the game</span>. A 15-point play that blocks your opponent's 40-point opportunity is worth 25 points more than it appears. Always evaluate plays by net impact, not raw score.</p></div>
-    <aside class="border-t border-gray-800 mt-12 pt-8 not-prose"><h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3><div class="grid gap-3"><a href="/blog/scrabble-triple-word-score-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Triple Word Score Strategy — Reaching and Blocking TWS</span></a><a href="/blog/defensive-scrabble-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Defensive Scrabble Strategy</span></a></div></aside>
-    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl"><div class="flex items-center justify-between gap-4 flex-wrap"><p class="text-sm text-blue-300 font-medium">🔤 Plan your board control moves — free Scrabble solver, no sign-up</p><a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a></div></div>
-    <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-  </article></div>
-</BlogLayout>
+<Layout title="Scrabble Board Control Strategy — Open vs Closed Boards | ScrabbleWordsFinder.com" description="Master board control in Scrabble. Learn when to open or close the board, block premium squares, and use positional play to dominate every game." keywords="scrabble board control, open board scrabble, closed board scrabble, scrabble positional play, premium square control, scrabble defensive strategy">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Board Control Strategy — Open vs Closed Boards",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What does it mean to open or close the board in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Opening the board creates new lanes and access to premium squares, favouring players with bingo-ready racks. Closing the board blocks lanes and restricts play to short words, favouring players with a point lead or power tiles." }},
+    { "@type": "Question", "name": "When should you play defensively in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Play defensively when leading by 30+ points, when your opponent likely has a bingo (drew 7 tiles), or when triple word squares become accessible. Denying opportunities is often worth more than maximising your own score." }},
+    { "@type": "Question", "name": "How do you block triple word scores in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Block TWS by playing short words adjacent to the triple square so no word can land on it, or by placing consonant-heavy endings next to it that are hard to hook onto. Never leave a vowel one square away from a TWS." }}
+  ]
+})} />
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors">Strategy</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Board Control Strategy</span>
+</nav>
+
+<BlogCrossLinks current={slug} />
+
+<h1 class="text-3xl font-bold mb-2">Scrabble Board Control Strategy — Open vs Closed Boards</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 7 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Every word you place either opens new scoring lanes or shuts them down. Board control — the art of manipulating available space — separates intermediate players from experts. Master this concept and you'll win games even when drawing mediocre tiles.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Board as a Battlefield</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">8</p><p class="text-xs text-gray-400">Triple Word Squares</p></div>
+    <div><p class="text-xl font-bold text-amber-400">17</p><p class="text-xs text-gray-400">Double Word Squares</p></div>
+    <div><p class="text-xl font-bold text-amber-400">24</p><p class="text-xs text-gray-400">Double Letter Squares</p></div>
+    <div><p class="text-xl font-bold text-amber-400">12</p><p class="text-xs text-gray-400">Triple Letter Squares</p></div>
+  </div>
+</div>
+
+<p>The 15×15 Scrabble board has 61 premium squares. Controlling access to these — especially the 8 triple word scores — is the single most important positional skill you can develop.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Open the Board</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Bingo-ready rack:</span> If your rack has good vowel/consonant balance with common letters (SATIRE, RETINA stems), open the board to create 7+ letter landing spots. The 50-point bonus rewards open play.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">When trailing:</span> If you're behind by 40+ points, you need big plays to catch up. Open boards create opportunities for high-scoring plays that can swing the game. Accept the risk — playing defensively while losing only cements the loss.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">How to open:</span> Extend words into empty board quadrants. Place words perpendicular to existing plays near edges. Leave vowels adjacent to premium squares that you plan to exploit next turn.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Close the Board</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Protecting a lead:</span> When ahead by 30+ points, restrict your opponent's options. Short parallel plays and board-edge words limit scoring opportunities without opening new lanes.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Opponent has bingo potential:</span> If they just exchanged and drew 7 fresh tiles, they likely have a strong rack. Close lanes to deny bingo placements — even sacrificing 10 points on your turn is worth blocking their 70+ point bingo.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">How to close:</span> Play parallel (stacking) alongside existing words. Use dead-end consonant clusters at board edges. Block squares adjacent to TWS with letters that are hard to hook.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-triple-word-score-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Triple Word Score Strategy — reaching and blocking TWS squares</span>
+    </a>
+    <a href="/blog/scrabble-endgame-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Endgame Strategy — closing out games with tile tracking</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Defensive Positional Plays</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-1">✓ Block TWS access</p>
+    <p class="text-xs text-gray-400">Play next to a TWS so no word can land on it. Even a 2-letter play here is high-value defence.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-1">✓ Dead-end lanes</p>
+    <p class="text-xs text-gray-400">Words ending at board edges with no extension possibilities. Your opponent can't build off them.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">✗ Open TWS lanes</p>
+    <p class="text-xs text-gray-400">Never leave a clear path from an existing word to a TWS. That's handing your opponent a 3× multiplier.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">✗ Vowel gifts near TWS</p>
+    <p class="text-xs text-gray-400">Vowels near premium squares make it easy for opponents to hook high-value plays onto them.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Net Impact Thinking</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+  <p class="text-base text-gray-200">A 15-point play that <span class="text-white font-medium">blocks your opponent's 45-point opportunity</span> has a net impact of +30 compared to a 25-point play that opens a TWS lane. Always evaluate moves by spread impact, not raw score alone.</p>
+</div>
+
+<p>Before placing any word, ask: "What does this give my opponent?" If your 30-point play opens a triple-triple possibility, the net impact might be negative. The best board controllers think two moves ahead — what will my opponent do, and what will that let me do next?</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Reading the Board State</h2>
+
+<p>Experienced players scan the board before every turn using a mental checklist that guides whether to open or close:</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Count open TWS lanes:</span> How many triple word squares are currently reachable in one play? If the answer is 2 or more, the board is dangerously open — consider closing unless you can exploit them first.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Check board edges:</span> Words extending to rows 1, 15 or columns A, O create access to corner TWS. If your opponent's last play moved toward an edge, they may be setting up a triple next turn.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Assess tile flow:</span> If 60+ tiles are played and no bingo has appeared, one is likely coming soon. Tighten the board pre-emptively to deny 7-letter landing spots.</p>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/psychology-of-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Psychology of Scrabble — Mind Games & Tilt</span>
+    </a>
+    <a href="/blog/scrabble-endgame-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Endgame Strategy</span>
+    </a>
+    <a href="/blog/defensive-scrabble-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Defensive Scrabble Strategy</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find the perfect positional play — enter your tiles now</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

@@ -1,41 +1,174 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout title="Scrabble Words With W — Maximize Your 4-Point Tile" description="Master W words in Scrabble: WHARF (14pts), WIDOW (10pts), SWALLOW (10pts). Only 2 W tiles — learn optimal placement on premium squares for maximum impact." keywords="scrabble words with w, w words scrabble, wharf scrabble, widow scrabble, swallow scrabble, w tile strategy, high scoring w words">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Scrabble Words With W — Maximize Your 4-Point Tile","description":"Master W words in Scrabble with scoring breakdowns and strategic premium square placement tips.","datePublished":"2026-06-30","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/scrabble-words-with-w"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many W tiles are in Scrabble?","acceptedAnswer":{"@type":"Answer","text":"There are 2 W tiles in a standard Scrabble game, each worth 4 points. Like V, W is a semi-premium tile that benefits greatly from bonus square placement."}},{"@type":"Question","name":"What is the best W word for premium squares?","acceptedAnswer":{"@type":"Answer","text":"WHARF scores 14 points base and is perfect for premium squares. Place the W on a DLS for 8 bonus points, or land the whole word on a DWS for 28 points total."}},{"@type":"Question","name":"What short W words work well in tight spaces?","acceptedAnswer":{"@type":"Answer","text":"WAX (13pts), WIZ (15pts), and WOK (10pts) are excellent compact W plays. They pair W with other premium letters for high efficiency in limited board space."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12"><article class="prose prose-invert prose-gray max-w-none">
-    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1"><a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a><span class="mx-1">›</span><span class="text-gray-300">Strategy</span></nav>
-    <h1 class="text-3xl font-bold text-white mb-4">Scrabble Words With W — Maximize Your 4-Point Tile</h1>
-    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400"><time datetime="2026-06-30">June 30, 2026</time><span class="w-1 h-1 rounded-full bg-gray-600"></span><span>5 min read</span><span class="w-1 h-1 rounded-full bg-gray-600"></span><a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a></div>
-    <p class="text-lg leading-relaxed text-gray-300 mb-8">W is one of those tiles players often underestimate. At 4 points with only 2 in the bag, it carries solid value — especially on premium squares. Words like WHARF leverage W alongside other mid-value letters, while short plays like WAX and WIZ deliver efficient point dumps when the board is tight.</p>
-    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><div class="flex flex-wrap items-center justify-center gap-6 text-center"><div><p class="text-xl font-bold text-amber-400">4</p><p class="text-xs text-gray-400">Points per W</p></div><div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">W Tiles in Bag</p></div><div><p class="text-xl font-bold text-amber-400">14</p><p class="text-xs text-gray-400">Top Score (WHARF)</p></div><div><p class="text-xl font-bold text-amber-400">12</p><p class="text-xs text-gray-400">W on TLS</p></div></div></div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Top W Words by Score</h2>
-    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">🏆 WHARF</p><p class="text-xs text-gray-400">14 points · 5 letters · W+H premium stack</p></div>
-      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10"><p class="text-green-400 font-semibold text-sm mb-1">🏆 WIDOW</p><p class="text-xs text-gray-400">10 points · 5 letters · Common vocabulary</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⭐ SWALLOW</p><p class="text-xs text-gray-400">10 points · 7 letters · Bingo eligible</p></div>
-      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10"><p class="text-amber-400 font-semibold text-sm mb-1">⭐ DWARF</p><p class="text-xs text-gray-400">12 points · 5 letters · Strong D+W opener</p></div>
-    </div>
-    <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">W on Premium Squares</h2>
-    <div class="not-prose my-6 grid grid-cols-1 gap-4">
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">W on DLS = 8 pts:</span> That's more than most common tiles score in an entire word. Always scan for DLS when W is on your rack — it's the most efficient single-tile bonus you can get.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">WH- openers dominate:</span> WHARF, WHACK, WHALE, WHILE — the WH combination opens dozens of words. H (4pts) + W (4pts) gives 8 points from just two letters before you even count the rest.</p></div>
-      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors"><p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Don't hold W late:</span> Like V, W becomes a liability in the endgame. If you can't use it productively by mid-game, consider exchanging rather than losing 4 points at game end.</p></div>
-    </div>
-    <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WAX</span><span class="text-blue-400 text-xs">13pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WIZ</span><span class="text-blue-400 text-xs">15pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WOK</span><span class="text-blue-400 text-xs">10pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OWL</span><span class="text-blue-400 text-xs">6pts</span></span>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WEB</span><span class="text-blue-400 text-xs">8pts</span></span>
-    </div>
-    <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20"><p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p><p class="text-base text-gray-200">W appears in many <span class="text-white font-medium">everyday words</span> players forget are high-scoring: DWARF (12), SWIFT (11), SWEPT (10). Don't overlook common vocabulary when W is on your rack.</p></div>
-    <aside class="border-t border-gray-800 mt-12 pt-8 not-prose"><h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3><div class="grid gap-3"><a href="/blog/scrabble-words-with-v/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words With V — Strategy for the 4-Point Tile</span></a><a href="/blog/scrabble-words-with-k/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Scrabble Words With K — The 5-Point Singleton</span></a></div></aside>
-    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl"><div class="flex items-center justify-between gap-4 flex-wrap"><p class="text-sm text-blue-300 font-medium">🔤 Find all W words instantly — free Scrabble solver, no sign-up</p><a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a></div></div>
-    <div class="not-prose mt-8 text-center"><a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a></div>
-  </article></div>
-</BlogLayout>
+<Layout title="Best Scrabble Words With W — Strategy & High Scorers | ScrabbleWordsFinder.com" description="Master W tile strategy in Scrabble. Find the best words with W, learn digraph tricks (WH, WR), and score big with this underrated 4-point tile." keywords="scrabble words with w, w words scrabble, best w scrabble words, w tile strategy, high scoring w words, wh words scrabble">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Best Scrabble Words With W — Strategy & High Scorers",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How many W tiles are in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "There are 2 W tiles in the standard Scrabble bag, each worth 4 points. W is versatile — it starts many common words and pairs well with H (WH words) and R (WR words)." }},
+    { "@type": "Question", "name": "What are the highest-scoring W words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "WHIZ (19 pts), WAX (13 pts), and WOX (13 pts) top the short-word list. For longer plays, WORKBOX (23 pts) and WAXWORK (24 pts) deliver enormous scores without premium squares." }},
+    { "@type": "Question", "name": "Can W end a Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! Several valid words end in W: BOW, COW, DEW, FEW, JAW, MEW, NEW, OW, RAW, SAW, SEW, TOW, VOW, WOW, YEW. These are essential for parallel plays and board-edge positions." }}
+  ]
+})} />
+
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
+
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words With W</span>
+</nav>
+
+<BlogCrossLinks current={slug} />
+
+<h1 class="text-3xl font-bold mb-2">Best Scrabble Words With W — Strategy & High Scorers</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">W is one of Scrabble's most underrated tiles. Worth 4 points with 2 in the bag, it combines with almost every vowel and forms powerful digraphs (WH, WR) that start hundreds of common words. Unlike V, W happily ends words (BOW, DEW, RAW) giving you flexibility in tight board positions.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">W Tile at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">4 pts</p><p class="text-xs text-gray-400">Tile value</p></div>
+    <div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Tiles in bag</p></div>
+    <div><p class="text-xl font-bold text-amber-400">WH WR OW AW</p><p class="text-xs text-gray-400">Key combos</p></div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring W Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WHIZ</td><td class="px-4 py-3 text-amber-600 font-bold">19</td><td class="px-4 py-3">4</td><td class="px-4 py-3">W(4)+H(4)+Z(10)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WAX</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">3</td><td class="px-4 py-3">W(4)+X(8) power pair</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WAXWORK</td><td class="px-4 py-3 text-amber-600 font-bold">24</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Bingo candidate</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WHACK</td><td class="px-4 py-3 text-amber-600 font-bold">17</td><td class="px-4 py-3">5</td><td class="px-4 py-3">W(4)+H(4)+K(5)+C(3)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WHELK</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">5</td><td class="px-4 py-3">W(4)+H(4)+K(5)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WHIFF</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">5</td><td class="px-4 py-3">W(4)+H(4)+FF(8)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">HAWK</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">4</td><td class="px-4 py-3">H(4)+W(4)+K(5)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">W-Ending Words (Board Savers)</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OW</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AW</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">EW</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">JAW</span><span class="text-blue-400 text-xs">13 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">YEW</span><span class="text-blue-400 text-xs">9 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">VOW</span><span class="text-blue-400 text-xs">9 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">DEW</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">COW</span><span class="text-blue-400 text-xs">8 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">W Tile Strategy</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">WH is your opening gambit:</span> WHIZ, WHACK, WHALE, WHERE — WH words dominate high-scoring plays. When you draw W, immediately check if H is available for the WH combo.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">W ends words unlike V:</span> This is W's biggest advantage over V. Words ending in OW, AW, EW give you flexibility to play W at the board edge or in parallel positions where V would be stuck.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Pair with premium tiles:</span> W+Z (WHIZ=19), W+X (WAX=13), W+K (HAWK=14), W+J (JAW=13). Always look for these combinations before settling for a basic W play.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">W Combo Patterns</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+  <p class="text-base text-gray-200">W's biggest strength over V is <span class="text-white font-medium">positional flexibility</span>. W starts words (WAS, WHACK), ends words (BOW, DEW, JAW), and sits in the middle (AWED, OWES, TOWN). This means W almost never gets stuck on your rack.</p>
+</div>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">✓ W is flexible (unlike V)</p>
+    <p class="text-xs text-gray-400">W starts words, ends words, and appears mid-word. It pairs with all 5 vowels and forms useful digraphs with H and R.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-2">✗ V is restricted</p>
+    <p class="text-xs text-gray-400">V rarely ends words, almost always needs a vowel adjacent, and has fewer 2-letter options. W is the superior 4-point tile.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-words-with-y/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Words With Y — dual vowel/consonant tile</span>
+    </a>
+    <a href="/blog/words-with-w-not-followed-by-vowel/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words With W Not Followed By Vowel — unusual patterns</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-words-with-v/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With V</span>
+    </a>
+    <a href="/blog/scrabble-words-with-h/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With H</span>
+    </a>
+    <a href="/blog/scrabble-words-with-y/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Words With Y</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your W tiles and find every word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

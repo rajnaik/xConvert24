@@ -1,55 +1,181 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Longest Common Scrabble Words"
-  description="The longest words that appear regularly in competitive Scrabble. 8-15 letter plays you should know."
-  keywords="scrabble, longest, common, scrabble, words"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Longest Common Scrabble Words",
-    "description": "The longest words that appear regularly in competitive Scrabble. 8-15 letter plays you should know.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/longest-common-scrabble-words" }
-  })} />
+<Layout title="Longest Common Scrabble Words — Long Words Using Common Tiles | ScrabbleWordsFinder.com" description="Discover long Scrabble words made entirely from common tiles. Master 7-9 letter words using high-frequency letters like SATIRE, NASTIER, and RETAINS." keywords="longest scrabble words, common tile bingos, long scrabble words easy tiles, 7 letter scrabble words, bingo words common letters, scrabble long words">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Longest Common Scrabble Words — Long Words Using Common Tiles",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Longest Common Scrabble Words</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the longest Scrabble words using only common tiles?", "acceptedAnswer": { "@type": "Answer", "text": "Words like RESTATION (9 letters), RELATIONS (9), ORIENTALS (9), and RAISONNEE (9) use only 1-point tiles. For 8 letters: ENTRAILS, LATRINES, TRENAILS, LITERALS, TALLIERS — all made from the most common Scrabble tiles." }},
+    { "@type": "Question", "name": "What makes a good bingo stem in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The best bingo stems use common tiles (1-2 points each) that appear frequently in the bag. SATIRE, RETAIN, NASTIER, and ALINES are top stems because their letters (S,A,T,I,R,E,N,L) are among the most abundant tiles. Any 7th letter often completes a valid word." }},
+    { "@type": "Question", "name": "How many 7-letter words can be made from common tiles?", "acceptedAnswer": { "@type": "Answer", "text": "The stem SATIRE alone combines with 23 different letters to form valid 7-letter words (NASTIER, STAINER, RETINAS, etc.). Common-tile stems collectively produce hundreds of valid bingos, making them essential study material." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">The longest words that appear regularly in competitive Scrabble. 8-15 letter plays you should know.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/word-lists/" class="hover:text-amber-500 transition-colors">Word Lists</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Longest Common Scrabble Words</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Longest Common Scrabble Words — Long Words Using Common Tiles</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The most practical long words in Scrabble aren't built from rare power tiles — they use the letters you draw most often. Mastering bingos from common tiles (E, A, I, O, N, R, T, S, L) means scoring 50-point bonuses in nearly every game.</p>
+
+<p>These words are the bread and butter of competitive Scrabble. While opponents chase flashy Z and X plays, consistent bingo players win tournaments by reliably scoring 60-80 extra points per game from common-tile stems.</p>
+
+<p>The secret? The letters AEIONRSTL make up over 65% of the tile bag. Any 7-tile draw has a high probability of containing a bingo-ready combination from these letters alone. Learning to spot these patterns is the fastest path to consistent high scoring.</p>
+
+<p>Below are the most productive stems and their extensions — study these first for maximum tournament impact.</p>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 The Bingo Advantage</p>
+  <p class="text-base text-gray-200">In competitive Scrabble, the player who gets <span class="text-white font-medium">more bingos wins 75% of games</span>. A single bingo (50-point bonus + word score) typically yields 65-90 points — equivalent to 3-4 average turns compressed into one play.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Bingo Stems (7-Letter Combinations)</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Stem</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Letters</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Combines With</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Example Words</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">SATIRE</td><td class="px-4 py-3">S,A,T,I,R,E</td><td class="px-4 py-3 text-amber-600 font-bold">23 letters</td><td class="px-4 py-3">NASTIER, ANTSIER, STAINER</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">RETAIN</td><td class="px-4 py-3">R,E,T,A,I,N</td><td class="px-4 py-3 text-amber-600 font-bold">21 letters</td><td class="px-4 py-3">RETINAS, NASTIER,ERTAIN</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">ALINES</td><td class="px-4 py-3">A,L,I,N,E,S</td><td class="px-4 py-3 text-amber-600 font-bold">19 letters</td><td class="px-4 py-3">SALINE+R, NAILERS, ALINERS</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">TORIES</td><td class="px-4 py-3">T,O,R,I,E,S</td><td class="px-4 py-3 text-amber-600 font-bold">18 letters</td><td class="px-4 py-3">STORIED, SORTIED, EDITORS</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">8-9 Letter Words from Common Tiles</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">9-Letter Words (All 1-pt tiles)</p>
+    <p class="text-xs text-gray-400">RELATIONS, ORIENTALS, RATIONALE, TENSORIAL, SEROTINAL, ASSERTION</p>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+    <p class="text-blue-400 font-semibold text-sm mb-2">8-Letter Words (All 1-pt tiles)</p>
+    <p class="text-xs text-gray-400">ENTRAILS, LATRINES, TRENAILS, LITERALS, TALLIERS, RESILANT, RETAILNS</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">9+50</p><p class="text-xs text-gray-400">Min bingo score</p></div>
+    <div><p class="text-xl font-bold text-amber-400">1 pt</p><p class="text-xs text-gray-400">Per tile (base)</p></div>
+    <div><p class="text-xl font-bold text-amber-400">59+</p><p class="text-xs text-gray-400">Guaranteed points</p></div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How to Study Common-Tile Bingos</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Anagram daily:</span> Take one bingo stem (e.g., SATIRE) and practice finding all 7-letter words by adding each letter of the alphabet. Start with 5 minutes a day — speed comes with repetition.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Flash card stems:</span> Write each 6-letter stem on one side, valid 7-letter extensions on the other. Test yourself on which letters combine with which stems until it becomes automatic.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play practice racks:</span> Draw random 7-tile racks using only common tiles (AEIONRSTL) and try to find a bingo within 30 seconds. This builds the pattern recognition needed in real games.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Pro Tip</p>
+  <p class="text-base text-gray-200">Tournament players study bingo stems in order of <span class="text-white font-medium">probability</span> — SATIRE first because those 6 tiles are the most likely combination you'll draw. Then RETAIN, then ALINES. Prioritise by how often you'll actually see these letters together.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why Common-Tile Bingos Win Games</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Frequency advantage:</span> You draw 1-point tiles (AEIONRST) far more often than power tiles. Learning bingos from these letters means you can bingo nearly every game rather than waiting for lucky draws.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Rack leave synergy:</span> After playing a bingo using common tiles, your replacement draw is likely to contain more common tiles — setting up your next bingo opportunity.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Through-letter flexibility:</span> Common-tile stems work through almost any letter already on the board. SATIRE + board C = RACIEST. SATIRE + board N = NASTIER. Multiple options on any board.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/top-bingo-stems-satire/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Top Bingo Stems: SATIRE — complete 23-word combination list</span>
+    </a>
+    <a href="/blog/spotting-bingos-on-your-rack/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Spotting Bingos on Your Rack — pattern recognition techniques</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/seven-letter-words-with-common-tiles/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Seven-Letter Words With Common Tiles</span>
+    </a>
+    <a href="/blog/bingo-racks-to-memorise/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Bingo Racks to Memorise</span>
+    </a>
+    <a href="/blog/common-bingo-prefixes/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Common Bingo Prefixes</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Find every bingo from your rack tiles — free and instant</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

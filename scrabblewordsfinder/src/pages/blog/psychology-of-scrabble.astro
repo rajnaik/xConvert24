@@ -1,55 +1,210 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Psychology of Scrabble — Mental Game Tips"
-  description="The mental side of competitive Scrabble. Tilt, confidence, reading opponents, and maintaining focus."
-  keywords="scrabble, psychology, of, scrabble"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Psychology of Scrabble — Mental Game Tips",
-    "description": "The mental side of competitive Scrabble. Tilt, confidence, reading opponents, and maintaining focus.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/psychology-of-scrabble" }
-  })} />
+<Layout title="Psychology of Scrabble — Mind Games, Tilt & Opponent Reading | ScrabbleWordsFinder.com" description="Master the mental game of Scrabble. Learn to manage tilt, read opponents, maintain focus under pressure, and use psychological tactics to gain a competitive edge." keywords="scrabble psychology, mental game scrabble, scrabble tilt, reading opponents scrabble, scrabble focus, competitive scrabble mindset">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/strategy/" class="hover:text-blue-400 transition-colors text-gray-300">Strategy</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Psychology of Scrabble — Mind Games, Tilt & Opponent Reading",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Psychology of Scrabble — Mental Game Tips</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is tilt in Scrabble and how do you avoid it?", "acceptedAnswer": { "@type": "Answer", "text": "Tilt is the emotional frustration that causes poor decision-making after a bad draw or opponent's big play. Avoid it by taking a deep breath between turns, focusing on the next play rather than the last one, and accepting that variance is part of the game." }},
+    { "@type": "Question", "name": "How can you read your opponent in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Watch for tells: long hesitation suggests a bingo attempt, quick plays suggest they had their move planned, exchanging tiles signals a terrible rack, and defensive plays near premium squares hint they're protecting a lead." }},
+    { "@type": "Question", "name": "Does confidence affect Scrabble performance?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Confident players challenge more accurately, take calculated risks on premium squares, and play faster which preserves clock time. Overconfidence, however, leads to missed defensive plays and unnecessary challenges." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">The mental side of competitive Scrabble. Tilt, confidence, reading opponents, and maintaining focus.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors">Strategy</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Psychology of Scrabble</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Psychology of Scrabble — Mind Games, Tilt & Opponent Reading</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 6 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Scrabble isn't purely a vocabulary contest — it's a battle of composure, observation, and emotional control. The player who stays calm after drawing UUIIOW while their opponent bingos will outlast the genius who crumbles under pressure. Here's how to sharpen the mental edge that separates club players from champions.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Understanding Tilt</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">73%</p><p class="text-xs text-gray-400">Players report tilt affects scores</p></div>
+    <div><p class="text-xl font-bold text-amber-400">30–50</p><p class="text-xs text-gray-400">Points lost per tilted game</p></div>
+    <div><p class="text-xl font-bold text-amber-400">3 turns</p><p class="text-xs text-gray-400">Avg recovery time from tilt</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<p>Tilt is the emotional state where frustration overrides rational play. It commonly triggers after an opponent's unexpected bingo, drawing all vowels or all consonants, losing a challenge, or watching your planned spot get blocked.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Breathe between turns:</span> Take 3 seconds before looking at your rack after an opponent's big play. This tiny pause prevents reactive decisions and resets your focus to what you can control.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Accept variance:</span> Even the best rack can draw poorly. Treat bad draws as puzzles to solve, not injustices to protest. The bag doesn't know who you are — it's random, and that randomness evens out over tournaments.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Score the situation, not the emotion:</span> After an opponent bingos, ask "what's the spread now?" rather than "that's unfair." Quantifying the deficit makes it manageable — a 50-point gap is recoverable in 3-4 turns.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Reading Your Opponent</h2>
+
+<p>Competitive Scrabble rewards observation. Your opponent's behaviour gives away information about their rack, their plans, and their confidence level.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">Long hesitation</p>
+    <p class="text-xs text-gray-400">Often means they're weighing a bingo attempt or a risky phoney. They have options but aren't sure which is best.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">Quick confident play</p>
+    <p class="text-xs text-gray-400">They planned this move while you were thinking. Usually means a strong rack with clear best option.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">Tile exchange</p>
+    <p class="text-xs text-gray-400">Signals a terrible rack — multiple duplicates or vowel-consonant imbalance. Expect a weaker play next turn.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">Defensive short plays</p>
+    <p class="text-xs text-gray-400">Playing 2-3 letter words near premium squares suggests they're protecting a lead or denying you access.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-endgame-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Endgame Strategy — tile tracking and spread management</span>
+    </a>
+    <a href="/blog/scrabble-board-control-strategy/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Board Control Strategy — when to open vs close the board</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Confidence & Risk Calibration</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 The Confidence Paradox</p>
+  <p class="text-base text-gray-200">Players at <span class="text-white font-medium">peak confidence challenge more accurately</span> because they trust their word knowledge. But overconfident players challenge words they haven't seen — costing 5+ points on a failed challenge plus their turn.</p>
+</div>
+
+<p>Confidence affects three critical decisions: whether to challenge, whether to play a phoney, and whether to attempt a risky bingo over a safer 30-point play.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-1">✓ Healthy Confidence</p>
+    <p class="text-xs text-gray-400">Playing your best move without second-guessing. Challenging words you're 80%+ sure are invalid. Taking calculated risks when behind.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">✗ Overconfidence</p>
+    <p class="text-xs text-gray-400">Challenging every unfamiliar word. Playing phoneys against experienced opponents. Ignoring defensive needs when ahead.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Focus & Stamina in Tournaments</h2>
+
+<p>Tournament Scrabble demands 5-7 games in a single day, each lasting 45-75 minutes. Mental fatigue is the silent score-killer — you might play brilliantly for 4 games then collapse in round 5.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hydrate and snack:</span> Blood sugar drops destroy focus. Bring water and slow-release snacks (nuts, fruit). Skip the sugar rush — it crashes mid-game.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Reset between rounds:</span> Walk outside for 2 minutes between games. Don't review the previous game — park it and start fresh. Your brain needs the context switch.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Automate early decisions:</span> Know your first-move strategy before the tournament starts. Don't burn mental energy on decisions you can pre-plan (opening words, challenge thresholds, exchange criteria).</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Psychological Tactics (Ethical)</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+  <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">🧠 Tempo Control</p>
+  <p class="text-base text-gray-200">Playing quickly when ahead puts <span class="text-white font-medium">time pressure on your opponent</span>. They feel rushed, make worse decisions, and can't plan ahead. Conversely, slow deliberate plays when behind signal confidence and deny your opponent momentum.</p>
+</div>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">Play uncommon words</p>
+    <p class="text-xs text-gray-400">Valid obscure words force opponents to decide: challenge and risk a turn, or let it stand. QI, ZA, and JO are common — try QANAT or TRANQ.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">Vary your speed</p>
+    <p class="text-xs text-gray-400">Don't be predictable. Occasionally pause on easy plays — it makes opponents wonder what you're seeing that they're not.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">🔗 Related Guides</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-clock-management/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Clock Management — time strategy in tournaments</span>
+    </a>
+    <a href="/blog/scrabble-club-etiquette/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Club Etiquette — behaviour norms at clubs</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-endgame-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Endgame Strategy</span>
+    </a>
+    <a href="/blog/scrabble-triple-word-score-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Triple Word Score Strategy</span>
+    </a>
+    <a href="/blog/scrabble-rating-system-explained/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Rating System Explained</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Sharpen your word arsenal — find every valid play instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="How to Improve at Scrabble Fast"
-  description="The fastest path from beginner to intermediate. Focus areas, study techniques, and practice routines."
-  keywords="scrabble, how, to, improve, at, scrabble, fast"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "How to Improve at Scrabble Fast",
-    "description": "The fastest path from beginner to intermediate. Focus areas, study techniques, and practice routines.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/how-to-improve-at-scrabble-fast" }
-  })} />
+<Layout title="How to Improve at Scrabble Fast — Quick Progress Strategies | ScrabbleWordsFinder.com" description="Accelerate your Scrabble improvement with proven study methods. Learn the fastest ways to expand vocabulary, improve board vision, and boost scores." keywords="improve at scrabble, get better scrabble fast, scrabble improvement tips, scrabble study methods, boost scrabble score, scrabble training">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Improve at Scrabble Fast — Quick Progress Strategies",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">How to Improve at Scrabble Fast</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is the fastest way to improve at Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Learn all 127 two-letter words first — they unlock parallel plays and score 2-3x more per turn. Then memorise common bingo stems (SATIRE, RETINA, ALINES). These two skills alone can boost your average score by 50-100 points per game within weeks." }},
+    { "@type": "Question", "name": "How long does it take to become a good Scrabble player?", "acceptedAnswer": { "@type": "Answer", "text": "With focused study of 15-30 minutes daily, most players see significant improvement within 4-6 weeks. Reaching tournament-level play typically takes 6-12 months of dedicated practice including word study, anagram practice, and regular competitive games." }},
+    { "@type": "Question", "name": "Should I memorise the entire Scrabble dictionary?", "acceptedAnswer": { "@type": "Answer", "text": "No. Focus on high-impact word lists: all 2-letter words (127), 3-letter words with power tiles (J, Q, X, Z), common bingo stems, and hook words. These cover 80% of practical game situations. Full dictionary memorisation is only needed at elite tournament level." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">The fastest path from beginner to intermediate. Focus areas, study techniques, and practice routines.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/strategy/" class="hover:text-amber-500 transition-colors">Strategy</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">How to Improve at Scrabble Fast</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">How to Improve at Scrabble Fast — Quick Progress Strategies</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 6 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">You don't need to memorise 279,000 words to dramatically improve at Scrabble. The biggest gains come from mastering a handful of high-leverage skills — the same approach tournament players used to go from casual to competitive in months rather than years.</p>
+
+<p>This guide focuses on the fastest path to measurable improvement. Follow the priority order below, dedicate 15 minutes daily, and you'll see your average score climb within two weeks.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The 80/20 Improvement Path</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">127</p><p class="text-xs text-gray-400">Two-letter words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">50-100</p><p class="text-xs text-gray-400">Points/game boost</p></div>
+    <div><p class="text-xl font-bold text-amber-400">15 min</p><p class="text-xs text-gray-400">Daily study needed</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+  <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Priority Study Order</p>
+  <div class="space-y-3">
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+      <p class="text-sm text-gray-300">All 127 two-letter words (1-2 weeks to master) — unlocks parallel plays</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+      <p class="text-sm text-gray-300">Power tile words — Q without U, high-scoring J/X/Z words (1 week)</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+      <p class="text-sm text-gray-300">Common bingo stems — SATIRE, RETINA, ALINES, NASTIER (2-3 weeks)</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+      <p class="text-sm text-gray-300">Hook words — single letters that transform existing words (ongoing)</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+      <p class="text-sm text-gray-300">Rack leave management — which tiles to keep vs exchange (advanced)</p>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Daily Practice Routine</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">📝 5 min: Word Drills</p>
+    <p class="text-xs text-gray-400">Flash through 20 two-letter words or anagram 5 seven-letter racks. Use spaced repetition — focus on words you keep forgetting.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+    <p class="text-blue-400 font-semibold text-sm mb-2">🎮 5 min: Anagram Practice</p>
+    <p class="text-xs text-gray-400">Use online anagram solvers or apps. Give yourself 30 seconds per rack. Speed builds pattern recognition that transfers to real games.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">♟️ 5 min: Board Study</p>
+    <p class="text-xs text-gray-400">Review one completed game. Find moves you missed, spots you overlooked, and better plays you could have made. Post-game analysis is the #1 accelerator.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+    <p class="text-purple-400 font-semibold text-sm mb-2">🎯 Play One Game</p>
+    <p class="text-xs text-gray-400">Play against a computer or online opponent at your level. Focus on applying one new skill per game rather than trying everything at once.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Common Mistakes That Slow Progress</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">✗ Playing only for highest immediate score</p>
+    <p class="text-xs text-gray-400">Beginners take the biggest word every turn. Better players consider rack leave — what tiles you keep matters more than what you play.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">✗ Ignoring board position</p>
+    <p class="text-xs text-gray-400">Opening triple-word squares for your opponent or closing the board too early costs more points than a slightly higher single-turn score.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">✗ Studying rare long words first</p>
+    <p class="text-xs text-gray-400">Knowing obscure 9-letter words is useless if you can't find parallel plays with 2-letter words. Build from the foundation up.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tracking Your Progress</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Measure Improvement</p>
+  <p class="text-base text-gray-200">Track your average score over 10 games. After 2 weeks of studying two-letter words, you should see a <span class="text-white font-medium">30-50 point increase</span> in your average. After learning bingo stems for a month, expect another <span class="text-white font-medium">40-60 point jump</span>. Measurable progress keeps motivation high.</p>
+</div>
+
+<p>Keep a simple spreadsheet or notebook logging: date, opponent strength, your score, opponent's score, number of bingos played, and notable words you missed. After 20 games, patterns emerge — showing you exactly where to focus next.</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/best-two-letter-words-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Best Two-Letter Words in Scrabble — the foundation of improvement</span>
+    </a>
+    <a href="/blog/rack-management-basics/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Rack Management Basics — keep better tiles, score more points</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/beginner-scrabble-strategy/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Beginner Scrabble Strategy</span>
+    </a>
+    <a href="/blog/preparing-for-first-tournament/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Preparing for Your First Tournament</span>
+    </a>
+    <a href="/blog/speed-anagramming-techniques/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Speed Anagramming Techniques</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Practice finding words from your rack — free, instant, no signup</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

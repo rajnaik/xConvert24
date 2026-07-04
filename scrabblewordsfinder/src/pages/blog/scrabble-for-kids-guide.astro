@@ -1,55 +1,186 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Scrabble for Kids — Simplified Guide"
-  description="How to teach Scrabble to children. Simplified rules, word suggestions, and making it fun."
-  keywords="scrabble, scrabble, for, kids, guide"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Scrabble for Kids — Simplified Guide",
-    "description": "How to teach Scrabble to children. Simplified rules, word suggestions, and making it fun.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-for-kids-guide" }
-  })} />
+<Layout title="Scrabble for Kids — A Fun Guide to Getting Started" description="Teach kids to play Scrabble with this beginner-friendly guide. Covers simplified rules, age-appropriate tips, vocabulary building, and family game strategies for children aged 6 and up." keywords="scrabble for kids, kids scrabble guide, teach children scrabble, family scrabble, beginner scrabble kids, scrabble educational, vocabulary games kids">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble for Kids — A Fun Guide to Getting Started",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "url": "https://www.scrabblewordsfinder.com/blog/scrabble-for-kids-guide/"
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Scrabble for Kids — Simplified Guide</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What age can kids start playing Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Children can start with Scrabble Junior at age 5-6, which uses a simplified board with pre-printed words. Regular Scrabble works well from age 8-9 when children have stronger reading and spelling skills. Many families adapt rules to make it accessible even earlier." }},
+    { "@type": "Question", "name": "How do you make Scrabble easier for kids?", "acceptedAnswer": { "@type": "Answer", "text": "Simplify by allowing open racks (tiles face up for help), removing the timer, allowing dictionary lookups during play, starting with 5 tiles instead of 7, and focusing on fun rather than score. Let kids use shorter words and celebrate every valid play." }},
+    { "@type": "Question", "name": "Does Scrabble help children learn vocabulary?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, research shows word games significantly expand children's vocabulary. Scrabble teaches spelling, pattern recognition, strategic thinking, and math skills through scoring. Regular play exposes kids to new words in an engaging, low-pressure context." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How to teach Scrabble to children. Simplified rules, word suggestions, and making it fun.</p>
+<nav class="text-sm text-gray-500 mb-6">
+  <a href="/" class="hover:text-amber-500">Home</a> &rsaquo;
+  <a href="/blog/" class="hover:text-amber-500">Blog</a> &rsaquo;
+  <span class="text-gray-400">Scrabble for Kids</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks currentSlug={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Scrabble for Kids — A Fun Guide to Getting Started</h1>
+<p class="text-sm text-gray-500 mb-6">Published June 15, 2026 · 6 min read</p>
+
+<p class="text-lg leading-relaxed mb-8">Scrabble is one of the best educational games you can put in front of a child. It builds vocabulary, reinforces spelling, develops strategic thinking, and teaches basic maths — all disguised as family fun. Here is how to introduce Scrabble to kids aged 6 and up in a way that keeps them engaged and coming back for more.</p>
+
+<div class="grid grid-cols-3 gap-4 my-8 p-4 rounded-lg border border-amber-500/30 bg-amber-950/10">
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">6+</span><br><span class="text-xs text-gray-400">Starting Age</span></div>
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">30 min</span><br><span class="text-xs text-gray-400">Kids Game Length</span></div>
+  <div class="text-center"><span class="text-xl font-bold text-amber-400">5</span><br><span class="text-xs text-gray-400">Skills Developed</span></div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Age-Appropriate Starting Points</h2>
+
+<p>Not every child is ready for the full ruleset. The key is matching complexity to their reading level and attention span. Start simple, then add rules as confidence grows.</p>
+
+<div class="overflow-x-auto my-6">
+<table class="w-full text-sm">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Age</th><th class="p-2 text-left">Version</th><th class="p-2 text-left">Modifications</th></tr></thead>
+  <tbody>
+    <tr><td class="p-2">5-6</td><td class="p-2">Scrabble Junior (two-sided board)</td><td class="p-2">Match letters to pre-printed words</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">7-8</td><td class="p-2">Regular board, simplified rules</td><td class="p-2">Open racks, 5 tiles, dictionary allowed</td></tr>
+    <tr><td class="p-2">9-10</td><td class="p-2">Standard rules</td><td class="p-2">Full 7 tiles, hidden racks, time limits optional</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">11+</td><td class="p-2">Full competitive rules</td><td class="p-2">Challenges, premium squares, endgame strategy</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-1">💡 Parent Tip</p>
+  <p class="text-sm text-gray-300">Never correct spelling harshly during a game. If a child plays an invalid word, gently say "that's a creative try — let's look it up together!" Making mistakes safe keeps kids wanting to play.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Simplified Rules for Young Players</h2>
+
+<p>These house rules make Scrabble accessible for younger children while preserving the core word-building experience:</p>
+
+<div class="space-y-3 my-6">
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Open racks</span> — Place tiles face up so parents can offer hints without giving away the answer. This removes frustration while building independence.
   </div>
-</BlogLayout>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Fewer tiles</span> — Start with 5 tiles instead of 7. Less overwhelming, and turns go faster keeping attention high.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Dictionary on the table</span> — Let kids look up words freely. This turns the game into active learning rather than a test.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">No challenges</span> — Accept any reasonably spelled word. If it is close enough, count it. Strictness kills enthusiasm.
+  </div>
+  <div class="p-3 rounded border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <span class="font-semibold text-purple-300">Bonus for long words</span> — Give extra praise (or bonus points) for any word longer than 4 letters to encourage ambition.
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Educational Benefits</h2>
+
+<p>Scrabble develops multiple cognitive skills simultaneously, making it far more educational than passive screen time. Here is what children gain from regular play:</p>
+
+<div class="grid md:grid-cols-2 gap-4 my-6">
+  <div class="p-4 rounded-lg border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Language Skills</h3>
+    <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
+      <li>Spelling reinforcement through repetition</li>
+      <li>Vocabulary expansion via exposure</li>
+      <li>Phonics and letter pattern recognition</li>
+      <li>Reading comprehension (definitions)</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-lg border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">Thinking Skills</h3>
+    <ul class="text-sm text-gray-300 space-y-1 list-disc list-inside">
+      <li>Mental arithmetic (scoring)</li>
+      <li>Strategic planning (tile placement)</li>
+      <li>Pattern recognition (letter combos)</li>
+      <li>Problem solving under constraints</li>
+    </ul>
+  </div>
+</div>
+
+<p>Studies consistently show that children who play word games regularly score higher on standardised reading tests. The key difference from flashcards or worksheets is motivation — kids want to play Scrabble because it is genuinely fun.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Family Game Tips</h2>
+
+<p>The best way to keep kids engaged is making game night a positive ritual rather than a competitive pressure situation. These approaches work well for mixed-age families:</p>
+
+<div class="overflow-x-auto my-6">
+<table class="w-full text-sm">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Strategy</th><th class="p-2 text-left">Why It Works</th></tr></thead>
+  <tbody>
+    <tr><td class="p-2">Team up younger kids with adults</td><td class="p-2">They contribute ideas without bearing full responsibility</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Celebrate the word, not the score</td><td class="p-2">Shifts focus from winning to creating, reducing tears</td></tr>
+    <tr><td class="p-2">Use a 2-minute sand timer</td><td class="p-2">Keeps pace moving so younger kids do not lose interest</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Allow "helper" tiles from the bag</td><td class="p-2">Stuck kids can draw an extra tile, keeping flow going</td></tr>
+    <tr><td class="p-2">End after 30 minutes regardless</td><td class="p-2">Kids remember games fondly when they end before boredom</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Building Vocabulary Through Play</h2>
+
+<p>The magic of Scrabble for learning is the natural repetition. Children encounter the same high-frequency words repeatedly and gradually absorb new ones from opponents' plays.</p>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-1">💡 Growth Strategy</p>
+  <p class="text-sm text-gray-300">After each game, pick one interesting word that was played and look up its meaning together. Write it on a fridge magnet or family word wall. Over months, this builds an impressive vocabulary bank — painlessly.</p>
+</div>
+
+<p>Start with common two and three-letter words that score well. Once children master these building blocks, longer words come naturally.</p>
+
+<div class="p-4 rounded-lg border border-indigo-500/30 bg-indigo-950/10 my-6">
+  <p class="text-sm text-indigo-400 font-medium mb-2">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-strategies-for-families/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Strategies for Families — tips for mixed-age play</span>
+    </a>
+    <a href="/blog/scrabble-glossary-terms/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Glossary — essential terms they will encounter at clubs</span>
+    </a>
+  </div>
+</div>
+
+<aside class="mt-10 border-t border-gray-700 pt-6">
+  <h3 class="text-sm font-semibold text-gray-400 mb-3">Related Articles</h3>
+  <ul class="space-y-2">
+    <li><a href="/blog/scrabble-strategies-for-families/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Scrabble Strategies for Families — Tips for Mixed-Age Play</a></li>
+    <li><a href="/blog/scrabble-glossary-terms/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">Scrabble Glossary — Essential Terms Every Player Should Know</a></li>
+    <li><a href="/blog/how-to-play-scrabble/" class="block p-2 rounded border border-gray-700 hover:border-amber-300 dark:hover:border-amber-700 text-sm text-gray-300 hover:text-white transition-colors">How to Play Scrabble — Complete Rules Guide</a></li>
+  </ul>
+</aside>
+
+<div class="mt-10 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="font-semibold text-lg text-gray-800 dark:text-gray-100 mb-2">Find Words Together</p>
+  <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Stuck on a rack? Type in your letters and explore all valid words — great for learning new ones as a family.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors">Open Word Finder →</a>
+</div>
+
+<div class="mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+</Layout>

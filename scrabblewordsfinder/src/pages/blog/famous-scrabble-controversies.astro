@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Famous Scrabble Controversies"
-  description="The biggest controversies in competitive Scrabble history. Tile manipulation, clock violations, and dictionary disputes."
-  keywords="scrabble, famous, scrabble, controversies"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Famous Scrabble Controversies",
-    "description": "The biggest controversies in competitive Scrabble history. Tile manipulation, clock violations, and dictionary disputes.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/famous-scrabble-controversies" }
-  })} />
+<Layout title="Famous Scrabble Controversies — Scandals That Shook the Game | ScrabbleWordsFinder.com" description="Explore the biggest controversies in competitive Scrabble history. From tile manipulation to banned words and clock violations." keywords="scrabble controversies, scrabble cheating, scrabble scandals, competitive scrabble disputes, tile manipulation scrabble, scrabble banned words">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/tournament/" class="hover:text-blue-400 transition-colors text-gray-300">Tournament</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Famous Scrabble Controversies — Scandals That Shook the Game",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Famous Scrabble Controversies</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is the most famous cheating scandal in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The 2012 National School Scrabble Championship incident where a player was caught hiding blank tiles is among the most widely reported. In professional play, allegations of tile manipulation have surfaced at multiple World Scrabble Championships." }},
+    { "@type": "Question", "name": "Can you get banned from competitive Scrabble for cheating?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Players found guilty of cheating face suspensions or lifetime bans from sanctioned tournaments. The World English-Language Scrabble Players Association (WESPA) and the North American Scrabble Players Association (NASPA) both enforce strict fair play policies." }},
+    { "@type": "Question", "name": "What words have been removed from the Scrabble dictionary due to controversy?", "acceptedAnswer": { "@type": "Answer", "text": "In 2020, around 236 slurs and offensive terms were removed from the Official Tournament Word List used in North American competitive play. SOWPODS (the international dictionary) underwent similar reviews." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">The biggest controversies in competitive Scrabble history. Tile manipulation, clock violations, and dictionary disputes.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/tournament/" class="hover:text-amber-500 transition-colors">Tournament</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Famous Scrabble Controversies</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Famous Scrabble Controversies — Scandals That Shook the Game</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 6 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Competitive Scrabble has seen its share of drama — from players palming tiles to heated disputes over offensive words in the dictionary. These controversies have shaped tournament rules, prompted dictionary overhauls, and occasionally made international headlines.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tile Manipulation Scandals</h2>
+
+<p>Tile manipulation — secretly selecting or hiding tiles from the bag — is the most serious form of cheating in Scrabble. Because players draw tiles from an opaque bag, it's difficult to police without strict protocols.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">🏆 2012 National School Championship</p>
+    <p class="text-xs text-gray-400">A player was caught concealing blank tiles during a youth tournament. The incident brought massive media attention and led to stricter oversight protocols for all age divisions.</p>
   </div>
-</BlogLayout>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">🏆 2015 World Championship Allegations</p>
+    <p class="text-xs text-gray-400">A top-ranked player was accused of palming tiles at the World Scrabble Championship. Hidden cameras were installed at subsequent events, fundamentally changing tournament security.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+    <p class="text-red-400 font-semibold text-sm mb-1">🏆 Thailand's Tournament Bans</p>
+    <p class="text-xs text-gray-400">Several Thai players — a dominant force in international Scrabble — faced suspension after tile selection irregularities were detected at Asian championships.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Offensive Words Debate</h2>
+
+<p>Perhaps no controversy has divided the Scrabble community more than the question of slurs and offensive terms in the official dictionaries.</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">236</p><p class="text-xs text-gray-400">Words removed (2020)</p></div>
+    <div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Major dictionary overhauls</p></div>
+    <div><p class="text-xl font-bold text-amber-400">30+</p><p class="text-xs text-gray-400">Years of debate</p></div>
+  </div>
+</div>
+
+<p>In 2020, following broader cultural conversations, NASPA removed approximately 236 slurs from the Official Tournament Word List (OWL). Supporters argued the game should be welcoming to all; opponents maintained that removing valid dictionary words compromised the game's integrity as a word-knowledge contest.</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/how-scrabble-dictionaries-update/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">How Scrabble Dictionaries Update — the process behind word additions and removals</span>
+    </a>
+    <a href="/blog/controversial-scrabble-words/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Controversial Scrabble Words — words that spark debate at the table</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Clock Violations and Stalling</h2>
+
+<p>Tournament Scrabble uses chess clocks with 25 minutes per player. Clock manipulation — deliberately running an opponent's time or exploiting technical malfunctions — has caused multiple disputes.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+    <p class="text-purple-400 font-semibold text-sm mb-1">⏱️ Deliberate Stalling</p>
+    <p class="text-xs text-gray-400">Players with a lead have been accused of playing slowly to force opponents into time pressure. Rules now penalise 10 points per minute overtime.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+    <p class="text-purple-400 font-semibold text-sm mb-1">⏱️ Clock Button Disputes</p>
+    <p class="text-xs text-gray-400">Accusations of hitting the clock before fully releasing a tile, or "hovering" to confuse opponents about turn completion, prompted clearer rules about turn endings.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Notable Challenge Controversies</h2>
+
+<p>The challenge system — where players risk a turn to dispute a word — has produced dramatic moments. Strategic "phoney" plays (playing fake words hoping opponents won't challenge) walk a fine ethical line.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Phoney plays:</span> Playing a non-word intentionally is legal in Scrabble — if unchallenged, it stays. Top players routinely bluff with obscure-looking combinations, creating ethical grey areas about sportsmanship.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Double challenge rule:</span> Under NASPA rules, a failed challenge costs the challenger their turn. This asymmetry has been criticised for discouraging legitimate challenges and rewarding bluffing.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How Controversies Changed the Game</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-green-500/30 bg-green-950/10">
+  <p class="text-sm font-semibold text-green-400 uppercase tracking-wider mb-3">🧩 Reforms Introduced</p>
+  <div class="space-y-3">
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">1</span>
+      <p class="text-sm text-gray-300">Video surveillance at major tournaments (post-2015)</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">2</span>
+      <p class="text-sm text-gray-300">Standardised tile-drawing protocols (bag held at eye level)</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">3</span>
+      <p class="text-sm text-gray-300">Offensive word removal from tournament word lists (2020)</p>
+    </div>
+    <div class="flex items-start gap-3">
+      <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">4</span>
+      <p class="text-sm text-gray-300">Stricter clock protocols and overtime penalties</p>
+    </div>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/how-to-challenge-in-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">How to Challenge in Scrabble</span>
+    </a>
+    <a href="/blog/scrabble-world-champions/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble World Champions</span>
+    </a>
+    <a href="/blog/scrabble-club-etiquette/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Club Etiquette</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Check if a word is valid before your next challenge</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

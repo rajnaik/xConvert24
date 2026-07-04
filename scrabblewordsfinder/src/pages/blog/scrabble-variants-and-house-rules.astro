@@ -1,55 +1,201 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Scrabble Variants and House Rules"
-  description="Popular Scrabble variations. Speed Scrabble, team play, Clabbers, and other fun twists on the classic game."
-  keywords="scrabble, scrabble, variants, and, house, rules"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Scrabble Variants and House Rules",
-    "description": "Popular Scrabble variations. Speed Scrabble, team play, Clabbers, and other fun twists on the classic game.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-variants-and-house-rules" }
-  })} />
+<Layout title="Scrabble Variants & House Rules — Popular Rule Modifications | ScrabbleWordsFinder.com" description="Explore popular Scrabble variants like Speed Scrabble, Clabbers, and Super Scrabble. Plus common house rules that make the game more fun for different groups." keywords="scrabble variants, scrabble house rules, speed scrabble, clabbers scrabble, super scrabble, scrabble rule modifications, team scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/beginner-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Beginner Guides</a>
-      </nav>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <h1 class="text-3xl font-bold text-white mb-4">Scrabble Variants and House Rules</h1>
+<!-- Breadcrumb -->
+<nav class="not-prose text-sm text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500">Blog</a>
+  <span>›</span>
+  <span class="text-gray-700 dark:text-gray-300">Scrabble Variants & House Rules</span>
+</nav>
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<h1 class="text-3xl font-bold mb-4">Scrabble Variants & House Rules — Popular Rule Modifications</h1>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Popular Scrabble variations. Speed Scrabble, team play, Clabbers, and other fun twists on the classic game.</p>
+<p>Standard Scrabble rules have served players well since 1948, but the game's community has invented dozens of variants that keep things fresh. From lightning-fast Speed Scrabble to the chaotic fun of Clabbers, there's a variant for every mood and skill level. Plus, nearly every family has their own house rules — some brilliant, some controversial.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<!-- Stat Strip -->
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="grid grid-cols-3 gap-4 text-center">
+    <div><span class="text-xl font-bold text-amber-400">12+</span><br><span class="text-sm text-gray-400">recognised variants</span></div>
+    <div><span class="text-xl font-bold text-amber-400">1948</span><br><span class="text-sm text-gray-400">original rules published</span></div>
+    <div><span class="text-xl font-bold text-amber-400">200</span><br><span class="text-sm text-gray-400">tiles in Super Scrabble</span></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Speed Scrabble (Bananagrams-Style)</h2>
+
+<p>Speed Scrabble removes the board entirely. Each player builds their own crossword grid from tiles drawn from a central pool. When someone uses all their tiles, everyone draws more. First to use all tiles when the pool empties wins.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Pros</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>No waiting for other players' turns</li>
+      <li>Games last 10-15 minutes</li>
+      <li>Works with 2-8 players</li>
+      <li>No score tracking needed</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">Cons</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>No premium squares or board strategy</li>
+      <li>Favours speed over vocabulary depth</li>
+      <li>Harder to challenge invalid words</li>
+      <li>Can feel stressful for slower thinkers</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Clabbers — Anagram Scrabble</h2>
+
+<p>In Clabbers, words don't need to be spelled correctly — they just need to be a valid anagram of a real word. So OGDS is playable because it's an anagram of DOGS. This completely changes strategy because you never get stuck with "unplayable" letters.</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Tournament Fact:</strong> Clabbers has its own competitive scene. Top Clabbers players can score 200+ points higher per game than standard Scrabble because any permutation of a valid word is playable.</p>
+</div>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Play</th><th class="p-2 text-left">Standard Scrabble</th><th class="p-2 text-left">Clabbers</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2 font-mono">TRSAEI</td><td class="p-2">Invalid</td><td class="p-2">✅ Valid (anagram of SATIRE)</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-mono">BGLINO</td><td class="p-2">Invalid</td><td class="p-2">✅ Valid (anagram of OBLING)</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2 font-mono">AEILST</td><td class="p-2">Invalid</td><td class="p-2">✅ Valid (anagram of SALTIE)</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2 font-mono">XYZABC</td><td class="p-2">Invalid</td><td class="p-2">❌ Still invalid (no real anagram)</td></tr>
+  </tbody>
+</table>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Super Scrabble — The Big Board</h2>
+
+<p>Super Scrabble uses a 21×21 board with 200 tiles, quadruple word and letter score squares, and games that can last 2+ hours. It's Scrabble on steroids.</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <h3 class="font-semibold text-amber-400 mb-2">Key Differences</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>21×21 board (vs standard 15×15)</li>
+      <li>200 tiles (vs 100)</li>
+      <li>Quadruple word/letter squares</li>
+      <li>More of every letter in the bag</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <h3 class="font-semibold text-purple-400 mb-2">Strategy Changes</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>Bingos are easier (more tiles available)</li>
+      <li>Games are longer and more strategic</li>
+      <li>Board control becomes crucial</li>
+      <li>More premium squares = higher scores</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Team Play Variants</h2>
+
+<p>Team Scrabble pairs players together for collaborative decision-making. It's excellent for teaching and social play:</p>
+
+<ul>
+  <li><strong>Consultation Teams</strong> — partners discuss plays openly during their turn. Both must agree on the final word</li>
+  <li><strong>Alternating Teams</strong> — team members take turns playing, but can't discuss strategy between turns</li>
+  <li><strong>Mentor-Student</strong> — experienced player coaches a beginner, explaining choices but letting them decide</li>
+  <li><strong>Relay Scrabble</strong> — each team member plays one word per round, passing to the next. No one dominates</li>
+</ul>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Common House Rules — The Debate</h2>
+
+<p>Every family argues about these. Here's the official ruling and the popular alternatives:</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">House Rule</th><th class="p-2 text-left">Official Rule</th><th class="p-2 text-left">Common Variation</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Using a dictionary</td><td class="p-2">Only after a challenge</td><td class="p-2">Free dictionary use anytime</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Proper nouns</td><td class="p-2">Never allowed</td><td class="p-2">Some families allow them</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Tile exchange</td><td class="p-2">Lose your turn</td><td class="p-2">Exchange + play in same turn</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Foreign words</td><td class="p-2">Only if in chosen dictionary</td><td class="p-2">Allow common loanwords</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Turn time limit</td><td class="p-2">None (casual) / 25 min (tournament)</td><td class="p-2">2-3 minutes per turn</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Blank tile rules</td><td class="p-2">Cannot be reclaimed once placed</td><td class="p-2">Some allow swapping with real letter</td></tr>
+  </tbody>
+</table>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Creating Balanced Variants</h2>
+
+<p>Want to invent your own rules? Follow these principles to keep the game fair:</p>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Design Principle:</strong> Good variants add a new dimension without removing skill. Bad variants just add randomness. If your house rule means the best player wins less often, it's adding chaos, not depth.</p>
+</div>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-3">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-1">Good Variant Traits</h3>
+    <p class="text-sm text-gray-300">Adds a new decision point (e.g., Speed Scrabble adds time pressure). Rewards skill in a new way. All players face the same modified rules equally.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-1">Popular Self-Made Rules</h3>
+    <p class="text-sm text-gray-300">Theme rounds (only animals/foods), progressive scoring (each word must score more than your last), challenge roulette (wrong challenger loses 10 points).</p>
+  </div>
+</div>
+
+<!-- Cross-Links -->
+<div class="not-prose my-8 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <h3 class="text-indigo-400 font-semibold mb-2">Related Guides</h3>
+  <ul class="space-y-1 text-sm">
+    <li><a href="/blog/scrabble-strategies-for-families/" class="text-indigo-400 hover:underline">Scrabble Strategies for Families →</a></li>
+    <li><a href="/blog/scrabble-for-kids-guide/" class="text-indigo-400 hover:underline">Scrabble for Kids Guide →</a></li>
+  </ul>
+</div>
+
+<!-- Related Articles Aside -->
+<aside class="not-prose my-8 p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors">
+  <h3 class="font-semibold text-gray-200 mb-2">You might also enjoy</h3>
+  <ul class="space-y-1 text-sm text-gray-400">
+    <li><a href="/blog/scrabble-etiquette/" class="hover:text-amber-400">Scrabble Etiquette →</a></li>
+    <li><a href="/blog/scrabble-rules-explained/" class="hover:text-amber-400">Scrabble Rules Explained →</a></li>
+    <li><a href="/blog/how-to-play-scrabble/" class="hover:text-amber-400">How to Play Scrabble →</a></li>
+  </ul>
+</aside>
+
+<!-- CTA -->
+<div class="not-prose my-8 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Settle word disputes instantly</p>
+  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Our free word finder validates against official Scrabble dictionaries — no more arguments about what's a real word.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors">Try the Word Finder →</a>
+</div>
+
+<div class="text-center mt-8">
+  <a href="/blog/" class="text-sm text-gray-500 hover:text-amber-500">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Variants & House Rules — Popular Rule Modifications",
+  "description": "Explore popular Scrabble variants like Speed Scrabble, Clabbers, and Super Scrabble. Plus common house rules that make the game more fun for different groups.",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is Speed Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Speed Scrabble removes the board — each player builds their own crossword grid from a central tile pool. When someone uses all their tiles, everyone draws more. Games last 10-15 minutes." }},
+    { "@type": "Question", "name": "What is Clabbers in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Clabbers is a variant where words don't need correct spelling — they just need to be a valid anagram of a real word. OGDS is playable because it's an anagram of DOGS." }},
+    { "@type": "Question", "name": "Are proper nouns allowed in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "No — official Scrabble rules prohibit proper nouns, abbreviations, and hyphenated words. However, many families use house rules that allow proper nouns for more casual play." }}
+  ]
+})} />
+
+</Layout>

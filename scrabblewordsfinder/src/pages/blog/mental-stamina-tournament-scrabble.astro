@@ -1,55 +1,252 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Mental Stamina for Tournament Scrabble"
-  description="How to maintain focus across 8+ games in a day. Nutrition, breaks, and psychological preparation."
-  keywords="scrabble, mental, stamina, tournament, scrabble"
+<Layout
+  title="Mental Stamina in Tournament Scrabble — Tips for Focus & Endurance"
+  description="How to maintain focus and mental endurance during long Scrabble tournaments. Free tips on hydration, nutrition, breaks, and time management."
+  keywords="scrabble tournament stamina, mental endurance scrabble, focus during scrabble, tournament preparation, scrabble fatigue, scrabble concentration"
 >
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Mental Stamina for Tournament Scrabble",
-    "description": "How to maintain focus across 8+ games in a day. Nutrition, breaks, and psychological preparation.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/mental-stamina-tournament-scrabble" }
-  })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/tournament/" class="hover:text-blue-400 transition-colors text-gray-300">Tournament</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Mental Stamina in Tournament Scrabble — Tips for Focus & Endurance",
+  "description": "How to maintain focus and mental endurance during long Scrabble tournaments. Free tips on hydration, nutrition, breaks, and time management.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "logo": { "@type": "ImageObject", "url": "https://www.scrabblewordsfinder.com/web-app-manifest-512x512.png" } },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/mental-stamina-tournament-scrabble/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Mental Stamina for Tournament Scrabble</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How long do Scrabble tournaments typically last?", "acceptedAnswer": { "@type": "Answer", "text": "Most competitive Scrabble tournaments run 2-3 days with 6-8 games per day, each lasting 50 minutes per player. A full event can mean 12+ hours of intense mental focus." }},
+    { "@type": "Question", "name": "What foods help maintain focus during a Scrabble tournament?", "acceptedAnswer": { "@type": "Answer", "text": "Slow-release carbohydrates like oats, bananas, and nuts sustain energy levels. Avoid sugar spikes from sweets and fizzy drinks that lead to crashes mid-game." }},
+    { "@type": "Question", "name": "How can I avoid making fatigue errors in late rounds?", "acceptedAnswer": { "@type": "Answer", "text": "Take structured breaks between games, use controlled breathing before each round, stay hydrated, and develop a pre-move checklist to catch errors even when tired." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+<div class="max-w-3xl mx-auto px-4">
+  <article class="prose dark:prose-invert prose-gray max-w-none">
+
+    <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+      <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+      <span class="mx-1">›</span>
+      <span class="text-gray-600 dark:text-gray-300">Tournament</span>
+    </nav>
+
+    <BlogCrossLinks title="Mental Stamina in Tournament Scrabble" />
+
+    <h1 class="text-3xl font-bold mb-2">Mental Stamina in Tournament Scrabble</h1>
+
+    <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+      <time datetime="2026-06-15">June 15, 2026</time>
+      <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+      <span>7 min read</span>
+    </div>
+
+    <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Tournament Scrabble is a mental marathon. Over two or three days you might play 20+ games, each demanding deep focus on anagram-finding, board vision, and strategic calculation. Physical preparation matters as much as word knowledge — here's how top players keep their edge from Round 1 to the final game.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Hydration & Nutrition for Peak Performance</h2>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+      <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+        <div><p class="text-xl font-bold text-amber-400">2-3L</p><p class="text-xs text-gray-400">Water per day</p></div>
+        <div><p class="text-xl font-bold text-amber-400">Every 2h</p><p class="text-xs text-gray-400">Snack break</p></div>
+        <div><p class="text-xl font-bold text-amber-400">No sugar</p><p class="text-xs text-gray-400">Avoid crashes</p></div>
+        <div><p class="text-xl font-bold text-amber-400">Protein</p><p class="text-xs text-gray-400">Sustained energy</p></div>
       </div>
+    </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How to maintain focus across 8+ games in a day. Nutrition, breaks, and psychological preparation.</p>
+    <p>Dehydration causes concentration to drop sharply — even a 2% deficit impairs cognitive function. Sip water throughout games rather than gulping between rounds. Between rounds, eat slow-release snacks: almonds, bananas, oat bars, or dark chocolate.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+    <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+        <p class="text-green-400 font-semibold text-sm mb-1">✓ Eat These</p>
+        <p class="text-xs text-gray-400">Almonds, bananas, oat bars, dark chocolate, hard-boiled eggs, trail mix, wholegrain sandwiches</p>
+      </div>
+      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+        <p class="text-red-400 font-semibold text-sm mb-1">✗ Avoid These</p>
+        <p class="text-xs text-gray-400">Sweets, fizzy drinks, heavy meals, excessive caffeine, fast food, energy drinks after 3pm</p>
+      </div>
+    </div>
+
+    <p>Many top players bring a tournament food kit with pre-portioned snacks. Heavy meals redirect blood to digestion and cause afternoon drowsiness — the dreaded "Round 5 slump" that costs games.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Mental Breaks Between Rounds</h2>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+      <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Recovery Routine (10-15 min)</p>
+      <div class="space-y-3">
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+          <p class="text-sm text-gray-300">Walk outside — fresh air resets your attention span and reduces cortisol</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+          <p class="text-sm text-gray-300">Box breathing — 4 counts in, 4 hold, 4 out, 4 hold (repeat 3 times)</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+          <p class="text-sm text-gray-300">Avoid phone scrolling — let your brain rest from text processing entirely</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+          <p class="text-sm text-gray-300">Chat briefly with fellow players — social connection reduces stress hormones</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+          <p class="text-sm text-gray-300">Hydrate and eat a small snack before the next round begins</p>
         </div>
       </div>
+    </div>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+    <p>The space between games is where you win or lose later rounds. Players who spend breaks analysing their previous game or studying words often burn out by Round 5. Your brain needs genuine downtime — short walks work best because movement increases blood flow without demanding cognitive effort.</p>
+
+    <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+      <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+      <div class="grid gap-2">
+        <a href="/blog/preparing-for-first-tournament/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Preparing for Your First Tournament — what to pack and how to plan</span>
+        </a>
+        <a href="/blog/scrabble-clock-management/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+          <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+          <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Clock Management — master time pressure</span>
+        </a>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Focus Techniques During Play</h2>
+
+    <div class="overflow-x-auto not-prose my-6">
+      <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+        <thead class="bg-gray-100 dark:bg-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Technique</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">When to Use</th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Effect</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Pre-move pause</td><td class="px-4 py-3">Before placing tiles</td><td class="px-4 py-3">Catches hook/extension errors</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">Board scan pattern</td><td class="px-4 py-3">Start of each turn</td><td class="px-4 py-3">Prevents tunnel vision</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Anchor breathing</td><td class="px-4 py-3">When feeling rushed</td><td class="px-4 py-3">Slows heart rate, improves clarity</td></tr>
+          <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">Tile counting ritual</td><td class="px-4 py-3">Mid-game checkpoint</td><td class="px-4 py-3">Maintains strategic awareness</td></tr>
+          <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">Result detachment</td><td class="px-4 py-3">After a bad play</td><td class="px-4 py-3">Prevents tilt and compound errors</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Concentration naturally fluctuates. The key is not sustained peak focus — it's recovering quickly after lapses. Train yourself to notice when your mind drifts and use a physical anchor (touching the tile bag, adjusting your rack) to snap back into the game.</p>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Time Management Under Pressure</h2>
+
+    <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">25 min</span><span class="text-blue-400 text-xs">standard clock</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">60%</span><span class="text-blue-400 text-xs">spend on mid-game</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">-10 pts</span><span class="text-blue-400 text-xs">overtime penalty</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm">
+        <span class="text-white font-bold">Bank early</span><span class="text-blue-400 text-xs">fast openers</span>
+      </span>
+    </div>
+
+    <p>Clock management is a stamina skill. Rushed decisions late in a game compound fatigue errors. Practice playing your opening moves quickly (you've studied them beforehand) so you bank time for complex mid-game decisions where scoring swings happen.</p>
+
+    <div class="not-prose my-6 grid grid-cols-1 gap-4">
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Fast openers:</span> Pre-study your first-move strategy. Plays like JIVED, TOPAZ, or WINZE can be placed instantly if you've rehearsed rack patterns.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Mid-game depth:</span> Save your clock budget for turns 6-12 where the board is complex and the best play might be worth 30+ extra points over a quick choice.</p>
+      </div>
+      <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+        <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Endgame reserve:</span> Keep 3-4 minutes for endgame calculations. Knowing the exact tiles remaining and counting to the end wins close games.</p>
+      </div>
+    </div>
+
+    <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Avoiding Fatigue Errors in Late Rounds</h2>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-red-500/30 bg-red-950/10">
+      <p class="text-sm font-semibold text-red-400 uppercase tracking-wider mb-2">⚠️ Common Late-Round Mistakes</p>
+      <p class="text-base text-gray-200">Playing phoney words you'd normally catch, missing obvious hooks, miscounting scores on blanks, forgetting to track opponent's last tiles, playing defensively when behind, and rushing endgame calculations.</p>
+    </div>
+
+    <p>The antidote is a pre-play checklist you run on every single move:</p>
+
+    <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+      <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-3">🧩 10-Second Pre-Play Checklist</p>
+      <div class="space-y-3">
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">1</span>
+          <p class="text-sm text-gray-300">Check word validity — is every new word (including crosswords) legal?</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">2</span>
+          <p class="text-sm text-gray-300">Count your score — add tile values and premiums carefully</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">3</span>
+          <p class="text-sm text-gray-300">Verify crosswords — every adjacent tile creates a valid word?</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">4</span>
+          <p class="text-sm text-gray-300">Consider opponent's response — does this open a triple for them?</p>
+        </div>
+      </div>
+    </div>
+
+    <p>Even when exhausted, this 10-second routine catches 90% of fatigue errors. Write it on a card and keep it visible until it becomes automatic muscle memory.</p>
+
+    <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+      <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+      <div class="grid gap-3">
+        <a href="/blog/playing-scrabble-with-a-lead/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Playing Scrabble With a Lead</span>
+        </a>
+        <a href="/blog/how-to-improve-at-scrabble-fast/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">How to Improve at Scrabble Fast</span>
+        </a>
+        <a href="/blog/scrabble-mindset-psychology/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+          <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Mindset & Psychology</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">
+          🔗 Build your word arsenal before the tournament
+        </p>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">
+          Open Word Finder →
+        </a>
+      </div>
+    </div>
+
+    <div class="not-prose mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+    </div>
+
+  </article>
+</div>
+
+</Layout>

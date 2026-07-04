@@ -1,55 +1,183 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Scrabble Rating Systems Explained"
-  description="How NASPA ratings, Elo-style systems, and international rankings work. What your rating means and how to improve it."
-  keywords="scrabble, scrabble, rating, system, explained"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Scrabble Rating Systems Explained",
-    "description": "How NASPA ratings, Elo-style systems, and international rankings work. What your rating means and how to improve it.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-rating-system-explained" }
-  })} />
+<Layout title="Scrabble Rating System Explained — How Elo Rankings Work | ScrabbleWordsFinder.com" description="Understand how Scrabble rating systems work. Learn about Elo-based rankings, how wins and spread affect your rating, and what different rating levels mean for competitive play." keywords="scrabble rating system, scrabble elo, scrabble rankings, competitive scrabble ratings, NASPA rating, scrabble player rankings, tournament rating">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/tournament/" class="hover:text-blue-400 transition-colors text-gray-300">Tournament</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Rating System Explained — How Elo Rankings Work",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Scrabble Rating Systems Explained</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How does the Scrabble rating system work?", "acceptedAnswer": { "@type": "Answer", "text": "Scrabble uses a modified Elo system similar to chess. Your rating changes after each rated game based on the result and the rating difference between you and your opponent. Beating a higher-rated player gains more points than beating a lower-rated one." }},
+    { "@type": "Question", "name": "What is a good Scrabble rating?", "acceptedAnswer": { "@type": "Answer", "text": "Ratings range from about 500 (absolute beginner) to 2100+ (world-class). A club player typically rates 900-1200, an experienced competitor 1200-1500, an expert 1500-1800, and elite players exceed 1800. The average tournament player sits around 1000-1100." }},
+    { "@type": "Question", "name": "Does spread affect your Scrabble rating?", "acceptedAnswer": { "@type": "Answer", "text": "In most systems, only wins and losses affect your rating — not the margin of victory. However, cumulative spread is used as a tiebreaker in tournaments when players have equal win-loss records, making it strategically important." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">How NASPA ratings, Elo-style systems, and international rankings work. What your rating means and how to improve it.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/tournament/" class="hover:text-amber-500 transition-colors">Tournament</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Rating System Explained</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Scrabble Rating System Explained — How Elo Rankings Work</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 6 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Every competitive Scrabble player has a rating — a number that reflects their playing strength. Like chess Elo, Scrabble ratings rise when you win and drop when you lose. Understanding how the system works helps you set realistic goals, choose appropriate tournaments, and track your improvement over time.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Rating Levels at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">500–900</p><p class="text-xs text-gray-400">Beginner/Casual</p></div>
+    <div><p class="text-xl font-bold text-amber-400">900–1200</p><p class="text-xs text-gray-400">Club Player</p></div>
+    <div><p class="text-xl font-bold text-amber-400">1200–1500</p><p class="text-xs text-gray-400">Experienced</p></div>
+    <div><p class="text-xl font-bold text-amber-400">1500–1800</p><p class="text-xs text-gray-400">Expert</p></div>
+    <div><p class="text-xl font-bold text-amber-400">1800+</p><p class="text-xs text-gray-400">Elite/Master</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Rating Range</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Level</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Typical Skills</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">500–900</td><td class="px-4 py-3">Beginner</td><td class="px-4 py-3">Knows rules, plays common words, limited vocabulary</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">900–1200</td><td class="px-4 py-3">Club</td><td class="px-4 py-3">Knows two-letter words, occasional bingos, basic strategy</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">1200–1500</td><td class="px-4 py-3">Experienced</td><td class="px-4 py-3">Regular bingos, rack management, tile tracking basics</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3">1500–1800</td><td class="px-4 py-3">Expert</td><td class="px-4 py-3">Deep word knowledge, endgame technique, positional play</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3">1800+</td><td class="px-4 py-3">Elite</td><td class="px-4 py-3">Complete dictionary mastery, optimal strategy, minimal errors</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">How Ratings Change</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 The Core Formula</p>
+  <p class="text-base text-gray-200">Your rating change depends on <span class="text-white font-medium">the difference between your rating and your opponent's</span>. Beat someone rated 200 points above you? Big gain. Lose to someone 200 below? Big loss. The system expects higher-rated players to win.</p>
+</div>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Win vs higher-rated:</span> Maximum point gain. If you're rated 1000 and beat a 1300 player, you might gain 20-30 rating points because you outperformed expectations.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Win vs lower-rated:</span> Minimal point gain. Beating a player rated 300 below you only gains 3-5 points — the system expected you to win.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Lose vs higher-rated:</span> Small loss. Losing to someone expected to beat you only costs 3-5 points.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Lose vs lower-rated:</span> Maximum point loss. This is the "upset tax" — losing to weaker opponents is punished heavily (15-25 points).</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Rating Bodies & Systems</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">NASPA (North America)</p>
+    <p class="text-xs text-gray-400">North American Scrabble Players Association. Uses TWL dictionary. Rates all sanctioned club and tournament games. Starting rating ~800.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">WESPA (International)</p>
+    <p class="text-xs text-gray-400">World English-Language Scrabble Players Association. Uses SOWPODS/CSW. Rates international tournaments. Used for World Championship seeding.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">National Associations</p>
+    <p class="text-xs text-gray-400">Many countries (UK, Australia, India, Nigeria) maintain their own rating systems using similar Elo-based formulas.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">Online Platforms</p>
+    <p class="text-xs text-gray-400">ISC, Woogles, and other online platforms have independent rating systems. These don't transfer to over-the-board ratings.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/scrabble-clock-management/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Clock Management — time strategy that wins rated games</span>
+    </a>
+    <a href="/blog/scrabble-club-etiquette/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Club Etiquette — what to expect at your first rated event</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tips for Improving Your Rating</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play regularly:</span> Ratings stabilise with more games. Playing 2-3 rated games per week gives you consistent data and steady improvement signals.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play up:</span> Seek opponents rated 100-200 points above you. You'll lose more often but learn faster, and your gains from wins are larger than your losses from defeats.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Focus on consistency:</span> One lucky win doesn't raise your rating sustainably. Building word knowledge and reducing mistakes creates lasting improvement that the rating reflects over time.</p>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/scrabble-clock-management/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Clock Management</span>
+    </a>
+    <a href="/blog/scrabble-club-etiquette/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Scrabble Club Etiquette</span>
+    </a>
+    <a href="/blog/psychology-of-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Psychology of Scrabble</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Build the word knowledge that raises your rating — practice here</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

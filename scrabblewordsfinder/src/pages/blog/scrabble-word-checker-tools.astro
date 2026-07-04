@@ -1,55 +1,207 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Scrabble Word Checker Tools"
-  description="Best tools for checking if a word is valid in Scrabble. Online checkers, apps, and official references."
-  keywords="scrabble, scrabble, word, checker, tools"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Scrabble Word Checker Tools",
-    "description": "Best tools for checking if a word is valid in Scrabble. Online checkers, apps, and official references.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-word-checker-tools" }
-  })} />
+<Layout title="Scrabble Word Checker Tools — Best Online Validators | ScrabbleWordsFinder.com" description="Compare the best free online Scrabble word checkers. Learn which dictionaries they use, accuracy differences, features, and when to use them during play vs study." keywords="scrabble word checker, online word validator, scrabble dictionary checker, is this a scrabble word, word validity tool, SOWPODS checker, TWL checker">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/dictionaries/" class="hover:text-blue-400 transition-colors text-gray-300">Dictionaries</a>
-      </nav>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <h1 class="text-3xl font-bold text-white mb-4">Scrabble Word Checker Tools</h1>
+<!-- Breadcrumb -->
+<nav class="not-prose text-sm text-gray-500 dark:text-gray-400 mb-6 flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500">Blog</a>
+  <span>›</span>
+  <span class="text-gray-700 dark:text-gray-300">Scrabble Word Checker Tools</span>
+</nav>
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<h1 class="text-3xl font-bold mb-4">Scrabble Word Checker Tools — Best Online Validators</h1>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Best tools for checking if a word is valid in Scrabble. Online checkers, apps, and official references.</p>
+<p>A good word checker settles arguments, helps you study, and confirms obscure words before game day. But not all checkers are equal — they use different dictionaries, offer different features, and vary wildly in accuracy. Here's a comprehensive comparison of the best free tools available in 2026.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<!-- Stat Strip -->
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="grid grid-cols-3 gap-4 text-center">
+    <div><span class="text-xl font-bold text-amber-400">280K+</span><br><span class="text-sm text-gray-400">words in SOWPODS</span></div>
+    <div><span class="text-xl font-bold text-amber-400">187K+</span><br><span class="text-sm text-gray-400">words in TWL</span></div>
+    <div><span class="text-xl font-bold text-amber-400">10+</span><br><span class="text-sm text-gray-400">free checkers online</span></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Free Online Word Checkers</h2>
+
+<p>These are the most reliable free tools for validating Scrabble words:</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Tool</th><th class="p-2 text-left">Dictionary</th><th class="p-2 text-left">Features</th><th class="p-2 text-left">Speed</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2 font-semibold">ScrabbleWordsFinder.com</td><td class="p-2">SOWPODS + TWL</td><td class="p-2">Solver, definitions, score</td><td class="p-2">Instant</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Collins Dictionary</td><td class="p-2">SOWPODS</td><td class="p-2">Definitions, word origin</td><td class="p-2">Fast</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Hasbro Official</td><td class="p-2">TWL only</td><td class="p-2">Simple yes/no check</td><td class="p-2">Fast</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">WordFinder.org</td><td class="p-2">SOWPODS + TWL</td><td class="p-2">Definitions, related words</td><td class="p-2">Moderate</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Anagrammer.com</td><td class="p-2">TWL</td><td class="p-2">Anagram solver, checker</td><td class="p-2">Fast</td></tr>
+  </tbody>
+</table>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Features Comparison</h2>
+
+<p>Beyond simple word validation, these tools offer varying depths of information:</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">Essential Features</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>Valid/invalid answer</li>
+      <li>Which dictionary accepts it</li>
+      <li>Scrabble point value</li>
+      <li>Word definition</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">Advanced Features</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>Anagram solving from letters</li>
+      <li>Hook words (front/back)</li>
+      <li>Related words and stems</li>
+      <li>Tile probability info</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Which Dictionary Do They Use?</h2>
+
+<p>The dictionary a checker uses determines what it accepts. This is the single most important factor in choosing a tool:</p>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-3">
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <h3 class="font-semibold text-amber-400 mb-1">SOWPODS (Collins Scrabble Words)</h3>
+    <p class="text-sm text-gray-300">~280,000 words. Used internationally (UK, Australia, most of the world). The most permissive official Scrabble dictionary. If a word is valid anywhere, SOWPODS likely includes it.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-1">TWL (Tournament Word List)</h3>
+    <p class="text-sm text-gray-300">~187,000 words. Used in North America (US, Canada, Thailand, Israel). Stricter — excludes many words that SOWPODS accepts. The standard for most online platforms.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-1">ENABLE (Words With Friends)</h3>
+    <p class="text-sm text-gray-300">~173,000 words. Used exclusively by Words With Friends. A completely separate list — some words valid here aren't in SOWPODS/TWL, and vice versa.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Important:</strong> Always confirm which dictionary your checker uses. A word marked "valid" in SOWPODS might be rejected in a TWL tournament. ScrabbleWordsFinder.com shows validity in BOTH dictionaries simultaneously so you always know.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Accuracy Concerns</h2>
+
+<p>Not all word checkers are perfectly accurate. Common issues include:</p>
+
+<table class="w-full text-sm my-4">
+  <thead><tr class="bg-gray-100 dark:bg-gray-800"><th class="p-2 text-left">Issue</th><th class="p-2 text-left">Cause</th><th class="p-2 text-left">Impact</th></tr></thead>
+  <tbody>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Outdated dictionary</td><td class="p-2">Not updated to latest Collins/TWL edition</td><td class="p-2">Missing new words, accepting removed words</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Wrong dictionary labelling</td><td class="p-2">Claims TWL but actually uses ENABLE</td><td class="p-2">False positives in tournament prep</td></tr>
+    <tr class="bg-white dark:bg-gray-900"><td class="p-2">Case sensitivity bugs</td><td class="p-2">Only accepts lowercase input</td><td class="p-2">Rejects valid words entered in caps</td></tr>
+    <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="p-2">Missing inflections</td><td class="p-2">Has base word but not plurals/past tenses</td><td class="p-2">DOGS rejected when DOG is valid</td></tr>
+  </tbody>
+</table>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">When to Use During Play vs Study</h2>
+
+<p>How you use a word checker depends on context. Tournament rules and casual play have very different norms:</p>
+
+<div class="not-prose my-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <h3 class="font-semibold text-green-400 mb-2">During Study (Unrestricted)</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>Learn new valid words</li>
+      <li>Verify hooks and stems</li>
+      <li>Build word lists by pattern</li>
+      <li>Check definitions for memory aids</li>
+      <li>Practice with anagram solvers</li>
+    </ul>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <h3 class="font-semibold text-blue-400 mb-2">During Competitive Play</h3>
+    <ul class="text-sm text-gray-300 list-disc pl-4 space-y-1">
+      <li>Tournaments: NO external tools allowed</li>
+      <li>Casual with friends: agree on rules beforehand</li>
+      <li>Post-game: check disputed words</li>
+      <li>Online play: depends on platform rules</li>
+      <li>Challenge resolution: official word list only</li>
+    </ul>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+  <p class="text-sm text-purple-300"><strong class="text-purple-400">Etiquette Tip:</strong> In casual games, agree before the first turn whether dictionary checking is allowed. "Check before play" (preventive) vs "check only on challenge" (competitive) creates very different game dynamics.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Choosing the Right Tool</h2>
+
+<p>Your ideal checker depends on how you play:</p>
+
+<ul>
+  <li><strong>Tournament prep (SOWPODS)</strong> — use Collins Dictionary or ScrabbleWordsFinder.com with SOWPODS mode</li>
+  <li><strong>Tournament prep (TWL)</strong> — use Hasbro's official checker or ScrabbleWordsFinder.com with TWL mode</li>
+  <li><strong>Casual play</strong> — any checker works. Prefer one that shows definitions for learning</li>
+  <li><strong>Words With Friends</strong> — need an ENABLE-based checker specifically</li>
+  <li><strong>All-in-one study</strong> — choose a tool with solver, checker, definitions, and hook words combined</li>
+</ul>
+
+<!-- Cross-Links -->
+<div class="not-prose my-8 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <h3 class="text-indigo-400 font-semibold mb-2">Related Guides</h3>
+  <ul class="space-y-1 text-sm">
+    <li><a href="/blog/scrabble-dictionary-apps/" class="text-indigo-400 hover:underline">Scrabble Dictionary Apps →</a></li>
+    <li><a href="/blog/scrabble-vs-words-with-friends/" class="text-indigo-400 hover:underline">Scrabble vs Words With Friends →</a></li>
+  </ul>
+</div>
+
+<!-- Related Articles Aside -->
+<aside class="not-prose my-8 p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors">
+  <h3 class="font-semibold text-gray-200 mb-2">You might also enjoy</h3>
+  <ul class="space-y-1 text-sm text-gray-400">
+    <li><a href="/blog/words-only-in-sowpods/" class="hover:text-amber-400">Words Only in SOWPODS →</a></li>
+    <li><a href="/blog/words-only-in-twl/" class="hover:text-amber-400">Words Only in TWL →</a></li>
+    <li><a href="/blog/how-scrabble-dictionaries-update/" class="hover:text-amber-400">How Scrabble Dictionaries Update →</a></li>
+  </ul>
+</aside>
+
+<!-- CTA -->
+<div class="not-prose my-8 p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 text-center">
+  <p class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Check any word against SOWPODS & TWL instantly</p>
+  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Our free tool validates words against both official dictionaries, shows definitions, and calculates Scrabble scores — all in real time.</p>
+  <a href="/" class="inline-block px-6 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors">Try the Word Finder →</a>
+</div>
+
+<div class="text-center mt-8">
+  <a href="/blog/" class="text-sm text-gray-500 hover:text-amber-500">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Scrabble Word Checker Tools — Best Online Validators",
+  "description": "Compare the best free online Scrabble word checkers. Learn which dictionaries they use, accuracy differences, features, and when to use them.",
+  "datePublished": "2026-06-15",
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What's the best free Scrabble word checker?", "acceptedAnswer": { "@type": "Answer", "text": "ScrabbleWordsFinder.com validates against both SOWPODS and TWL dictionaries simultaneously, shows definitions, and calculates scores — all for free with no signup required." }},
+    { "@type": "Question", "name": "What's the difference between SOWPODS and TWL?", "acceptedAnswer": { "@type": "Answer", "text": "SOWPODS (Collins) contains ~280,000 words and is used internationally. TWL contains ~187,000 words and is used in North American tournaments. Many words valid in SOWPODS are not in TWL." }},
+    { "@type": "Question", "name": "Can I use a word checker during a Scrabble tournament?", "acceptedAnswer": { "@type": "Answer", "text": "No — external tools are not allowed during official tournament play. Word checkers are for study and preparation only. During games, disputes are resolved through the official challenge system." }}
+  ]
+})} />
+
+</Layout>
