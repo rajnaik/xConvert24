@@ -1,55 +1,181 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Ending With ISM"
-  description="Scrabble words ending in ISM. Abstract noun suffix for intellectual plays."
-  keywords="scrabble, words, ending, with, ism"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Ending With ISM",
-    "description": "Scrabble words ending in ISM. Abstract noun suffix for intellectual plays.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-ending-with-ism" }
-  })} />
+<Layout title="Words Ending With -ISM — Scrabble Suffix Scoring Guide | ScrabbleWordsFinder.com" description="Master -ISM suffix words in Scrabble. Find high-scoring words like MYSTICISM, WITTICISM, and CRITICISM with strategy tips for belief and system nouns." keywords="words ending with ism, scrabble ism words, ism suffix scrabble, high scoring ism words, criticism scrabble, mysticism scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Ending With -ISM — Scrabble Suffix Scoring Guide",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Ending With ISM</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the highest-scoring Scrabble words ending in -ISM?", "acceptedAnswer": { "@type": "Answer", "text": "MYSTICISM (18 pts), WITTICISM (16 pts), and CRITICISM (15 pts) top the list. The -ISM suffix adds 5 base points (I+S+M) with M worth 3, making it a mid-value ending." }},
+    { "@type": "Question", "name": "How many valid Scrabble words end in -ISM?", "acceptedAnswer": { "@type": "Answer", "text": "Around 300 valid SOWPODS words end in -ISM. Most are 6-10 letters, with many qualifying as bingo words. The suffix creates nouns representing beliefs, systems, and practices." }},
+    { "@type": "Question", "name": "What types of words use -ISM in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "-ISM creates nouns for beliefs (OPTIMISM), movements (FEMINISM), practices (CRITICISM), and medical conditions (RHEUMATISM). Every -ISM word has a matching -IST word (OPTIMIST), doubling your vocabulary options." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Scrabble words ending in ISM. Abstract noun suffix for intellectual plays.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Ending With -ISM</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Ending With -ISM — Scrabble Suffix Scoring Guide</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The -ISM suffix creates nouns that represent beliefs, systems, and practices — optimism, criticism, mysticism. With M worth 3 points and 300+ valid words, -ISM is a reliable path to bingo plays. Better yet, every -ISM word has a matching -IST form, so learning one pattern teaches you two.</p>
+
+<p>This dual learning approach makes -ISM one of the most efficient suffixes to study for competitive Scrabble improvement.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why -ISM Matters in Scrabble</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">5 pts</p><p class="text-xs text-gray-400">I(1)+S(1)+M(3) base</p></div>
+    <div><p class="text-xl font-bold text-amber-400">300+</p><p class="text-xs text-gray-400">Valid -ISM words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">5–12</p><p class="text-xs text-gray-400">Letter length range</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<p>The M tile is worth 3 points and moderately scarce (only 2 in the bag). -ISM words tend to be 7+ letters, making them natural bingo candidates. The suffix pairs beautifully with high-value roots: MYSTIC+ISM, WITTIC+ISM, CRITIC+ISM all contain C(3) or Y(4) for extra scoring power.</p>
+
+<p>Because M is scarce, saving it for an -ISM bingo rather than using it in a low-scoring midgame play can be the difference between winning and losing.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring -ISM Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">MYSTICISM</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">9</td><td class="px-4 py-3">Y(4)+C(3)+M(3)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">WITTICISM</td><td class="px-4 py-3 text-amber-600 font-bold">16</td><td class="px-4 py-3">9</td><td class="px-4 py-3">W(4)+C(3) + bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">CRITICISM</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">9</td><td class="px-4 py-3">C(3)+C(3) + bingo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">OPTIMISM</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">8</td><td class="px-4 py-3">P(3)+M(3) + bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">MECHANISM</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">9</td><td class="px-4 py-3">M(3)+C(3)+H(4)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">HEROISM</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">7</td><td class="px-4 py-3">H(4) + bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">FEMINISM</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">8</td><td class="px-4 py-3">F(4)+M(3) + bingo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">ORGANISM</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">8</td><td class="px-4 py-3">G(2)+R + bingo</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">-ISM Word Categories</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">Beliefs/Philosophies</p>
+    <p class="text-xs text-gray-400">OPTIMISM, REALISM, IDEALISM, STOICISM, NIHILISM, THEISM</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">Movements/Practices</p>
+    <p class="text-xs text-gray-400">FEMINISM, CRITICISM, ACTIVISM, TOURISM, JOURNALISM</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">Systems/Mechanisms</p>
+    <p class="text-xs text-gray-400">MECHANISM, ORGANISM, METABOLISM, MAGNETISM, SOCIALISM</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">Personal Qualities</p>
+    <p class="text-xs text-gray-400">HEROISM, ALTRUISM, DESPOTISM, VANDALISM, PATRIOTISM</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short -ISM Words for Tight Boards</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">PRISM</span><span class="text-blue-400 text-xs">9 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">SCHISM</span><span class="text-blue-400 text-xs">13 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">DEISM</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">THEISM</span><span class="text-blue-400 text-xs">11 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">TRUISM</span><span class="text-blue-400 text-xs">8 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Learn -ISM/-IST pairs:</span> Every -ISM word has a matching -IST form: OPTIMISM/OPTIMIST, CRITICISM/CRITIC+IST, HEROISM/no direct pair. Knowing both gives you two bingo options from one root.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">M on premium squares:</span> M is worth 3 points — on a DLS it becomes 6, on TLS it becomes 9. Since -ISM ends with M, try to position the word so M lands on a premium tile for maximum value.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">SCHISM as a power play:</span> At 13 points in just 6 letters (S+C+H+I+S+M), SCHISM is one of the most efficient short words in Scrabble. Both S tiles and the CH digraph make it achievable from common racks.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-ending-with-ist/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -IST — the person form of -ISM nouns</span>
+    </a>
+    <a href="/blog/words-ending-with-ity/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -ITY — abstract quality nouns</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-ending-with-al/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -AL</span>
+    </a>
+    <a href="/blog/words-ending-with-ive/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -IVE</span>
+    </a>
+    <a href="/blog/words-ending-with-ence/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -ENCE</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every -ISM word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

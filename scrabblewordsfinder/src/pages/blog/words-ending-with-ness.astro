@@ -1,55 +1,181 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Ending With NESS — Noun Builders"
-  description="High-scoring Scrabble words ending in NESS. Transform adjectives into playable nouns."
-  keywords="scrabble, words, ending, with, ness"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Ending With NESS — Noun Builders",
-    "description": "High-scoring Scrabble words ending in NESS. Transform adjectives into playable nouns.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-ending-with-ness" }
-  })} />
+<Layout title="Words Ending With -NESS — Scrabble Suffix Scoring Guide | ScrabbleWordsFinder.com" description="Master -NESS suffix words in Scrabble. Find high-scoring quickness, darkness, and weakness words with strategy tips for using this adjective-to-noun suffix." keywords="words ending with ness, scrabble ness words, ness suffix scrabble, high scoring ness words, quickness scrabble, ness ending words">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Ending With -NESS — Scrabble Suffix Scoring Guide",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Ending With NESS — Noun Builders</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the highest-scoring Scrabble words ending in -NESS?", "acceptedAnswer": { "@type": "Answer", "text": "QUICKNESS (24 pts), THICKNESS (22 pts), and JOYFULNESS (25 pts) rank among the top -NESS words. The suffix adds 5 base points (N1+E1+S1+S1) and the double-S gives flexibility for hooks." }},
+    { "@type": "Question", "name": "How many valid Scrabble words end in -NESS?", "acceptedAnswer": { "@type": "Answer", "text": "Over 800 valid words in SOWPODS end with -NESS, making it one of the top 5 most productive suffixes in Scrabble. It ranges from 6-letter words like ILLNESS to 15-letter bingo candidates." }},
+    { "@type": "Question", "name": "Is -NESS a good suffix for bingo words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. -NESS converts almost any adjective into a noun bingo: DARK→DARKNESS, QUICK→QUICKNESS, WEAK→WEAKNESS. The suffix uses common tiles (N, E, S, S) that are easy to collect." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">High-scoring Scrabble words ending in NESS. Transform adjectives into playable nouns.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Ending With -NESS</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Ending With -NESS — Scrabble Suffix Scoring Guide</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The -NESS suffix is one of Scrabble's most reliable bingo generators. It transforms any adjective into a noun (dark→darkness, quick→quickness) using common tiles that are easy to accumulate. With over 800 valid -NESS words in SOWPODS and the double-S ending providing hook opportunities, this suffix is a cornerstone of competitive play.</p>
+
+<p>The beauty of -NESS is that it uses some of the most common tiles in the bag — N, E, S, S — meaning you'll frequently have the suffix ready without specifically fishing for it.</p>
+
+<p>Tournament players consider -NESS one of the first suffixes to memorize because it produces bingos from almost any adjective root.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why -NESS Matters in Scrabble</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">4 pts</p><p class="text-xs text-gray-400">N(1)+E(1)+S(1)+S(1) base</p></div>
+    <div><p class="text-xl font-bold text-amber-400">800+</p><p class="text-xs text-gray-400">Valid -NESS words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">6–15</p><p class="text-xs text-gray-400">Letter length range</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<p>While the base points are modest, the real power of -NESS is volume and accessibility. With 6 N tiles, 12 E tiles, and 4 S tiles in the bag, the odds of holding N-E-S-S are much higher than suffixes requiring scarce letters. This makes -NESS your most dependable bingo path.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring -NESS Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QUICKNESS</td><td class="px-4 py-3 text-amber-600 font-bold">24</td><td class="px-4 py-3">9</td><td class="px-4 py-3">Q(10)+K(5) power</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">THICKNESS</td><td class="px-4 py-3 text-amber-600 font-bold">22</td><td class="px-4 py-3">9</td><td class="px-4 py-3">H(4)+K(5)+C(3)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WICKEDNESS</td><td class="px-4 py-3 text-amber-600 font-bold">20</td><td class="px-4 py-3">10</td><td class="px-4 py-3">W(4)+K(5)+C(3)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">AWKWARDNESS</td><td class="px-4 py-3 text-amber-600 font-bold">22</td><td class="px-4 py-3">11</td><td class="px-4 py-3">W(4)+K(5)+W(4)</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">BLACKNESS</td><td class="px-4 py-3 text-amber-600 font-bold">17</td><td class="px-4 py-3">9</td><td class="px-4 py-3">B(3)+K(5)+C(3)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">SHARPNESS</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">9</td><td class="px-4 py-3">H(4)+P(3) combo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WEAKNESS</td><td class="px-4 py-3 text-amber-600 font-bold">17</td><td class="px-4 py-3">8</td><td class="px-4 py-3">W(4)+K(5) pair</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">DARKNESS</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">8</td><td class="px-4 py-3">K(5)+D(2) bingo</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">-NESS Word Categories</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">Quality Nouns (Adj + NESS)</p>
+    <p class="text-xs text-gray-400">DARKNESS, WEAKNESS, SADNESS, MADNESS, BOLDNESS, COLDNESS</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">Emotional States</p>
+    <p class="text-xs text-gray-400">HAPPINESS, KINDNESS, LONELINESS, BITTERNESS, EAGERNESS</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">Physical Properties</p>
+    <p class="text-xs text-gray-400">THICKNESS, QUICKNESS, SHARPNESS, SMOOTHNESS, ROUGHNESS</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">High-Value Roots</p>
+    <p class="text-xs text-gray-400">QUICKNESS, WICKEDNESS, AWKWARDNESS, THICKNESS, BLACKNESS</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short -NESS Words for Tight Boards</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">NESS</span><span class="text-blue-400 text-xs">4 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">SADNESS</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">MADNESS</span><span class="text-blue-400 text-xs">10 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ILLNESS</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">FITNESS</span><span class="text-blue-400 text-xs">10 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Collect common tiles:</span> N, E, S, S are among the most plentiful tiles in the bag. When you see these accumulating on your rack alongside an adjective root (DARK, BOLD, SHARP), you have a bingo ready to fire.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Double-S hookability:</span> The trailing SS in -NESS means the second S can hook onto existing words. Play DARKNESS where the final S forms a parallel word, scoring both simultaneously for massive points.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Extend adjectives on the board:</span> If DARK, BOLD, or SHARP is already played, adding -NESS creates a bingo extension. This works especially well when the adjective ends near the board edge, giving you space for the 4-letter suffix.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-ending-with-ly/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -LY — turn adjectives into adverbs instead</span>
+    </a>
+    <a href="/blog/words-ending-with-ment/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -MENT — verb-to-noun conversion suffix</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-ending-with-tion/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -TION</span>
+    </a>
+    <a href="/blog/words-ending-with-ize/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -IZE</span>
+    </a>
+    <a href="/blog/words-ending-with-able/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -ABLE</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every -NESS word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

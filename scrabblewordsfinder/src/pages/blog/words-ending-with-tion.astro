@@ -1,55 +1,181 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Ending With TION — Suffix Strategy"
-  description="High-scoring words ending in TION. How to build around this common English suffix in Scrabble."
-  keywords="scrabble, words, ending, with, tion"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Ending With TION — Suffix Strategy",
-    "description": "High-scoring words ending in TION. How to build around this common English suffix in Scrabble.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-ending-with-tion" }
-  })} />
+<Layout title="Words Ending With -TION — Scrabble Suffix Scoring Guide | ScrabbleWordsFinder.com" description="Master -TION suffix words in Scrabble. Find high-scoring question, fixation, and junction words with strategy tips for this essential noun-forming suffix." keywords="words ending with tion, scrabble tion words, tion suffix scrabble, high scoring tion words, question scrabble, tion ending words">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Ending With -TION — Scrabble Suffix Scoring Guide",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Ending With TION — Suffix Strategy</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the highest-scoring Scrabble words ending in -TION?", "acceptedAnswer": { "@type": "Answer", "text": "JUXTAPOSITION (30 pts), QUESTION (17 pts), and FIXATION (18 pts) rank among the top -TION words. The suffix adds 4 base points (T1+I1+O1+N1) and naturally produces bingo-length words from verb roots." }},
+    { "@type": "Question", "name": "How many valid Scrabble words end in -TION?", "acceptedAnswer": { "@type": "Answer", "text": "Over 1,000 valid words in SOWPODS end with -TION, making it one of the most productive suffixes in the English language and in Scrabble. It ranges from 6-letter words like NATION to 15-letter compounds." }},
+    { "@type": "Question", "name": "Is -TION a good suffix for bingo words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Excellent. -TION creates natural 7-8 letter bingos from common verb stems: ACT→ACTION, CREATE→CREATION, FIXATE→FIXATION. The tiles T, I, O, N are all common (6-9 copies each), so you'll frequently have the suffix available." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">High-scoring words ending in TION. How to build around this common English suffix in Scrabble.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Ending With -TION</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Ending With -TION — Scrabble Suffix Scoring Guide</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The -TION suffix is the most common word ending in the English language, and it's equally dominant in Scrabble. With over 1,000 valid -TION words in SOWPODS, this noun-forming suffix converts verbs into nouns (act→action, create→creation) using four of the most abundant tiles in the bag. It's your most reliable path to consistent bingos.</p>
+
+<p>The genius of -TION is that all four tiles (T, I, O, N) have 6+ copies in the bag, meaning you'll hold this suffix ready-to-fire more often than any other.</p>
+
+<p>Competitive players treat -TION as the foundation of their bingo strategy — it's the suffix they look for first when scanning their rack.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why -TION Matters in Scrabble</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">4 pts</p><p class="text-xs text-gray-400">T(1)+I(1)+O(1)+N(1) base</p></div>
+    <div><p class="text-xl font-bold text-amber-400">1,000+</p><p class="text-xs text-gray-400">Valid -TION words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">6–15</p><p class="text-xs text-gray-400">Letter length range</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<p>While the individual tile values are low, -TION's power comes from probability. With 6 T's, 9 I's, 8 O's, and 6 N's in a standard bag, you'll statistically hold at least 3 of the 4 -TION tiles in most racks. This makes -TION bingos far more achievable than high-value suffixes like -IZE.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring -TION Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QUESTION</td><td class="px-4 py-3 text-amber-600 font-bold">17</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Q(10) without U!</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">FIXATION</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">8</td><td class="px-4 py-3">X(8)+F(4) power</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">JUNCTION</td><td class="px-4 py-3 text-amber-600 font-bold">17</td><td class="px-4 py-3">8</td><td class="px-4 py-3">J(8)+C(3) combo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">VEXATION</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">8</td><td class="px-4 py-3">X(8)+V(4) pair</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">TAXATION</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">8</td><td class="px-4 py-3">X(8) bingo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">FUNCTION</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">8</td><td class="px-4 py-3">F(4)+C(3) bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">FRICTION</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">8</td><td class="px-4 py-3">F(4)+C(3)+R(1)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">CREATION</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Common bingo stem</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">-TION Word Categories</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">Action Nouns (Verb + TION)</p>
+    <p class="text-xs text-gray-400">CREATION, FIXATION, TAXATION, ROTATION, STATION, RELATION</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">State/Condition Nouns</p>
+    <p class="text-xs text-gray-400">EMOTION, DEVOTION, CAUTION, AMBITION, NUTRITION, POSITION</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">Process/Event Nouns</p>
+    <p class="text-xs text-gray-400">FUNCTION, JUNCTION, AUCTION, ERUPTION, FRACTION, ELECTION</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">Power-Tile Roots</p>
+    <p class="text-xs text-gray-400">QUESTION, FIXATION, JUNCTION, VEXATION, TAXATION, FRICTION</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short -TION Words for Tight Boards</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">NATION</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">RATION</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">MOTION</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">POTION</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ACTION</span><span class="text-blue-400 text-xs">8 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">TION as a bingo stem:</span> When you see T, I, O, N on your rack, mentally set them aside as your suffix and focus on the remaining 3 tiles as your root. Even common letters like STA+TION, CRE+ATION, or FUN+CTION produce valid bingos.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">QUESTION — the Q without U word:</span> QUESTION is one of the most valuable -TION words because it uses Q without needing a U tile. At 17 points before premium squares, it's a natural bingo that catches opponents off guard.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Hook with S for TIONS:</span> Most -TION words can take an S to become TIONS. This means you can play NATION and later hook an S for NATIONS, or play CREATION knowing someone will S-hook it — but that's free points from the parallel word formed.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-ending-with-ment/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -MENT — verb-to-noun with M tile value</span>
+    </a>
+    <a href="/blog/words-ending-with-ize/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -IZE — high-value verb-forming suffix</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-ending-with-ness/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -NESS</span>
+    </a>
+    <a href="/blog/words-ending-with-able/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -ABLE</span>
+    </a>
+    <a href="/blog/words-ending-with-ly/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -LY</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every -TION word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

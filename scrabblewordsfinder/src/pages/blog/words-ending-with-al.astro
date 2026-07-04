@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Ending With AL"
-  description="Top Scrabble words ending in AL. Adjective suffix plays and common hooks."
-  keywords="scrabble, words, ending, with, al"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Ending With AL",
-    "description": "Top Scrabble words ending in AL. Adjective suffix plays and common hooks.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-ending-with-al" }
-  })} />
+<Layout title="Words Ending With -AL — Scrabble Suffix Scoring Guide | ScrabbleWordsFinder.com" description="Master -AL suffix words in Scrabble. Discover high-scoring words like MYSTICAL, TROPICAL, and PHYSICAL with tips for using this common adjective ending." keywords="words ending with al, scrabble al words, al suffix scrabble, high scoring al words, tropical scrabble, mystical scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Ending With -AL — Scrabble Suffix Scoring Guide",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Ending With AL</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the highest-scoring Scrabble words ending in -AL?", "acceptedAnswer": { "@type": "Answer", "text": "QUIZZICAL (38 pts), PHYSICAL (18 pts), and MYSTICAL (15 pts) are top scorers. The -AL suffix adds only 2 base points but pairs with high-value roots containing Q, X, Y, and PH." }},
+    { "@type": "Question", "name": "How many valid Scrabble words end in -AL?", "acceptedAnswer": { "@type": "Answer", "text": "Over 800 valid SOWPODS words end in -AL, making it one of the most common suffixes in Scrabble. They range from 3-letter words like GAL to 10+ letter bingos." }},
+    { "@type": "Question", "name": "What makes -AL useful for Scrabble strategy?", "acceptedAnswer": { "@type": "Answer", "text": "-AL converts nouns into adjectives (MUSIC→MUSICAL, TROPIC→TROPICAL). With 800+ valid words and only 2 tiles needed to add it, -AL is perfect for extending existing board words." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Top Scrabble words ending in AL. Adjective suffix plays and common hooks.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Ending With -AL</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Ending With -AL — Scrabble Suffix Scoring Guide</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The -AL suffix is Scrabble's workhorse ending. It converts nouns to adjectives (tropical, musical, logical) and appears in over 800 valid words. At just 2 tiles (A+L), it's the cheapest suffix to add — meaning you can extend board words without burning through your rack.</p>
+
+<p>With 800+ options available, -AL gives you more flexibility than almost any other suffix when building from limited rack tiles.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why -AL Matters in Scrabble</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">2 pts</p><p class="text-xs text-gray-400">A(1)+L(1) base</p></div>
+    <div><p class="text-xl font-bold text-amber-400">800+</p><p class="text-xs text-gray-400">Valid -AL words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">3–12</p><p class="text-xs text-gray-400">Letter length range</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<p>The real power of -AL is volume — with 800+ options, you'll almost always have an -AL word available from any rack. Words like PHYSICAL and MYSTICAL pair common roots with high-value letters (Y=4, PH=7) for strong mid-range scores.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring -AL Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">PHYSICAL</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">8</td><td class="px-4 py-3">PH(7)+Y(4) combo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">MYTHICAL</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Y(4)+H(4)+bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">MYSTICAL</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Y(4) + common tiles</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">TROPICAL</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Bingo candidate</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">MAGICAL</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">7</td><td class="px-4 py-3">G(2)+C(3) pair</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">COMICAL</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">7</td><td class="px-4 py-3">C(3)+M(3) pair</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">MUSICAL</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Common bingo stem</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">CRYSTAL</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Y(4)+C(3) pair</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">-AL Word Categories</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">Noun → Adjective</p>
+    <p class="text-xs text-gray-400">MUSICAL, TROPICAL, MAGICAL, LOGICAL, COMICAL, OPTICAL</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">Standalone Nouns</p>
+    <p class="text-xs text-gray-400">ANIMAL, CRYSTAL, GENERAL, MINERAL, JOURNAL, CAPITAL</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">-ICAL Pattern</p>
+    <p class="text-xs text-gray-400">PHYSICAL, MYSTICAL, TACTICAL, CLINICAL, CRITICAL, TYPICAL</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">-TIAL/-CIAL Pattern</p>
+    <p class="text-xs text-gray-400">PARTIAL, SPATIAL, SPECIAL, SOCIAL, FACIAL, GLACIAL</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short -AL Words for Tight Boards</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">GAL</span><span class="text-blue-400 text-xs">4 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">PAL</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ORAL</span><span class="text-blue-400 text-xs">4 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">COAL</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">DEAL</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OVAL</span><span class="text-blue-400 text-xs">7 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Two-tile extension:</span> -AL needs only A and L — both are common tiles (9 As, 4 Ls in the bag). If MUSIC or TROPIC is on the board, adding AL extends it cheaply for all-letter scoring.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Pair with -ICAL:</span> The -ICAL pattern (MYSTICAL, PHYSICAL, TACTICAL) creates 7-8 letter bingo words reliably. Hold I, C, A, L together if you have a strong 3-4 letter root.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Defensive play:</span> Short -AL words (GAL, PAL, ORAL) fit in tight corners. They score modestly but deny opponents access to premium squares without opening new lanes.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-ending-with-ary/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -ARY — the sibling adjective suffix</span>
+    </a>
+    <a href="/blog/words-ending-with-er/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -ER — the most common English suffix</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-ending-with-ism/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -ISM</span>
+    </a>
+    <a href="/blog/words-ending-with-ist/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -IST</span>
+    </a>
+    <a href="/blog/words-ending-with-ive/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -IVE</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every -AL word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

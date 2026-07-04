@@ -1,55 +1,189 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Containing Double M (MM)"
-  description="Best words with MM for Scrabble. MAMMOTH, HAMMER, SWIMMING and scoring."
-  keywords="scrabble, words, containing, double, m"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Containing Double M (MM)",
-    "description": "Best words with MM for Scrabble. MAMMOTH, HAMMER, SWIMMING and scoring.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-containing-double-m" }
-  })} />
+<Layout title="Words Containing Double M (MM) — Scrabble Words With MM | ScrabbleWordsFinder.com" description="Master Scrabble words with MM. HAMMER, MAMMOTH, SWIMMING and more double-M words with scoring tips and strategy. Free, no sign-up." keywords="words containing mm, double m scrabble words, mm words scrabble, words with double m, hammer scrabble, mammoth scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Containing Double M (MM) — Scrabble Scoring Guide",
+  "description": "Master Scrabble words with MM. HAMMER, MAMMOTH, SWIMMING and more double-M words with scoring tips and strategy.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Containing Double M (MM)</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the highest-scoring Scrabble words with MM?", "acceptedAnswer": { "@type": "Answer", "text": "MAMMOTH (16 pts), SWIMMING (16 pts), and FLAMMABLE (18 pts) are top MM scorers. MM words tend to be longer (6-9 letters) and combine well with other mid-value consonants for strong overall scores." }},
+    { "@type": "Question", "name": "How many points is MM worth in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Each M tile is worth 3 points, making MM worth 6 points base value. This is a solid foundation — MM sits between DD (4 pts) and FF (8 pts) in terms of double-letter pair value." }},
+    { "@type": "Question", "name": "What patterns commonly contain MM in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "MM frequently appears in -MMER (HAMMER, SHIMMER, STAMMER, SUMMER), -MMING (SWIMMING, DRUMMING, HUMMING), -MMAND (COMMAND, DEMAND), and -MMON (COMMON, SUMMON). These longer patterns make MM a bingo-friendly combination." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Best words with MM for Scrabble. MAMMOTH, HAMMER, SWIMMING and scoring.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Containing Double M</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Containing Double M (MM) — Scrabble Scoring Guide</h1>
+
+<div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+  <time datetime="2026-06-15">June 15, 2026</time>
+  <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+  <span>5 min read</span>
+</div>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">MM words tend to be longer and more impressive than other double-letter words. While BLUFF and CLIFF keep things short, MM naturally gravitates toward 6-8 letter words — HAMMER, MAMMOTH, SWIMMING, COMMAND. This makes MM one of the best double-letter pairs for reaching bingo length, and each M contributes a solid 3 points to the total.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">MM at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">6 pts</p><p class="text-xs text-gray-400">MM base value (3+3)</p></div>
+    <div><p class="text-xl font-bold text-amber-400">160+</p><p class="text-xs text-gray-400">Valid MM words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">6–8</p><p class="text-xs text-gray-400">Typical word length</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring MM Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">FLAMMABLE</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">9</td><td class="px-4 py-3">F(4) + B(3) + bingo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">MAMMOTH</td><td class="px-4 py-3 text-amber-600 font-bold">16</td><td class="px-4 py-3">7</td><td class="px-4 py-3">H(4) + double MM</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">SWIMMING</td><td class="px-4 py-3 text-amber-600 font-bold">16</td><td class="px-4 py-3">8</td><td class="px-4 py-3">W(4) + bingo territory</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">COMMAND</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">7</td><td class="px-4 py-3">C(3) + D(2) + bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">SHIMMER</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">7</td><td class="px-4 py-3">H(4) + bingo candidate</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">STAMMER</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Common tiles, bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">HAMMER</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">6</td><td class="px-4 py-3">H(4) + very common</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">MAMMAL</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Triple M word</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short MM Words for Tight Boards</h2>
+
+<p>While MM prefers longer words, these shorter options work when space is limited:</p>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">JAMMY</span><span class="text-blue-400 text-xs">19 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HAMMY</span><span class="text-blue-400 text-xs">15 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">YUMMY</span><span class="text-blue-400 text-xs">15 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">MAMMA</span><span class="text-blue-400 text-xs">11 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">COMMA</span><span class="text-blue-400 text-xs">11 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">GAMMA</span><span class="text-blue-400 text-xs">10 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">DUMMY</span><span class="text-blue-400 text-xs">13 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">GUMMY</span><span class="text-blue-400 text-xs">13 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">MM Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">MM is a bingo machine:</span> SWIMMING, COMMAND, SHIMMER, STAMMER, DRUMMER, MAMMAL — MM words naturally reach 7+ letters. If you draw two M's, think bingo first before settling for a shorter play.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use -MMING for verb extensions:</span> SWIM→SWIMMING, HUM→HUMMING, DRUM→DRUMMING. Any verb ending in M doubles it before -ING. Keep -ING tiles if you have M on your rack.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">-MMY endings pair with power tiles:</span> JAMMY(19), HAMMY(15), YUMMY(15), DUMMY(13) — the Y(4) suffix plus a high-value front consonant makes 5-letter -MMY words punch well above their length.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Place M on Double Letter Score:</span> M at 3 points becomes 6 on DLS. With two M's in the word, that is potentially 9 points from the MM pair alone on one premium square. Look for DLS alignment.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-containing-double-n/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing Double N — similar bingo-friendly patterns</span>
+    </a>
+    <a href="/blog/words-containing-double-g/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing Double G — comparable -ING extension strategy</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">MM Pattern Groups</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">-MMER Words</p>
+    <p class="text-xs text-gray-400">HAMMER, SHIMMER, STAMMER, SUMMER, GLIMMER, SWIMMER, DRUMMER</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">-MMING Words</p>
+    <p class="text-xs text-gray-400">SWIMMING, HUMMING, DRUMMING, TRIMMING, SLAMMING, JAMMING</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">-MMAND Words</p>
+    <p class="text-xs text-gray-400">COMMAND, COMMANDO, COMMANDER, DEMAND (archaic), RECOMMEND</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">-MMY Words</p>
+    <p class="text-xs text-gray-400">JAMMY, HAMMY, YUMMY, DUMMY, GUMMY, TUMMY, MUMMY, RUMMY</p>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-containing-double-n/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double N (NN)</span>
+    </a>
+    <a href="/blog/words-containing-double-g/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double G (GG)</span>
+    </a>
+    <a href="/blog/words-containing-double-l/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double L (LL)</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every MM word instantly — free, no sign-up</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

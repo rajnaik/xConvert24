@@ -1,55 +1,186 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Containing PH in Scrabble"
-  description="Best Scrabble words with PH. Greek-origin words that combine common tiles for solid scores."
-  keywords="scrabble, words, containing, ph"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Containing PH in Scrabble",
-    "description": "Best Scrabble words with PH. Greek-origin words that combine common tiles for solid scores.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-containing-ph" }
-  })} />
+<Layout title="Words Containing PH — Scrabble /f/ Sound Digraph | ScrabbleWordsFinder.com" description="Master PH words in Scrabble. From PHONE to PHANTOM, use this Greek-origin digraph to score big with common tiles and premium squares." keywords="words containing ph, ph words scrabble, ph digraph, phone scrabble, phantom scrabble, high scoring ph words">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Containing PH — Scrabble /f/ Sound Digraph",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Containing PH in Scrabble</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the highest-scoring PH words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "NYMPH (15 pts), GLYPH (14 pts), SPHINX (18 pts), and PHOSPHOR (18 pts) rank among top PH words. The P(3) + H(4) combination provides a strong 7-point base." }},
+    { "@type": "Question", "name": "Does PH always make an /f/ sound in Scrabble words?", "acceptedAnswer": { "@type": "Answer", "text": "Almost always. PH makes an /f/ sound in words of Greek origin like PHONE, PHOTO, and GRAPH. Rare exceptions exist in compound words where P and H are in different syllables (UPHILL)." }},
+    { "@type": "Question", "name": "What short PH words are valid in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "PHO (8 pts) is the shortest common PH word — it's a Vietnamese soup. PHI (8 pts, the Greek letter) and PHT (not valid) are often confused. GRAPH (11 pts) and MORPH (12 pts) are solid short plays." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Best Scrabble words with PH. Greek-origin words that combine common tiles for solid scores.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Containing PH</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Containing PH — Scrabble /f/ Sound Digraph</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">PH is the Greek-origin digraph that sounds like /f/ — and it's a Scrabble scoring machine. P contributes 3 points and H adds 4, giving every PH word a 7-point head start. Words like NYMPH, GLYPH, and PHANTOM combine this digraph with other consonants for devastating scores.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why PH Scores Big</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">7 pts</p><p class="text-xs text-gray-400">P(3) + H(4) base</p></div>
+    <div><p class="text-xl font-bold text-amber-400">200+</p><p class="text-xs text-gray-400">Valid PH words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">Greek</p><p class="text-xs text-gray-400">Origin language</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<p>PH and CH share the same 7-point base value, but PH words tend to include other high-value consonants (Y, G, X) more frequently due to their Greek etymology. This pushes average PH word scores higher than most digraphs.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring PH Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">SPHINX</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">6</td><td class="px-4 py-3">X adds 8 points</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">NYMPH</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Y(4) + M(3) boost</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">GLYPH</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">5</td><td class="px-4 py-3">G(2) + Y(4) + L(1)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">TROPHY</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Common rack tiles</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">PHANTOM</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Bingo candidate</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">MORPH</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">5</td><td class="px-4 py-3">M(3) + compact</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">GRAPH</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Extendable: -IC, -S</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">PHONE</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Common word, easy tiles</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">PH by Position</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">PH at Start</p>
+    <p class="text-xs text-gray-400">PHONE, PHOTO, PHASE, PHANTOM, PHRASE, PHOBIA</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">PH in Middle</p>
+    <p class="text-xs text-gray-400">ORPHAN, CIPHER, TROPHY, GOPHER, NEPHEW, PROPHET</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">PH at End</p>
+    <p class="text-xs text-gray-400">GRAPH, MORPH, NYMPH, GLYPH, TRIUMPH, TELEGRAPH</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short PH Words for Tight Spaces</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">PHO</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">PHI</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">GRAPH</span><span class="text-blue-400 text-xs">11 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">MORPH</span><span class="text-blue-400 text-xs">12 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">RALPH</span><span class="text-blue-400 text-xs">10 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy for PH Words</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">-GRAPH builds outward:</span> GRAPH → GRAPHS, GRAPHIC, GEOGRAPHY. Start with the base word and extend it on later turns for compound scoring.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">PH words resist hooks:</span> NYMPH and GLYPH end in consonant clusters that are very hard to extend. Use them defensively to limit opponent options.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Target H on DLS/TLS:</span> H is worth 4 points. On a Double Letter it becomes 8, on a Triple it becomes 12. Always check premium alignment for the H tile.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">PH Bingo Words (7+ Letters)</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-1">PHANTOM (14 pts + 50)</p>
+    <p class="text-xs text-gray-400">Common tiles: A, N, T, O, M + PH</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-1">TRIUMPH (14 pts + 50)</p>
+    <p class="text-xs text-gray-400">Strong: T, R, I, U, M + PH</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-containing-gh/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing GH — another H-based digraph</span>
+    </a>
+    <a href="/blog/words-containing-ch/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing CH — the versatile 7-point digraph</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-containing-gh/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing GH</span>
+    </a>
+    <a href="/blog/words-containing-th/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing TH</span>
+    </a>
+    <a href="/blog/words-containing-sh/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing SH</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every PH word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

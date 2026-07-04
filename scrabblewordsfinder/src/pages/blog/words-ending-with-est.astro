@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Ending With EST — Superlative Words"
-  description="Best words ending in EST for Scrabble. Three-letter suffix plays and hook strategies."
-  keywords="scrabble, words, ending, with, est"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Ending With EST — Superlative Words",
-    "description": "Best words ending in EST for Scrabble. Three-letter suffix plays and hook strategies.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-ending-with-est" }
-  })} />
+<Layout title="Words Ending With -EST — Scrabble Suffix Scoring Guide | ScrabbleWordsFinder.com" description="Master -EST suffix words in Scrabble. Find high-scoring superlatives like QUICKEST, THICKEST, and BLACKEST with strategy tips for premium square plays." keywords="words ending with est, scrabble est words, est suffix scrabble, high scoring est words, quickest scrabble, superlative scrabble words">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Ending With -EST — Scrabble Suffix Scoring Guide",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Ending With EST — Superlative Words</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the highest-scoring Scrabble words ending in -EST?", "acceptedAnswer": { "@type": "Answer", "text": "QUICKEST (23 pts), THICKEST (17 pts), and BLACKEST (16 pts) are top scorers. The -EST suffix adds 3 base points and creates superlative adjectives that often reach 7-8 letters for bingo potential." }},
+    { "@type": "Question", "name": "How many valid Scrabble words end in -EST?", "acceptedAnswer": { "@type": "Answer", "text": "Over 800 valid SOWPODS words end in -EST. Most are superlative forms of adjectives, ranging from 4-letter words like BEST and WEST to 9+ letter bingos like QUICKEST." }},
+    { "@type": "Question", "name": "Can you add -EST to any adjective in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Not all adjectives take -EST in Scrabble. One-syllable adjectives (QUICK→QUICKEST) and some two-syllable words (HAPPY→HAPPIEST) are valid. Longer adjectives use MOST instead, so BEAUTIFULEST is not valid. Always verify with a word checker." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Best words ending in EST for Scrabble. Three-letter suffix plays and hook strategies.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Ending With -EST</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Ending With -EST — Scrabble Suffix Scoring Guide</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">The -EST suffix creates superlative adjectives — the quickest, the thickest, the greatest. At 3 base points with common tiles E(1)+S(1)+T(1), -EST transforms one-syllable adjectives into 7-8 letter words that naturally hit bingo territory. It's also one of the most reliable hook endings in Scrabble.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why -EST Matters in Scrabble</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">3 pts</p><p class="text-xs text-gray-400">E(1)+S(1)+T(1)</p></div>
+    <div><p class="text-xl font-bold text-amber-400">800+</p><p class="text-xs text-gray-400">Valid -EST words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">4–9</p><p class="text-xs text-gray-400">Letter length range</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<p>The -EST suffix uses three of the most common tiles in Scrabble — E (12 in bag), S (4 in bag), and T (6 in bag). This means you'll frequently have the letters available. The scoring power comes from the root adjective: QUICK+EST uses Q(10)+K(5), THICK+EST uses H(4)+K(5), and BLACK+EST uses B(3)+K(5).</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring -EST Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QUICKEST</td><td class="px-4 py-3 text-amber-600 font-bold">23</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Q(10)+K(5) + bingo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">THICKEST</td><td class="px-4 py-3 text-amber-600 font-bold">17</td><td class="px-4 py-3">8</td><td class="px-4 py-3">H(4)+K(5)+C(3) + bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">BLACKEST</td><td class="px-4 py-3 text-amber-600 font-bold">16</td><td class="px-4 py-3">8</td><td class="px-4 py-3">B(3)+K(5)+C(3) + bingo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">CHEAPEST</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">8</td><td class="px-4 py-3">C(3)+H(4)+P(3) + bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">FRESHEST</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">8</td><td class="px-4 py-3">F(4)+H(4) + bingo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">YOUNGEST</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Y(4)+G(2) + bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">LIGHTEST</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">8</td><td class="px-4 py-3">G(2)+H(4)+L(1) + bingo</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">GREATEST</td><td class="px-4 py-3 text-amber-600 font-bold">9</td><td class="px-4 py-3">8</td><td class="px-4 py-3">G(2) + common tiles</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">-EST Word Categories</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">Superlative Adjectives</p>
+    <p class="text-xs text-gray-400">QUICKEST, YOUNGEST, LONGEST, STRONGEST, LARGEST</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">Size/Amount</p>
+    <p class="text-xs text-gray-400">LARGEST, SMALLEST, TALLEST, WIDEST, THICKEST</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">Quality</p>
+    <p class="text-xs text-gray-400">GREATEST, FRESHEST, SWEETEST, BRIGHTEST, PUREST</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">Competition</p>
+    <p class="text-xs text-gray-400">FASTEST, STRONGEST, QUICKEST, TOUGHEST, FIERCEST</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short -EST Words for Tight Boards</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">BEST</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">REST</span><span class="text-blue-400 text-xs">4 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">NEST</span><span class="text-blue-400 text-xs">4 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WEST</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">TEST</span><span class="text-blue-400 text-xs">4 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">FEST</span><span class="text-blue-400 text-xs">7 pts</span></span>
+</div>
+
+<p>Four-letter -EST words are essential for parallel plays and board control. WEST and FEST both score 7 points thanks to W(4) and F(4), while BEST hits 6 with B(3). These short words also accept extensive front-hooks: REST becomes CREST, NEST becomes HONEST, TEST becomes CONTEST.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Extend -ER to -EST:</span> If an opponent plays QUICK+ER, you can often hook EST over it or extend the same root. Knowing both comparative and superlative forms doubles your options from the same root tiles.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Target K-words for bingos:</span> The highest -EST words all contain K(5): QUICKEST (23), THICKEST (17), BLACKEST (16). If you draw K, hold E+S+T and look for a 4-letter adjective root.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use short -EST for defense:</span> BEST, WEST, FEST placed adjacent to premium squares can block opponents while scoring decently. Their common tiles mean they rarely strand your rack.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-ending-with-er/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -ER — comparatives that pair with superlatives</span>
+    </a>
+    <a href="/blog/words-ending-with-ed/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Ending With -ED — past tense extensions from the same roots</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-ending-with-ive/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -IVE</span>
+    </a>
+    <a href="/blog/words-ending-with-able/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -ABLE</span>
+    </a>
+    <a href="/blog/words-ending-with-ant/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Ending With -ANT</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every -EST word instantly</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

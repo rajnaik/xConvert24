@@ -1,55 +1,189 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Containing Double G (GG)"
-  description="Top Scrabble words with GG. AGGRESSIVE, STAGGER, FOGGY and GG plays."
-  keywords="scrabble, words, containing, double, g"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Containing Double G (GG)",
-    "description": "Top Scrabble words with GG. AGGRESSIVE, STAGGER, FOGGY and GG plays.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-containing-double-g" }
-  })} />
+<Layout title="Words Containing Double G (GG) — Scrabble Words With GG | ScrabbleWordsFinder.com" description="Master Scrabble words with GG. BIGGER, FOGGY, NAGGING and more double-G words with scoring tips and strategy. Free, no sign-up." keywords="words containing gg, double g scrabble words, gg words scrabble, words with double g, bigger scrabble, foggy scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Containing Double G (GG) — Scrabble Scoring Guide",
+  "description": "Master Scrabble words with GG. BIGGER, FOGGY, NAGGING and more double-G words with scoring tips and strategy.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Containing Double G (GG)</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the highest-scoring Scrabble words with GG?", "acceptedAnswer": { "@type": "Answer", "text": "EGGNOG (9 pts), JAGGED (15 pts), and JOGGING (17 pts) are among the top GG scorers. Words combining GG with J or high-value consonants deliver the best returns due to G's modest 2-point value." }},
+    { "@type": "Question", "name": "What patterns commonly contain GG in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "GG overwhelmingly appears in -GGING patterns (DIGGING, BEGGING, NAGGING, HUGGING, JOGGING). Other common patterns include -GGER (BIGGER, DIGGER, DAGGER), -GGY (FOGGY, MUGGY, SHAGGY), and -GGLE (GIGGLE, TOGGLE, WRIGGLE)." }},
+    { "@type": "Question", "name": "How should I play GG words strategically in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "GG words shine as extensions — if you see a word ending in G on the board, add -GING or -GED to create GG. DIGGING from DIG, NAGGING from NAG. The -ING suffix makes many GG words natural bingo candidates at 7+ letters." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Top Scrabble words with GG. AGGRESSIVE, STAGGER, FOGGY and GG plays.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Containing Double G</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Containing Double G (GG) — Scrabble Scoring Guide</h1>
+
+<div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+  <time datetime="2026-06-15">June 15, 2026</time>
+  <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+  <span>5 min read</span>
+</div>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">GG words appear constantly in Scrabble because the -GGING pattern is one of the most productive suffixes in English. Every verb ending in G doubles it before adding -ING: DIG→DIGGING, BEG→BEGGING, NAG→NAGGING. This makes GG one of the easiest double-letter combinations to play, and with 3 G tiles in the bag, opportunities arise often.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">GG at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">4 pts</p><p class="text-xs text-gray-400">GG base value (2+2)</p></div>
+    <div><p class="text-xl font-bold text-amber-400">180+</p><p class="text-xs text-gray-400">Valid GG words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">6–7</p><p class="text-xs text-gray-400">Typical word length</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring GG Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">JOGGING</td><td class="px-4 py-3 text-amber-600 font-bold">17</td><td class="px-4 py-3">7</td><td class="px-4 py-3">J(8) + bingo potential</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">JAGGED</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">6</td><td class="px-4 py-3">J(8) makes it strong</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">HUGGING</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">7</td><td class="px-4 py-3">H(4) + common verb</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">NAGGING</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Bingo from common tiles</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">DIGGING</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Three G's in one word</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">BEGGING</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">7</td><td class="px-4 py-3">B(3) + bingo path</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">BIGGER</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Comparative extension</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">FOGGY</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">5</td><td class="px-4 py-3">F(4) + Y(4) compact</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short GG Words for Tight Boards</h2>
+
+<p>While most GG words are 6-7 letters, these shorter options work in cramped positions:</p>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">EGG</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AGG</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">FOGGY</span><span class="text-blue-400 text-xs">13 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">MUGGY</span><span class="text-blue-400 text-xs">12 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">SOGGY</span><span class="text-blue-400 text-xs">10 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OGLE</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">EGGS</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AGGIE</span><span class="text-blue-400 text-xs">7 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">GG Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Extend G-ending words on the board:</span> When you see DIG, BEG, HUG, NAG, or JOG on the board, check if you can add -GING to create a 7-letter bingo. This is one of the easiest bingo paths in Scrabble.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">-GGY endings score well for their length:</span> FOGGY(13), MUGGY(12), SHAGGY(14), CRAGGY(13) — these 5-6 letter words deliver strong points because Y adds 4 and the consonants surrounding GG contribute additional value.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Pair GG with J for power plays:</span> JOGGING(17) and JAGGED(15) are the highest-scoring common GG words. If you draw J + G, immediately look for -GGING or -AGGED opportunities.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Three G tiles in the bag means GG is common:</span> You will often draw two G's together. Rather than seeing it as a problem, treat it as a -GGING opportunity. Keep the pair and look for the right verb stem.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-containing-double-f/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing Double F — higher point value per pair</span>
+    </a>
+    <a href="/blog/words-containing-double-m/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing Double M — similar -ING extension patterns</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">GG Pattern Groups</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">-GGING Words</p>
+    <p class="text-xs text-gray-400">DIGGING, BEGGING, NAGGING, HUGGING, JOGGING, LOGGING, PEGGING, RIGGING</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">-GGER Words</p>
+    <p class="text-xs text-gray-400">BIGGER, DIGGER, DAGGER, LOGGER, TRIGGER, STAGGER, SWAGGER</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">-GGY Words</p>
+    <p class="text-xs text-gray-400">FOGGY, MUGGY, SOGGY, SHAGGY, CRAGGY, BAGGY, LEGGY, JAGGY</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">-GGLE Words</p>
+    <p class="text-xs text-gray-400">GIGGLE, TOGGLE, WIGGLE, GOGGLE, JUGGLE, BOGGLE, SMUGGLE</p>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-containing-double-f/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double F (FF)</span>
+    </a>
+    <a href="/blog/words-containing-double-m/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double M (MM)</span>
+    </a>
+    <a href="/blog/words-containing-double-n/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double N (NN)</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every GG word instantly — free, no sign-up</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

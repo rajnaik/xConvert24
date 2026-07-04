@@ -1,55 +1,186 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Q Words Without U Following"
-  description="Every valid Q-not-followed-by-U word. QI, QOPH, QADI, QANAT and more."
-  keywords="scrabble, words, containing, qu, no, u, after"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Q Words Without U Following",
-    "description": "Every valid Q-not-followed-by-U word. QI, QOPH, QADI, QANAT and more.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-containing-qu-no-u-after" }
-  })} />
+<Layout title="Words With QU Where No U Follows — Q Without U Scrabble Words | ScrabbleWordsFinder.com" description="Master Q-without-U words in Scrabble. Essential QI, QOPH, QADI, and QANAT words that let you play Q without needing a U tile." keywords="q without u scrabble, qi scrabble, qoph, qadi, qanat, q words no u, scrabble q strategy">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words With QU Where No U Follows — Q Without U Scrabble Words",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Q Words Without U Following</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the best Q-without-U words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "QI (11 pts) is the most important — a 2-letter word playable almost anywhere. QOPH (18 pts), QADI (14 pts), QANAT (14 pts), and QINTAR (15 pts) are longer options for higher scores." }},
+    { "@type": "Question", "name": "How many Q-without-U words exist in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "In SOWPODS there are approximately 30+ valid Q-without-U words. In TWL (North American) there are fewer — about 20. The most common are QI, QADI, QOPH, QANAT, and QINTAR." }},
+    { "@type": "Question", "name": "What should I do if I draw Q without a U?", "acceptedAnswer": { "@type": "Answer", "text": "Play QI immediately if possible — it scores 11 points and frees your rack. If QI doesn't fit, look for QOPH or QADI. As a last resort, exchange the Q, but try to use it first since it's worth 10 points." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Every valid Q-not-followed-by-U word. QI, QOPH, QADI, QANAT and more.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Q Without U Words</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Q Without U — Essential Scrabble Survival Words</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 · 5 min read</p>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Drawing Q without a U is every Scrabble player's nightmare — unless you know the Q-without-U words. Q is worth 10 points (the highest single-tile value alongside Z), and these special words let you deploy it without waiting for a U. Memorize them and the Q becomes an asset, not a burden.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why Q-Without-U Words Matter</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">10 pts</p><p class="text-xs text-gray-400">Q tile value</p></div>
+    <div><p class="text-xl font-bold text-amber-400">30+</p><p class="text-xs text-gray-400">Valid Q-no-U words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">-10</p><p class="text-xs text-gray-400">Penalty if stuck at end</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<p>If you're stuck with Q at game end, you lose 10 points. Knowing these words transforms Q from a liability into a premium scoring tile that you can deploy on almost any turn.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Must-Know Q-Without-U Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Meaning</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Dictionary</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QI</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">Life force (Chinese)</td><td class="px-4 py-3">Both</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">QOPH</td><td class="px-4 py-3 text-amber-600 font-bold">18</td><td class="px-4 py-3">Hebrew letter</td><td class="px-4 py-3">Both</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QADI</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">Islamic judge</td><td class="px-4 py-3">Both</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">QANAT</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">Irrigation tunnel</td><td class="px-4 py-3">SOWPODS</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QINTAR</td><td class="px-4 py-3 text-amber-600 font-bold">15</td><td class="px-4 py-3">Albanian currency</td><td class="px-4 py-3">Both</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">QWERTY</td><td class="px-4 py-3 text-amber-600 font-bold">21</td><td class="px-4 py-3">Keyboard layout</td><td class="px-4 py-3">SOWPODS</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">QIGONG</td><td class="px-4 py-3 text-amber-600 font-bold">17</td><td class="px-4 py-3">Chinese exercise</td><td class="px-4 py-3">SOWPODS</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">TRANQ</td><td class="px-4 py-3 text-amber-600 font-bold">14</td><td class="px-4 py-3">Short for tranquilizer</td><td class="px-4 py-3">Both</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="not-prose my-8 p-6 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/30 to-yellow-950/20 relative overflow-hidden">
+  <div class="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-amber-500/70">👑 MVP</div>
+  <p class="text-2xl font-black text-white tracking-wider mb-2">QI</p>
+  <p class="text-sm text-amber-300 font-semibold mb-3">11 points · 2 letters · Playable almost anywhere</p>
+  <p class="text-sm text-gray-300 leading-relaxed">QI is the single most important Q-without-U word. It's only 2 letters, fits into any board gap, and scores 11 points minimum. It pluralizes to QIS (12 pts). Memorize it — this word will save you dozens of times.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Q-Without-U Strategy</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Play QI immediately:</span> Don't wait for a better option. QI on a Double Word Score is 22 points. On a Triple Letter for the Q, it's 31 points. Deploy it fast.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Target I tiles on the board:</span> If there's an I already placed, you can play Q next to it to form QI without using your own I tile. This is a power move.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">QOPH for premium squares:</span> At 18 points base, QOPH on a Double Word Score becomes 36. Look for 4-letter slots near DWS tiles.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Exchange as last resort:</span> If no Q-without-U word fits after careful board inspection, exchange. Holding Q for 3+ turns costs you more in lost rack flexibility than the 10 points it's worth.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">SOWPODS vs TWL Differences</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">Valid in Both</p>
+    <p class="text-xs text-gray-400">QI, QADI, QOPH, QINTAR, QINDAR, TRANQ, MBAQANGA</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">SOWPODS Only</p>
+    <p class="text-xs text-gray-400">QANAT, QAWWALI, QIGONG, QWERTY, QAT, QAID, QAIDS</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Quick Reference: Short Q-Without-U Words</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QI</span><span class="text-blue-400 text-xs">11 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QIS</span><span class="text-blue-400 text-xs">12 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QOPH</span><span class="text-blue-400 text-xs">18 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">QADI</span><span class="text-blue-400 text-xs">14 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">TRANQ</span><span class="text-blue-400 text-xs">14 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Advanced: Multi-Q Games</h2>
+
+<div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+  <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Rare Scenario</p>
+  <p class="text-base text-gray-200">In competitive play, if opponents dump a Q and you draw it late, knowing Q-without-U words becomes even more critical. The endgame penalty for holding Q is <span class="text-white font-medium">-10 points</span> — worth more than most single plays. Always have a QI escape plan.</p>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/best-q-words-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Best Q Words in Scrabble — full Q strategy guide</span>
+    </a>
+    <a href="/blog/managing-the-q-tile/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Managing the Q Tile — when to hold, play, or exchange</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/best-q-words-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Best Q Words in Scrabble</span>
+    </a>
+    <a href="/blog/best-z-words-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Best Z Words in Scrabble</span>
+    </a>
+    <a href="/blog/words-containing-ph/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing PH</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Got Q without U? Enter your tiles and find every valid play</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

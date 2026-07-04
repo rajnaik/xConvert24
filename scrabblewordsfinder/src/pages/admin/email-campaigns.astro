@@ -1,0 +1,285 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Email Campaigns — Admin — ScrabbleWordsFinder" description="Manage outreach campaign leads" keywords="admin, campaigns, leads" >
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/emails/" class="hover:text-blue-400 transition-colors">Emails</a>
+      <a href="/admin/email-campaigns/" class="text-blue-400 font-medium">Campaigns</a>
+      <a href="/admin/clicks/" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <h1 class="text-3xl font-bold text-white mb-2">📬 Email Campaigns</h1>
+    <p class="text-gray-400 mb-6">Manage outreach leads from the <code class="text-xs bg-gray-800 px-1.5 py-0.5 rounded">campaign_leads</code> table. Track who you've emailed and responses.</p>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Leads</p>
+        <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Sent</p>
+        <p class="text-2xl font-bold text-green-400" id="stat-sent">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Pending</p>
+        <p class="text-2xl font-bold text-amber-400" id="stat-pending">—</p>
+      </div>
+      <div class="rounded-lg bg-gray-800/60 p-4">
+        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Campaign Set</p>
+        <p class="text-2xl font-bold text-blue-400" id="stat-set">1</p>
+      </div>
+    </div>
+
+    <!-- Filters + Actions -->
+    <div class="flex gap-3 mb-4 flex-wrap">
+      <select id="filter-batch" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm">
+        <option value="">All Batches</option>
+      </select>
+      <select id="filter-sent" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-sm">
+        <option value="">All</option>
+        <option value="0">Not sent</option>
+        <option value="1">Sent</option>
+      </select>
+      <button id="refresh-btn" class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">🔄 Refresh</button>
+      <button id="add-btn" class="h-9 px-4 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors ml-auto">+ Add Lead</button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-800/80">
+          <tr>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">School</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">Email</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">Contact</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">Town</th>
+            <th class="px-3 py-2 text-center text-gray-400 font-medium">Sent</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">Sent At</th>
+            <th class="px-3 py-2 text-center text-gray-400 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="leads-table" class="divide-y divide-gray-800"></tbody>
+      </table>
+    </div>
+    <p class="text-xs text-gray-500 mt-2" id="row-count"></p>
+
+    <!-- View/Edit Modal -->
+    <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl font-bold text-white mb-4" id="modal-title">Lead Details</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">School Name</label>
+            <input id="f-school" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Email</label>
+            <input id="f-email" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Contact Person</label>
+            <input id="f-contact" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Role</label>
+              <input id="f-role" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Town</label>
+              <input id="f-town" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Campaign Set</label>
+              <input id="f-set" type="number" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Sent</label>
+              <select id="f-sent" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Sent At</label>
+            <input id="f-sent-at" type="date" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Response / Notes</label>
+            <textarea id="f-response" rows="3" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 text-sm"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button id="modal-cancel" class="h-9 px-4 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm transition-colors">Cancel</button>
+          <button id="modal-delete" class="h-9 px-4 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm transition-colors hidden">Delete</button>
+          <button id="modal-save" class="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    let currentId = null;
+
+    async function loadLeads() {
+      const sent = document.getElementById('filter-sent').value;
+      const batch = document.getElementById('filter-batch').value;
+      const params = new URLSearchParams();
+      if (sent) params.set('sent', sent);
+      if (batch) params.set('batch', batch);
+
+      const res = await fetch('/api/campaign-leads/?' + params.toString());
+      const data = await res.json();
+      if (!data.leads) return;
+
+      document.getElementById('stat-total').textContent = data.total;
+      document.getElementById('stat-sent').textContent = data.sent_count;
+      document.getElementById('stat-pending').textContent = data.total - data.sent_count;
+
+      // Populate batch filter dropdown from data
+      const batchSelect = document.getElementById('filter-batch');
+      const currentBatch = batchSelect.value;
+      const batches = [...new Set(data.leads.map(l => l.batch).filter(Boolean))].sort();
+      const existingOpts = [...batchSelect.options].map(o => o.value).filter(Boolean);
+      if (JSON.stringify(batches) !== JSON.stringify(existingOpts)) {
+        batchSelect.innerHTML = '<option value="">All Batches</option>' + batches.map(b => `<option value="${b}" ${b === currentBatch ? 'selected' : ''}>${b}</option>`).join('');
+      }
+
+      const tbody = document.getElementById('leads-table');
+      tbody.innerHTML = data.leads.map(l => `
+        <tr class="hover:bg-gray-800/50 transition-colors">
+          <td class="px-3 py-2 text-gray-200 font-medium">${esc(l.school_name)}</td>
+          <td class="px-3 py-2 text-gray-400 text-xs">${esc(l.email)}</td>
+          <td class="px-3 py-2 text-gray-300 text-xs">${esc(l.contact_person)}</td>
+          <td class="px-3 py-2 text-gray-400 text-xs">${esc(l.town)}</td>
+          <td class="px-3 py-2 text-center">${l.sent ? '<span class="text-green-400">✓</span>' : '<span class="text-gray-600">—</span>'}</td>
+          <td class="px-3 py-2 text-gray-400 text-xs">${l.sent_at || '—'}</td>
+          <td class="px-3 py-2 text-center">
+            <button onclick="viewLead(${l.id})" class="text-blue-400 hover:text-blue-300 text-xs mr-2">View</button>
+            <button onclick="markSent(${l.id})" class="text-green-400 hover:text-green-300 text-xs ${l.sent ? 'hidden' : ''}">Mark Sent</button>
+          </td>
+        </tr>
+      `).join('');
+
+      document.getElementById('row-count').textContent = `Showing ${data.leads.length} of ${data.total} leads`;
+    }
+
+    function esc(str) { return (str || '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    async function viewLead(id) {
+      const res = await fetch('/api/campaign-leads/?id=' + id);
+      const data = await res.json();
+      if (!data.lead) return;
+      const l = data.lead;
+
+      currentId = l.id;
+      document.getElementById('f-school').value = l.school_name || '';
+      document.getElementById('f-email').value = l.email || '';
+      document.getElementById('f-contact').value = l.contact_person || '';
+      document.getElementById('f-role').value = l.role || '';
+      document.getElementById('f-town').value = l.town || '';
+      document.getElementById('f-set').value = l.campaign_email_set || 1;
+      document.getElementById('f-sent').value = l.sent || 0;
+      document.getElementById('f-sent-at').value = l.sent_at || '';
+      document.getElementById('f-response').value = l.response || '';
+
+      document.getElementById('modal-title').textContent = 'Edit: ' + l.school_name;
+      document.getElementById('modal-delete').classList.remove('hidden');
+      showModal();
+    }
+
+    async function markSent(id) {
+      const today = new Date().toISOString().split('T')[0];
+      await fetch('/api/campaign-leads/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, sent: 1, sent_at: today })
+      });
+      loadLeads();
+    }
+
+    function showModal() {
+      const m = document.getElementById('modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function hideModal() {
+      const m = document.getElementById('modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+      currentId = null;
+    }
+
+    document.getElementById('add-btn').addEventListener('click', () => {
+      currentId = null;
+      document.getElementById('f-school').value = '';
+      document.getElementById('f-email').value = '';
+      document.getElementById('f-contact').value = '';
+      document.getElementById('f-role').value = 'Headteacher';
+      document.getElementById('f-town').value = '';
+      document.getElementById('f-set').value = '1';
+      document.getElementById('f-sent').value = '0';
+      document.getElementById('f-sent-at').value = '';
+      document.getElementById('f-response').value = '';
+      document.getElementById('modal-title').textContent = 'Add New Lead';
+      document.getElementById('modal-delete').classList.add('hidden');
+      showModal();
+    });
+
+    document.getElementById('modal-cancel').addEventListener('click', hideModal);
+    document.getElementById('modal').addEventListener('click', (e) => { if (e.target === e.currentTarget) hideModal(); });
+
+    document.getElementById('modal-save').addEventListener('click', async () => {
+      const payload = {
+        school_name: document.getElementById('f-school').value,
+        email: document.getElementById('f-email').value,
+        contact_person: document.getElementById('f-contact').value,
+        role: document.getElementById('f-role').value,
+        town: document.getElementById('f-town').value,
+        campaign_email_set: parseInt(document.getElementById('f-set').value) || 1,
+        sent: parseInt(document.getElementById('f-sent').value) || 0,
+        sent_at: document.getElementById('f-sent-at').value || null,
+        response: document.getElementById('f-response').value,
+      };
+
+      if (currentId) {
+        payload.id = currentId;
+        await fetch('/api/campaign-leads/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } else {
+        await fetch('/api/campaign-leads/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      }
+      hideModal();
+      loadLeads();
+    });
+
+    document.getElementById('modal-delete').addEventListener('click', async () => {
+      if (!currentId) return;
+      if (!confirm('Delete this lead permanently?')) return;
+      await fetch('/api/campaign-leads/', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: currentId }) });
+      hideModal();
+      loadLeads();
+    });
+
+    document.getElementById('filter-sent').addEventListener('change', loadLeads);
+    document.getElementById('filter-batch').addEventListener('change', loadLeads);
+    document.getElementById('refresh-btn').addEventListener('click', loadLeads);
+
+    loadLeads();
+  </script>
+</Layout>

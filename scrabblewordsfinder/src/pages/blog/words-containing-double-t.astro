@@ -1,55 +1,190 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Containing Double T (TT)"
-  description="High-scoring words with TT. BUTTER, ATTIC, LATTE and more."
-  keywords="scrabble, words, containing, double, t"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Containing Double T (TT)",
-    "description": "High-scoring words with TT. BUTTER, ATTIC, LATTE and more.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-containing-double-t" }
-  })} />
+<Layout title="Words Containing Double T — TT Words for Scrabble" description="Master words with TT letter combinations for Scrabble. Discover top TT words like BUTTER, KITTEN, and LATTE to improve your board play." keywords="double T words, TT words Scrabble, words with TT, Scrabble word list, TT letter pattern, BUTTER Scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Containing Double T — TT Words for Scrabble",
+  "description": "Master words with TT letter combinations for Scrabble. Discover top TT words like BUTTER, KITTEN, and LATTE to improve your board play.",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "datePublished": "2026-06-15",
+  "mainEntityOfPage": "https://www.scrabblewordsfinder.com/blog/words-containing-double-t/"
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Containing Double T (TT)</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "How many T tiles are in a Scrabble bag?", "acceptedAnswer": { "@type": "Answer", "text": "There are 6 T tiles in a standard Scrabble bag, each worth 1 point. T is one of the most common consonants, making TT combinations very achievable during normal gameplay." }},
+    { "@type": "Question", "name": "What are the best TT words for Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Strong TT words include BUTTER (8 pts), KITTEN (10 pts), ATTIC (7 pts), MATTER (8 pts), LATTE (5 pts), and MITTEN (8 pts). The -TTER and -TTLE patterns are particularly versatile." }},
+    { "@type": "Question", "name": "Can TT words help with bingo plays?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, many 7+ letter TT words qualify for bingos. BATTERY (12 pts + 50 bonus), BUTTERY (12 pts + 50 bonus), TATTERED (9 pts + 50 bonus), and KNITTING (13 pts + 50 bonus) are all achievable." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">High-scoring words with TT. BUTTER, ATTIC, LATTE and more.</p>
+<nav class="text-sm text-gray-500 dark:text-gray-400 mb-6" aria-label="Breadcrumb">
+  <a href="/blog/" class="hover:text-amber-600">Blog</a>
+  <span class="mx-2">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-600">Letter Guides</a>
+  <span class="mx-2">›</span>
+  <span class="text-gray-700 dark:text-gray-200">Words Containing TT</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Containing Double T — TT Words for Scrabble</h1>
+<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Published June 15, 2026 • 5 min read</p>
+
+<p class="text-lg leading-relaxed mb-6">Double T is everywhere in English — from BUTTER to KITTEN to LATTE. With 6 T tiles in the bag, you'll regularly draw pairs. TT words are typically everyday vocabulary, making them easy to recall under time pressure. Learn these patterns and you'll never be stuck with two Ts again.</p>
+
+<!-- Stat Strip -->
+<div class="grid grid-cols-3 gap-4 my-8">
+  <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
+    <div class="text-2xl font-bold text-amber-600">2 pts</div>
+    <div class="text-xs text-gray-600 dark:text-gray-400">TT Point Value</div>
   </div>
-</BlogLayout>
+  <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
+    <div class="text-2xl font-bold text-amber-600">350+</div>
+    <div class="text-xs text-gray-600 dark:text-gray-400">Valid TT Words</div>
+  </div>
+  <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 text-center">
+    <div class="text-2xl font-bold text-amber-600">5-7</div>
+    <div class="text-xs text-gray-600 dark:text-gray-400">Typical Length</div>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring TT Words</h2>
+
+<p>These common TT words are easy to remember and deliver solid scores:</p>
+
+<div class="overflow-x-auto my-6">
+  <table class="w-full text-sm border-collapse">
+    <thead><tr class="border-b border-gray-200 dark:border-gray-700">
+      <th class="text-left py-2 px-3">Word</th><th class="text-left py-2 px-3">Points</th><th class="text-left py-2 px-3">Definition</th>
+    </tr></thead>
+    <tbody>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 font-mono">KITTEN</td><td class="py-2 px-3">10</td><td class="py-2 px-3">A young cat</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 font-mono">BUTTER</td><td class="py-2 px-3">8</td><td class="py-2 px-3">A dairy product made from cream</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 font-mono">ATTIC</td><td class="py-2 px-3">7</td><td class="py-2 px-3">A space below the roof of a house</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 font-mono">MATTER</td><td class="py-2 px-3">8</td><td class="py-2 px-3">Physical substance; to be important</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 font-mono">ROTTEN</td><td class="py-2 px-3">6</td><td class="py-2 px-3">Decayed or decomposed</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 font-mono">LATTE</td><td class="py-2 px-3">5</td><td class="py-2 px-3">A coffee drink with steamed milk</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 font-mono">MITTEN</td><td class="py-2 px-3">8</td><td class="py-2 px-3">A glove with a single section for fingers</td></tr>
+      <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2 px-3 font-mono">BUTTON</td><td class="py-2 px-3">8</td><td class="py-2 px-3">A fastener on clothing; to press</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short TT Words for Tight Boards</h2>
+
+<p>When space is limited, these compact TT words slot in nicely:</p>
+
+<div class="flex flex-wrap gap-2 my-6">
+  <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-mono">MUTT</span>
+  <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-mono">BUTT</span>
+  <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-mono">PUTT</span>
+  <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-mono">WATT</span>
+  <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-mono">MITT</span>
+  <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-mono">MUTT</span>
+  <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-mono">TATTY</span>
+  <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-mono">NUTTY</span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">TT Pattern Groups</h2>
+
+<p>TT words cluster around predictable endings. Recognize these and you'll spot plays faster:</p>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+  <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+    <h3 class="font-semibold text-sm mb-2">-TTER Words</h3>
+    <p class="text-sm text-gray-600 dark:text-gray-400">BUTTER, BETTER, BITTER, LITTER, MATTER, FATTER, OTTER</p>
+  </div>
+  <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+    <h3 class="font-semibold text-sm mb-2">-TTLE Words</h3>
+    <p class="text-sm text-gray-600 dark:text-gray-400">BATTLE, BOTTLE, CATTLE, KETTLE, LITTLE, RATTLE, SETTLE</p>
+  </div>
+  <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+    <h3 class="font-semibold text-sm mb-2">-TTEN Words</h3>
+    <p class="text-sm text-gray-600 dark:text-gray-400">KITTEN, MITTEN, ROTTEN, GOTTEN, BITTEN, WRITTEN</p>
+  </div>
+  <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+    <h3 class="font-semibold text-sm mb-2">-TTING Words</h3>
+    <p class="text-sm text-gray-600 dark:text-gray-400">SITTING, HITTING, CUTTING, PUTTING, GETTING, BETTING</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips for TT Words</h2>
+
+<div class="space-y-3 my-6">
+  <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+    <p class="text-sm"><strong>Play through existing T:</strong> If there's a T on the board, you only need one T from your rack to create a TT word. Look for extending plays.</p>
+  </div>
+  <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+    <p class="text-sm"><strong>-TTLE bingos are common:</strong> BATTLE, BOTTLE, CATTLE, KETTLE, and SETTLE are all 6-letter words needing just one more tile for a bingo.</p>
+  </div>
+  <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+    <p class="text-sm"><strong>Hook with -ED and -ING:</strong> Most TT words take standard suffixes. BUTTERED, MATTERING, SITTING — easy extensions.</p>
+  </div>
+  <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+    <p class="text-sm"><strong>Don't fear the double:</strong> Unlike rarer tiles, Ts are plentiful. Playing both early doesn't hurt your rack flexibility significantly.</p>
+  </div>
+</div>
+
+<!-- Cross-link block -->
+<div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-6 my-8">
+  <h3 class="font-semibold text-indigo-700 dark:text-indigo-300 mb-3">Explore More Double Letter Patterns</h3>
+  <ul class="space-y-2 text-sm">
+    <li><a href="/blog/words-containing-double-s/" class="text-indigo-600 dark:text-indigo-400 hover:underline">Words Containing Double S →</a></li>
+    <li><a href="/blog/words-containing-double-r/" class="text-indigo-600 dark:text-indigo-400 hover:underline">Words Containing Double R →</a></li>
+  </ul>
+</div>
+
+<!-- Related Articles -->
+<aside class="border-t border-gray-200 dark:border-gray-700 pt-6 mt-10">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Related Articles</h3>
+  <ul class="space-y-2 text-sm">
+    <li><a href="/blog/words-containing-double-p/" class="text-amber-600 dark:text-amber-400 hover:underline">Words Containing Double P</a></li>
+    <li><a href="/blog/words-containing-double-o/" class="text-amber-600 dark:text-amber-400 hover:underline">Words Containing Double O</a></li>
+    <li><a href="/blog/words-containing-double-m/" class="text-amber-600 dark:text-amber-400 hover:underline">Words Containing Double M</a></li>
+  </ul>
+</aside>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">TT Bingo Words (7+ Letters)</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-1">BATTERS (9 pts + 50)</p>
+    <p class="text-xs text-gray-400">Common tiles: B, A, E, R, S + TT</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-1">KITTENS (11 pts + 50)</p>
+    <p class="text-xs text-gray-400">K(5) boost: K, I, E, N, S + TT</p>
+  </div>
+</div>
+
+<!-- CTA Box -->
+<div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-6 my-10 text-center">
+  <p class="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">Find More TT Words Instantly</p>
+  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Enter your tiles into our free solver and discover every TT word you can make — scored and sorted in realtime.</p>
+  <a href="/" class="inline-block bg-amber-500 hover:bg-amber-600 text-white font-medium px-6 py-2 rounded-lg transition-colors">Try the Word Finder →</a>
+</div>
+
+<div class="text-center mt-8">
+  <a href="/blog/" class="text-sm text-gray-500 dark:text-gray-400 hover:text-amber-600">← Back to Blog</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

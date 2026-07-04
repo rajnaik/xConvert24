@@ -1,55 +1,189 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Containing Double D (DD)"
-  description="Top words with DD for Scrabble. ADDITION, LADDER, ODDLY and double-D plays."
-  keywords="scrabble, words, containing, double, d"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Containing Double D (DD)",
-    "description": "Top words with DD for Scrabble. ADDITION, LADDER, ODDLY and double-D plays.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-containing-double-d" }
-  })} />
+<Layout title="Words Containing Double D (DD) — Scrabble Words With DD | ScrabbleWordsFinder.com" description="Master Scrabble words with DD. ADDED, LADDER, MUDDY and more double-D words with scoring tips, patterns and strategy. Free, no sign-up." keywords="words containing dd, double d scrabble words, dd words scrabble, words with double d, ladder scrabble, muddy scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Containing Double D (DD) — Scrabble Scoring Guide",
+  "description": "Master Scrabble words with DD. ADDED, LADDER, MUDDY and more double-D words with scoring tips and strategy.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Containing Double D (DD)</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What are the best Scrabble words containing DD?", "acceptedAnswer": { "@type": "Answer", "text": "SHUDDER (12 pts), WADDING (13 pts), and ODDLY (10 pts) are strong DD plays. Words with DD in -DDLE patterns (MIDDLE, RIDDLE, SADDLE) are particularly common and easy to spot on your rack." }},
+    { "@type": "Question", "name": "How many points is DD worth in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Each D tile is worth 2 points, making DD worth 4 points base value. While lower than BB or FF, DD words are far more common, giving you more opportunities to play them on premium squares." }},
+    { "@type": "Question", "name": "What are the most common DD patterns in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "The most common DD patterns are -DDLE (MIDDLE, RIDDLE, PADDLE), -DDY (MUDDY, DADDY, BUDDY), -DDER (LADDER, SHUDDER, ADDER), and -DDED (ADDED, PADDED, WADDED). Memorising these stems helps spot plays quickly." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Top words with DD for Scrabble. ADDITION, LADDER, ODDLY and double-D plays.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Containing Double D</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Containing Double D (DD) — Scrabble Scoring Guide</h1>
+
+<div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+  <time datetime="2026-06-15">June 15, 2026</time>
+  <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+  <span>5 min read</span>
+</div>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Double-D words are some of the most frequently playable combinations in Scrabble. The DD pair appears naturally in -DDLE, -DDY, and -DDER patterns that form everyday English words. While each D is only worth 2 points, the sheer volume of DD words means you will encounter them constantly — and knowing the best ones gives you a reliable scoring edge.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">DD at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">4 pts</p><p class="text-xs text-gray-400">DD base value (2+2)</p></div>
+    <div><p class="text-xl font-bold text-amber-400">200+</p><p class="text-xs text-gray-400">Valid DD words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">5–6</p><p class="text-xs text-gray-400">Typical word length</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring DD Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">WADDING</td><td class="px-4 py-3 text-amber-600 font-bold">13</td><td class="px-4 py-3">7</td><td class="px-4 py-3">W(4) + bingo potential</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">SHUDDER</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Common tiles, bingo</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">MADDEST</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">7</td><td class="px-4 py-3">Superlative extension</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">DADDY</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Y(4) boosts short word</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">MUDDY</td><td class="px-4 py-3 text-amber-600 font-bold">12</td><td class="px-4 py-3">5</td><td class="px-4 py-3">M(3) + Y(4) + DD</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">ODDLY</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Double ODD + LY</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">LADDER</td><td class="px-4 py-3 text-amber-600 font-bold">8</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Very common word</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">MIDDLE</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">6</td><td class="px-4 py-3">-DDLE pattern classic</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short DD Words for Tight Boards</h2>
+
+<p>These compact DD words slot into congested boards while keeping your rack flexible:</p>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ADD</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ODD</span><span class="text-blue-400 text-xs">5 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ADDED</span><span class="text-blue-400 text-xs">8 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ADDER</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">BUDDY</span><span class="text-blue-400 text-xs">12 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">CADDY</span><span class="text-blue-400 text-xs">12 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">EDDY</span><span class="text-blue-400 text-xs">9 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">TODDY</span><span class="text-blue-400 text-xs">10 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">DD Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Extend with -ED and -ING:</span> Many DD words accept common suffixes. ADDED→ADDING, WADDED→WADDING. This turns a 5-letter word into a bingo candidate without needing rare tiles.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use -DDLE as your go-to stem:</span> MIDDLE, RIDDLE, SADDLE, PADDLE, FIDDLE, MUDDLE — the -DDLE pattern produces 6-letter words from extremely common tiles. Memorise these.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">ADD is a powerful hook word:</span> ADD hooks onto existing words easily — GADDS, MADDER, ODDS. It also extends backward: L+ADD=LADD, which can become LADDER.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Pair DD with Y for quick scores:</span> MUDDY(12), DADDY(11), CADDY(12), BUDDY(12), TODDY(10) — the Y tile adds 4 points and these words are short enough to fit anywhere.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-containing-double-b/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing Double B — higher point value per pair</span>
+    </a>
+    <a href="/blog/words-containing-double-n/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing Double N — equally common doubled consonant</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">DD Pattern Groups</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">-DDLE Words</p>
+    <p class="text-xs text-gray-400">MIDDLE, RIDDLE, SADDLE, PADDLE, FIDDLE, MUDDLE, TODDLE, CUDDLE</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">-DDY Words</p>
+    <p class="text-xs text-gray-400">MUDDY, DADDY, BUDDY, CADDY, TEDDY, GIDDY, KIDDY, TODDY</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">-DDER Words</p>
+    <p class="text-xs text-gray-400">LADDER, ADDER, SHUDDER, MADDER, BLADDER, CHEDDAR, FODDER</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">-DDED Words</p>
+    <p class="text-xs text-gray-400">ADDED, WADDED, PADDED, NODDED, BUDDED, STUDDED, SKIDDED</p>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-containing-double-b/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double B (BB)</span>
+    </a>
+    <a href="/blog/words-containing-double-e/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double E (EE)</span>
+    </a>
+    <a href="/blog/words-containing-double-n/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double N (NN)</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every DD word instantly — free, no sign-up</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>

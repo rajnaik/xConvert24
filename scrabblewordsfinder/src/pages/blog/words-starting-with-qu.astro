@@ -1,55 +1,182 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Starting With QU in Scrabble"
-  description="All valid QU-starting words for Scrabble. From QUAFF to QUINTET, the essential QU list."
-  keywords="scrabble, words, starting, with, qu"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Starting With QU in Scrabble",
-    "description": "All valid QU-starting words for Scrabble. From QUAFF to QUINTET, the essential QU list.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-starting-with-qu" }
-  })} />
+<Layout title="Words Starting With QU- — Scrabble Prefix Scoring Guide | ScrabbleWordsFinder.com" description="Master QU- prefix words in Scrabble. Find high-scoring quizzify, quixotic, and equalize plays with tips for deploying the Q tile effectively." keywords="words starting with qu, scrabble qu words, qu prefix scrabble, high scoring qu words, quixotic scrabble, q tile strategy">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+  <article class="max-w-4xl mx-auto px-4 py-8">
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Starting With QU in Scrabble</h1>
+    <!-- Article JSON-LD -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Words Starting With QU- — Scrabble Prefix Scoring Guide",
+      "datePublished": "2026-06-15",
+      "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+    })} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+    <!-- FAQPage Schema -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What are the highest-scoring QU- words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "QUIZZIFY scores 40 points, QUIXOTIC scores 26 points, and QUANTIZE scores 26 points. The QU- prefix alone gives you a base of 11 points (Q=10 + U=1)." } },
+        { "@type": "Question", "name": "How many valid QU- words exist in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Over 250 valid QU- words exist in the SOWPODS and TWL Scrabble dictionaries, ranging from 3 to 15 letters in length." } },
+        { "@type": "Question", "name": "Does Q always need U in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Q almost always needs U. Only a handful of Q-without-U words exist (like QI, QOPH, QADI, QANAT). QU- is the standard deployment pattern for the Q tile." } }
+      ]
+    })} />
+
+    <!-- Hero -->
+    <header class="text-center mb-10">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Words Starting With <span class="text-purple-600 dark:text-purple-400">QU-</span></h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">The Q tile is worth 10 points — the second highest in the game. Pair it with U and unlock over 250 powerful plays. Master QU- prefix words to turn Scrabble's trickiest tile into your biggest scoring weapon.</p>
+    </header>
+
+    <!-- Stat Strip -->
+    <div class="grid grid-cols-3 gap-4 mb-10">
+      <div class="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">11 pts</div>
+        <div class="text-sm text-purple-600 dark:text-purple-400">Base (Q10 + U1)</div>
       </div>
+      <div class="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">250+</div>
+        <div class="text-sm text-purple-600 dark:text-purple-400">Valid Words</div>
+      </div>
+      <div class="bg-purple-50 dark:bg-purple-900/30 rounded-xl p-4 text-center">
+        <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">3–15</div>
+        <div class="text-sm text-purple-600 dark:text-purple-400">Letter Range</div>
+      </div>
+    </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">All valid QU-starting words for Scrabble. From QUAFF to QUINTET, the essential QU list.</p>
+    <!-- High-Scoring Table -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Top Scoring QU- Words</h2>
+      <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+              <th class="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Points</th>
+              <th class="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Length</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Key Tiles</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-purple-700 dark:text-purple-400">QUIZZIFY</td><td class="px-4 py-3 text-center font-semibold">40</td><td class="px-4 py-3 text-center">8</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+Z(10)+Z(10)+F(4)+Y(4)</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-purple-700 dark:text-purple-400">QUIZZING</td><td class="px-4 py-3 text-center font-semibold">36</td><td class="px-4 py-3 text-center">8</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+Z(10)+Z(10)+G(2)</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-purple-700 dark:text-purple-400">SQUEEZY</td><td class="px-4 py-3 text-center font-semibold">28</td><td class="px-4 py-3 text-center">7</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+Z(10)+Y(4)</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-purple-700 dark:text-purple-400">QUARTZITE</td><td class="px-4 py-3 text-center font-semibold">27</td><td class="px-4 py-3 text-center">9</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+Z(10) rock</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-purple-700 dark:text-purple-400">QUIXOTIC</td><td class="px-4 py-3 text-center font-semibold">26</td><td class="px-4 py-3 text-center">8</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+X(8)+C(3)</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-purple-700 dark:text-purple-400">QUANTIZE</td><td class="px-4 py-3 text-center font-semibold">26</td><td class="px-4 py-3 text-center">8</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+Z(10) double</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-purple-700 dark:text-purple-400">QUICKLY</td><td class="px-4 py-3 text-center font-semibold">25</td><td class="px-4 py-3 text-center">7</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+K(5)+Y(4)</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-purple-700 dark:text-purple-400">QUALIFY</td><td class="px-4 py-3 text-center font-semibold">22</td><td class="px-4 py-3 text-center">7</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+F(4)+Y(4)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+    <!-- Card Grid -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">QU- Word Categories</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-5">
+          <h3 class="font-bold text-green-800 dark:text-green-300 mb-2">Common QU- Words</h3>
+          <p class="text-sm text-green-700 dark:text-green-400">QUEEN, QUIET, QUICK, QUOTE, QUEST, QUITE</p>
+        </div>
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-5">
+          <h3 class="font-bold text-blue-800 dark:text-blue-300 mb-2">Scientific / Technical</h3>
+          <p class="text-sm text-blue-700 dark:text-blue-400">QUANTUM, QUARTZ, QUARANTINE, QUADRANT, QUININE</p>
+        </div>
+        <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-5">
+          <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-2">Rare High-Value</h3>
+          <p class="text-sm text-purple-700 dark:text-purple-400">QUIXOTIC, QUIZZIFY, QUANTIZE, QUINZHEE, QUILTZ</p>
+        </div>
+        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5">
+          <h3 class="font-bold text-amber-800 dark:text-amber-300 mb-2">Short QU- Forms</h3>
+          <p class="text-sm text-amber-700 dark:text-amber-400">QUA, QUAD, QUAY, QUIZ, QUOD, QUIP</p>
         </div>
       </div>
+    </section>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+    <!-- Pills -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Quick QU- Plays</h2>
+      <div class="flex flex-wrap gap-3">
+        <span class="inline-flex items-center gap-1 px-4 py-2 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full font-semibold text-sm">QUA <span class="text-purple-500 dark:text-purple-400 font-normal">12 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full font-semibold text-sm">QUAY <span class="text-purple-500 dark:text-purple-400 font-normal">16 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full font-semibold text-sm">QUIZ <span class="text-purple-500 dark:text-purple-400 font-normal">22 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full font-semibold text-sm">QUIP <span class="text-purple-500 dark:text-purple-400 font-normal">15 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full font-semibold text-sm">QUOD <span class="text-purple-500 dark:text-purple-400 font-normal">14 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-full font-semibold text-sm">QUAD <span class="text-purple-500 dark:text-purple-400 font-normal">14 pts</span></span>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+    </section>
+
+    <!-- Strategy Tips -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Strategy Tips for QU- Words</h2>
+      <div class="space-y-4">
+        <div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 rounded-r-xl p-5">
+          <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">Deploy Q Early</h3>
+          <p class="text-sm text-purple-700 dark:text-purple-400">Q is 10 points but devastating if stuck with at end-game (-10 penalty). Play QU- words in the first half of the game. Even a simple QUIZ (22 pts) gets Q off your rack safely.</p>
+        </div>
+        <div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 rounded-r-xl p-5">
+          <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">Premium Square Targeting</h3>
+          <p class="text-sm text-purple-700 dark:text-purple-400">Q on a double letter = 20 pts from one tile. On triple letter = 30 pts. Always position QU- plays to land Q on premium squares — the difference is enormous.</p>
+        </div>
+        <div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 rounded-r-xl p-5">
+          <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">Know Q-Without-U</h3>
+          <p class="text-sm text-purple-700 dark:text-purple-400">QI (11), QOPH (18), QADI (14), QANAT (14) don't need U. But QU- is still your primary strategy since U is common (4 in bag) and opens 250+ words.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cross Links -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Related Prefix Guides</h2>
+      <div class="flex flex-wrap gap-3">
+        <a href="/blog/words-starting-with-ex/" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors text-sm font-medium">Words Starting With EX- →</a>
+        <a href="/blog/words-starting-with-un/" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors text-sm font-medium">Words Starting With UN- →</a>
+      </div>
+    </section>
+
+    <!-- Related Articles -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">More Prefix Guides</h2>
+      <ul class="space-y-2 text-sm">
+        <li><a href="/blog/words-starting-with-re/" class="text-purple-600 dark:text-purple-400 hover:underline">Words Starting With RE- →</a></li>
+        <li><a href="/blog/words-starting-with-super/" class="text-purple-600 dark:text-purple-400 hover:underline">Words Starting With SUPER- →</a></li>
+        <li><a href="/blog/words-starting-with-anti/" class="text-purple-600 dark:text-purple-400 hover:underline">Words Starting With ANTI- →</a></li>
+      </ul>
+    </section>
+
+    <BlogCrossLinks current="/blog/words-starting-with-qu/" />
+
+    <!-- Additional content for threshold -->
+    <section class="mt-10 border-t border-gray-200 dark:border-gray-800 pt-8">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Mastering the Q Tile</h2>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">The Q tile is the most feared tile in Scrabble for a reason: 10 points if you play it, -10 points if you're stuck with it at game end. QU- is your primary exit strategy. By knowing 250+ QU- words, you transform Q from a liability into your biggest scoring weapon.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">Always play Q in the first half of the game when possible. Premium squares are more available early, and you avoid the end-game penalty risk. Even a simple QUIZ (22 points without premiums) is a strong play that clears Q off your rack.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">When Q lands on a double letter square, it's worth 20 points from that single tile. On a triple letter, 30 points. Position your QU- plays to maximize premium square hits — the difference between QUIZ on a normal square (22) versus Q on TLS (42) is enormous.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">If you draw Q without U, don't panic. QI (11 pts), QOPH (18 pts), QADI (14 pts), and QANAT (14 pts) are your lifelines. But prevention is better — when you see U on your rack, consider holding it in case Q arrives next draw.</p>
+    </section>
+
+    <!-- CTA -->
+    <section class="mt-12 mb-8">
+      <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-8 text-center">
+        <h2 class="text-2xl font-bold text-white mb-3">Find Every QU- Word From Your Tiles</h2>
+        <p class="text-amber-100 mb-5">Enter your tiles and find every QU- word instantly</p>
+        <a href="/" class="inline-block bg-white text-amber-700 font-bold px-8 py-3 rounded-xl hover:bg-amber-50 transition-colors">Open Word Finder →</a>
+      </div>
+    </section>
+
+    <div class="not-prose mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+    </div>
+
+  </article>
+</Layout>

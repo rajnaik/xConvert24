@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Starting With RE in Scrabble"
-  description="Best RE-prefix words. RETAINS, RESTING, REMADE — the bingo-enabling prefix."
-  keywords="scrabble, words, starting, with, re"
->
+<Layout title="Words Starting With RE- — Scrabble Prefix Scoring Guide | ScrabbleWordsFinder.com" description="Master RE- prefix words in Scrabble. Find high-scoring rejudge, rezone, and requiz plays with strategy tips for this repetition prefix." keywords="words starting with re, scrabble re words, re prefix scrabble, high scoring re words, rezone scrabble, re prefix strategy">
+
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Words Starting With RE in Scrabble",
-    "description": "Best RE-prefix words. RETAINS, RESTING, REMADE — the bingo-enabling prefix.",
+    "headline": "Words Starting With RE- — Scrabble Prefix Scoring Guide",
     "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-starting-with-re" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What are the highest-scoring RE- words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "REJUDGE scores 16 points with J(8), REZONE scores 15 points with Z(10), and REQUIZ scores 24 points with Q(10)+Z(10). The RE- prefix base costs only R(1)+E(1) = 2 points, so all your scoring power comes from the root word." } },
+      { "@type": "Question", "name": "How many valid RE- words exist in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "Over 1000+ valid RE- words exist in the SOWPODS dictionary — it's the MOST productive prefix in Scrabble by volume. This gives you more options than any other prefix when looking for plays." } },
+      { "@type": "Question", "name": "Is RE a valid Scrabble word on its own?", "acceptedAnswer": { "@type": "Answer", "text": "Yes! RE is valid alone (2 points) and is one of the most common 2-letter words for parallel plays. Place it alongside existing words to score in two directions simultaneously." } }
+    ]
+  })} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Starting With RE in Scrabble</h1>
+  <article class="max-w-4xl mx-auto px-4 py-8">
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+    <!-- Hero -->
+    <header class="text-center mb-10">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Words Starting With <span class="text-amber-600 dark:text-amber-400">RE-</span></h1>
+      <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">The most prolific prefix in Scrabble. Over 1000 words, dirt-cheap base cost, and endless extension potential make RE- the king of prefixes.</p>
+    </header>
+
+    <!-- Stat Strip -->
+    <div class="grid grid-cols-3 gap-4 mb-10">
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 text-center border border-amber-200 dark:border-amber-800">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-300">2 pts</div>
+        <div class="text-sm text-amber-600 dark:text-amber-400">Base Cost (R1+E1)</div>
       </div>
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 text-center border border-amber-200 dark:border-amber-800">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-300">1000+</div>
+        <div class="text-sm text-amber-600 dark:text-amber-400">Valid Words</div>
+      </div>
+      <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 text-center border border-amber-200 dark:border-amber-800">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-300">2–15</div>
+        <div class="text-sm text-amber-600 dark:text-amber-400">Letter Range</div>
+      </div>
+    </div>
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Best RE-prefix words. RETAINS, RESTING, REMADE — the bingo-enabling prefix.</p>
+    <!-- High-Scoring Table -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">🏆 Top Scoring RE- Words</h2>
+      <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+              <th class="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Points</th>
+              <th class="px-4 py-3 text-center font-semibold text-gray-700 dark:text-gray-300">Length</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Why It Scores</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-amber-700 dark:text-amber-300">REQUIZ</td><td class="px-4 py-3 text-center font-bold">24</td><td class="px-4 py-3 text-center">6</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Q(10)+Z(10) double</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-amber-700 dark:text-amber-300">REJOCKEY</td><td class="px-4 py-3 text-center font-bold">21</td><td class="px-4 py-3 text-center">8</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">J(8)+K(5)+Y(4)</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-amber-700 dark:text-amber-300">RECHECK</td><td class="px-4 py-3 text-center font-bold">18</td><td class="px-4 py-3 text-center">7</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">K(5)+H(4)+C(3)</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-amber-700 dark:text-amber-300">REJUDGE</td><td class="px-4 py-3 text-center font-bold">16</td><td class="px-4 py-3 text-center">7</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">J(8)+G(2)+D(2)</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-amber-700 dark:text-amber-300">REZONE</td><td class="px-4 py-3 text-center font-bold">15</td><td class="px-4 py-3 text-center">6</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">Z(10) power</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-amber-700 dark:text-amber-300">REFIX</td><td class="px-4 py-3 text-center font-bold">15</td><td class="px-4 py-3 text-center">5</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">X(8)+F(4) short</td></tr>
+            <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-bold text-amber-700 dark:text-amber-300">REWAX</td><td class="px-4 py-3 text-center font-bold">15</td><td class="px-4 py-3 text-center">5</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">X(8)+W(4) short</td></tr>
+            <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-bold text-amber-700 dark:text-amber-300">REBOOK</td><td class="px-4 py-3 text-center font-bold">14</td><td class="px-4 py-3 text-center">6</td><td class="px-4 py-3 text-gray-600 dark:text-gray-400">B(3)+K(5) combo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
+    <!-- Category Cards -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">📂 RE- Word Categories</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-5">
+          <h3 class="font-bold text-green-800 dark:text-green-300 mb-2">🔄 Repetition Verbs</h3>
+          <p class="text-sm text-green-700 dark:text-green-400">REDO, REMAKE, REBUILD, REWRITE, REPLAY, RETURN</p>
+        </div>
+        <div class="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-5">
+          <h3 class="font-bold text-blue-800 dark:text-blue-300 mb-2">↩️ Reversal/Back</h3>
+          <p class="text-sm text-blue-700 dark:text-blue-400">RETURN, REVERSE, REVOKE, RECALL, REFLECT, RETRACT</p>
+        </div>
+        <div class="rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 p-5">
+          <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-2">💪 Intensifiers</h3>
+          <p class="text-sm text-purple-700 dark:text-purple-400">REINFORCE, REASSURE, REVIVE, REFRESH, RESTORE, REJUVENATE</p>
+        </div>
+        <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-5">
+          <h3 class="font-bold text-amber-800 dark:text-amber-300 mb-2">⚡ Short RE- Forms</h3>
+          <p class="text-sm text-amber-700 dark:text-amber-400">RE, RED, REP, RES, RET, REV, REX</p>
         </div>
       </div>
+    </section>
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+    <!-- Quick Score Pills -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">⚡ Quick-Play RE- Scores</h2>
+      <div class="flex flex-wrap gap-3">
+        <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium"><span class="font-bold text-gray-900 dark:text-white">RE</span><span class="text-amber-600 dark:text-amber-400">2 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium"><span class="font-bold text-gray-900 dark:text-white">REX</span><span class="text-amber-600 dark:text-amber-400">10 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium"><span class="font-bold text-gray-900 dark:text-white">REV</span><span class="text-amber-600 dark:text-amber-400">6 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium"><span class="font-bold text-gray-900 dark:text-white">REP</span><span class="text-amber-600 dark:text-amber-400">5 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium"><span class="font-bold text-gray-900 dark:text-white">RED</span><span class="text-amber-600 dark:text-amber-400">4 pts</span></span>
+        <span class="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm font-medium"><span class="font-bold text-gray-900 dark:text-white">RET</span><span class="text-amber-600 dark:text-amber-400">3 pts</span></span>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+    </section>
+
+    <!-- Strategy Tips -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">🧠 Strategy Tips for RE- Words</h2>
+      <div class="space-y-4">
+        <div class="rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 p-5">
+          <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">The King of Extensions</h3>
+          <p class="text-sm text-purple-700 dark:text-purple-400">RE- attaches to more roots than any other prefix. If a verb appears on the board, chances are RE- can prepend to it. PLAY→REPLAY, BUILD→REBUILD, MAKE→REMAKE.</p>
+        </div>
+        <div class="rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 p-5">
+          <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">Two-Letter Parallel Power</h3>
+          <p class="text-sm text-purple-700 dark:text-purple-400">RE is valid as a 2-letter word. Use it for parallel plays to score in two directions simultaneously. Place R above/below another word's first letter.</p>
+        </div>
+        <div class="rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 p-5">
+          <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">Volume Advantage</h3>
+          <p class="text-sm text-purple-700 dark:text-purple-400">With 1000+ valid RE- words, you have options in any board state. Don't settle for small plays when RE+5 more tiles can give you a bingo with 50-point bonus.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cross Links -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">🔗 Related Prefix Guides</h2>
+      <div class="flex flex-wrap gap-3">
+        <a href="/blog/words-starting-with-un/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">UN- Prefix Guide →</a>
+        <a href="/blog/words-starting-with-pre/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">PRE- Prefix Guide →</a>
+        <a href="/blog/words-starting-with-dis/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">DIS- Prefix Guide →</a>
+        <a href="/blog/words-starting-with-over/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">OVER- Prefix Guide →</a>
+        <a href="/blog/words-starting-with-mis/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">MIS- Prefix Guide →</a>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="mb-10">
+      <div class="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-6 text-center">
+        <h2 class="text-xl font-bold text-amber-800 dark:text-amber-300 mb-2">Find Every RE- Word From Your Tiles</h2>
+        <p class="text-amber-700 dark:text-amber-400 mb-4">Enter your tiles and find every RE- word instantly</p>
+        <a href="/" class="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition-colors">Open Word Finder →</a>
+      </div>
+    </section>
+
+    <BlogCrossLinks current="/blog/words-starting-with-re/" />
+
+    <!-- Additional depth content -->
+    <div class="mt-10 border-t border-gray-200 dark:border-gray-800 pt-8">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Why RE- Dominates Every Game</h2>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">RE- is the single most versatile prefix in Scrabble. With over 1000 valid words, you almost always have an RE- play available regardless of your rack or the board state. This makes it the first prefix every serious player should master.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">The two-letter base cost (R1+E1 = 2 points) means RE- doesn't waste your scoring potential. All your power comes from the root word. Combine RE- with J, X, Z, or Q roots for devastating plays: REJUDGE, REFIX, REZONE, REQUIZ.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">RE is also one of the most useful 2-letter words in the game. Use it for parallel plays — placing RE alongside existing words to score in two directions simultaneously. This technique alone can add 10-15 points per turn.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">For bingo hunters, RE- is the easiest prefix to hit naturally. R and E are among the most common draws in the bag (6 R tiles, 12 E tiles). When you spot them together on your rack, immediately start looking for 5-letter roots to complete a bingo.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">Study these high-frequency RE- roots for instant recall: BUILD, MAKE, PLAY, WRITE, TURN, MOVE, PLACE, CHECK, ZONE, FIX, WAX. Each creates a valid and recognisable extension that rarely gets challenged.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">REX (10 points) deserves special mention as one of the highest-scoring 3-letter words in the game. The X tile's 8-point value plus R and E gives you a compact power play for tight board situations.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300">In tournament play, RE- words dominate opening strategy. Many top players use RE- extensions in their first three moves to establish board control while keeping their rack flexible for future draws.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Advanced tip: track how many R tiles remain in the bag (6 total) and E tiles (12 total). With these common letters, RE- stays viable throughout the entire game — unlike rarer prefixes that depend on specific tile draws.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">For rack management, holding R+E early is rarely a bad decision. These tiles combine with almost anything, and the RE- option provides a safety net if your remaining tiles don't form strong independent words.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Finally, remember that RE- words hook easily. REZONE can take S (REZONES), REFIX can take ED (REFIXED). These extensions give you scoring opportunities on future turns from the same play.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Bottom line: RE- is the most powerful prefix in Scrabble by sheer volume and flexibility. With 1000+ words and a dirt-cheap 2-point cost, it should be the first prefix you master on your competitive journey.</p>
+    </div>
+
+    <div class="not-prose mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+    </div>
+
+  </article>
+</Layout>

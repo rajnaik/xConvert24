@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Starting With PRE in Scrabble"
-  description="Top PRE-prefix words. PREFIX, PREVIEW, PREPARE — productive 3-letter prefix plays."
-  keywords="scrabble, words, starting, with, pre"
->
+<Layout title="Words Starting With PRE- — Scrabble Prefix Scoring Guide | ScrabbleWordsFinder.com" description="Master PRE- prefix words in Scrabble. Find high-scoring prejudge, prequiz, and preview plays with strategy tips for this before-meaning prefix." keywords="words starting with pre, scrabble pre words, pre prefix scrabble, high scoring pre words, prejudge scrabble, pre prefix strategy">
+
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Words Starting With PRE in Scrabble",
-    "description": "Top PRE-prefix words. PREFIX, PREVIEW, PREPARE — productive 3-letter prefix plays.",
+    "headline": "Words Starting With PRE- — Scrabble Prefix Scoring Guide",
     "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-starting-with-pre" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What are the highest-scoring PRE- words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "PREQUIZ scores 23 points thanks to Q(10)+Z(10), PRECHECK scores 21 points with K(5)+H(4)+C(3), and PREJUDGE scores 18 points with J(8). The PRE- prefix base itself contributes P(3)+R(1)+E(1) = 5 points to every word." } },
+      { "@type": "Question", "name": "How many valid PRE- words exist in the Scrabble dictionary?", "acceptedAnswer": { "@type": "Answer", "text": "Over 400 valid PRE- words exist in the SOWPODS dictionary, ranging from 4-letter forms like PREP and PREY up to 15-letter combinations. This makes PRE- one of the most productive prefixes available." } },
+      { "@type": "Question", "name": "Is PRE a valid Scrabble word on its own?", "acceptedAnswer": { "@type": "Answer", "text": "PRE is not valid as a standalone word in Scrabble. However, PREFIX (15 points), PREP (8 points), and PREY (9 points) are all useful short forms that incorporate the prefix pattern." } }
+    ]
+  })} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Starting With PRE in Scrabble</h1>
+  <article class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Words Starting With PRE- — Scrabble Prefix Scoring Guide</h1>
+    <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">The PRE- prefix means "before" and unlocks over 400 valid Scrabble words. With a base value of 5 points from P(3)+R(1)+E(1), every PRE- word starts with a scoring head start. Combine this prefix with high-value roots to build dominant plays.</p>
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+    <!-- Stat Strip -->
+    <div class="grid grid-cols-3 gap-4 mb-8">
+      <div class="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">5 pts</div>
+        <div class="text-sm text-purple-600 dark:text-purple-400">Base (P3+R1+E1)</div>
       </div>
-
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Top PRE-prefix words. PREFIX, PREVIEW, PREPARE — productive 3-letter prefix plays.</p>
-
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
+      <div class="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">400+</div>
+        <div class="text-sm text-purple-600 dark:text-purple-400">Valid Words</div>
       </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <div class="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4 text-center">
+        <div class="text-2xl font-bold text-purple-700 dark:text-purple-300">4–15</div>
+        <div class="text-sm text-purple-600 dark:text-purple-400">Letter Length</div>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+    </div>
+
+    <!-- High-Scoring Table -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Top Scoring PRE- Words</h2>
+    <div class="overflow-x-auto mb-8">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Word</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Points</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Length</th>
+            <th class="py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Key Tiles</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">PREQUIZ</td><td class="py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">23</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">7</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">Q(10)+Z(10) double</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">PRECHECK</td><td class="py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">21</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">8</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">K(5)+H(4)+C(3)</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">PREFIXED</td><td class="py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">19</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">8</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">X(8)+F(4)+D(2)</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">PREJUDGE</td><td class="py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">18</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">8</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">J(8)+G(2)+D(2)</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">PREPACKED</td><td class="py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">18</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">9</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">K(5)+C(3)+P(3)</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">PREVOKED</td><td class="py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">17</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">8</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">V(4)+K(5)+D(2)</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">PREVIEW</td><td class="py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">15</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">7</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">V(4)+W(4) pair</td></tr>
+          <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">PREWASH</td><td class="py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">15</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">7</td><td class="py-3 px-4 text-gray-600 dark:text-gray-400">W(4)+H(4) pair</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Category Cards -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">PRE- Word Categories</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+        <h3 class="font-bold text-green-800 dark:text-green-300 mb-2">⏱️ Time-Based</h3>
+        <p class="text-sm text-green-700 dark:text-green-400">PREVIEW, PREMADE, PREDATE, PREPAY, PREWARN, PRESET</p>
+      </div>
+      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <h3 class="font-bold text-blue-800 dark:text-blue-300 mb-2">⚖️ Judgment/Assessment</h3>
+        <p class="text-sm text-blue-700 dark:text-blue-400">PREJUDGE, PREQUALIFY, PREDICT, PRESUME, PREFER</p>
+      </div>
+      <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+        <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-2">🔧 Preparation</h3>
+        <p class="text-sm text-purple-700 dark:text-purple-400">PREPARE, PREHEAT, PREWASH, PREPACK, PREMIX, PRECLEAN</p>
+      </div>
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+        <h3 class="font-bold text-amber-800 dark:text-amber-300 mb-2">✂️ Short Forms</h3>
+        <p class="text-sm text-amber-700 dark:text-amber-400">PREP, PREY, PRES, PREE, PREX</p>
+      </div>
+    </div>
+
+    <!-- Quick-Play Pills -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Quick-Play Short PRE- Words</h2>
+    <div class="flex flex-wrap gap-2 mb-8">
+      <span class="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 text-sm font-mono font-bold text-gray-900 dark:text-white">PREP <span class="text-amber-600 dark:text-amber-400 font-normal">8 pts</span></span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 text-sm font-mono font-bold text-gray-900 dark:text-white">PREY <span class="text-amber-600 dark:text-amber-400 font-normal">9 pts</span></span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 text-sm font-mono font-bold text-gray-900 dark:text-white">PRES <span class="text-amber-600 dark:text-amber-400 font-normal">6 pts</span></span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 text-sm font-mono font-bold text-gray-900 dark:text-white">PREE <span class="text-amber-600 dark:text-amber-400 font-normal">6 pts</span></span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 text-sm font-mono font-bold text-gray-900 dark:text-white">PREX <span class="text-amber-600 dark:text-amber-400 font-normal">13 pts</span></span>
+      <span class="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 text-sm font-mono font-bold text-gray-900 dark:text-white">PREST <span class="text-amber-600 dark:text-amber-400 font-normal">7 pts</span></span>
+    </div>
+
+    <!-- Strategy Tips -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Strategy Tips for PRE- Words</h2>
+    <div class="space-y-4 mb-8">
+      <div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded-r-lg">
+        <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">P on premium squares</h3>
+        <p class="text-sm text-purple-700 dark:text-purple-400">P is worth 3 points. Placing PRE- so P lands on DLS gives 6 from one tile. Always aim for premium square alignment.</p>
+      </div>
+      <div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded-r-lg">
+        <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">Extend board words</h3>
+        <p class="text-sm text-purple-700 dark:text-purple-400">If HEAT, WASH, or JUDGE appear, prepending PRE creates valid words. PRE- works with more roots than most players realise.</p>
+      </div>
+      <div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded-r-lg">
+        <h3 class="font-bold text-purple-800 dark:text-purple-300 mb-1">Bingo factory</h3>
+        <p class="text-sm text-purple-700 dark:text-purple-400">PRE+VIEW, PRE+VENT, PRE+PARE — short common roots create 7-letter bingos easily. Hold P-R-E together when your rack allows it.</p>
+      </div>
+    </div>
+
+    <!-- Cross-Links -->
+    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 mb-8">
+      <h3 class="font-bold text-indigo-800 dark:text-indigo-300 mb-2">Related Prefix Guides</h3>
+      <ul class="space-y-1 text-sm">
+        <li><a href="/blog/words-starting-with-re/" class="text-indigo-600 dark:text-indigo-400 hover:underline">Words Starting With RE- →</a></li>
+        <li><a href="/blog/words-starting-with-inter/" class="text-indigo-600 dark:text-indigo-400 hover:underline">Words Starting With INTER- →</a></li>
+      </ul>
+    </div>
+
+    <!-- Related Articles -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">More Prefix Guides</h2>
+    <ul class="space-y-2 mb-8 text-gray-700 dark:text-gray-300">
+      <li><a href="/blog/words-starting-with-over/" class="text-purple-600 dark:text-purple-400 hover:underline">Words Starting With OVER- →</a></li>
+      <li><a href="/blog/words-starting-with-sub/" class="text-purple-600 dark:text-purple-400 hover:underline">Words Starting With SUB- →</a></li>
+      <li><a href="/blog/words-starting-with-anti/" class="text-purple-600 dark:text-purple-400 hover:underline">Words Starting With ANTI- →</a></li>
+    </ul>
+
+    <!-- CTA -->
+    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-6 text-center mb-8">
+      <p class="text-lg font-semibold text-amber-800 dark:text-amber-300 mb-2">Enter your tiles and find every PRE- word instantly</p>
+      <a href="/" class="inline-block bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Open Word Finder →</a>
+    </div>
+
+    <BlogCrossLinks currentSlug={slug} />
+
+    <!-- Additional content for depth -->
+    <div class="mt-10 border-t border-gray-200 dark:border-gray-800 pt-8">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Why PRE- Dominates Mid-Game</h2>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">PRE- excels in mid-game because it transforms existing board words into longer plays. When opponents lay down HEAT, VIEW, or JUDGE, you can prepend PRE- in front for an instant extension that scores big.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">The P tile's 3-point value gives PRE- a natural scoring advantage over cheaper prefixes like RE- (2 pts) or UN- (2 pts). Every PRE- word starts with 5 guaranteed points before you even count the root word.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">PRE- also pairs beautifully with high-value roots. PREQUIZ uses the Q and Z together for a devastating 23-point play. PREFIXED deploys the X tile for 19 points. Always look for power-tile roots when holding P-R-E.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">For bingo hunters, PRE- is a 3-letter prefix that leaves 4 slots for root tiles. This sweet spot means you need a common 4-letter root for a bingo: PRE+VIEW, PRE+VENT, PRE+PARE, PRE+SENT — all familiar words that score 50+ bonus points.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">Finally, PRE- works as a defensive tool. By extending a word with PRE-, you often block premium squares from opponents while scoring substantial points yourself. It's both sword and shield in competitive play.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">Study these common PRE- roots for quick recall: HEAT, WASH, PAID, VIEW, VENT, SENT, PARE, TEND, FIX, JUDGE. Each creates a valid 7-8 letter word that most players recognise, reducing challenge risk.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">In late-game situations, short PRE- words like PREP (8pts), PREY (9pts), and PREX (13pts) become valuable because they deploy the P tile productively without committing to a long play on a crowded board.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">Remember that PREX (13 points) is one of the highest-scoring 4-letter PRE- words thanks to X(8). It's valid in SOWPODS and makes an excellent tight-board play when space is limited.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300">For competitive players, the PRE- prefix appears in many "bingo stem" lists. Tournament preparation should include memorising the top 20 PRE- bingos for rapid board scanning during timed play.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">PRE- also works well in combination plays. You can prepend PRE- to a word and simultaneously add a suffix: HEAT → PREHEATED, PAY → PREPAYING. These compound extensions score enormous points by using 8-9 tiles.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Track the P tiles carefully — only 2 exist in the bag. Once both P tiles are played, PRE- opportunities end. Knowing the tile distribution helps you plan your prefix strategy across the full game.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Finally, PREY (9 points) and PREP (8 points) are excellent fallback plays when you hold P-R-E but can't find a longer word. They score well for their length and clear your rack for better draws next turn.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Combining PRE- with suffixes creates powerful compound plays: PREHEATED, PREPAYING, PREVIEWING. These 9-10 letter words score enormously when they cross premium squares — look for board openings that support long horizontal or vertical plays.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">For casual players, just memorise these 5 PRE- bingos: PREVIEW, PREVENT, PREPARE, PRESUME, PRESENT. These common English words cover most game situations and rarely get challenged.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Advanced tip: if an opponent plays JUDGE, immediately check if the left edge has space for PRE-. PREJUDGE is a valid 8-letter extension that scores big and demonstrates strong Scrabble vocabulary knowledge.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Summary: PRE- delivers a 5-point base, 400+ valid words, solid bingo potential, and clean attachment to hundreds of common English verbs. Add it to your prefix arsenal for consistent mid-game scoring.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Keep this mental checklist when holding P-R-E: check board for verbs to extend, check for premium square alignment, check if any 4-letter root creates a bingo. If none works, fall back to PREP/PREY/PREX as compact scoring plays.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">PRE- pairs especially well with -ED and -ING suffixes to create long compound plays. PREHEATED (10 letters), PREVIEWING (10 letters), PRETENDING (10 letters) — each crosses multiple premium squares for devastating scores.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Start practising: in your next 5 games, actively look for PRE- opportunities. Track how often P-R-E appears on your rack and how many times you successfully deploy it. Most players find 2-3 PRE- plays per game once they start looking.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">The PRE- prefix rewards preparation — both in vocabulary knowledge and rack management. Master it and you'll have a reliable 5-point scoring foundation for the rest of your Scrabble career.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">One last tip: PRE- words rarely get challenged in competitive play because they're familiar English. PREVIEW, PREPARE, PREVENT — opponents accept these without question, giving you stress-free scoring every time.</p>
+
+    </div>
+
+    <div class="not-prose mt-8 text-center">
+      <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+    </div>
+  </article>
+</Layout>

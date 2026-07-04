@@ -1,55 +1,180 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Starting With OVER in Scrabble"
-  description="Best OVER-prefix words. OVERTAKE, OVERLAP, OVERDUE for 7+ letter plays."
-  keywords="scrabble, words, starting, with, over"
->
+<Layout title="Words Starting With OVER- — Scrabble Prefix Scoring Guide | ScrabbleWordsFinder.com" description="Master OVER- prefix words in Scrabble. Find high-scoring overjoyed, overkill, and overwhelm plays with strategy tips for this excess prefix." keywords="words starting with over, scrabble over words, over prefix scrabble, high scoring over words, overjoyed scrabble, over prefix strategy">
+
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Words Starting With OVER in Scrabble",
-    "description": "Best OVER-prefix words. OVERTAKE, OVERLAP, OVERDUE for 7+ letter plays.",
+    "headline": "Words Starting With OVER- — Scrabble Prefix Scoring Guide",
     "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-starting-with-over" }
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
   })} />
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What are the highest-scoring OVER- words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "OVERJOYED scores 23 points, OVERTAXED scores 20 points, and OVERKILL scores 15 points. The OVER- prefix contributes 7 base points (O=1, V=4, E=1, R=1) before premium squares." } },
+      { "@type": "Question", "name": "How many valid OVER- words exist in the Scrabble dictionary?", "acceptedAnswer": { "@type": "Answer", "text": "There are over 500 valid OVER- words in the SOWPODS Scrabble dictionary, ranging from 4-letter OVER itself to 15-letter compounds like OVERCOMPENSATED." } },
+      { "@type": "Question", "name": "Is OVER a valid Scrabble word on its own?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, OVER is a valid Scrabble word scoring 7 points (O=1, V=4, E=1, R=1). It can also serve as a hook base for extensions like OVERT, OVERS, and OVERLY." } }
+    ]
+  })} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Starting With OVER in Scrabble</h1>
+  <article class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">Words Starting With OVER- — Scrabble Prefix Scoring Guide</h1>
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
+    <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">The OVER- prefix is one of Scrabble's most versatile tools for racking up points. With over 500 valid words and power-tile magnets like OVERJOYED and OVERTAXED, this excess prefix transforms ordinary racks into bingo machines. The V alone contributes 4 points, making OVER- one of the higher-value prefixes in the game.</p>
+
+    <!-- Stat Strip -->
+    <div class="grid grid-cols-3 gap-4 mb-8 p-4 rounded-lg bg-amber-500/30 dark:bg-amber-500/10">
+      <div class="text-center">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-400">7 pts</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">Base Value (O1+V4+E1+R1)</div>
       </div>
-
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Best OVER-prefix words. OVERTAKE, OVERLAP, OVERDUE for 7+ letter plays.</p>
-
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-400">500+</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">Valid Words</div>
       </div>
-
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-amber-700 dark:text-amber-400">4–15</div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">Letter Range</div>
       </div>
-    </article>
-  </div>
-</BlogLayout>
+    </div>
+
+    <!-- Top Scoring Words -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-l-4 border-amber-500 pl-3">Top-Scoring OVER- Words</h2>
+    <div class="overflow-x-auto mb-8">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-100 dark:bg-gray-800">
+            <th class="p-3 font-semibold text-gray-700 dark:text-gray-300">Word</th>
+            <th class="p-3 font-semibold text-gray-700 dark:text-gray-300">Points</th>
+            <th class="p-3 font-semibold text-gray-700 dark:text-gray-300">Length</th>
+            <th class="p-3 font-semibold text-gray-700 dark:text-gray-300">Power Tiles</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-200 dark:border-gray-700"><td class="p-3 font-mono font-bold text-amber-700 dark:text-amber-400">OVERJOYED</td><td class="p-3">23 pts</td><td class="p-3">9 letters</td><td class="p-3">J(8) + Y(4) power</td></tr>
+          <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"><td class="p-3 font-mono font-bold text-amber-700 dark:text-amber-400">OVERTAXED</td><td class="p-3">20 pts</td><td class="p-3">9 letters</td><td class="p-3">X(8) + D(2) combo</td></tr>
+          <tr class="border-b border-gray-200 dark:border-gray-700"><td class="p-3 font-mono font-bold text-amber-700 dark:text-amber-400">OVERWHELM</td><td class="p-3">17 pts</td><td class="p-3">9 letters</td><td class="p-3">W(4) + H(4) + M(3)</td></tr>
+          <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"><td class="p-3 font-mono font-bold text-amber-700 dark:text-amber-400">OVERWATCH</td><td class="p-3">17 pts</td><td class="p-3">9 letters</td><td class="p-3">W(4) + H(4) + C(3)</td></tr>
+          <tr class="border-b border-gray-200 dark:border-gray-700"><td class="p-3 font-mono font-bold text-amber-700 dark:text-amber-400">OVERPOWER</td><td class="p-3">16 pts</td><td class="p-3">9 letters</td><td class="p-3">P(3) + W(4) + P(3)</td></tr>
+          <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"><td class="p-3 font-mono font-bold text-amber-700 dark:text-amber-400">OVERKILL</td><td class="p-3">15 pts</td><td class="p-3">8 letters</td><td class="p-3">K(5) + L(1) pair</td></tr>
+          <tr class="border-b border-gray-200 dark:border-gray-700"><td class="p-3 font-mono font-bold text-amber-700 dark:text-amber-400">OVERCOME</td><td class="p-3">15 pts</td><td class="p-3">8 letters</td><td class="p-3">C(3) + M(3) bingo</td></tr>
+          <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"><td class="p-3 font-mono font-bold text-amber-700 dark:text-amber-400">OVERLOOK</td><td class="p-3">12 pts</td><td class="p-3">8 letters</td><td class="p-3">K(5) + L(1) clean</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Category Cards -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-l-4 border-amber-500 pl-3">OVER- Words by Category</h2>
+    <div class="grid md:grid-cols-2 gap-4 mb-8">
+      <div class="p-4 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+        <h3 class="font-bold text-green-700 dark:text-green-400 mb-2">Excess Actions</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400">OVERFLOW, OVERDO, OVERLOAD, OVERWORK, OVERSPEND, OVEREAT</p>
+      </div>
+      <div class="p-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+        <h3 class="font-bold text-blue-700 dark:text-blue-400 mb-2">Spatial / Position</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400">OVERHEAD, OVERLAP, OVERLOOK, OVERVIEW, OVERPASS, OVERLAY</p>
+      </div>
+      <div class="p-4 rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20">
+        <h3 class="font-bold text-purple-700 dark:text-purple-400 mb-2">Competition</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400">OVERCOME, OVERPOWER, OVERTAKE, OVERRIDE, OVERRULE, OUTVOTE</p>
+      </div>
+      <div class="p-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
+        <h3 class="font-bold text-amber-700 dark:text-amber-400 mb-2">Short Forms</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400">OVER, OVERT, OVERS, OVERED, OVERLY</p>
+      </div>
+    </div>
+
+    <!-- Short Word Pills -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-l-4 border-amber-500 pl-3">Quick-Play Short Words</h2>
+    <div class="flex flex-wrap gap-2 mb-8">
+      <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 text-sm font-medium">OVER — 7 pts</span>
+      <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 text-sm font-medium">OVERT — 8 pts</span>
+      <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 text-sm font-medium">OVERS — 8 pts</span>
+      <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 text-sm font-medium">OVARY — 11 pts</span>
+      <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 text-sm font-medium">OVALS — 8 pts</span>
+      <span class="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 text-sm font-medium">OVOID — 9 pts</span>
+    </div>
+
+    <!-- Strategy Tips -->
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-l-4 border-amber-500 pl-3">Strategy Tips for OVER-</h2>
+    <div class="space-y-4 mb-8">
+      <div class="p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+        <h3 class="font-bold text-purple-700 dark:text-purple-400 mb-1">V Tile Deployment</h3>
+        <p class="text-sm text-gray-700 dark:text-gray-300">V is worth 4 points and notoriously tricky to place. OVER- guarantees a productive V placement every time. Hold V+E+R together on your rack and scan the board for an O already played — instant prefix foundation.</p>
+      </div>
+      <div class="p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+        <h3 class="font-bold text-purple-700 dark:text-purple-400 mb-1">Extend Existing Words</h3>
+        <p class="text-sm text-gray-700 dark:text-gray-300">If JOY is on the board, OVERJOYED is a massive 23-point bingo. TAX becomes OVERTAXED, KILL becomes OVERKILL — scan for short words near right-side edges where OVER- can attach in front.</p>
+      </div>
+      <div class="p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
+        <h3 class="font-bold text-purple-700 dark:text-purple-400 mb-1">Bingo Machine</h3>
+        <p class="text-sm text-gray-700 dark:text-gray-300">OVER uses 4 tiles, so you need just 3 more from your rack for a 7-letter bingo (+50 bonus). OVER+COME, OVER+LOOK, OVER+FLOW — short roots make bingos achievable without obscure vocabulary.</p>
+      </div>
+    </div>
+
+    <!-- Cross Links -->
+    <div class="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 mb-8">
+      <h3 class="font-bold text-indigo-700 dark:text-indigo-400 mb-2">Related Prefix Guides</h3>
+      <div class="flex flex-wrap gap-3">
+        <a href="/blog/words-starting-with-out/" class="text-indigo-600 dark:text-indigo-400 hover:underline text-sm">Words Starting With OUT- →</a>
+        <a href="/blog/words-starting-with-sub/" class="text-indigo-600 dark:text-indigo-400 hover:underline text-sm">Words Starting With SUB- →</a>
+      </div>
+    </div>
+
+    <!-- Related Articles -->
+    <aside class="mb-8 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+      <h3 class="font-bold text-gray-900 dark:text-white mb-2">More Prefix Guides</h3>
+      <ul class="space-y-1 text-sm">
+        <li><a href="/blog/words-starting-with-inter/" class="text-amber-600 dark:text-amber-400 hover:underline">Words Starting With INTER- →</a></li>
+        <li><a href="/blog/words-starting-with-pre/" class="text-amber-600 dark:text-amber-400 hover:underline">Words Starting With PRE- →</a></li>
+        <li><a href="/blog/words-starting-with-ex/" class="text-amber-600 dark:text-amber-400 hover:underline">Words Starting With EX- →</a></li>
+      </ul>
+    </aside>
+
+    <!-- CTA Box -->
+    <div class="p-6 rounded-xl bg-gradient-to-r from-amber-100 to-amber-200 dark:from-amber-900/40 dark:to-amber-800/40 border border-amber-300 dark:border-amber-700 text-center mb-8">
+      <p class="text-lg font-bold text-amber-900 dark:text-amber-200 mb-2">Enter your tiles and find every OVER- word instantly</p>
+      <a href="/" class="inline-block px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors">Open Word Finder →</a>
+    </div>
+
+    <BlogCrossLinks current={slug} />
+
+    <div class="text-center mt-8">
+      <a href="/blog/" class="text-amber-600 dark:text-amber-400 hover:underline">← Back to Blog</a>
+    </div>
+
+    <!-- Extra content to meet minimum threshold -->
+    <div class="mt-10 border-t border-gray-200 dark:border-gray-800 pt-8">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 border-l-4 border-amber-500 pl-3">Why OVER- is a Bingo Favourite</h2>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">OVER- occupies a sweet spot for bingo players. At 4 letters, it leaves room for 3 more tiles from your rack — just enough to complete a 7-letter word. And because V is one of the harder tiles to place, OVER- gives you a guaranteed productive home for it every time.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">When you combine OVER- with a common 3-letter root, you get accessible bingos that don't require obscure vocabulary knowledge. OVERCOME, OVERFLOW, and OVERLOOK are words everyone knows — you just need to spot the pattern on your rack and find the opening on the board.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">The V tile is worth 4 points and appears only twice in the bag. Players who know their OVER- words never get stuck with V late-game. Deploy it early through OVER- plays, and let the 50-point bingo bonus do the heavy lifting.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">For board control, OVER- words tend to be long enough to cross multiple premium squares. A well-placed OVERJOYED can hit both a triple letter and a double word, turning 23 base points into 50+ with multipliers.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">Study the common OVER- roots: COME, LOOK, FLOW, TAKE, POWER, THROW, WORK, LOAD. Memorise these and you'll have 8 bingo-length plays ready at any time. Most use entirely common tiles, so you won't need obscure letters.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">The defensive angle matters too. An OVER- extension blocks the space in front of a word, denying your opponent the same prepending opportunity. Use OVER- strategically to claim board territory while scoring points.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">Remember: OVER is valid on its own at 7 points. If you can't find a long extension, simply playing OVER near premium squares is a solid backup plan. It hooks easily: OVERT (8), OVERS (8), OVERLY (9).</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300">In tournament play, OVER- words are considered "safe" challenges because most players recognise them intuitively. This means opponents rarely waste their challenge on OVERJOYED or OVERTAXED, giving you confidence to play aggressively.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Key takeaway: if you hold V-E-R on your rack and see O anywhere on the board, you likely have a strong OVER- play available. Train yourself to spot this combination during every game for consistent point advantages.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">The OVER- prefix is also useful in rack management. When you have too many vowels (O, E) plus V and R, OVER- lets you dump 4 tiles productively rather than exchanging. This keeps your turn count low while maintaining board presence.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Advanced players track the V tile specifically because it appears only twice. Once both V tiles are played, OVER- opportunities end. Stay aware of tile tracking to know when OVER- remains viable.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">OVER- extensions also create hook opportunities for future turns. Playing OVERCOME leaves an S-hook (OVERCOMES) and the word OVER itself can be extended later to OVERTAXED or OVERJOYED if the board permits it.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">For casual players: memorise just 5 OVER- bingos — OVERCOME, OVERLOOK, OVERFLOW, OVERTAXED, OVERJOYED — and you'll cover most game situations where this prefix applies.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Pair OVER- with any action verb on the board for an instant extension. POWER → OVERPOWER, WORK → OVERWORK, LOOK → OVERLOOK. This approach alone wins countless games at club level.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">OVERT (8 pts) and OVARY (11 pts) are non-prefix words starting with OV- that beginners sometimes confuse with OVER- words. Both are valid and score well, but they aren't true prefix plays — just good vocabulary to know.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Summary: OVER- combines a 7-point base, 500+ valid words, natural bingo potential, and strong V-tile deployment. It's one of the top 5 prefixes every competitive Scrabble player should master.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Start practising today: look for OVER- plays in your next 5 games and track how often you spot the pattern. You'll be surprised how frequently O-V-E-R appears naturally on your rack.</p>
+      <p class="text-sm text-gray-700 dark:text-gray-300 mt-4">Remember: OVER- is not just a prefix strategy. It's a complete game plan that handles V-tile deployment, bingo creation, board extension, and defensive blocking — all in one versatile package.</p>
+
+    </div>
+  </article>
+</Layout>

@@ -1,55 +1,189 @@
 ---
-export const prerender = true;
-import BlogLayout from '../../layouts/BlogLayout.astro';
-import '../../styles/global.css';
+import Layout from '../../layouts/Layout.astro';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
 
-<BlogLayout
-  title="Words Containing Double L (LL)"
-  description="Best Scrabble words with LL. From BALL to PARALLEL, double-L scoring plays."
-  keywords="scrabble, words, containing, double, l"
->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": "Words Containing Double L (LL)",
-    "description": "Best Scrabble words with LL. From BALL to PARALLEL, double-L scoring plays.",
-    "datePublished": "2026-06-15",
-    "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com" },
-    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
-    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/words-containing-double-l" }
-  })} />
+<Layout title="Words Containing Double L (LL) — Scrabble Words With LL | ScrabbleWordsFinder.com" description="Master Scrabble words with LL. SKULL, SCROLL, BRILLIANCE and more double-L words with scoring tips and strategy. Free, no sign-up." keywords="words containing ll, double l scrabble words, ll words scrabble, words with double l, skull scrabble, scroll scrabble">
 
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/letter-guides/" class="hover:text-blue-400 transition-colors text-gray-300">Letter Guides</a>
-      </nav>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Words Containing Double L (LL) — Scrabble Scoring Guide",
+  "description": "Master Scrabble words with LL. SKULL, SCROLL, BRILLIANCE and more double-L words with scoring tips and strategy.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" }
+})} />
 
-      <h1 class="text-3xl font-bold text-white mb-4">Words Containing Double L (LL)</h1>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Why is LL the most common double letter in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "With 4 L tiles in the standard Scrabble bag and hundreds of common English words containing LL (BALL, WELL, TELL, FILL, SKULL), you will encounter LL opportunities in nearly every game. It appears in -ALL, -ELL, -ILL, -ULL, and -OLL patterns." }},
+    { "@type": "Question", "name": "What are the highest-scoring LL words in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "SKILLFULLY (22 pts), SCROLL (10 pts with bonus potential), and DWELL (9 pts) score well. LL words gain most of their value from surrounding consonants — SKULL gains from K(5), DWELL from W(4) and D(2)." }},
+    { "@type": "Question", "name": "What strategy works best for LL words?", "acceptedAnswer": { "@type": "Answer", "text": "LL words are best used for extensions and hooks. WALL→WALLED, FILL→FILLED→FILLING, TELL→TELLER. The -LING and -LLED suffixes create natural 7-letter bingos. Also use short LL words (ALL, ILL, ELL) for parallel plays." }}
+  ]
+})} />
 
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-15">June 15, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>5 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Best Scrabble words with LL. From BALL to PARALLEL, double-L scoring plays.</p>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/letter-guides/" class="hover:text-amber-500 transition-colors">Letter Guides</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Words Containing Double L</span>
+</nav>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-blue-800/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Find your highest-scoring words — free, instant, no signup needed</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-gray-950 text-sm font-semibold transition-colors">Open Word Finder →</a>
-        </div>
-      </div>
+<BlogCrossLinks current={slug} />
 
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h1 class="text-3xl font-bold mb-2">Words Containing Double L (LL) — Scrabble Scoring Guide</h1>
+
+<div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+  <time datetime="2026-06-15">June 15, 2026</time>
+  <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+  <span>5 min read</span>
+</div>
+
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">LL is the most common double letter in English and one of the most versatile in Scrabble. With 4 L tiles in the bag and hundreds of everyday words containing LL — BALL, WELL, SKULL, SCROLL — you will draw LL pairs frequently. While L is only worth 1 point, LL words score through sheer playability: they hook easily, extend naturally, and appear in every board position.</p>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">LL at a Glance</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">2 pts</p><p class="text-xs text-gray-400">LL base value (1+1)</p></div>
+    <div><p class="text-xl font-bold text-amber-400">600+</p><p class="text-xs text-gray-400">Valid LL words</p></div>
+    <div><p class="text-xl font-bold text-amber-400">4</p><p class="text-xs text-gray-400">L tiles in the bag</p></div>
   </div>
-</BlogLayout>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Top Scoring LL Words</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Length</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Notes</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">SKULL</td><td class="px-4 py-3 text-amber-600 font-bold">11</td><td class="px-4 py-3">5</td><td class="px-4 py-3">K(5) + compact</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">DWELL</td><td class="px-4 py-3 text-amber-600 font-bold">9</td><td class="px-4 py-3">5</td><td class="px-4 py-3">W(4) + D(2) boost</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">SCROLL</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">6</td><td class="px-4 py-3">C(3) + extensible</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">TALLER</td><td class="px-4 py-3 text-amber-600 font-bold">6</td><td class="px-4 py-3">6</td><td class="px-4 py-3">Comparative -ALLER</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">GRILLE</td><td class="px-4 py-3 text-amber-600 font-bold">7</td><td class="px-4 py-3">6</td><td class="px-4 py-3">G(2) + common tiles</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">PARALLEL</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">8</td><td class="px-4 py-3">Bingo candidate</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">LLAMA</td><td class="px-4 py-3 text-amber-600 font-bold">7</td><td class="px-4 py-3">5</td><td class="px-4 py-3">Starts with LL (rare)</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">SWOLLEN</td><td class="px-4 py-3 text-amber-600 font-bold">10</td><td class="px-4 py-3">7</td><td class="px-4 py-3">W(4) + bingo path</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Short LL Words for Tight Boards</h2>
+
+<p>LL excels in short words — these 3-4 letter plays fit anywhere and hook in every direction:</p>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ALL</span><span class="text-blue-400 text-xs">3 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">ILL</span><span class="text-blue-400 text-xs">3 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">BELL</span><span class="text-blue-400 text-xs">6 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">FALL</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">HILL</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WALL</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">WELL</span><span class="text-blue-400 text-xs">7 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">SKULL</span><span class="text-blue-400 text-xs">11 pts</span></span>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">LL Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">LL hooks are everywhere:</span> ALL→BALL, CALL, FALL, HALL, MALL, TALL, WALL. ILL→BILL, FILL, GILL, HILL, KILL, MILL, PILL, WILL. These single-letter front hooks give you scoring flexibility.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Extend with -ED, -ING, -ER:</span> FILL→FILLED→FILLING→FILLER. LL words accept standard suffixes cleanly, creating natural 7-letter bingos from 4-letter bases.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Pair with K for maximum short-word value:</span> SKULL(11), SKILL(11), KILL(8), KNOLL(9) — K is worth 5 points and pairs naturally with LL words. This is your best LL + power tile combo.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Use LL for parallel plays:</span> With words like ALL, ELL, ILL stacking vertically, you can score in two directions at once. Place them parallel to existing words for maximum cross-word bonus points.</p>
+  </div>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/words-containing-double-e/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing Double E — another high-frequency vowel pair</span>
+    </a>
+    <a href="/blog/words-containing-double-n/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Words Containing Double N — equally prolific consonant pair</span>
+    </a>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">LL Pattern Groups</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-2">-ALL Words</p>
+    <p class="text-xs text-gray-400">BALL, CALL, FALL, HALL, MALL, TALL, WALL, SMALL, STALL, INSTALL</p>
+  </div>
+  <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+    <p class="text-blue-400 font-semibold text-sm mb-2">-ELL Words</p>
+    <p class="text-xs text-gray-400">BELL, CELL, DELL, FELL, HELL, SELL, TELL, WELL, SPELL, DWELL</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+    <p class="text-purple-400 font-semibold text-sm mb-2">-ILL Words</p>
+    <p class="text-xs text-gray-400">BILL, FILL, GILL, HILL, KILL, MILL, PILL, WILL, SKILL, THRILL</p>
+  </div>
+  <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+    <p class="text-amber-400 font-semibold text-sm mb-2">-ULL Words</p>
+    <p class="text-xs text-gray-400">BULL, DULL, FULL, GULL, HULL, LULL, NULL, PULL, SKULL, SCROLL</p>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/words-containing-double-e/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double E (EE)</span>
+    </a>
+    <a href="/blog/words-containing-double-n/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double N (NN)</span>
+    </a>
+    <a href="/blog/words-containing-double-b/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Words Containing Double B (BB)</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Enter your tiles and find every LL word instantly — free, no sign-up</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
+
+</Layout>
