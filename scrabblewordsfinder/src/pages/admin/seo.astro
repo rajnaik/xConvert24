@@ -27,15 +27,41 @@ import '../../styles/global.css';
       <div class="flex gap-2">
         <button id="add-btn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-500 transition-colors">+ Add Page</button>
         <button id="new-updates-btn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition-colors">New Updates</button>
-        <button id="sync-sitemap-btn" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-500 transition-colors">Sync Sitemap.xml</button>
+        <button id="sync-sitemap-btn" class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-500 transition-colors" title="Last sitemap sync: never">Sync Sitemap.xml</button>
+        <button id="sync-links-btn" class="px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-500 transition-colors" title="Re-scan all pages for internal link counts">🔗 Sync Links</button>
+        <button id="sync-seo-pages-btn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition-colors" title="Sync SEO data from seo_index back to page files">🔄 Sync SEO to Pages</button>
+        <button id="view-sync-log-btn" class="px-4 py-2 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-600 transition-colors" title="View sync change history">📋 Sync Log</button>
         <button id="nuke-btn" class="px-4 py-2 rounded-lg bg-red-700 text-white text-sm font-medium hover:bg-red-600 transition-colors">☢️ Nuke</button>
         <button id="analyse-sitemap-btn" class="px-4 py-2 rounded-lg bg-cyan-700 text-white text-sm font-medium hover:bg-cyan-600 transition-colors">🔍 Analyse Sitemap</button>
       </div>
       <p id="last-sync-text" class="text-[10px] text-gray-500 mt-1 text-right"></p>
     </div>
 
+    <!-- Sync Log Panel (collapsible) -->
+    <div id="sync-log-panel" class="hidden mt-4 rounded-xl border border-gray-700 bg-gray-900/50 p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-gray-300">📋 SEO Sync Log — Recent Changes</h3>
+        <button id="close-sync-log" class="text-gray-500 hover:text-white text-lg">&times;</button>
+      </div>
+      <div id="sync-log-table" class="overflow-x-auto max-h-64 overflow-y-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-gray-800/60 sticky top-0">
+            <tr>
+              <th class="px-3 py-2 text-left text-gray-400">URL</th>
+              <th class="px-3 py-2 text-left text-gray-400">Field</th>
+              <th class="px-3 py-2 text-left text-gray-400">Old Value</th>
+              <th class="px-3 py-2 text-left text-gray-400">New Value</th>
+              <th class="px-3 py-2 text-left text-gray-400">When</th>
+            </tr>
+          </thead>
+          <tbody id="sync-log-body" class="divide-y divide-gray-800"></tbody>
+        </table>
+      </div>
+      <p id="sync-log-empty" class="text-xs text-gray-500 italic hidden">No sync log entries yet. Run: node scripts/sync-seo-to-pages.cjs</p>
+    </div>
+
     <!-- Summary cards -->
-    <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+    <div id="summary-cards" class="grid grid-cols-2 sm:grid-cols-7 gap-3 mb-6">
       <button data-filter="indexed" class="filter-card p-3 rounded-xl border border-green-500/30 bg-green-950/10 text-center cursor-pointer hover:border-green-400 transition-colors">
         <p id="count-indexed" class="text-xl font-bold text-green-400">-</p>
         <p class="text-xs text-gray-400">Indexed</p>
@@ -52,6 +78,14 @@ import '../../styles/global.css';
         <p id="count-excluded" class="text-xl font-bold text-gray-400">-</p>
         <p class="text-xs text-gray-400">Excluded</p>
       </button>
+      <div class="p-3 rounded-xl border border-blue-500/30 bg-blue-950/10 text-center">
+        <p id="count-avg-h2" class="text-xl font-bold text-blue-400">-</p>
+        <p class="text-xs text-gray-400">Avg H2s</p>
+      </div>
+      <div class="p-3 rounded-xl border border-cyan-500/30 bg-cyan-950/10 text-center">
+        <p id="count-avg-kw" class="text-xl font-bold text-cyan-400">-</p>
+        <p class="text-xs text-gray-400">Has Keywords</p>
+      </div>
       <button data-filter="" class="filter-card p-3 rounded-xl border border-purple-500/30 bg-purple-950/10 text-center cursor-pointer hover:border-purple-400 transition-colors">
         <p id="count-total" class="text-xl font-bold text-purple-400">-</p>
         <p class="text-xs text-gray-400">Total</p>
@@ -70,20 +104,29 @@ import '../../styles/global.css';
       </select>
       <input id="filter-search" type="text" placeholder="Search URL..." class="h-9 px-3 w-64 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
       <button id="refresh-btn" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 hover:text-blue-400 transition-colors">↻ Refresh</button>
+      <button id="pinned-filter" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 hover:text-amber-400 transition-colors">📌 Pinned</button>
+      <select id="page-size" class="h-9 px-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300">
+        <option value="10">10</option>
+        <option value="25" selected>25</option>
+        <option value="50">50</option>
+      </select>
     </div>
 
     <!-- Table -->
     <div class="overflow-x-auto rounded-xl border border-gray-800">
       <table class="w-full text-sm">
         <thead class="bg-gray-800/60">
-          <tr>
-            <th class="px-4 py-3 text-left text-gray-400 font-medium">URL</th>
-            <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">Status</th>
-            <th class="px-4 py-3 text-left text-gray-400 font-medium w-20">Priority</th>
-            <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">Last Crawled</th>
-            <th class="px-4 py-3 text-left text-gray-400 font-medium w-28">First Indexed</th>
-            <th class="px-4 py-3 text-left text-gray-400 font-medium">Notes</th>
-            <th class="px-4 py-3 text-center text-gray-400 font-medium w-20">Actions</th>
+          <tr class="text-xs">
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white" data-sort="url">URL ↕</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white" data-sort="status">Status ↕</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-14" data-sort="seo_title_length">Title ↕</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-14" data-sort="seo_desc_length">Desc ↕</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-10" data-sort="seo_h2_count">H2s ↕</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium w-16">Schema</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-14" data-sort="seo_word_count">Words ↕</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-14" data-sort="seo_internal_links">Links ↕</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-24" data-sort="last_crawled">Crawled ↕</th>
+            <th class="px-3 py-2 text-center text-gray-400 font-medium w-16">Act</th>
           </tr>
         </thead>
         <tbody id="seo-table-body" class="divide-y divide-gray-800">
@@ -91,41 +134,93 @@ import '../../styles/global.css';
         </tbody>
       </table>
     </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-4">
+      <button id="prev-page" class="h-8 px-4 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm hover:bg-gray-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">&lt; Prev</button>
+      <span id="page-info" class="text-sm text-gray-400"></span>
+      <button id="next-page" class="h-8 px-4 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm hover:bg-gray-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">Next &gt;</button>
+    </div>
   </div>
 
   <!-- Add/Edit Modal -->
   <div id="seo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60" style="backdrop-filter:blur(4px);">
-    <div class="bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl w-full max-w-md mx-4">
+    <div class="bg-gray-900 rounded-xl border border-gray-700 p-6 shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
       <h3 id="modal-title" class="text-lg font-semibold text-white mb-4">Add Page</h3>
-      <form id="seo-form" class="space-y-4">
+      <form id="seo-form" class="space-y-3">
         <input type="hidden" id="form-id" />
         <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1">URL Path (e.g. /about/)</label>
-          <input id="form-url" type="text" required class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" placeholder="/blog/my-post/" />
+          <label class="block text-xs font-medium text-gray-400 mb-1">URL Path</label>
+          <input id="form-url" type="text" required class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" placeholder="/blog/my-post/" />
         </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1">Status</label>
-          <select id="form-status" class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
-            <option value="indexed">Indexed</option>
-            <option value="discovered">Discovered</option>
-            <option value="not_indexed">Not Indexed</option>
-            <option value="excluded">Excluded</option>
-            <option value="error">Error</option>
-          </select>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">Status</label>
+            <select id="form-status" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+              <option value="indexed">Indexed</option>
+              <option value="discovered">Discovered</option>
+              <option value="not_indexed">Not Indexed</option>
+              <option value="excluded">Excluded</option>
+              <option value="error">Error</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">📌 Pinned</label>
+            <select id="form-pinned" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-gray-400 mb-1">Last Crawled</label>
-            <input id="form-crawled" type="date" class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+            <input id="form-crawled" type="date" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
           </div>
           <div>
             <label class="block text-xs font-medium text-gray-400 mb-1">First Indexed</label>
-            <input id="form-indexed" type="date" class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+            <input id="form-indexed" type="date" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">SEO Title <span id="count-title" class="text-gray-500">0/60</span></label>
+          <input id="form-seo-title" type="text" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Meta Description <span id="count-desc" class="text-gray-500">0/155</span></label>
+          <textarea id="form-seo-desc" rows="3" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">H1 <span id="count-h1" class="text-gray-500">0/70</span></label>
+          <input id="form-seo-h1" type="text" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Keywords <span id="count-kw" class="text-gray-500">0/200</span></label>
+          <textarea id="form-seo-keywords" rows="2" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100"></textarea>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">H2 Count</label>
+            <input id="form-seo-h2" type="number" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">Article LD</label>
+            <select id="form-seo-article" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">FAQ LD</label>
+            <select id="form-seo-faq" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
           </div>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
-          <input id="form-notes" type="text" class="w-full h-10 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" placeholder="Optional notes..." />
+          <input id="form-notes" type="text" class="w-full h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100" placeholder="Optional notes..." />
         </div>
         <div class="flex gap-3 pt-2">
           <button type="submit" class="flex-1 h-10 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-500 transition-colors text-sm">Save</button>
@@ -190,10 +285,22 @@ import '../../styles/global.css';
 
     function escHtml(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
+    var currentOffset = 0;
+    var pageSize = parseInt(localStorage.getItem('swf_seo_pagesize') || '25');
+    var pinnedActive = false;
+    var currentEntries = [];
+    var sortField = 'url';
+    var sortDir = 'asc';
+
     async function loadData() {
       var params = new URLSearchParams();
       if (filterStatus.value) params.set('status', filterStatus.value);
       if (filterSearch.value) params.set('search', filterSearch.value);
+      if (pinnedActive) params.set('pinned', '1');
+      params.set('limit', pageSize);
+      params.set('offset', currentOffset);
+      if (sortField) params.set('sort', sortField);
+      params.set('order', sortDir);
 
       var res = await fetch('/api/seo-index?' + params.toString());
       var data = await res.json();
@@ -206,9 +313,18 @@ import '../../styles/global.css';
       document.getElementById('count-not_indexed').textContent = counts.not_indexed;
       document.getElementById('count-excluded').textContent = counts.excluded;
       document.getElementById('count-total').textContent = grandTotal;
+      document.getElementById('count-avg-h2').textContent = data.avg_h2 || '0';
+      document.getElementById('count-avg-kw').textContent = data.has_keywords || '0';
+
+      // Pagination info
+      var totalPages = Math.ceil(data.total / pageSize);
+      var currentPage = Math.floor(currentOffset / pageSize) + 1;
+      document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages + ' (' + data.total + ' total)';
+      document.getElementById('prev-page').disabled = currentOffset === 0;
+      document.getElementById('next-page').disabled = currentOffset + pageSize >= data.total;
 
       if (!data.entries || data.entries.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">No entries yet. Click "+ Add Page" to start tracking.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-gray-500 italic">No entries found.</td></tr>';
         return;
       }
 
@@ -224,25 +340,35 @@ import '../../styles/global.css';
         return '0.6';
       }
 
-      tableBody.innerHTML = data.entries.map(function(e) {
+      currentEntries = data.entries;
+      renderTable();
+    }
+
+    function renderTable() {
+      tableBody.innerHTML = currentEntries.map(function(e) {
         var colors = statusColors[e.status] || statusColors.error;
-        var pri = getPriority(e.url);
-        var priLabel = priLabels[pri] || '';
+        var titleLen = e.seo_title_length || 0;
+        var descLen = e.seo_desc_length || 0;
+        var titleColor = titleLen > 70 ? 'text-red-400' : titleLen < 30 ? 'text-amber-400' : 'text-green-400';
+        var descColor = descLen > 155 ? 'text-red-400' : descLen < 120 ? 'text-amber-400' : 'text-green-400';
         return '<tr class="hover:bg-gray-800/50">' +
-          '<td class="px-4 py-3 text-gray-200 font-mono text-xs">' + escHtml(e.url) + '</td>' +
-          '<td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs font-medium border ' + colors + '">' + e.status + '</span></td>' +
-          '<td class="px-4 py-3 text-xs"><span class="text-purple-400 font-medium">' + pri + '</span> <span class="inline-flex items-center justify-center w-4 h-4 rounded-full border border-purple-500/50 text-purple-400 text-[9px] cursor-help" title="' + priLabel + '">?</span></td>' +
-          '<td class="px-4 py-3 text-gray-400 text-xs">' + (e.last_crawled || '—') + '</td>' +
-          '<td class="px-4 py-3 text-gray-400 text-xs">' + (e.first_indexed || '—') + '</td>' +
-          '<td class="px-4 py-3 text-gray-500 text-xs">' + escHtml(e.notes) + '</td>' +
-          '<td class="px-4 py-3 text-center">' +
-            '<button class="edit-btn text-blue-400 hover:text-blue-300 text-xs mr-2" data-id="' + e.id + '" data-url="' + escHtml(e.url) + '" data-status="' + e.status + '" data-crawled="' + (e.last_crawled || '') + '" data-indexed="' + (e.first_indexed || '') + '" data-notes="' + escHtml(e.notes || '') + '">Edit</button>' +
+          '<td class="px-3 py-2 text-gray-200 font-mono text-xs max-w-[200px] truncate" title="' + escHtml(e.url) + '">' + (e.pinned ? '<span class="text-amber-400 mr-1">📌</span>' : '') + '<a href="' + escHtml(e.url) + '" target="_blank" class="hover:text-blue-400 transition-colors">🔗</a> ' + escHtml(e.url) + '</td>' +
+          '<td class="px-3 py-2"><span class="px-2 py-0.5 rounded text-xs font-medium border ' + colors + '">' + e.status + '</span></td>' +
+          '<td class="px-3 py-2 text-xs ' + titleColor + '" title="' + escHtml(e.seo_title) + '">' + titleLen + '</td>' +
+          '<td class="px-3 py-2 text-xs ' + descColor + '">' + descLen + '</td>' +
+          '<td class="px-3 py-2 text-xs text-gray-400">' + (e.seo_h2_count || 0) + '</td>' +
+          '<td class="px-3 py-2 text-xs">' + (e.seo_json_ld_article ? '<span class="text-green-400">✓</span>' : '<span class="text-red-400">✗</span>') + ' ' + (e.seo_json_ld_faq ? '<span class="text-green-400">✓</span>' : '<span class="text-red-400">✗</span>') + '</td>' +
+          '<td class="px-3 py-2 text-xs text-gray-500">' + (e.seo_word_count || 0) + '</td>' +
+          '<td class="px-3 py-2 text-xs text-gray-500">' + (e.seo_internal_links || 0) + '</td>' +
+          '<td class="px-3 py-2 text-gray-400 text-xs">' + (e.last_crawled || '—') + '</td>' +
+          '<td class="px-3 py-2 text-center">' +
+            '<button class="edit-btn text-blue-400 hover:text-blue-300 text-xs mr-1" data-record=\'' + JSON.stringify({id:e.id,url:e.url,status:e.status,last_crawled:e.last_crawled||'',first_indexed:e.first_indexed||'',notes:e.notes||'',pinned:e.pinned||0,seo_title:e.seo_title||'',seo_h1:e.seo_h1||'',seo_meta_description:e.seo_meta_description||'',seo_meta_keywords:e.seo_meta_keywords||'',seo_h2_count:e.seo_h2_count||0,seo_json_ld_article:e.seo_json_ld_article||0,seo_json_ld_faq:e.seo_json_ld_faq||0}).replace(/'/g,"&#39;") + '\'>Edit</button>' +
             '<button class="del-btn text-red-400 hover:text-red-300 text-xs" data-id="' + e.id + '">✕</button>' +
           '</td></tr>';
       }).join('');
 
       document.querySelectorAll('.edit-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() { openEdit(btn.dataset); });
+        btn.addEventListener('click', function() { openEdit(JSON.parse(btn.dataset.record)); });
       });
       document.querySelectorAll('.del-btn').forEach(function(btn) {
         btn.addEventListener('click', function() { deleteEntry(btn.dataset.id); });
@@ -267,12 +393,41 @@ import '../../styles/global.css';
       document.getElementById('form-id').value = data.id;
       document.getElementById('form-url').value = data.url;
       document.getElementById('form-status').value = data.status;
-      document.getElementById('form-crawled').value = data.crawled || '';
-      document.getElementById('form-indexed').value = data.indexed || '';
+      document.getElementById('form-crawled').value = data.last_crawled || '';
+      document.getElementById('form-indexed').value = data.first_indexed || '';
       document.getElementById('form-notes').value = data.notes || '';
+      document.getElementById('form-pinned').value = data.pinned || 0;
+      document.getElementById('form-seo-title').value = data.seo_title || '';
+      document.getElementById('form-seo-desc').value = data.seo_meta_description || '';
+      document.getElementById('form-seo-h1').value = data.seo_h1 || '';
+      document.getElementById('form-seo-keywords').value = data.seo_meta_keywords || '';
+      document.getElementById('form-seo-h2').value = data.seo_h2_count || 0;
+      document.getElementById('form-seo-article').value = data.seo_json_ld_article || 0;
+      document.getElementById('form-seo-faq').value = data.seo_json_ld_faq || 0;
       document.getElementById('form-url').readOnly = true;
+      updateCharCounts();
       openModal(true);
     }
+
+    // Character counters
+    function updateCharCounts() {
+      var t = document.getElementById('form-seo-title').value.length;
+      var d = document.getElementById('form-seo-desc').value.length;
+      var h = document.getElementById('form-seo-h1').value.length;
+      var k = document.getElementById('form-seo-keywords').value.length;
+      document.getElementById('count-title').textContent = t + '/60';
+      document.getElementById('count-title').className = t > 60 ? 'text-red-400' : t > 50 ? 'text-amber-400' : 'text-green-400';
+      document.getElementById('count-desc').textContent = d + '/155';
+      document.getElementById('count-desc').className = d > 155 ? 'text-red-400' : d > 140 ? 'text-amber-400' : 'text-green-400';
+      document.getElementById('count-h1').textContent = h + '/70';
+      document.getElementById('count-h1').className = h > 70 ? 'text-red-400' : h > 60 ? 'text-amber-400' : 'text-green-400';
+      document.getElementById('count-kw').textContent = k + '/200';
+      document.getElementById('count-kw').className = k > 200 ? 'text-red-400' : k > 150 ? 'text-amber-400' : 'text-green-400';
+    }
+    document.getElementById('form-seo-title').addEventListener('input', updateCharCounts);
+    document.getElementById('form-seo-desc').addEventListener('input', updateCharCounts);
+    document.getElementById('form-seo-h1').addEventListener('input', updateCharCounts);
+    document.getElementById('form-seo-keywords').addEventListener('input', updateCharCounts);
 
     async function deleteEntry(id) {
       if (!confirm('Delete this entry?')) return;
@@ -286,9 +441,76 @@ import '../../styles/global.css';
     });
     document.getElementById('modal-cancel').addEventListener('click', closeModal);
     document.getElementById('refresh-btn').addEventListener('click', loadData);
-    filterStatus.addEventListener('change', loadData);
+    filterStatus.addEventListener('change', function() { currentOffset = 0; loadData(); });
+
+    // Page size
+    var pageSizeSelect = document.getElementById('page-size');
+    pageSizeSelect.value = pageSize;
+    pageSizeSelect.addEventListener('change', function() {
+      pageSize = parseInt(pageSizeSelect.value);
+      localStorage.setItem('swf_seo_pagesize', pageSize);
+      currentOffset = 0;
+      loadData();
+    });
+
+    // Pagination
+    document.getElementById('prev-page').addEventListener('click', function() { currentOffset = Math.max(0, currentOffset - pageSize); loadData(); });
+    document.getElementById('next-page').addEventListener('click', function() { currentOffset += pageSize; loadData(); });
+
+    // Sortable headers
+    document.querySelectorAll('th[data-sort]').forEach(function(th) {
+      th.addEventListener('click', function() {
+        var field = th.dataset.sort;
+        if (sortField === field) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+        else { sortField = field; sortDir = 'desc'; }
+        currentOffset = 0;
+        loadData();
+      });
+    });
+
+    // Pinned filter
+    document.getElementById('pinned-filter').addEventListener('click', function() {
+      pinnedActive = !pinnedActive;
+      this.classList.toggle('border-amber-500', pinnedActive);
+      this.classList.toggle('text-amber-400', pinnedActive);
+      this.classList.toggle('border-gray-700', !pinnedActive);
+      this.classList.toggle('text-gray-300', !pinnedActive);
+      currentOffset = 0;
+      loadData();
+    });
+
+    // Sync Log viewer
+    document.getElementById('view-sync-log-btn').addEventListener('click', async function() {
+      var panel = document.getElementById('sync-log-panel');
+      panel.classList.toggle('hidden');
+      if (!panel.classList.contains('hidden')) {
+        var res = await fetch('/api/seo-index/?action=sync-log');
+        var data = await res.json();
+        var tbody = document.getElementById('sync-log-body');
+        if (!data.entries || data.entries.length === 0) {
+          tbody.innerHTML = '';
+          document.getElementById('sync-log-empty').classList.remove('hidden');
+        } else {
+          document.getElementById('sync-log-empty').classList.add('hidden');
+          tbody.innerHTML = data.entries.map(function(e) {
+            var limits = { seo_title: 60, seo_meta_description: 155, seo_meta_keywords: 200, seo_h1: 70 };
+            var limit = limits[e.field_changed] || 0;
+            function charBadge(val) {
+              if (!limit) return '';
+              var len = (val || '').length;
+              var color = len > limit ? 'text-red-400' : len > limit * 0.85 ? 'text-amber-400' : 'text-green-400';
+              return ' <span class="' + color + ' text-[10px] font-mono">(' + len + '/' + limit + ')</span>';
+            }
+            return '<tr class="hover:bg-gray-800/50"><td class="px-3 py-1.5 text-gray-300 font-mono truncate max-w-[150px]" title="' + escHtml(e.url) + '">' + escHtml(e.url) + '</td><td class="px-3 py-1.5 text-purple-400">' + escHtml(e.field_changed) + '</td><td class="px-3 py-1.5 text-red-400 break-all text-xs">' + escHtml(e.old_value) + charBadge(e.old_value) + '</td><td class="px-3 py-1.5 text-green-400 break-all text-xs">' + escHtml(e.new_value) + charBadge(e.new_value) + '</td><td class="px-3 py-1.5 text-gray-500">' + (e.synced_at || '').substring(0,16) + '</td></tr>';
+          }).join('');
+        }
+      }
+    });
+    document.getElementById('close-sync-log').addEventListener('click', function() {
+      document.getElementById('sync-log-panel').classList.add('hidden');
+    });
     var searchTimer;
-    filterSearch.addEventListener('input', function() { clearTimeout(searchTimer); searchTimer = setTimeout(loadData, 300); });
+    filterSearch.addEventListener('input', function() { clearTimeout(searchTimer); searchTimer = setTimeout(function() { currentOffset = 0; loadData(); }, 300); });
 
     // Summary card click = filter
     document.querySelectorAll('.filter-card').forEach(function(card) {
@@ -306,16 +528,38 @@ import '../../styles/global.css';
         status: document.getElementById('form-status').value,
         last_crawled: document.getElementById('form-crawled').value || null,
         first_indexed: document.getElementById('form-indexed').value || null,
-        notes: document.getElementById('form-notes').value.trim()
+        notes: document.getElementById('form-notes').value.trim(),
+        pinned: parseInt(document.getElementById('form-pinned').value) || 0,
+        seo_title: document.getElementById('form-seo-title').value.trim(),
+        seo_meta_description: document.getElementById('form-seo-desc').value.trim(),
+        seo_h1: document.getElementById('form-seo-h1').value.trim(),
+        seo_meta_keywords: document.getElementById('form-seo-keywords').value.trim(),
+        seo_h2_count: parseInt(document.getElementById('form-seo-h2').value) || 0,
+        seo_json_ld_article: parseInt(document.getElementById('form-seo-article').value) || 0,
+        seo_json_ld_faq: parseInt(document.getElementById('form-seo-faq').value) || 0,
+        seo_title_length: document.getElementById('form-seo-title').value.trim().length,
+        seo_desc_length: document.getElementById('form-seo-desc').value.trim().length
       };
       if (id) {
         payload.id = id;
         await fetch('/api/seo-index', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       } else {
+        payload.force_status = true;
         await fetch('/api/seo-index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       }
       closeModal();
-      loadData();
+      // Highlight saved record briefly
+      var savedUrl = document.getElementById('form-url').value.trim();
+      await loadData();
+      setTimeout(function() {
+        var rows = tableBody.querySelectorAll('tr');
+        rows.forEach(function(row) {
+          if (row.textContent.includes(savedUrl)) {
+            row.classList.add('bg-green-900/30', 'border-l-2', 'border-green-500');
+            setTimeout(function() { row.classList.remove('bg-green-900/30', 'border-l-2', 'border-green-500'); }, 3000);
+          }
+        });
+      }, 100);
     });
 
     // New Updates button
@@ -535,6 +779,189 @@ import '../../styles/global.css';
       document.getElementById('sync-sitemap-btn').title = 'Last synced: ' + lastSync;
       document.getElementById('last-sync-text').textContent = 'Last sitemap sync: ' + lastSync;
     }
+
+    // Sync SEO to Pages — compares DB with live pages and logs differences (incremental)
+    document.getElementById('sync-seo-pages-btn').addEventListener('click', async function() {
+      var btn = this;
+      btn.textContent = '🔄 Checking...';
+      btn.disabled = true;
+      try {
+        // Get last sync time to only process recently updated entries
+        var syncInfoRes = await fetch('/api/seo-index/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _get_sync_info: true }) });
+        var syncInfo = await syncInfoRes.json();
+        var lastSync = syncInfo.last_sync || '';
+
+        // Get only entries updated since last sync
+        var allEntries = [];
+        var offset = 0;
+        var batchSize = 200;
+        var urlSuffix = lastSync ? '&updated_after=' + encodeURIComponent(lastSync) : '';
+        while (true) {
+          var res = await fetch('/api/seo-index/?limit=' + batchSize + '&offset=' + offset + urlSuffix);
+          var data = await res.json();
+          if (!data.entries || data.entries.length === 0) break;
+          allEntries = allEntries.concat(data.entries);
+          if (data.entries.length < batchSize) break;
+          offset += batchSize;
+        }
+
+        if (allEntries.length === 0) {
+          btn.textContent = '✓ No changes since last sync';
+          setTimeout(function() { btn.textContent = '🔄 Sync SEO to Pages'; btn.disabled = false; }, 3000);
+          return;
+        }
+
+        btn.textContent = '🔄 Scanning 0/' + allEntries.length;
+        var changesLogged = 0;
+
+        for (var i = 0; i < allEntries.length; i++) {
+          var entry = allEntries[i];
+          if (i % 5 === 0) btn.textContent = '🔄 Scanning ' + i + '/' + allEntries.length;
+
+          try {
+            var pageRes = await fetch(entry.url, { redirect: 'follow' });
+            if (!pageRes.ok) continue;
+            var html = await pageRes.text();
+
+            var titleMatch = html.match(/<title>([^<]*)<\/title>/);
+            var pageTitle = titleMatch ? titleMatch[1].trim() : '';
+            var descMatch = html.match(/<meta\s+name="description"\s+content="([^"]*)"/i) || html.match(/<meta\s+content="([^"]*)"\s+name="description"/i);
+            var pageDesc = descMatch ? descMatch[1] : '';
+            var kwMatch = html.match(/<meta\s+name="keywords"\s+content="([^"]*)"/i) || html.match(/<meta\s+content="([^"]*)"\s+name="keywords"/i);
+            var pageKeywords = kwMatch ? kwMatch[1] : '';
+            var h1Match = html.match(/<h1[^>]*>([^<]+)<\/h1>/);
+            var pageH1 = h1Match ? h1Match[1].trim() : '';
+            var linkMatches = html.match(/href="\/[^"]*"/g);
+            var linkCount = linkMatches ? linkMatches.length : 0;
+            var h2Matches = html.match(/<h2[\s>]/g);
+            var h2Count = h2Matches ? h2Matches.length : 0;
+            var hasFaq = (html.includes('"@type":"FAQPage"') || html.includes('"@type": "FAQPage"')) ? 1 : 0;
+            var hasArticle = (html.includes('"@type":"Article"') || html.includes('"@type": "Article"')) ? 1 : 0;
+
+            var diffs = [];
+            if (pageTitle.length > 0 && (entry.seo_title || '') !== '' && (entry.seo_title || '').trim().substring(0,30) !== pageTitle.trim().substring(0,30)) {
+              diffs.push({ field: 'seo_title', oldVal: pageTitle.trim(), newVal: (entry.seo_title || '').trim() });
+            }
+            if (pageDesc.length > 0 && (entry.seo_meta_description || '') !== '' && (entry.seo_meta_description || '').trim() !== pageDesc.trim()) {
+              diffs.push({ field: 'seo_meta_description', oldVal: pageDesc.trim(), newVal: (entry.seo_meta_description || '').trim() });
+            }
+            if (pageKeywords.length > 0 && (entry.seo_meta_keywords || '') !== '' && (entry.seo_meta_keywords || '').trim() !== pageKeywords.trim()) {
+              diffs.push({ field: 'seo_meta_keywords', oldVal: pageKeywords.trim(), newVal: (entry.seo_meta_keywords || '').trim() });
+            }
+            if (pageH1.length > 0 && (entry.seo_h1 || '') !== '' && (entry.seo_h1 || '').trim() !== pageH1.trim()) {
+              diffs.push({ field: 'seo_h1', oldVal: pageH1.trim(), newVal: (entry.seo_h1 || '').trim() });
+            }
+            if ((entry.seo_internal_links || 0) !== linkCount) {
+              diffs.push({ field: 'seo_internal_links', oldVal: String(entry.seo_internal_links || 0), newVal: String(linkCount) });
+            }
+            if ((entry.seo_h2_count || 0) !== h2Count) {
+              diffs.push({ field: 'seo_h2_count', oldVal: String(entry.seo_h2_count || 0), newVal: String(h2Count) });
+            }
+            if ((entry.seo_json_ld_faq || 0) !== hasFaq) {
+              diffs.push({ field: 'seo_json_ld_faq', oldVal: String(entry.seo_json_ld_faq || 0), newVal: String(hasFaq) });
+            }
+            if ((entry.seo_json_ld_article || 0) !== hasArticle) {
+              diffs.push({ field: 'seo_json_ld_article', oldVal: String(entry.seo_json_ld_article || 0), newVal: String(hasArticle) });
+            }
+
+            for (var d = 0; d < diffs.length; d++) {
+              await fetch('/api/seo-index/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _sync_log: true, url: entry.url, field_changed: diffs[d].field, old_value: diffs[d].oldVal, new_value: diffs[d].newVal }) });
+              changesLogged++;
+            }
+
+            if (diffs.some(function(dd) { return dd.field === 'seo_internal_links' || dd.field === 'seo_h2_count' || dd.field === 'seo_json_ld_faq' || dd.field === 'seo_json_ld_article'; })) {
+              await fetch('/api/seo-index/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: entry.id, seo_internal_links: linkCount, seo_h2_count: h2Count, seo_json_ld_article: hasArticle, seo_json_ld_faq: hasFaq }) });
+            }
+          } catch (fetchErr) { /* skip */ }
+        }
+
+        await fetch('/api/seo-index/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _sync_pages: true }) });
+        btn.textContent = '✓ ' + changesLogged + ' changes (' + allEntries.length + ' pages)';
+        setTimeout(function() { btn.textContent = '🔄 Sync SEO to Pages'; btn.disabled = false; }, 3000);
+        loadData();
+      } catch (err) {
+        btn.textContent = '✕ ' + (err.message || 'Failed');
+        setTimeout(function() { btn.textContent = '🔄 Sync SEO to Pages'; btn.disabled = false; }, 3000);
+      }
+    });
+
+    // Read URL params for pre-filtering
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('status')) {
+      filterStatus.value = urlParams.get('status');
+    }
+
+    // Sync Links — fetch all pages and count internal links
+    document.getElementById('sync-links-btn').addEventListener('click', async function() {
+      var btn = this;
+      if (!confirm('This will fetch all pages and re-count internal links. It may take a minute for large sites. Continue?')) return;
+      btn.textContent = '🔗 Loading pages...';
+      btn.disabled = true;
+
+      try {
+        // Get all entries from seo_index
+        var allEntries = [];
+        var offset = 0;
+        var batchSize = 200;
+        while (true) {
+          var res = await fetch('/api/seo-index/?limit=' + batchSize + '&offset=' + offset);
+          var data = await res.json();
+          if (!data.entries || data.entries.length === 0) break;
+          allEntries = allEntries.concat(data.entries);
+          if (data.entries.length < batchSize) break;
+          offset += batchSize;
+        }
+
+        btn.textContent = '🔗 Scanning 0/' + allEntries.length;
+        var updated = 0;
+
+        for (var i = 0; i < allEntries.length; i++) {
+          var entry = allEntries[i];
+          if (i % 10 === 0) btn.textContent = '🔗 Scanning ' + i + '/' + allEntries.length;
+
+          try {
+            var pageRes = await fetch(entry.url, { redirect: 'follow' });
+            if (!pageRes.ok) continue;
+            var html = await pageRes.text();
+
+            // Count internal links (href="/...")
+            var linkMatches = html.match(/href="\/[^"]*"/g);
+            var linkCount = linkMatches ? linkMatches.length : 0;
+
+            // Count H2s
+            var h2Matches = html.match(/<h2[\s>]/g);
+            var h2Count = h2Matches ? h2Matches.length : 0;
+
+            // Count word count (strip HTML, count words)
+            var textContent = html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+            var wordCount = textContent.split(' ').filter(function(w) { return w.length > 2; }).length;
+
+            // Check for JSON-LD schemas
+            var hasArticle = html.includes('"@type":"Article"') || html.includes('"@type": "Article"') ? 1 : 0;
+            var hasFaq = html.includes('"@type":"FAQPage"') || html.includes('"@type": "FAQPage"') ? 1 : 0;
+
+            // Only update if something changed
+            if (linkCount !== (entry.seo_internal_links || 0) || h2Count !== (entry.seo_h2_count || 0) || wordCount !== (entry.seo_word_count || 0) || hasArticle !== (entry.seo_json_ld_article || 0) || hasFaq !== (entry.seo_json_ld_faq || 0)) {
+              await fetch('/api/seo-index/', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: entry.id, seo_internal_links: linkCount, seo_h2_count: h2Count, seo_word_count: wordCount, seo_json_ld_article: hasArticle, seo_json_ld_faq: hasFaq })
+              });
+              updated++;
+            }
+          } catch (fetchErr) {
+            // Skip pages that fail to fetch (404, timeout, etc.)
+          }
+        }
+
+        btn.textContent = '✓ Updated ' + updated + '/' + allEntries.length;
+        setTimeout(function() { btn.textContent = '🔗 Sync Links'; btn.disabled = false; }, 3000);
+        loadData();
+      } catch (err) {
+        btn.textContent = '✕ Failed: ' + err.message;
+        setTimeout(function() { btn.textContent = '🔗 Sync Links'; btn.disabled = false; }, 3000);
+      }
+    });
 
     // Read URL params for pre-filtering
     var urlParams = new URLSearchParams(window.location.search);

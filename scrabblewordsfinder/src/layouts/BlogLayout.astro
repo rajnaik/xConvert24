@@ -130,6 +130,31 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
   <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">
     <Header variant="blog" />
 
+    <!-- Welcome banner — shows below header when user has avatar -->
+    <div id="welcome-banner" class="hidden mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-0">
+      <div class="flex items-center gap-3 rounded-b-lg bg-gradient-to-r from-teal-900/30 to-purple-900/20 border-x border-b border-teal-700/30 px-4 py-1.5">
+        <img id="welcome-avatar" src="/avatars/avatar-1.svg" alt="Your avatar" class="h-9 w-9 rounded-full border-2 border-teal-500/60 shadow-sm" />
+        <p class="text-sm text-gray-200">
+          <span class="text-gray-400">Welcome to the world of Scrabble —</span>
+          <span id="welcome-name" class="font-semibold text-teal-300 ml-1">Player</span>
+        </p>
+      </div>
+    </div>
+
+    <script is:inline>
+    (function() {
+      var uid = localStorage.getItem('swf-uid');
+      if (!uid) return;
+      var avatar = localStorage.getItem('swf-avatar');
+      var name = localStorage.getItem('swf-display-name');
+      if (!avatar && !name) return;
+      var banner = document.getElementById('welcome-banner');
+      if (!banner) return;
+      if (avatar) document.getElementById('welcome-avatar').src = '/avatars/' + avatar;
+      if (name) document.getElementById('welcome-name').textContent = name;
+      banner.classList.remove('hidden');
+    })();
+    </script>
 
     <!-- Theme toggle logic -->
     <script is:inline>

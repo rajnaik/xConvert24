@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import '../styles/global.css';
 ---
 
-<Layout title="My Achievements — ScrabbleWordsFinder" description="View your scored achievements and word milestones on ScrabbleWordsFinder.com. Track your progress from Rising Star to Scrabble Legend with our free word solver." showSectionLinks={false}>
+<Layout title="My Achievements — ScrabbleWordsFinder" description="View your scored achievements and word milestones on ScrabbleWordsFinder.com. Track your progress from Rising Star to Scrabble Legend with our free. Free." keywords="scrabble achievements, word milestones, scrabble progress, scrabble badges, word finder achievements" showSectionLinks={false}>
   <main class="mx-auto max-w-4xl px-4 sm:px-6 py-12">
     <a href="/" class="text-sm text-blue-400 hover:underline mb-6 inline-block">← Back to Solver</a>
 
@@ -121,6 +121,14 @@ import '../styles/global.css';
   const LEVEL_ICONS: Record<number, string> = { 1: '⭐', 2: '👍', 3: '🔥', 4: '🏆', 5: '🌟' };
   const LEVEL_NAMES: Record<number, string> = { 1: 'Rising Star', 2: 'Word Builder', 3: 'Hot Streak', 4: 'Triple Threat', 5: 'Scrabble Legend' };
 
+  function getLevel(score: number): number {
+    if (score >= 50) return 5;
+    if (score >= 30) return 4;
+    if (score >= 20) return 3;
+    if (score >= 10) return 2;
+    return 1;
+  }
+
   async function loadAchievements() {
     const uid = localStorage.getItem('swf-uid') || '';
     const loading = document.getElementById('achievements-loading')!;
@@ -148,7 +156,7 @@ import '../styles/global.css';
       // Show stats
       const stats = document.getElementById('achievements-stats')!;
       const totalScore = achievements.reduce((s: number, a: any) => s + (a.score || 0), 0);
-      const highestLevel = Math.max(...achievements.map((a: any) => a.achievement_id));
+      const highestLevel = Math.max(...achievements.map((a: any) => getLevel(a.score || 0)));
       stats.innerHTML = `
         <div class="rounded-lg bg-gray-800 p-4 text-center">
           <p class="text-2xl font-bold text-blue-400">${achievements.length}</p>
@@ -182,9 +190,10 @@ import '../styles/global.css';
         const start = page * PAGE_SIZE;
         const pageItems = achievements.slice(start, start + PAGE_SIZE);
         body.innerHTML = pageItems.map((a: any, i: number) => {
-          const icon = LEVEL_ICONS[a.achievement_id] || '⭐';
-          const name = LEVEL_NAMES[a.achievement_id] || 'Unknown';
-          const date = a.created_at ? new Date(a.created_at + 'Z').toLocaleDateString() : '—';
+          const level = getLevel(a.score || 0);
+          const icon = LEVEL_ICONS[level] || '⭐';
+          const name = LEVEL_NAMES[level] || 'Unknown';
+          const date = (a.date_created || a.created_at) ? new Date((a.date_created || a.created_at) + 'Z').toLocaleDateString() : '—';
           const rowBg = (start + i) % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
           const noteText = a.encouragement_words || '';
           return `<tr class="${rowBg}" data-id="${a.id}">

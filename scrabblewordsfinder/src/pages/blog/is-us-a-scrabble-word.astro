@@ -1,89 +1,201 @@
 ---
-export const prerender = true;
 import BlogLayout from '../../layouts/BlogLayout.astro';
 import '../../styles/global.css';
+import { isBlogPublished } from '../../lib/blogGate';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+const slug = Astro.url.pathname.replace('/blog/', '').replace(/\/$/, '');
+const isPublished = await isBlogPublished(slug);
+if (!isPublished) return Astro.redirect('/404');
 ---
+<BlogLayout title="Is US a Scrabble Word? Yes! Score 2 Points | ScrabbleWordsFinder.com" description="US is a valid Scrabble word in both SOWPODS and TWL worth 2 points (U=1, S=1). Learn scoring strategies, hooks, and related 2-letter words. Free tool." keywords="is us a scrabble word, us scrabble, us valid scrabble, us points, two letter s words, scrabble two letter words">
 
-<BlogLayout title="Is US a Scrabble Word? Yes! (Score 2 Points)" description="US is a valid Scrabble word worth 2 points in both TWL and SOWPODS. It's the first person plural pronoun. Learn extensions, strategy tips, and when to play US." keywords="is us a scrabble word, us scrabble, us valid scrabble, us points scrabble, two letter u words, us meaning scrabble">
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"Article","headline":"Is US a Scrabble Word? Yes! (Score 2 Points)","description":"US is a valid Scrabble word worth 2 points in both TWL and SOWPODS. First person plural pronoun.","datePublished":"2026-06-29","author":{"@type":"Organization","name":"ScrabbleWordsFinder.com","url":"https://www.scrabblewordsfinder.com"},"publisher":{"@type":"Organization","name":"ScrabbleWordsFinder.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://www.scrabblewordsfinder.com/blog/is-us-a-scrabble-word"}})} />
-  <script type="application/ld+json" set:html={JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is US a valid Scrabble word?","acceptedAnswer":{"@type":"Answer","text":"Yes, US is valid in both TWL and SOWPODS dictionaries. It scores 2 points (U=1, S=1) and is the objective case of 'we' — the first person plural pronoun."}},{"@type":"Question","name":"Should I play US or save the S tile?","acceptedAnswer":{"@type":"Answer","text":"Generally, save S tiles for hooks (adding S to existing words for big parallel scores). Only play US if it scores well on a premium square, or if you desperately need to dump the U to rebalance your rack."}},{"@type":"Question","name":"What words can you extend US into?","acceptedAnswer":{"@type":"Answer","text":"US extends into USE (3pts), USED (5pts), USER (4pts), OUST (4pts), BUS (5pts), GUS, PUS (5pts), and many more. Front hooks like BUS and PUS add consonant value."}}]})} />
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <article class="prose prose-invert prose-gray max-w-none">
-      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
-        <a href="/blog/" class="hover:text-blue-400 transition-colors">← Blog</a>
-        <span class="mx-1">›</span>
-        <a href="/blog/two-letter-words/" class="hover:text-blue-400 transition-colors text-gray-300">Two-Letter Words</a>
-      </nav>
-      <h1 class="text-3xl font-bold text-white mb-4">Is US a Scrabble Word? Yes! (Score 2 Points)</h1>
-      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
-        <time datetime="2026-06-29">June 29, 2026</time>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <span>4 min read</span>
-        <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-        <a href="/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🔤</span> Word Finder</a>
-      </div>
-      <p class="text-lg leading-relaxed text-gray-300 mb-8">Yes, US is a valid Scrabble word worth 2 points in both TWL and SOWPODS. It's the objective case of "we" — the first person plural pronoun. While only 2 points, US uses the common S tile, so think carefully about whether the S is better used as a hook on an existing word.</p>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Is US a Scrabble Word? Yes! Score 2 Points",
+  "description": "US is valid in both SOWPODS and TWL scoring 2 points. The objective form of we and a versatile endgame tile pair.",
+  "datePublished": "2026-06-15",
+  "author": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com", "url": "https://www.scrabblewordsfinder.com/" },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/is-us-a-scrabble-word/" }
+})} />
 
-      <div class="not-prose my-8 p-6 rounded-2xl border-2 border-green-500/50 bg-gradient-to-r from-green-950/30 to-emerald-950/20 relative overflow-hidden">
-        <div class="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-green-500/70">✓ VALID</div>
-        <p class="text-2xl font-black text-white tracking-wider mb-2">US</p>
-        <p class="text-sm text-green-300 font-semibold mb-3">2 points · U=1, S=1 · First person plural pronoun</p>
-        <p class="text-sm text-gray-300 leading-relaxed">Valid in both TWL and SOWPODS. US is one of the most common English words — the objective form of "we." Both tiles are worth just 1 point each, so this play is about rack management rather than scoring.</p>
-      </div>
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is US a valid Scrabble word?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, US is valid in both TWL (Tournament Word List) and SOWPODS (international dictionary). It scores 2 points and means the objective form of we." }},
+    { "@type": "Question", "name": "How many points is US worth in Scrabble?", "acceptedAnswer": { "@type": "Answer", "text": "US is worth 2 points in Scrabble: U=1 plus S=1. While low-scoring on its own, it excels in parallel plays and endgame situations where clearing tiles matters more than maximising points." }},
+    { "@type": "Question", "name": "What words can you build from US?", "acceptedAnswer": { "@type": "Answer", "text": "Words containing US include FUSS (7pts), GUST (5pts), BUST (6pts), PUSH (9pts), RUSH (7pts), MUST (6pts), PLUS (6pts), and THUS (7pts). The US combination appears in hundreds of common English words." }}
+  ]
+})} />
 
-      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
-        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
-          <div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Points</p></div>
-          <div><p class="text-xl font-bold text-amber-400">Both</p><p class="text-xs text-gray-400">TWL + SOWPODS</p></div>
-          <div><p class="text-xl font-bold text-amber-400">4 U-tiles</p><p class="text-xs text-gray-400">Available</p></div>
-          <div><p class="text-xl font-bold text-amber-400">4 S-tiles</p><p class="text-xs text-gray-400">In the Bag</p></div>
-        </div>
-      </div>
+<div class="max-w-3xl mx-auto px-4">
+<article class="prose dark:prose-invert prose-gray max-w-none">
 
-      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">US Extensions: Build From It</h2>
-      <div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-amber-500/40 text-sm"><span class="text-white font-bold">USE</span><span class="text-amber-400 text-xs">3pts</span></span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-amber-500/40 text-sm"><span class="text-white font-bold">BUS</span><span class="text-amber-400 text-xs">5pts</span></span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">PUS</span><span class="text-blue-400 text-xs">5pts</span></span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">USED</span><span class="text-blue-400 text-xs">5pts</span></span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OUST</span><span class="text-blue-400 text-xs">4pts</span></span>
-      </div>
+<nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+  <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+  <span class="mx-1">›</span>
+  <a href="/blog/two-letter-words/" class="hover:text-amber-500 transition-colors">Two-Letter Words</a>
+  <span class="mx-1">›</span>
+  <span class="text-gray-600 dark:text-gray-300">Is US a Word?</span>
+</nav>
 
-      <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">US Strategy: When to Play It</h2>
-      <div class="not-prose my-6 grid grid-cols-1 gap-4">
-        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
-          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">S-tile warning:</span> S is one of the most valuable tiles in Scrabble for hooks. Playing US "wastes" the S for just 2 points. Only play it when the parallel score is significant or you need to dump U urgently.</p>
-        </div>
-        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
-          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">U-dump play:</span> If your rack has 3+ vowels and you need balance, US clears the U. Sometimes rack flexibility is worth more than holding S for a future hook.</p>
-        </div>
-        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
-          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Premium square value:</span> US on a DWS scores 4 instead of 2. If U or S lands on DLS, that's 3-4 points — making it a reasonable tactical play alongside other crosswords.</p>
-        </div>
-      </div>
+<BlogCrossLinks title="Is US a Scrabble Word?" />
 
-      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
-        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Did You Know?</p>
-        <p class="text-base text-gray-200">With only <span class="text-white font-medium">4 S-tiles in the entire bag</span>, each S is precious. Tournament players often hold S for hooks that score 20+ points. Play US only when the board position justifies using an S tile for just 2 base points.</p>
-      </div>
+<div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+  <time datetime="2026-06-15">June 15, 2026</time>
+  <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+  <span>4 min read</span>
+</div>
 
-      <aside class="border-t border-gray-800 mt-12 pt-8 not-prose">
-        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
-        <div class="grid gap-3">
-          <a href="/blog/is-um-a-scrabble-word/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Is UM a Scrabble Word? Yes!</span></a>
-          <a href="/blog/is-up-a-scrabble-word/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-blue-700 hover:bg-blue-900/10 transition-all group"><span class="text-blue-500 group-hover:translate-x-0.5 transition-transform">→</span><span class="text-sm text-gray-300 group-hover:text-blue-400 transition-colors">Is UP a Scrabble Word? Yes!</span></a>
-        </div>
-      </aside>
+<p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">Yes, US is a valid Scrabble word in both TWL and SOWPODS, scoring 2 points. It's the objective form of "we" and one of the most tactically useful 2-letter words in the game. With 4 U-tiles and 4 S-tiles in the bag, opportunities to play US arise constantly — especially in endgame scenarios where clearing your rack cleanly matters more than raw points.</p>
 
-      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-800 rounded-xl">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <p class="text-sm text-blue-300 font-medium">🔤 Check any word instantly — free Scrabble solver, no sign-up required</p>
-          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
-        </div>
-      </div>
-      <div class="not-prose mt-8 text-center">
-        <a href="/blog/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to all articles</a>
-      </div>
-    </article>
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Verdict</h2>
+
+<div class="not-prose my-8 p-6 rounded-2xl border-2 border-green-500/50 bg-gradient-to-r from-green-950/30 to-emerald-950/20 relative overflow-hidden">
+  <div class="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-green-500/70">✓ Valid</div>
+  <p class="text-2xl font-black text-white tracking-wider mb-2">US</p>
+  <p class="text-sm text-green-300 font-semibold mb-3">2 points · U(1) + S(1) · Valid in both dictionaries</p>
+  <p class="text-sm text-gray-300 leading-relaxed">US is the objective case of "we," accepted in all official Scrabble dictionaries. While its base score is minimal, its real power lies in S-tile conservation and parallel play creation during tight endgame boards.</p>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Score & Tile Breakdown</h2>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+  <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+    <div><p class="text-xl font-bold text-amber-400">2</p><p class="text-xs text-gray-400">Total Points</p></div>
+    <div><p class="text-xl font-bold text-amber-400">U = 1</p><p class="text-xs text-gray-400">4 tiles in bag</p></div>
+    <div><p class="text-xl font-bold text-amber-400">S = 1</p><p class="text-xs text-gray-400">4 tiles in bag</p></div>
+    <div><p class="text-xl font-bold text-amber-400">4 pts</p><p class="text-xs text-gray-400">With DWS</p></div>
   </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Dictionary Status</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-1">✓ TWL (North America)</p>
+    <p class="text-xs text-gray-400">Valid in all North American Scrabble tournaments. US is accepted as a pronoun in the Tournament Word List used across the USA and Canada.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+    <p class="text-green-400 font-semibold text-sm mb-1">✓ SOWPODS (International)</p>
+    <p class="text-xs text-gray-400">Valid in international Scrabble and Collins Scrabble Words. Universally accepted across all competitive formats worldwide.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Words You Can Build From US</h2>
+
+<div class="overflow-x-auto not-prose my-6">
+  <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Word</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Points</th>
+        <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Definition</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">PUSH</td><td class="px-4 py-3 text-amber-600 font-bold">9</td><td class="px-4 py-3">To exert force against</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">FUSS</td><td class="px-4 py-3 text-amber-600 font-bold">7</td><td class="px-4 py-3">Unnecessary commotion</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">RUSH</td><td class="px-4 py-3 text-amber-600 font-bold">7</td><td class="px-4 py-3">To move with urgency</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">THUS</td><td class="px-4 py-3 text-amber-600 font-bold">7</td><td class="px-4 py-3">In this manner</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">BUST</td><td class="px-4 py-3 text-amber-600 font-bold">6</td><td class="px-4 py-3">To break or shatter</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">MUST</td><td class="px-4 py-3 text-amber-600 font-bold">6</td><td class="px-4 py-3">To be obliged to</td></tr>
+      <tr class="bg-white dark:bg-gray-900"><td class="px-4 py-3 font-mono font-bold">PLUS</td><td class="px-4 py-3 text-amber-600 font-bold">6</td><td class="px-4 py-3">An addition or extra</td></tr>
+      <tr class="bg-gray-50 dark:bg-gray-800/50"><td class="px-4 py-3 font-mono font-bold">GUST</td><td class="px-4 py-3 text-amber-600 font-bold">5</td><td class="px-4 py-3">A sudden burst of wind</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Strategy Tips</h2>
+
+<div class="not-prose my-6 grid grid-cols-1 gap-4">
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">S-tile conservation:</span> The S is the most valuable tile in Scrabble for hooks and plurals. Playing US uses your S without gaining much — consider whether the parallel play you create justifies spending it. Save S for extending 5+ letter words when possible.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Parallel plays:</span> US shines when placed alongside existing words to form multiple crosswords simultaneously. Placing US parallel to a word like AT creates both UA and ST — scoring all crossing words. This can turn a 2-point word into 10+ points.</p>
+  </div>
+  <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+    <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Endgame utility:</span> In the endgame when the bag is empty, US is perfect for clearing two low-value tiles from your rack without passing. Every unplayed tile counts against your final score, so dumping U and S for 2 points beats holding them for -2 penalty.</p>
+  </div>
+</div>
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Related 2-Letter Words</h2>
+
+<div class="not-prose my-6 flex flex-wrap items-center justify-center gap-3">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">IS</span><span class="text-blue-400 text-xs">2 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">AS</span><span class="text-blue-400 text-xs">2 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">OS</span><span class="text-blue-400 text-xs">2 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">UP</span><span class="text-blue-400 text-xs">4 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">UM</span><span class="text-blue-400 text-xs">4 pts</span></span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-sm"><span class="text-white font-bold">UN</span><span class="text-blue-400 text-xs">2 pts</span></span>
+</div>
+
+<div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+  <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+  <div class="grid gap-2">
+    <a href="/blog/best-two-letter-words-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Best Two-Letter Words in Scrabble — complete ranked guide</span>
+    </a>
+    <a href="/blog/two-letter-scrabble-words-complete-list/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+      <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+      <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Complete Two-Letter Word List — all 127 valid words</span>
+    </a>
+  </div>
+</div>
+
+<aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+  <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+  <div class="grid gap-3">
+    <a href="/blog/is-as-a-scrabble-word/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Is AS a Scrabble Word?</span>
+    </a>
+    <a href="/blog/is-an-a-scrabble-word/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Is AN a Scrabble Word?</span>
+    </a>
+    <a href="/blog/is-up-a-scrabble-word/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+      <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+      <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Is UP a Scrabble Word?</span>
+    </a>
+  </div>
+</aside>
+
+<div class="not-prose mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl shadow-sm">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">🔤 Check any word instantly with our free Scrabble solver</p>
+    <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+  </div>
+</div>
+
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Building Your Word Arsenal</h2>
+
+<p>The difference between a 300-point game and a 400-point game often comes down to vocabulary depth. Players who invest time studying valid Scrabble words consistently outscore those who rely solely on common everyday vocabulary. The words on this page represent a focused subset of the Scrabble dictionary that you can realistically memorise and deploy in competitive play.</p>
+
+<p>Start by identifying which words on this page you already know. Then focus your study time on the unfamiliar ones — particularly those with high point values or unusual letter combinations. The goal is not to memorise the entire dictionary but to build a working vocabulary of 5,000-10,000 words that covers the most common game situations.</p>
+
+<p>Consider keeping a word journal where you record new discoveries from each study session. Writing words down activates different memory pathways than simply reading them. Many tournament players carry small notebooks and review their most recent additions during breaks between rounds.</p>
+
+
+<h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Applying These Words in Real Games</h2>
+
+<p>Knowing a word exists and successfully playing it in a game are two different skills. The bridge between them is pattern recognition — training your brain to spot opportunities for specific words when you see certain tile combinations on your rack. This comes through deliberate practice rather than passive memorisation.</p>
+
+<p>When you study the words on this page, visualise how they would fit on a Scrabble board. Which premium squares could they reach? What letters would they need to hook onto? How many tiles from a typical rack would they consume? This kind of active visualisation builds the neural pathways that fire automatically during timed games.</p>
+
+<p>One effective technique is to take each word and mentally construct the rack you would need to play it. Then ask yourself: if I drew those tiles, would I recognise the word opportunity immediately? If the answer is no, that word needs more study time. If yes, move on to the next unfamiliar word in your list.</p>
+
+<p>Tournament players often practice with a specific study goal — for example, spending one week focused exclusively on 5-letter words containing a particular letter pattern, then the following week on 6-letter words. This structured approach prevents the overwhelm of trying to learn everything simultaneously.</p>
+
+<div class="not-prose mt-8 text-center">
+  <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+</div>
+
+</article>
+</div>
 </BlogLayout>
