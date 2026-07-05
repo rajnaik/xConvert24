@@ -46,40 +46,51 @@ Private reference for AWS setup. DO NOT expose these in any public page or commi
 - [ ] Credits confirmed active
 
 
-## Business Registration — Sole Trader (UK)
+## Business Registration — XSOFT LTD (Private Limited Company)
 
 | Field | Value |
 |-------|-------|
-| Business Name | xSoft (or xSoftware — TBD) |
-| Type | Sole Trader |
-| Registration | HMRC Self Assessment |
-| Cost | Free |
-| UTR Number | Pending (arrives within 10 days) |
+| Company Name | **XSOFT LTD** |
+| Company Number | `17308915` |
+| Type | Private Limited Company (limited by shares) |
+| Incorporated | 30 June 2026 |
+| Registered Office | England and Wales |
+| Director / Subscriber | Rajeev Naik |
+| Memorandum Dated | 27 June 2026 |
+| Registrar | Companies House, Cardiff |
+| Companies Act | 2006 |
 | Government Gateway ID | [REDACTED] |
 | Gateway Email | xconvert24@gmail.com |
-| Business Start Date | June 4, 2026 |
-| VAT Registered | No (register when turnover exceeds threshold) |
+| VAT Registered | No (register when turnover exceeds £90K threshold) |
 
-### Key Rules
-- Keep all profits after paying tax
-- Must register for Self Assessment if earning >£1,000/year
-- Submit Self Assessment tax return annually (6 Apr to 5 Apr)
-- HMRC calculates Income Tax + National Insurance from profits
-- Register for VAT when meeting requirements (currently £90K threshold)
-- Check tax reliefs for sole traders to reduce bill
-- Keep financial records from day one
+### Previous Structure (superseded)
+- Was sole trader from June 4, 2026 → June 30, 2026
+- Now operating as Ltd company from June 30, 2026 onward
+
+### Key Rules (Ltd Company)
+- Separate legal entity from Raj personally (limited liability)
+- Must file annual accounts with Companies House
+- Must file Corporation Tax return with HMRC
+- Must file Confirmation Statement annually
+- Director salary + dividends = tax-efficient extraction
+- Keep statutory registers (directors, shareholders, PSC)
+- Financial year starts from incorporation date (30 Jun 2026)
 
 ### Trading Names
 - xConvert24.com
 - ScrabbleWordsFinder.com
-- Future products under xSoft umbrella
+- xCrypto24.com
+- Chrome Extensions (Auto Button Clicker)
+- Future products under xSoft Ltd umbrella
 
 ### Next Steps
-- [ ] Register at gov.uk/set-up-sole-trader
-- [ ] Receive UTR number
-- [ ] Use UTR to verify Google Ads account
-- [ ] Set up separate business bank account (recommended)
-- [ ] Keep records of all income/expenses from June 4, 2026
+- [x] Company incorporated at Companies House
+- [ ] Open business bank account in company name
+- [ ] Register for Corporation Tax with HMRC (within 3 months)
+- [ ] Set up payroll (if paying director salary)
+- [ ] Use company details to verify Google Ads account
+- [ ] Update legal pages (terms, disclaimer) on all sites
+- [ ] Keep records of all income/expenses from June 30, 2026
 
 
 ## Google Tags — Per Workspace

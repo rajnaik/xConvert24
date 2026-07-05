@@ -139,7 +139,7 @@ async function generateCoachingPDF(opts) {
   }
 
   // ── Phase Progression (if available) ──
-  if (phases) {
+  if (phases && phases.beginning && phases.mid && phases.end) {
     y += 2;
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
@@ -149,9 +149,17 @@ async function generateCoachingPDF(opts) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(80, 80, 80);
-    var phaseText = 'Beginning: ' + (phases.beginning?.accuracy || '?') + '% → ';
-    phaseText += 'Middle: ' + (phases.mid?.accuracy || '?') + '% → ';
-    phaseText += 'End: ' + (phases.end?.accuracy || '?') + '%';
+    var phaseText;
+    // Rack phases use avgScore (points), others use solveRate/accuracy (%)
+    if (typeof phases.beginning.avgScore === 'number') {
+      phaseText = 'Beginning: ' + phases.beginning.avgScore + ' pts  >  ';
+      phaseText += 'Middle: ' + phases.mid.avgScore + ' pts  >  ';
+      phaseText += 'End: ' + phases.end.avgScore + ' pts';
+    } else {
+      phaseText = 'Beginning: ' + getPhasePercent(phases.beginning) + '%  >  ';
+      phaseText += 'Middle: ' + getPhasePercent(phases.mid) + '%  >  ';
+      phaseText += 'End: ' + getPhasePercent(phases.end) + '%';
+    }
     doc.text(phaseText, margin, y);
     y += 6;
   }
@@ -233,6 +241,24 @@ async function generateCoachingPDF(opts) {
 }
 
 // ─── HELPER FUNCTIONS ────────────────────────────────────────────────────────
+
+function getPhasePercent(phase) {
+  if (!phase || typeof phase !== 'object') return '?';
+  // Try solveRate first (anagram/cab), then accuracy (quiz), then rate
+  var val = phase.solveRate;
+  if (typeof val === 'number') return val;
+  val = phase.accuracy;
+  if (typeof val === 'number') return val;
+  val = phase.rate;
+  if (typeof val === 'number') return val;
+  // Last resort: check for any numeric property
+  for (var k in phase) {
+    if (typeof phase[k] === 'number' && (k.toLowerCase().indexOf('rate') !== -1 || k.toLowerCase().indexOf('acc') !== -1)) {
+      return phase[k];
+    }
+  }
+  return '?';
+}
 
 function isSectionHeader(line) {
   // Lines starting with emoji section markers from coaching prompts

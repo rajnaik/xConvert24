@@ -173,8 +173,13 @@
     var diamondMsgEl = document.getElementById('sb-diamond-msg');
     if (allStarsEarned || diamondClaimed) {
       msgEl.textContent = '';
-      diamondMsgEl.textContent = '💎 Diamond earned! Come back tomorrow!'; diamondMsgEl.classList.remove('hidden');
-      setTimeout(function() { diamondMsgEl.style.transition = 'opacity 0.7s'; diamondMsgEl.style.opacity = '0'; setTimeout(function() { diamondMsgEl.classList.add('hidden'); diamondMsgEl.style.opacity = ''; }, 700); }, 10000);
+      diamondMsgEl.classList.add('hidden');
+      // Show diamond modal
+      var modal = document.getElementById('diamond-earned-modal');
+      if (modal && !S.getRaw('swf-diamond-modal-shown-' + new Date().toISOString().split('T')[0])) {
+        modal.classList.remove('hidden');
+        S.setRaw('swf-diamond-modal-shown-' + new Date().toISOString().split('T')[0], '1');
+      }
     } else {
       diamondMsgEl.textContent = ''; diamondMsgEl.classList.add('hidden');
       if (earned > 0) { msg = earned + '/' + threshold + ' stars — ' + remaining + ' more for 💎'; }
@@ -195,5 +200,30 @@
       .then(function(data) { S.setRaw(cacheKey, JSON.stringify(data)); renderStarBar(data); })
       .catch(function() {});
   });
+})();
+</script>
+
+<!-- Diamond Earned Modal -->
+<div id="diamond-earned-modal" class="hidden fixed inset-0 z-[1000] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" id="diamond-modal-backdrop"></div>
+  <div class="relative w-full max-w-sm rounded-2xl border border-purple-500/40 bg-gray-900 shadow-2xl shadow-purple-500/20 overflow-hidden text-center p-8 animate-bounce-in">
+    <div class="text-6xl mb-4">💎</div>
+    <h2 class="text-2xl font-bold text-white mb-2">Diamond Earned!</h2>
+    <p class="text-gray-400 text-sm mb-6">You've collected all your stars for today. Come back tomorrow for a fresh set of challenges!</p>
+    <div class="flex gap-3 justify-center">
+      <button id="diamond-modal-close" class="px-5 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-medium text-sm transition-colors">Got it!</button>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+(function() {
+  var modal = document.getElementById('diamond-earned-modal');
+  var backdrop = document.getElementById('diamond-modal-backdrop');
+  var closeBtn = document.getElementById('diamond-modal-close');
+  function closeModal() { if (modal) modal.classList.add('hidden'); }
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (backdrop) backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) closeModal(); });
 })();
 </script>

@@ -156,7 +156,11 @@
     var S = window.__swfStore;
     var uid = S.getRaw('swf-uid') || '';
     var ANAGRAM_STATE_KEY = 'swf-anagram-' + new Date().toISOString().split('T')[0];
-    var DA_CACHE_KEY = 'swf-da-tile';
+    var DA_CACHE_KEY = 'swf-da-tile-' + new Date().toISOString().split('T')[0];
+    // Clean up yesterday's cache key
+    var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    S.removeItem('swf-da-tile-' + yesterday);
+    S.removeItem('swf-da-tile'); // legacy key cleanup
     var anagramState = { scrambled: '', hint: '', wordLength: 0, guesses: [], gameOver: false, solved: false, answer: '' };
     var anagramStartTime = 0; // timestamp (ms) when puzzle was shown to user
     var anagramStartTime = 0; // timestamp (ms) when puzzle first rendered for this session

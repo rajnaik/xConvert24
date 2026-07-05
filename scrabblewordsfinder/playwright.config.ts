@@ -9,6 +9,7 @@ import { defineConfig, devices } from '@playwright/test';
  *   npx playwright test --project=blog
  *   npx playwright test --project=pages
  *   npx playwright test --project=seo
+ *   npx playwright test --project="Live AI Tests"
  *
  * Run all:
  *   npx playwright test
@@ -100,6 +101,11 @@ export default defineConfig({
       name: 'smoke',
       testDir: './tests',
       testMatch: /smoke\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'live-ai',
+      testDir: './tests/ai-live',
       use: { ...devices['Desktop Chrome'] },
     },
   ],

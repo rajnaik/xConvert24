@@ -1,0 +1,362 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Site Status — Admin — ScrabbleWordsFinder" description="Combined telemetry and live sessions overview" keywords="admin, site status, telemetry, live sessions">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/site-status/" class="text-blue-400 font-medium">Site Status</a>
+      <a href="/admin/telemetry/" class="hover:text-blue-400 transition-colors">Telemetry</a>
+      <a href="/admin/clicks/" class="hover:text-blue-400 transition-colors">Clicks</a>
+      <a href="/admin/emails/" class="hover:text-blue-400 transition-colors">Emails</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">&larr; Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-12 space-y-12">
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- TELEMETRY PANEL -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-white">📡 Telemetry</h2>
+        <div class="flex items-center gap-3">
+          <button id="telem-refresh" class="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors">↻ Refresh</button>
+          <span class="text-xs text-gray-500" id="telem-updated"></span>
+        </div>
+      </div>
+
+      <!-- Summary row -->
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Health</p>
+          <p class="text-xl font-bold" id="telem-health">—</p>
+        </div>
+        <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Avg Response</p>
+          <p class="text-xl font-bold text-white" id="telem-avg">—</p>
+        </div>
+        <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Endpoints</p>
+          <p class="text-xl font-bold text-white" id="telem-count">—</p>
+        </div>
+      </div>
+
+      <!-- Telemetry table -->
+      <div class="overflow-x-auto rounded-xl border border-gray-800">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
+            <tr>
+              <th class="px-4 py-3">Endpoint</th>
+              <th class="px-4 py-3">Path</th>
+              <th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3">Response (ms)</th>
+              <th class="px-4 py-3">Health</th>
+            </tr>
+          </thead>
+          <tbody id="telem-tbody" class="divide-y divide-gray-800 text-gray-300">
+            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LIVE SESSIONS PANEL -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-white">🟢 Site Live Sessions</h2>
+        <div class="flex items-center gap-3">
+          <button id="sessions-refresh" class="h-8 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-colors">↻ Refresh</button>
+          <span class="text-xs text-gray-500" id="sessions-updated"></span>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 mb-4">
+        <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Active Now</p>
+          <p class="text-2xl font-bold text-emerald-400" id="sess-active">—</p>
+        </div>
+        <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Unique Pages</p>
+          <p class="text-2xl font-bold text-white" id="sess-pages">—</p>
+        </div>
+      </div>
+
+      <!-- Sessions table -->
+      <div class="overflow-x-auto rounded-xl border border-gray-800">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
+            <tr>
+              <th class="px-4 py-3">UID</th>
+              <th class="px-4 py-3">Page</th>
+              <th class="px-4 py-3">Trail</th>
+              <th class="px-4 py-3">IP</th>
+              <th class="px-4 py-3">Location</th>
+              <th class="px-4 py-3">Last Seen</th>
+            </tr>
+          </thead>
+          <tbody id="sessions-tbody" class="divide-y divide-gray-800 text-gray-300">
+            <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- LATEST CLICKS PANEL -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-white">🖱️ Latest Clicks</h2>
+        <div class="flex items-center gap-3">
+          <!-- Sound picker -->
+          <select id="click-sound-picker" class="h-8 px-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 text-xs">
+            <option value="">🔇 Mute</option>
+            <option value="/media/bell-gong.wav">🔔 Bell Gong</option>
+            <option value="/media/bugle-call.wav">🎺 Bugle Call</option>
+            <option value="/media/fog-horn.wav">🌫️ Fog Horn</option>
+            <option value="/media/toon-horn.wav">📯 Toon Horn</option>
+          </select>
+          <button id="clicks-refresh" class="h-8 px-3 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium transition-colors">↻ Refresh</button>
+          <span class="text-xs text-gray-500" id="clicks-updated"></span>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Total Clicks</p>
+          <p class="text-xl font-bold text-violet-400" id="clicks-total">—</p>
+        </div>
+        <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Unique Elements</p>
+          <p class="text-xl font-bold text-white" id="clicks-elements">—</p>
+        </div>
+        <div class="rounded-lg bg-gray-800/60 p-3 text-center">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">New Since Load</p>
+          <p class="text-xl font-bold text-amber-400" id="clicks-new">0</p>
+        </div>
+      </div>
+
+      <!-- Clicks table -->
+      <div class="overflow-x-auto rounded-xl border border-gray-800">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
+            <tr>
+              <th class="px-4 py-3">Element</th>
+              <th class="px-4 py-3">Page</th>
+              <th class="px-4 py-3">User</th>
+              <th class="px-4 py-3">IP</th>
+              <th class="px-4 py-3">Time</th>
+            </tr>
+          </thead>
+          <tbody id="clicks-tbody" class="divide-y divide-gray-800 text-gray-300">
+            <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-2 text-right">
+        <a href="/admin/clicks/" class="text-xs text-violet-400 hover:underline">View all clicks →</a>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // ─── TELEMETRY ────────────────────────────────────────────────────
+    const ENDPOINTS = [
+      { name: 'Homepage', path: '/' },
+      { name: 'Blog', path: '/blog/' },
+      { name: 'Guide', path: '/guide/' },
+      { name: 'Activities', path: '/activities/' },
+      { name: 'Chat', path: '/chat/' },
+    ];
+
+    async function loadTelemetry() {
+      try {
+        const results: { name: string; path: string; status: number; time_ms: number; ok: boolean }[] = [];
+
+        for (const ep of ENDPOINTS) {
+          const start = Date.now();
+          try {
+            const res = await fetch(ep.path, { cache: 'no-store' });
+            const elapsed = Date.now() - start;
+            results.push({ name: ep.name, path: ep.path, status: res.status, time_ms: elapsed, ok: res.status >= 200 && res.status < 400 });
+          } catch {
+            results.push({ name: ep.name, path: ep.path, status: 0, time_ms: Date.now() - start, ok: false });
+          }
+        }
+
+        const allOk = results.every(r => r.ok);
+        const avgTime = Math.round(results.reduce((s, r) => s + r.time_ms, 0) / results.length);
+
+        const healthEl = document.getElementById('telem-health')!;
+        healthEl.textContent = allOk ? 'ALL OK' : 'ISSUES';
+        healthEl.className = 'text-xl font-bold ' + (allOk ? 'text-green-400' : 'text-red-400');
+        document.getElementById('telem-avg')!.textContent = avgTime + 'ms';
+        document.getElementById('telem-count')!.textContent = String(results.length);
+        document.getElementById('telem-updated')!.textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+        const tbody = document.getElementById('telem-tbody')!;
+        tbody.innerHTML = results.map(ep => `
+          <tr class="hover:bg-gray-800/40">
+            <td class="px-4 py-3 font-medium text-white">${ep.name}</td>
+            <td class="px-4 py-3 font-mono text-xs text-gray-400">${ep.path}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-xs font-medium ${ep.ok ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}">${ep.status}</span></td>
+            <td class="px-4 py-3 font-mono ${ep.time_ms > 500 ? 'text-amber-400' : 'text-white'}">${ep.time_ms}ms</td>
+            <td class="px-4 py-3">${ep.ok ? '<span class="text-green-400">OK</span>' : '<span class="text-red-400">FAIL</span>'}</td>
+          </tr>
+        `).join('');
+      } catch {
+        document.getElementById('telem-tbody')!.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-red-400">Failed to load telemetry</td></tr>';
+      }
+    }
+
+    document.getElementById('telem-refresh')!.addEventListener('click', loadTelemetry);
+
+    // ─── LIVE SESSIONS ────────────────────────────────────────────────
+    function escapeHtml(str: string): string {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function timeAgo(dateStr: string): string {
+      const now = new Date();
+      const then = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+      const diffS = Math.floor((now.getTime() - then.getTime()) / 1000);
+      if (diffS < 10) return 'just now';
+      if (diffS < 60) return diffS + 's ago';
+      const diffM = Math.floor(diffS / 60);
+      return diffM + 'm ago';
+    }
+
+    async function loadSessions() {
+      try {
+        const res = await fetch('/api/heartbeat/?minutes=2');
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+        const sessions = data.sessions || [];
+        const count = data.count || 0;
+
+        document.getElementById('sess-active')!.textContent = String(count);
+        const uniquePages = new Set(sessions.map((s: any) => s.page));
+        document.getElementById('sess-pages')!.textContent = String(uniquePages.size);
+        document.getElementById('sessions-updated')!.textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+        const tbody = document.getElementById('sessions-tbody')!;
+        if (!sessions.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">No active sessions right now.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = sessions.map((s: any) => `
+          <tr class="hover:bg-gray-800/40 transition-colors">
+            <td class="px-4 py-3 font-mono text-xs text-gray-400">${escapeHtml(s.uid || '—')}</td>
+            <td class="px-4 py-3"><code class="text-emerald-300 bg-gray-800 px-1.5 py-0.5 rounded text-xs">${escapeHtml(s.page || '—')}</code></td>
+            <td class="px-4 py-3 text-xs text-gray-400">${escapeHtml(s.trail || '—')}</td>
+            <td class="px-4 py-3 font-mono text-xs text-gray-400">${escapeHtml(s.ip_address || '—')}</td>
+            <td class="px-4 py-3 text-xs text-gray-400">${escapeHtml(s.city && s.country ? s.city + ', ' + s.country : s.country || '—')}</td>
+            <td class="px-4 py-3 text-xs text-gray-400">${timeAgo(s.last_seen || '')}</td>
+          </tr>
+        `).join('');
+      } catch {
+        document.getElementById('sessions-tbody')!.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-red-400">Failed to load sessions</td></tr>';
+      }
+    }
+
+    document.getElementById('sessions-refresh')!.addEventListener('click', loadSessions);
+
+    // ─── LATEST CLICKS ──────────────────────────────────────────────
+    let lastClickId = 0;
+    let newClickCount = 0;
+    let clickSound: HTMLAudioElement | null = null;
+
+    // Restore sound preference
+    const savedSound = localStorage.getItem('swf-site-status-click-sound') || '';
+    const soundPicker = document.getElementById('click-sound-picker') as HTMLSelectElement;
+    soundPicker.value = savedSound;
+    if (savedSound) clickSound = new Audio(savedSound);
+
+    soundPicker.addEventListener('change', () => {
+      const val = soundPicker.value;
+      localStorage.setItem('swf-site-status-click-sound', val);
+      clickSound = val ? new Audio(val) : null;
+    });
+
+    function playClickSound() {
+      if (clickSound) {
+        clickSound.currentTime = 0;
+        clickSound.play().catch(() => {});
+      }
+    }
+
+    async function loadClicks() {
+      try {
+        const res = await fetch('/api/clicks/?limit=15');
+        if (!res.ok) throw new Error('Failed');
+        const data = await res.json();
+        const clicks = data.clicks || [];
+        const total = data.total || clicks.length;
+
+        document.getElementById('clicks-total')!.textContent = String(total);
+        const uniqueEls = new Set(clicks.map((c: any) => c.ui_element));
+        document.getElementById('clicks-elements')!.textContent = String(uniqueEls.size);
+        document.getElementById('clicks-updated')!.textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+        // Detect new clicks
+        if (clicks.length > 0) {
+          const latestId = clicks[0].id;
+          if (lastClickId > 0 && latestId > lastClickId) {
+            const newOnes = latestId - lastClickId;
+            newClickCount += newOnes;
+            document.getElementById('clicks-new')!.textContent = String(newClickCount);
+            playClickSound();
+          }
+          lastClickId = latestId;
+        }
+
+        const tbody = document.getElementById('clicks-tbody')!;
+        if (!clicks.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">No clicks recorded yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = clicks.map((c: any) => {
+          const time = c.created_at ? new Date(c.created_at.endsWith('Z') ? c.created_at : c.created_at + 'Z').toLocaleTimeString() : '—';
+          const page = c.url ? new URL(c.url, 'http://x').pathname : '—';
+          return `
+            <tr class="hover:bg-gray-800/40 transition-colors">
+              <td class="px-4 py-2 text-xs text-violet-300 font-medium truncate max-w-[180px]">${escapeHtml(c.ui_element || '—')}</td>
+              <td class="px-4 py-2 text-xs text-gray-400 font-mono truncate max-w-[140px]">${escapeHtml(page)}</td>
+              <td class="px-4 py-2 text-xs text-gray-500 font-mono truncate max-w-[80px]">${escapeHtml((c.user_id || '—').slice(0, 8))}</td>
+              <td class="px-4 py-2 text-xs text-gray-500 font-mono">${escapeHtml(c.ip_address || '—')}</td>
+              <td class="px-4 py-2 text-xs text-gray-400">${time}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch {
+        document.getElementById('clicks-tbody')!.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-red-400">Failed to load clicks</td></tr>';
+      }
+    }
+
+    document.getElementById('clicks-refresh')!.addEventListener('click', loadClicks);
+
+    // ─── INIT ─────────────────────────────────────────────────────────
+    loadTelemetry();
+    loadSessions();
+    loadClicks();
+
+    // Auto-refresh all panels every 10 seconds
+    setInterval(() => { loadTelemetry(); loadSessions(); loadClicks(); }, 10000);
+  </script>
+</Layout>
