@@ -211,7 +211,7 @@ Phase Progression (${totalGames} games split into thirds chronologically):
   try {
     const aiResponse = await ai.run('@cf/meta/llama-3.1-8b-instruct', {
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 450,
+      max_tokens: 1000,
       temperature: 0.7,
     });
 

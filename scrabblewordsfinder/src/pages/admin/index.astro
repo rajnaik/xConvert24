@@ -27,7 +27,7 @@ import '../../styles/global.css';
         <span id="status-indicator" class="inline-block w-3 h-3 rounded-full bg-gray-600 animate-pulse"></span>
         Site Status
       </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <!-- Status -->
         <div class="rounded-lg bg-gray-800/60 p-4">
           <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Status</p>
@@ -68,8 +68,14 @@ import '../../styles/global.css';
           <p class="text-sm text-gray-300" id="widget-updated">—</p>
           <p class="text-xs text-gray-500 mt-0.5" id="widget-updated-by"></p>
         </div>
+        <!-- To Do -->
+        <div class="rounded-lg bg-gray-800/60 p-4">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">📋 To Do</p>
+          <p class="text-sm font-medium" id="todo-count-text"><span class="text-gray-500">Checking...</span></p>
+          <a id="todo-review-link" href="/admin/content/blog-comments/" class="hidden mt-1 inline-block text-[10px] text-amber-400 hover:underline">Review →</a>
+        </div>
         <!-- Telemetry -->
-        <div class="rounded-lg bg-gray-800/60 p-4 sm:col-span-2 lg:col-span-5">
+        <div class="rounded-lg bg-gray-800/60 p-4 sm:col-span-2 lg:col-span-6">
           <div class="flex items-center justify-between mb-2">
             <p class="text-xs text-gray-400 uppercase tracking-wide">📡 Telemetry</p>
             <a href="/admin/telemetry/" class="text-[10px] text-blue-400 hover:underline">View full →</a>
@@ -94,7 +100,7 @@ import '../../styles/global.css';
           </div>
         </div>
         <!-- Live Sessions -->
-        <div class="rounded-lg bg-gray-800/60 p-4 sm:col-span-2 lg:col-span-5">
+        <div class="rounded-lg bg-gray-800/60 p-4 sm:col-span-2 lg:col-span-6">
           <div class="flex items-center justify-between mb-2">
             <p class="text-xs text-gray-400 uppercase tracking-wide">🟢 Site Live Sessions</p>
             <a href="/admin/site-status/" class="text-[10px] text-emerald-400 hover:underline">View full →</a>
@@ -119,7 +125,7 @@ import '../../styles/global.css';
           </div>
         </div>
         <!-- Latest Clicks (top 3) -->
-        <div class="rounded-lg bg-gray-800/60 p-4 sm:col-span-2 lg:col-span-5">
+        <div class="rounded-lg bg-gray-800/60 p-4 sm:col-span-2 lg:col-span-6">
           <div class="flex items-center justify-between mb-2">
             <p class="text-xs text-gray-400 uppercase tracking-wide">🖱️ Latest Clicks</p>
             <div class="flex items-center gap-2">
@@ -561,6 +567,22 @@ import '../../styles/global.css';
 
     // On click, re-check the AI binding
     document.getElementById('chatusage-btn')!.addEventListener('click', checkChatHeartbeat);
+
+    // To Do: pending blog comments
+    fetch('/api/blog-comments/?admin=true&stats=true').then(r => r.json()).then(data => {
+      const pending = data.stats?.pending || 0;
+      const textEl = document.getElementById('todo-count-text')!;
+      const linkEl = document.getElementById('todo-review-link')!;
+      if (pending > 0) {
+        const color = pending > 3 ? 'text-red-400' : 'text-amber-400';
+        textEl.innerHTML = `<span class="${color} font-bold">${pending}</span> <span class="text-gray-300">pending</span>`;
+        linkEl.classList.remove('hidden');
+      } else {
+        textEl.innerHTML = '<span class="text-green-400">✅ All clear</span>';
+      }
+    }).catch(() => {
+      document.getElementById('todo-count-text')!.innerHTML = '<span class="text-gray-500">—</span>';
+    });
 
     // Load memory workbench stats for tile
     fetch("/api/saved-words").then(r => r.json()).then(d => {

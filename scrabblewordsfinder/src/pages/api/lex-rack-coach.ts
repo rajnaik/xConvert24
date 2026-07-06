@@ -187,7 +187,7 @@ Phase Progression (${totalWords} submissions split into thirds chronologically):
   try {
     const aiResponse = await ai.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 300,
+      max_tokens: 1000,
       temperature: 0.7,
     });
 

@@ -196,6 +196,7 @@ export const GET: APIRoute = async ({ request }) => {
       SELECT
         l.user_id,
         MAX(l.best_score) as best_score,
+        (SELECT l2.best_word FROM leaderboard l2 WHERE l2.user_id = l.user_id AND l2.game = ? AND l2.best_word != '' ORDER BY l2.best_score DESC LIMIT 1) as best_word,
         SUM(l.total_score) as total_score,
         SUM(l.words_played) as words_played,
         COUNT(l.date) as days_played,
@@ -208,7 +209,7 @@ export const GET: APIRoute = async ({ request }) => {
       ORDER BY total_score DESC, best_score DESC
       LIMIT ?
     `;
-    binds = [game, ...dateBinds, limit];
+    binds = [game, game, ...dateBinds, limit];
   }
 
   const result = await db.prepare(query).bind(...binds).all();
@@ -262,6 +263,10 @@ export const GET: APIRoute = async ({ request }) => {
             }
             if (hEntry.word_length != null && (!existing.word_length || hEntry.best_score >= existing.best_score)) {
               existing.word_length = hEntry.word_length;
+            }
+            // 60sec-specific: merge games_played
+            if (hEntry.games_played != null) {
+              existing.games_played = hEntry.games_played;
             }
           }
         }
@@ -325,6 +330,7 @@ async function getFromHistory(db: any, game: string, period: string, today: stri
           SELECT h.user_id, MAX(h.points) as best_score,
             (SELECT word FROM "60sec_history" h2 WHERE h2.user_id = h.user_id AND date(h2.created_at) = ? ORDER BY h2.points DESC LIMIT 1) as best_word,
             SUM(h.points) as total_score, COUNT(*) as words_played,
+            COUNT(DISTINCT h.round_id) as games_played,
             u.display_name, u.avatar_id
           FROM "60sec_history" h
           LEFT JOIN users u ON u.user_id = h.user_id
@@ -338,6 +344,7 @@ async function getFromHistory(db: any, game: string, period: string, today: stri
         fallbackQuery = `
           SELECT h.user_id, MAX(h.points) as best_score,
             SUM(h.points) as total_score, COUNT(*) as words_played,
+            COUNT(DISTINCT h.round_id) as games_played,
             u.display_name, u.avatar_id
           FROM "60sec_history" h
           LEFT JOIN users u ON u.user_id = h.user_id
@@ -536,6 +543,8 @@ async function getFromHistory(db: any, game: string, period: string, today: stri
       best_score: row.best_score || 0,
       total_score: row.total_score || 0,
       words_played: row.words_played || 0,
+      // 60sec-specific: distinct game sessions
+      ...(row.games_played != null ? { games_played: row.games_played } : {}),
       // Cab-specific fields (only populated for cab game)
       ...(row.best_attempts != null ? { attempts: row.best_attempts } : {}),
       ...(row.best_time != null ? { timer_used: row.best_time } : {}),

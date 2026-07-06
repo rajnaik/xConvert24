@@ -684,6 +684,19 @@
 
         // Render game-by-game analysis
         renderGameAnalysis(data.gameAnalysis || []);
+
+        // PDF Download + Save to Library buttons
+        if (typeof appendCoachingPDFButtons === 'function') {
+          // Remove existing buttons if re-opened
+          var existingBtns = document.getElementById('lex-quiz-pdf-buttons');
+          if (existingBtns) existingBtns.remove();
+          var btnContainer = document.createElement('div');
+          btnContainer.id = 'lex-quiz-pdf-buttons';
+          var linksSection = document.getElementById('lex-quiz-links');
+          if (linksSection) linksSection.parentNode.insertBefore(btnContainer, linksSection);
+          else document.getElementById('lex-quiz-result').appendChild(btnContainer);
+          appendCoachingPDFButtons(btnContainer, 'quiz', data.analysis || '', data.stats || {}, null);
+        }
       })
       .catch(function() {
         loadingEl.classList.add('hidden');

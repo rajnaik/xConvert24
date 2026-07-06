@@ -1255,6 +1255,17 @@
       renderCabGraph(data.gameAnalysis || []);
       renderCabTimeCommentary(data.gameAnalysis || [], data.stats || {});
       renderCabGameAnalysis(data.gameAnalysis || []);
+
+      // PDF Download + Save to Library buttons
+      if (typeof appendCoachingPDFButtons === 'function') {
+        var existingBtns = document.getElementById('lex-cab-pdf-buttons');
+        if (existingBtns) existingBtns.remove();
+        var btnContainer = document.createElement('div');
+        btnContainer.id = 'lex-cab-pdf-buttons';
+        var cabResult = document.getElementById('lex-cab-coach-result');
+        if (cabResult) cabResult.appendChild(btnContainer);
+        appendCoachingPDFButtons(btnContainer, 'cab', data.analysis || '', data.stats || {}, null);
+      }
     })
     .catch(function() {
       coachLoading.classList.add('hidden');

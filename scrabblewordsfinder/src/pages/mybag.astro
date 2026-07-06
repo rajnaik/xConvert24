@@ -14,12 +14,15 @@ import '../styles/global.css';
       </div>
     </div>
 
-    <!-- Avatar & Display Name (full-width breakout) -->
-    <div id="mybag-avatar" class="hidden w-screen relative left-1/2 -translate-x-1/2 flex items-center gap-4 mb-6 border-y border-teal-700/40 bg-teal-950/20 px-5 py-4">
-      <img id="mybag-avatar-img" src="/avatars/avatar-1.svg" alt="Your avatar" class="w-14 h-14 rounded-full border-2 border-teal-500/60 shrink-0" />
-      <div>
-        <p id="mybag-avatar-name" class="text-lg font-semibold text-white"></p>
-        <p class="text-xs text-gray-400">Your avatar &amp; display name</p>
+    <!-- Avatar & Display Name (matches Activities/Layout welcome banner style) -->
+    <div id="mybag-avatar" class="hidden mb-6 -mx-4 sm:-mx-6" style="margin-right:-100px">
+      <div class="flex items-center gap-3 rounded-lg bg-gradient-to-r from-teal-900/30 to-purple-900/20 border border-teal-700/30 px-4 py-2.5 ml-4 sm:ml-6">
+        <img id="mybag-avatar-img" src="/avatars/avatar-1.svg" alt="Your avatar" class="h-9 w-9 rounded-full border-2 border-teal-500/60 shadow-sm" />
+        <p class="text-sm text-gray-200">
+          <span class="text-gray-400">Welcome back —</span>
+          <span id="mybag-avatar-name" class="font-semibold text-teal-300 ml-1">Player</span>
+        </p>
+        <a href="/settings/" class="ml-auto text-xs text-gray-500 hover:text-teal-400 transition-colors">Change Avatar →</a>
       </div>
     </div>
 
@@ -73,9 +76,9 @@ import '../styles/global.css';
       </div>
 
       <!-- My Badges -->
-      <div id="mb-badges-section">
+      <div id="mb-badges-section" style="margin-right:-100px">
         <h2 class="text-lg font-semibold text-white mb-3">🏅 My Badges</h2>
-        <div id="mb-badges-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div id="mb-badges-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <!-- Populated by JS -->
         </div>
       </div>
@@ -84,7 +87,11 @@ import '../styles/global.css';
       <div id="mb-badge-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Badge detail">
         <div class="relative bg-gray-900 border border-purple-500/50 rounded-2xl p-8 shadow-2xl shadow-purple-900/30 max-w-md w-full mx-4 text-center">
           <button id="mb-badge-modal-close" class="absolute top-3 right-3 text-gray-400 hover:text-white text-xl leading-none" aria-label="Close">&times;</button>
-          <img id="mb-badge-modal-img" src="" alt="" class="w-[27rem] h-[27rem] max-w-full mx-auto mb-4" />
+          <svg width="0" height="0" style="position:absolute"><defs><clipPath id="modal-shield-clip" clipPathUnits="objectBoundingBox"><path d="M0.5 0.05 L0.9 0.25 L0.9 0.6 Q0.9 0.85 0.5 0.95 Q0.1 0.85 0.1 0.6 L0.1 0.25 Z"/></clipPath></defs></svg>
+          <div class="relative flex items-center justify-center mb-4">
+            <div id="mb-badge-modal-border" class="absolute w-[28rem] h-[25rem] max-w-[calc(100%+1rem)]" style="clip-path: url(#modal-shield-clip); -webkit-clip-path: url(#modal-shield-clip);"></div>
+            <img id="mb-badge-modal-img" src="" alt="" class="relative w-[27rem] h-[27rem] max-w-full mx-auto" />
+          </div>
           <p id="mb-badge-modal-name" class="text-lg font-semibold text-purple-300"></p>
           <p id="mb-badge-modal-info" class="text-sm text-gray-400 mt-1"></p>
         </div>
@@ -194,6 +201,22 @@ import '../styles/global.css';
 
   </main>
 
+  <style is:global>
+    @property --shimmer-angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+    @keyframes badge-shimmer {
+      from { --shimmer-angle: 0deg; }
+      to { --shimmer-angle: 360deg; }
+    }
+    .badge-diamond-border-shield {
+      animation: badge-shimmer 3s linear infinite;
+      background: conic-gradient(from var(--shimmer-angle), #60a5fa, #a855f7, #f472b6, #fbbf24, #34d399, #60a5fa);
+    }
+  </style>
+
   <script is:inline>
   (function() {
     var S = window.__swfStore;
@@ -213,6 +236,9 @@ import '../styles/global.css';
       document.getElementById('mybag-avatar-img').src = '/avatars/avatar-' + avatarId + '.svg';
       document.getElementById('mybag-avatar-name').textContent = displayName;
       avatarEl.classList.remove('hidden');
+      // Hide the Layout welcome banner to avoid duplicate avatar display
+      var welcomeBanner = document.getElementById('welcome-banner');
+      if (welcomeBanner) welcomeBanner.classList.add('hidden');
     }
 
     if (!uid) {
@@ -290,21 +316,152 @@ import '../styles/global.css';
         grid.innerHTML = '<p class="text-gray-500 text-sm col-span-full">No badges earned yet. Keep playing to unlock badges!</p>';
         return;
       }
+
+      // ── LocalStorage badge precedence ──
+      // If saved badges exist in LS, use those for achieved status instead of DB
+      var BADGE_LS_KEY = 'swf-badges';
+      var savedBadges = null;
+      try {
+        var raw = S.getRaw(BADGE_LS_KEY);
+        if (raw) savedBadges = JSON.parse(raw);
+      } catch(e) {}
+
+      // If LS has badge data, override achieved status
+      if (savedBadges && Array.isArray(savedBadges) && savedBadges.length > 0) {
+        for (var i = 0; i < badges.length; i++) {
+          badges[i].achieved = savedBadges.indexOf(badges[i].name) !== -1;
+        }
+      }
+
+      // Border/gradient colours per tier — gold/silver with Celtic embossing
+      // Achieved: gold metallic gradient; Locked: silver/dim
+      var tierMeta = [
+        { accent: '#a855f7', label: 'purple' },   // Word Maker
+        { accent: '#3b82f6', label: 'blue' },      // Word Smith
+        { accent: '#22c55e', label: 'green' },     // Word Master
+        { accent: '#8b5cf6', label: 'violet' },    // Word Wizard
+        { accent: '#f59e0b', label: 'amber' },     // Grand Lexicon
+        { accent: '#14b8a6', label: 'teal' },      // Scrabble Sage
+        { accent: '#eab308', label: 'yellow' },    // Lex Legend
+        { accent: '#f43f5e', label: 'rose' },      // Vocabulary Virtuoso
+        { accent: '#0ea5e9', label: 'sky' },       // Dictionary Guardian
+        { accent: '#f97316', label: 'orange' },    // Letter Lord
+        { accent: '#ef4444', label: 'red' },       // Tile Titan
+        { accent: '#d946ef', label: 'fuchsia' },   // Word Emperor
+        { accent: '#06b6d4', label: 'cyan' },      // Lexicon Immortal
+        { accent: '#6366f1', label: 'indigo' },    // Alphabet Ascendant
+        { accent: '#fbbf24', label: 'gold' },      // Grand Word Deity
+      ];
+
       var html = '';
       for (var i = 0; i < badges.length; i++) {
         var b = badges[i];
         var achieved = b.achieved;
-        var opacity = achieved ? '' : ' opacity-50 grayscale';
-        html += '<div class="rounded-xl border border-purple-700/40 bg-purple-950/20 p-4 flex flex-col items-center cursor-pointer hover:border-purple-500/70 transition-colors' + opacity + '"'
+        var meta = tierMeta[i] || tierMeta[0];
+        var threshold = b.threshold || 0;
+        var thresholdFormatted = threshold >= 1000000 ? (threshold / 1000000).toLocaleString() + 'M' : threshold.toLocaleString();
+
+        // Celtic-inspired styles: double border, metallic gradients, emboss shadows
+        var cardStyle = '';
+        var cardClass = '';
+        if (achieved) {
+          // Gold metallic treatment
+          cardStyle = 'background: linear-gradient(160deg, rgba(251,191,36,0.08) 0%, rgba(30,30,30,0.95) 40%, rgba(251,191,36,0.05) 100%);'
+            + 'border-color: ' + meta.accent + ';'
+            + 'box-shadow: 0 0 12px ' + meta.accent + '33, inset 0 1px 0 rgba(251,191,36,0.15), 0 4px 16px rgba(0,0,0,0.5), 0 1px 3px rgba(251,191,36,0.2);'
+            + 'outline: 2px solid rgba(251,191,36,0.2); outline-offset: 3px;';
+          cardClass = 'rounded-2xl border-2 p-6 flex flex-col items-center text-center transition-all cursor-pointer hover:scale-[1.02] hover:shadow-lg relative overflow-hidden';
+        } else {
+          // Silver locked treatment
+          cardStyle = 'background: linear-gradient(160deg, rgba(148,163,184,0.05) 0%, rgba(20,20,25,0.95) 40%, rgba(148,163,184,0.03) 100%);'
+            + 'border-color: rgba(148,163,184,0.3);'
+            + 'box-shadow: inset 0 1px 0 rgba(148,163,184,0.08), 0 2px 8px rgba(0,0,0,0.4);'
+            + 'outline: 2px solid rgba(148,163,184,0.1); outline-offset: 3px;';
+          cardClass = 'rounded-2xl border-2 p-6 flex flex-col items-center text-center transition-all cursor-pointer opacity-50 grayscale relative overflow-hidden';
+        }
+
+        html += '<div class="' + cardClass + '" style="' + cardStyle + '"'
           + ' data-badge-name="' + (b.name || '') + '"'
           + ' data-badge-img="' + (b.img || '') + '"'
           + ' data-badge-info="' + (b.info || '') + '">';
-        html += '<img src="' + (b.img || '') + '" alt="' + (b.name || '') + '" class="w-16 h-16 mb-2" />';
-        html += '<p class="text-sm font-medium text-purple-300">' + (b.name || '') + '</p>';
-        if (!achieved) html += '<p class="text-xs text-gray-500 mt-1">🔒 Locked</p>';
+
+        // Celtic corner ornaments (SVG decorative corners)
+        if (achieved) {
+          var cornerSvg = '<svg class="absolute w-8 h-8 opacity-40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">'
+            + '<path d="M2 2C2 2 8 2 12 6C16 10 16 16 12 20C8 24 2 24 2 24" stroke="' + meta.accent + '" stroke-width="1.5" fill="none" opacity="0.6"/>'
+            + '<path d="M6 2C6 2 10 4 12 8C14 12 12 16 8 18" stroke="rgba(251,191,36,0.5)" stroke-width="1" fill="none"/>'
+            + '<circle cx="4" cy="4" r="2" fill="' + meta.accent + '" opacity="0.4"/></svg>';
+          html += '<div class="absolute top-1 left-1">' + cornerSvg + '</div>';
+          html += '<div class="absolute top-1 right-1 rotate-90">' + cornerSvg + '</div>';
+          html += '<div class="absolute bottom-1 left-1 -rotate-90">' + cornerSvg + '</div>';
+          html += '<div class="absolute bottom-1 right-1 rotate-180">' + cornerSvg + '</div>';
+        }
+
+        // Badge name FIRST (above artwork)
+        if (achieved) {
+          html += '<h3 class="text-lg font-bold mb-3 z-10" style="color: ' + meta.accent + '; text-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 0 8px ' + meta.accent + '44;">' + (b.name || '') + '</h3>';
+        } else {
+          html += '<h3 class="text-lg font-bold text-gray-500 mb-3 z-10">' + (b.name || '') + '</h3>';
+        }
+
+        // Badge image — consistent drop-shadow glow (follows shield shape naturally)
+        var glowStyle = 'filter: drop-shadow(0 0 6px #60a5fa) drop-shadow(0 0 12px #a855f7) drop-shadow(0 0 3px rgba(244,114,182,0.6)) drop-shadow(0 2px 4px rgba(0,0,0,0.5));';
+        var lockedGlow = 'filter: drop-shadow(0 0 3px rgba(100,100,110,0.3)) drop-shadow(0 1px 3px rgba(0,0,0,0.4));';
+
+        if (achieved) {
+          html += '<div class="flex items-center justify-center mb-4">';
+          html += '<img src="' + (b.img || '') + '" alt="' + (b.name || '') + ' badge" class="w-40 h-40" style="' + glowStyle + '" loading="lazy" />';
+          html += '</div>';
+        } else {
+          html += '<div class="flex items-center justify-center mb-4">';
+          html += '<img src="' + (b.img || '') + '" alt="' + (b.name || '') + ' badge" class="w-40 h-40" style="' + lockedGlow + '" loading="lazy" />';
+          html += '</div>';
+        }
+
+        // Diamond threshold
+        html += '<p class="font-semibold text-sm mb-2" style="color: ' + (achieved ? '#fbbf24' : '#6b7280') + ';">' + thresholdFormatted + ' 💎</p>';
+
+        // Status
+        if (!achieved) html += '<p class="text-xs text-gray-500">🔒 Locked</p>';
+        else {
+          html += '<span class="absolute top-5 right-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 border-2 border-green-400 text-green-400 rounded-sm" style="transform: rotate(24deg); opacity: 0.85;">Completed</span>';
+          html += '<p class="text-xs text-green-400 font-medium">💾 Saved</p>';
+        }
+
         html += '</div>';
       }
       grid.innerHTML = html;
+
+      // ── Save Badges button (always shown for achieved badges) ──
+      var existingSaveBtn = document.getElementById('mb-save-badges-btn');
+      if (existingSaveBtn) existingSaveBtn.remove();
+
+      var achievedBadges = badges.filter(function(b) { return b.achieved; });
+      var saveBtn = document.createElement('button');
+      saveBtn.id = 'mb-save-badges-btn';
+      saveBtn.className = 'mt-4 px-4 py-2 rounded-lg bg-green-600/20 border border-green-500/40 text-sm font-medium text-green-400 hover:bg-green-600/40 hover:border-green-400 transition-colors cursor-pointer';
+      var alreadySaved = savedBadges && savedBadges.length > 0;
+      if (achievedBadges.length > 0) {
+        saveBtn.innerHTML = alreadySaved
+          ? '💾 Update Saved Badges (' + achievedBadges.length + ' achieved)'
+          : '💾 Save Badges Locally (' + achievedBadges.length + ' achieved)';
+      } else {
+        saveBtn.innerHTML = '💾 No badges achieved yet';
+        saveBtn.disabled = true;
+        saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      saveBtn.addEventListener('click', function() {
+        if (achievedBadges.length === 0) return;
+        var names = achievedBadges.map(function(b) { return b.name; });
+        S.setRaw(BADGE_LS_KEY, JSON.stringify(names));
+        saveBtn.innerHTML = '✅ Badges Saved!';
+        saveBtn.classList.remove('text-green-400', 'border-green-500/40', 'bg-green-600/20');
+        saveBtn.classList.add('text-emerald-300', 'border-emerald-500/50', 'bg-emerald-600/30');
+        setTimeout(function() {
+          saveBtn.innerHTML = '💾 Saved (' + names.length + ' badges)';
+        }, 2000);
+      });
+      grid.parentNode.insertBefore(saveBtn, grid.nextSibling);
 
       // Attach click listeners to badge cards for modal
       var cards = grid.querySelectorAll('[data-badge-name]');
@@ -320,17 +477,74 @@ import '../styles/global.css';
       var img = document.getElementById('mb-badge-modal-img');
       var name = document.getElementById('mb-badge-modal-name');
       var info = document.getElementById('mb-badge-modal-info');
+      var borderEl = document.getElementById('mb-badge-modal-border');
 
       img.src = card.getAttribute('data-badge-img');
       img.alt = card.getAttribute('data-badge-name');
-      // Remove grayscale if achieved, add if locked
-      if (card.classList.contains('opacity-50')) {
+
+      // Determine badge tier from grid position
+      var allCards = document.querySelectorAll('#mb-badges-grid [data-badge-name]');
+      var tierIndex = 0;
+      for (var k = 0; k < allCards.length; k++) {
+        if (allCards[k] === card) { tierIndex = k; break; }
+      }
+
+      var isLocked = card.classList.contains('opacity-50') || card.classList.contains('grayscale');
+
+      // Apply shield border style matching the tier
+      borderEl.classList.remove('badge-diamond-border-shield');
+      if (isLocked) {
+        borderEl.style.background = 'rgba(100,100,110,0.25)';
+        borderEl.style.filter = '';
         img.classList.add('grayscale');
+        img.style.filter = 'grayscale(1) opacity(0.5)';
       } else {
         img.classList.remove('grayscale');
+        img.style.filter = 'drop-shadow(0 0 8px #60a5fa) drop-shadow(0 0 16px #a855f7) drop-shadow(0 0 4px rgba(244,114,182,0.6)) drop-shadow(0 3px 6px rgba(0,0,0,0.5))';
+        borderEl.style.background = '';
+        borderEl.style.filter = '';
       }
+
       name.textContent = card.getAttribute('data-badge-name');
       info.textContent = card.getAttribute('data-badge-info');
+
+      // Show "COMPLETED" rubber stamp on enlarged modal if badge is achieved
+      var modalStamp = document.getElementById('mb-badge-modal-stamp');
+      if (!modalStamp) {
+        modalStamp = document.createElement('span');
+        modalStamp.id = 'mb-badge-modal-stamp';
+        modalStamp.className = 'absolute top-4 right-4 text-sm font-black uppercase tracking-widest px-3 py-1 border-2 border-green-400 text-green-400 rounded-sm';
+        modalStamp.style.transform = 'rotate(24deg)';
+        modalStamp.style.opacity = '0.85';
+        modalStamp.textContent = 'Completed';
+        // Append to the modal's relative container (parent of close button)
+        var modalContainer = document.querySelector('#mb-badge-modal .relative');
+        if (modalContainer) modalContainer.appendChild(modalStamp);
+      }
+      // Show floppy "Saved" indicator if badge is in localStorage
+      var modalSavedEl = document.getElementById('mb-badge-modal-saved');
+      if (!modalSavedEl) {
+        modalSavedEl = document.createElement('p');
+        modalSavedEl.id = 'mb-badge-modal-saved';
+        modalSavedEl.className = 'text-sm text-green-400 mt-2';
+        var stampNext = modalStamp.nextSibling;
+        if (stampNext) modalStamp.parentNode.insertBefore(modalSavedEl, stampNext);
+        else modalStamp.parentNode.appendChild(modalSavedEl);
+      }
+      var badgeName = card.getAttribute('data-badge-name');
+      var isAchievedBadge = !isLocked;
+      if (isAchievedBadge) {
+        modalStamp.classList.remove('hidden');
+      } else {
+        modalStamp.classList.add('hidden');
+      }
+      if (isAchievedBadge) {
+        modalSavedEl.textContent = '💾 Saved';
+        modalSavedEl.classList.remove('hidden');
+      } else {
+        modalSavedEl.textContent = '';
+        modalSavedEl.classList.add('hidden');
+      }
 
       modal.classList.remove('hidden');
       modal.classList.add('flex');

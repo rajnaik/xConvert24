@@ -17,11 +17,23 @@ export const GET: APIRoute = async ({ url }) => {
   if (url.searchParams.get('history') === 'true') {
     if (!db) return json({ error: 'DB not configured' }, 500);
     try {
-      const limit = parseInt(url.searchParams.get('limit') || '50');
-      const { results } = await db.prepare(
-        'SELECT * FROM telemetry ORDER BY checked_at DESC LIMIT ?'
-      ).bind(limit).all();
-      return json({ history: results });
+      const limit = parseInt(url.searchParams.get('limit') || '500');
+      const from = url.searchParams.get('from') || '';
+      const to = url.searchParams.get('to') || '';
+
+      let query = 'SELECT * FROM telemetry';
+      const conditions: string[] = [];
+      const binds: any[] = [];
+
+      if (from) { conditions.push('checked_at >= ?'); binds.push(from); }
+      if (to) { conditions.push('checked_at <= ?'); binds.push(to + 'T23:59:59'); }
+
+      if (conditions.length > 0) query += ' WHERE ' + conditions.join(' AND ');
+      query += ' ORDER BY checked_at DESC LIMIT ?';
+      binds.push(limit);
+
+      const { results } = await db.prepare(query).bind(...binds).all();
+      return json({ history: results, count: (results || []).length });
     } catch (e: any) {
       return json({ error: e.message }, 500);
     }

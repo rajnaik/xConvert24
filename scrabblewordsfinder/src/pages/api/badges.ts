@@ -32,9 +32,17 @@ export const GET: APIRoute = async ({ request }) => {
   let badgeEarners: any[] = [];
   if (!statsOnly) {
     const earnersResult = await db.prepare(`
-      SELECT b.id as badge_id, COUNT(ur.user_id) as earners
+      SELECT b.id as badge_id, COUNT(combined.user_id) as earners
       FROM badges b
-      LEFT JOIN user_rewards ur ON ur.total_diamonds >= b.diamonds_required
+      LEFT JOIN (
+        SELECT user_id, SUM(diamonds) as total_diamonds FROM (
+          SELECT user_id, SUM(diamonds_earned) as diamonds FROM diamond_claims GROUP BY user_id
+          UNION ALL
+          SELECT user_id, total_diamonds as diamonds FROM user_rewards WHERE total_diamonds > 0
+          UNION ALL
+          SELECT user_id, COUNT(*) as diamonds FROM bonus_diamonds GROUP BY user_id
+        ) GROUP BY user_id
+      ) combined ON combined.total_diamonds >= b.diamonds_required
       GROUP BY b.id
     `).all();
     badgeEarners = earnersResult.results || [];
@@ -42,9 +50,17 @@ export const GET: APIRoute = async ({ request }) => {
 
   // Total users with at least one badge (diamonds >= lowest threshold)
   const lowestThreshold = badges.length > 0 ? (badges[0] as any).diamonds_required : 0;
-  const usersWithBadgeResult = await db.prepare(
-    'SELECT COUNT(*) as count FROM user_rewards WHERE total_diamonds >= ?'
-  ).bind(lowestThreshold).first() as any;
+  const usersWithBadgeResult = await db.prepare(`
+    SELECT COUNT(*) as count FROM (
+      SELECT user_id, SUM(diamonds) as total_diamonds FROM (
+        SELECT user_id, SUM(diamonds_earned) as diamonds FROM diamond_claims GROUP BY user_id
+        UNION ALL
+        SELECT user_id, total_diamonds as diamonds FROM user_rewards WHERE total_diamonds > 0
+        UNION ALL
+        SELECT user_id, COUNT(*) as diamonds FROM bonus_diamonds GROUP BY user_id
+      ) GROUP BY user_id
+    ) WHERE total_diamonds >= ?
+  `).bind(lowestThreshold).first() as any;
   const usersWithBadge = usersWithBadgeResult?.count || 0;
 
   const stats = {

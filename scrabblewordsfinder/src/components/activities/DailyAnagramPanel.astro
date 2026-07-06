@@ -416,14 +416,18 @@
     // Share button
     document.getElementById('anagram-share-btn').addEventListener('click', function() {
       var today = new Date().toISOString().split('T')[0];
-      var emojis = anagramState.guesses.map(function(g) {
+      var emojis = anagramState.guesses.map(function(g, idx) {
+        // For the winning guess (all green), show the actual letters as Scrabble tile squares
+        if (anagramState.solved && idx === anagramState.guesses.length - 1) {
+          return g.guess.toUpperCase().split('').join(' ');
+        }
         return g.feedback.map(function(f) {
           return f === 'green' ? '🟩' : f === 'yellow' ? '🟨' : '⬛';
         }).join('');
       }).join('\n');
-      var text = '🔤 SWF Daily Anagram ' + today + '\n' +
+      var text = '🔤 SWF Daily Anagram ' + today + '\n\n' +
         (anagramState.solved ? anagramState.guesses.length + '/5' : 'X/5') + '\n\n' +
-        emojis + '\n\nhttps://www.scrabblewordsfinder.com/activities/';
+        emojis + '\n\nhttps://www.scrabblewordsfinder.com/activities/#anagram';
       navigator.clipboard.writeText(text).then(function() {
         document.getElementById('anagram-share-btn').textContent = '✓ Copied!';
         setTimeout(function() { document.getElementById('anagram-share-btn').textContent = '📋 Share'; }, 2000);
@@ -526,6 +530,18 @@
 
           // Render per-game analysis
           renderAnagramGameAnalysis(data.gameAnalysis || []);
+
+          // PDF Download + Save to Library buttons
+          if (typeof appendCoachingPDFButtons === 'function') {
+            var existingBtns = document.getElementById('lex-anagram-pdf-buttons');
+            if (existingBtns) existingBtns.remove();
+            var btnContainer = document.createElement('div');
+            btnContainer.id = 'lex-anagram-pdf-buttons';
+            var linksSection = document.getElementById('lex-anagram-links');
+            if (linksSection) linksSection.parentNode.insertBefore(btnContainer, linksSection);
+            else document.getElementById('lex-anagram-result').appendChild(btnContainer);
+            appendCoachingPDFButtons(btnContainer, 'anagram', data.analysis || '', data.stats || {}, null);
+          }
         })
         .catch(function() {
           loadingEl.classList.add('hidden');

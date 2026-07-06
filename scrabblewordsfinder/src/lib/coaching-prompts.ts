@@ -46,8 +46,10 @@ One short paragraph about their time usage, speed per question, and whether they
 (Up to 5 missed words WITH one-line definitions. If no missed words available, skip this section.)
 
 🎯 LEX'S CHALLENGE
-One specific, measurable goal for their next session.
-Example: "Score above 75% while answering every question in under 8 seconds."
+One specific, measurable goal for their next session. The challenge MUST be physically possible within the game's rules.
+NEVER set impossible challenges like "solve in 0 attempts" or "1 attempt or less" — the minimum is always 1.
+Good examples: "Score above 80% in your next quiz", "Find a 6-letter word tomorrow", "Solve in 3 or fewer guesses"
+Bad examples: "Solve in 0 attempts", "1 attempt or less", "Answer in negative time"
 Reward: ⭐ [tie to stars/diamonds/badge if relevant]
 
 CRITICAL STYLE RULES:
@@ -70,6 +72,14 @@ BANNED PHRASES (never use these — instant quality drop):
 - "Having said that..."
 - "All in all..."
 Instead: State the observation or advice directly. "Your biggest gap is X" not "It's worth noting that X might be an area to focus on."
+
+BANNED CHALLENGE PATTERNS (LEX'S CHALLENGE must NEVER contain these):
+- "X or less" where X ≤ 1 (impossible — minimum attempt is always 1)
+- "0 attempts", "0 guesses", "0 mistakes" in contexts where 0 is logically impossible
+- Challenges that require maintaining a rate higher than what's mathematically possible
+- "Solve in 1 attempt or less" — 1 attempt IS the minimum, so say "Solve in 1 attempt" instead
+- Vague unmeasurable goals like "do better" or "improve"
+Valid challenge patterns: "Score above X%", "Solve in N or fewer guesses" (where N ≥ 2), "Extend streak to N", "Find a word worth N+ points", "Complete N consecutive games", "Try a harder setting"
 `;
 
 // ─── WORD QUIZ COACHING ─────────────────────────────────────────────────────────
@@ -424,7 +434,9 @@ OUTPUT FORMAT — Use these EXACT section headers with emoji. Fill each section 
 ${o.missedWords.length > 0 ? o.missedWords.slice(0, 5).map(w => `• ${w} — [provide a short definition, max 8 words]`).join('\n') : '• [Skip this section — no missed words available]'}
 
 🎯 LEX'S CHALLENGE
-[One specific measurable goal for their next session based on their biggest weakness]
+[One specific measurable goal for their next session based on their biggest weakness. Must be physically achievable — minimum 1 attempt for any guess-based metric. Never say "X or less" where X is already the minimum.]
+Good: "Score 80%+ on a 10-word quiz", "Complete a quiz with 45s timer without timing out", "Get 3 perfect rounds this week"
+Bad: "Solve in 0 attempts", "1 attempt or less", any impossible target
 Reward: ⭐ Stars for completing it
 
 RULES:

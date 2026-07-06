@@ -90,6 +90,7 @@ export const GET: APIRoute = async ({ request }) => {
     img: tier.img,
     info: tier.threshold.toLocaleString() + ' diamonds required — ' + tier.theme,
     theme: tier.theme,
+    threshold: tier.threshold,
     achieved: totalDiamonds >= tier.threshold,
   }));
 

@@ -46,7 +46,9 @@ export const GET: APIRoute = async ({ url }) => {
   const bounced = url.searchParams.get('bounced');
   if (bounced === '0' || bounced === '1') { conditions.push('bounced = ?'); params.push(parseInt(bounced)); }
   const hasResponse = url.searchParams.get('has_response');
-  if (hasResponse === '1') { conditions.push("response != '' AND response IS NOT NULL"); }
+  if (hasResponse === '1') { conditions.push("response != '' AND response IS NOT NULL AND bounced = 0"); }
+  const responseFilter = url.searchParams.get('response');
+  if (responseFilter) { conditions.push('response = ?'); params.push(responseFilter); }
   const pinned = url.searchParams.get('pinned');
   if (pinned === '1') { conditions.push('pinned = 1'); }
 
@@ -67,12 +69,13 @@ export const GET: APIRoute = async ({ url }) => {
     const total = countResult.results?.[0]?.total || 0;
 
     // Get global sent count (across all records, ignoring filters)
-    const globalStats = await db.prepare("SELECT COUNT(*) as total, SUM(sent) as sent_count, SUM(bounced) as bounced_count, SUM(CASE WHEN response != '' AND response IS NOT NULL THEN 1 ELSE 0 END) as prospective_count, SUM(CASE WHEN sent = 1 AND bounced = 0 AND (response = '' OR response IS NULL) THEN 1 ELSE 0 END) as no_response_count FROM campaign_leads").first();
+    const globalStats = await db.prepare("SELECT COUNT(*) as total, SUM(sent) as sent_count, SUM(bounced) as bounced_count, SUM(CASE WHEN response != '' AND response IS NOT NULL AND bounced = 0 THEN 1 ELSE 0 END) as prospective_count, SUM(CASE WHEN sent = 1 AND bounced = 0 AND (response = '' OR response IS NULL) THEN 1 ELSE 0 END) as no_response_count, SUM(CASE WHEN response = 'Read' THEN 1 ELSE 0 END) as read_count FROM campaign_leads").first();
     const globalTotal = globalStats?.total || 0;
     const globalSent = globalStats?.sent_count || 0;
     const globalBounced = globalStats?.bounced_count || 0;
     const globalProspective = globalStats?.prospective_count || 0;
     const globalNoResponse = globalStats?.no_response_count || 0;
+    const globalRead = globalStats?.read_count || 0;
 
     // Get all distinct batch names with stats for the filter dropdown
     const batchResult = await db.prepare("SELECT batch, COUNT(*) as total, SUM(sent) as sent_count FROM campaign_leads WHERE batch != '' GROUP BY batch ORDER BY CAST(SUBSTR(batch, 6) AS INTEGER)").all();
@@ -93,7 +96,7 @@ export const GET: APIRoute = async ({ url }) => {
       return { name: r.batch, total: r.total, sent: r.sent_count, status };
     });
 
-    return json({ leads: results, total, sent_count: globalSent, bounced_count: globalBounced, prospective_count: globalProspective, no_response_count: globalNoResponse, global_total: globalTotal, limit, offset, batches });
+    return json({ leads: results, total, sent_count: globalSent, bounced_count: globalBounced, prospective_count: globalProspective, no_response_count: globalNoResponse, read_count: globalRead, global_total: globalTotal, limit, offset, batches });
   } catch (e: any) {
     return json({ error: e.message }, 500);
   }

@@ -61,7 +61,7 @@ import '../styles/global.css';
       </div>
       <div class="text-center">
         <p id="lb-stat-games" class="text-lg font-bold text-green-400">0</p>
-        <p class="text-[10px] text-gray-500">Games Played</p>
+        <p id="lb-stat-games-label" class="text-[10px] text-gray-500">Games Played</p>
       </div>
       <div class="text-center">
         <p id="lb-stat-best" class="text-lg font-bold text-amber-400">0</p>
@@ -226,6 +226,10 @@ import '../styles/global.css';
     el.classList.remove('hidden');
     document.getElementById('lb-stat-players').textContent = stats.players || 0;
     document.getElementById('lb-stat-games').textContent = stats.total_games || 0;
+    var gamesLabel = document.getElementById('lb-stat-games-label');
+    if (gamesLabel) {
+      gamesLabel.textContent = (currentGame === 'daily-rack' || currentGame === 'daily-anagram' || currentGame === 'sixty-second') ? 'Words Played' : 'Games Played';
+    }
 
     var bestEl = document.getElementById('lb-stat-best');
     bestEl.textContent = stats.top_score || 0;
@@ -277,6 +281,21 @@ import '../styles/global.css';
         '<th class="px-4 py-3 text-right">Best Score</th>' +
         '<th class="px-4 py-3 text-right">Total Correct</th>' +
         '<th class="px-4 py-3 text-right">Quizzes</th>';
+    } else if (currentGame === 'sixty-second') {
+      theadRow.innerHTML = '<th class="px-4 py-3 text-left w-12">#</th>' +
+        '<th class="px-4 py-3 text-left">Player</th>' +
+        '<th class="px-4 py-3 text-center">Best Word</th>' +
+        '<th class="px-4 py-3 text-right">Best Score</th>' +
+        '<th class="px-4 py-3 text-right">Total</th>' +
+        '<th class="px-4 py-3 text-right">Words Played</th>' +
+        '<th class="px-4 py-3 text-right">Games</th>';
+    } else if (currentGame === 'daily-rack' || currentGame === 'daily-anagram') {
+      theadRow.innerHTML = '<th class="px-4 py-3 text-left w-12">#</th>' +
+        '<th class="px-4 py-3 text-left">Player</th>' +
+        '<th class="px-4 py-3 text-center">Best Word</th>' +
+        '<th class="px-4 py-3 text-right">Best Score</th>' +
+        '<th class="px-4 py-3 text-right">Total</th>' +
+        '<th class="px-4 py-3 text-right">Words Played</th>';
     } else {
       theadRow.innerHTML = '<th class="px-4 py-3 text-left w-12">#</th>' +
         '<th class="px-4 py-3 text-left">Player</th>' +
@@ -312,6 +331,12 @@ import '../styles/global.css';
         html += '<td class="px-4 py-3 text-right font-bold text-amber-400">' + entry.best_score + '</td>';
         html += '<td class="px-4 py-3 text-right text-green-400">' + entry.total_score + '</td>';
         html += '<td class="px-4 py-3 text-right text-gray-400">' + entry.words_played + '</td>';
+      } else if (currentGame === 'sixty-second') {
+        html += '<td class="px-4 py-3 text-center font-mono text-xs text-gray-300 uppercase">' + (entry.best_word || '—') + '</td>';
+        html += '<td class="px-4 py-3 text-right font-bold text-amber-400">' + entry.best_score + '</td>';
+        html += '<td class="px-4 py-3 text-right text-green-400">' + entry.total_score + '</td>';
+        html += '<td class="px-4 py-3 text-right text-blue-400">' + entry.words_played + '</td>';
+        html += '<td class="px-4 py-3 text-right text-gray-400">' + (entry.games_played || '—') + '</td>';
       } else {
         var wordScoreCalc = '';
         if (currentGame === 'daily-rack' && entry.best_word) {

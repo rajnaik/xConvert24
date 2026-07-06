@@ -65,7 +65,42 @@ import '../../styles/global.css';
       </table>
     </div>
     <!-- History -->
-    <h2 class="text-xl font-semibold text-white mt-10 mb-4">History (Last 50 checks)</h2>
+    <h2 class="text-xl font-semibold text-white mt-10 mb-4">History</h2>
+
+    <!-- Date Filters -->
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <div class="flex flex-wrap gap-1">
+        <button data-seconds="30" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">30s</button>
+        <button data-seconds="60" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">1m</button>
+        <button data-seconds="120" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">2m</button>
+        <button data-seconds="300" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-blue-500/50 bg-blue-900/20 text-blue-300">5m</button>
+        <button data-seconds="600" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">10m</button>
+        <button data-seconds="900" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">15m</button>
+        <button data-seconds="1800" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">30m</button>
+        <button data-seconds="3600" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">1h</button>
+        <button data-seconds="7200" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">2h</button>
+        <button data-seconds="10800" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">3h</button>
+        <button data-seconds="21600" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">6h</button>
+        <button data-seconds="43200" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">12h</button>
+        <button data-seconds="86400" class="telem-period-btn px-2 py-1 text-[10px] font-medium rounded border border-gray-700 bg-gray-800/50 text-gray-400 hover:text-blue-300 hover:border-blue-500/50 transition-colors">24h</button>
+      </div>
+      <span class="text-[10px] text-gray-500 ml-auto" id="history-count"></span>
+    </div>
+
+    <!-- Telemetry Chart -->
+    <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs text-gray-400 uppercase tracking-wide">Response Time Trend</p>
+        <div class="flex items-center gap-3 text-[10px] text-gray-500">
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-blue-400 rounded"></span> Avg</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-amber-400 rounded"></span> Max</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-0.5 bg-green-400 rounded"></span> Min</span>
+        </div>
+      </div>
+      <canvas id="telem-chart" width="800" height="180" class="w-full h-[180px] rounded-lg bg-gray-950/50"></canvas>
+      <p class="text-[10px] text-gray-500 mt-2 text-center" id="chart-label">Loading chart data...</p>
+    </div>
+
     <div class="overflow-x-auto rounded-xl border border-gray-800">
       <table class="w-full text-left text-sm">
         <thead class="bg-gray-800/80 text-gray-400 text-xs uppercase">
@@ -164,32 +199,194 @@ import '../../styles/global.css';
       if (autoCheck.checked) startPoll(); else stopPoll();
     });
 
-    async function loadHistory() {
+    let currentHistoryPeriod = 300; // default 5 minutes
+
+    async function loadHistory(seconds?: number) {
       try {
-        const res = await fetch('/api/telemetry/?history=true&limit=50');
+        const secs = seconds || currentHistoryPeriod;
+        const from = new Date(Date.now() - secs * 1000).toISOString();
+        let url = '/api/telemetry/?history=true&limit=2000&from=' + encodeURIComponent(from);
+
+        const res = await fetch(url);
         const data = await res.json();
         const rows = data.history || [];
         const tbody = document.getElementById('history-tbody')!;
+        const countEl = document.getElementById('history-count')!;
+        countEl.textContent = rows.length + ' records';
+
         if (!rows.length) {
-          tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500">No history yet</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500">No history in this window</td></tr>';
+          document.getElementById('chart-label')!.textContent = 'No data to chart';
           return;
         }
-        tbody.innerHTML = rows.map((r: any) => `
+        tbody.innerHTML = rows.slice(0, 200).map((r: any) => `
           <tr class="hover:bg-gray-800/40">
-            <td class="px-4 py-2 text-xs text-gray-400">${new Date(r.checked_at.endsWith('Z') ? r.checked_at : r.checked_at + 'Z').toLocaleTimeString()}</td>
+            <td class="px-4 py-2 text-xs text-gray-400">${new Date(r.checked_at.endsWith('Z') ? r.checked_at : r.checked_at + 'Z').toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
             <td class="px-4 py-2 text-xs">${r.endpoint_name}</td>
             <td class="px-4 py-2"><span class="px-1.5 py-0.5 rounded text-xs ${r.status_code >= 200 && r.status_code < 400 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}">${r.status_code}</span></td>
             <td class="px-4 py-2 font-mono text-xs ${r.response_ms > 500 ? 'text-amber-400' : 'text-white'}">${r.response_ms}ms</td>
             <td class="px-4 py-2">${r.healthy ? '<span class="text-green-400 text-xs">OK</span>' : '<span class="text-red-400 text-xs">FAIL</span>'}</td>
           </tr>
-        `).join('');
+        `).join('') + (rows.length > 200 ? '<tr><td colspan="5" class="px-4 py-2 text-center text-gray-500 text-xs">Showing 200 of ' + rows.length + ' — use a shorter window</td></tr>' : '');
+
+        // Draw chart from history data
+        renderChart(rows);
       } catch {
         document.getElementById('history-tbody')!.innerHTML = '<tr><td colspan="5" class="px-4 py-4 text-center text-red-400">Failed to load</td></tr>';
       }
     }
 
+    // Period filter buttons (time-window in seconds)
+    document.querySelectorAll('.telem-period-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const secs = parseInt((btn as HTMLElement).dataset.seconds || '300');
+        currentHistoryPeriod = secs;
+        // Update button styles
+        document.querySelectorAll('.telem-period-btn').forEach(b => {
+          b.classList.remove('border-blue-500/50', 'bg-blue-900/20', 'text-blue-300');
+          b.classList.add('border-gray-700', 'bg-gray-800/50', 'text-gray-400');
+        });
+        btn.classList.add('border-blue-500/50', 'bg-blue-900/20', 'text-blue-300');
+        btn.classList.remove('border-gray-700', 'bg-gray-800/50', 'text-gray-400');
+        loadHistory(secs);
+      });
+    });
+
+    function renderChart(rows: any[]) {
+      const canvas = document.getElementById('telem-chart') as HTMLCanvasElement;
+      const label = document.getElementById('chart-label')!;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Group by checked_at timestamp → compute avg, min, max per check batch
+      const grouped: Record<string, number[]> = {};
+      for (const r of rows) {
+        const key = r.checked_at;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(r.response_ms);
+      }
+
+      const timestamps = Object.keys(grouped).sort();
+      const avgData = timestamps.map(t => {
+        const vals = grouped[t];
+        return Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
+      });
+      const maxData = timestamps.map(t => Math.max(...grouped[t]));
+      const minData = timestamps.map(t => Math.min(...grouped[t]));
+
+      if (avgData.length < 2) {
+        label.textContent = 'Need at least 2 data points for chart';
+        return;
+      }
+
+      // Set canvas resolution for crisp rendering
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      const padding = { top: 20, right: 20, bottom: 30, left: 50 };
+      const chartW = w - padding.left - padding.right;
+      const chartH = h - padding.top - padding.bottom;
+
+      const allValues = [...avgData, ...maxData, ...minData];
+      const maxVal = Math.max(...allValues, 100);
+      const minVal = 0;
+
+      function x(i: number) { return padding.left + (i / (avgData.length - 1)) * chartW; }
+      function y(val: number) { return padding.top + chartH - ((val - minVal) / (maxVal - minVal)) * chartH; }
+
+      // Clear
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid lines
+      ctx.strokeStyle = 'rgba(75, 85, 99, 0.3)';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i <= 4; i++) {
+        const yPos = padding.top + (chartH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, yPos);
+        ctx.lineTo(w - padding.right, yPos);
+        ctx.stroke();
+        // Y-axis labels
+        const val = Math.round(maxVal - (maxVal / 4) * i);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(val + 'ms', padding.left - 5, yPos + 3);
+      }
+
+      // Draw line helper
+      function drawLine(data: number[], color: string, lineWidth: number) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.lineJoin = 'round';
+        for (let i = 0; i < data.length; i++) {
+          const px = x(i);
+          const py = y(data[i]);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      }
+
+      // Fill under avg line
+      ctx.beginPath();
+      ctx.moveTo(x(0), y(avgData[0]));
+      for (let i = 1; i < avgData.length; i++) ctx.lineTo(x(i), y(avgData[i]));
+      ctx.lineTo(x(avgData.length - 1), padding.top + chartH);
+      ctx.lineTo(x(0), padding.top + chartH);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(96, 165, 250, 0.08)';
+      ctx.fill();
+
+      // Draw lines: max (back), min (back), avg (front)
+      drawLine(maxData, '#f59e0b', 1);
+      drawLine(minData, '#34d399', 1);
+      drawLine(avgData, '#60a5fa', 2);
+
+      // Dots on avg line
+      for (let i = 0; i < avgData.length; i++) {
+        ctx.beginPath();
+        ctx.arc(x(i), y(avgData[i]), 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#60a5fa';
+        ctx.fill();
+      }
+
+      // X-axis time labels (show first, middle, last)
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      const labelCount = Math.min(6, timestamps.length);
+      const timeLabels: number[] = [];
+      for (let i = 0; i < labelCount; i++) {
+        timeLabels.push(Math.floor(i * (timestamps.length - 1) / (labelCount - 1)));
+      }
+      for (const idx of timeLabels) {
+        const t = timestamps[idx];
+        const d = new Date(t.endsWith('Z') ? t : t + 'Z');
+        // Show date if range spans multiple days
+        const first = new Date(timestamps[0].endsWith('Z') ? timestamps[0] : timestamps[0] + 'Z');
+        const last = new Date(timestamps[timestamps.length-1].endsWith('Z') ? timestamps[timestamps.length-1] : timestamps[timestamps.length-1] + 'Z');
+        const multiDay = (last.getTime() - first.getTime()) > 86400000;
+        const time = multiDay
+          ? d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+          : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        ctx.fillText(time, x(idx), h - 5);
+      }
+
+      label.textContent = `${timestamps.length} checks · Avg: ${Math.round(avgData.reduce((s, v) => s + v, 0) / avgData.length)}ms · Max: ${Math.max(...maxData)}ms · Min: ${Math.min(...minData)}ms`;
+    }
+
     loadTelemetry();
-    loadHistory();
+    // Load last 5 minutes by default
+    loadHistory(300);
     startPoll();
   </script>
 </Layout>

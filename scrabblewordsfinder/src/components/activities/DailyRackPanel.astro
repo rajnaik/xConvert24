@@ -227,8 +227,12 @@
       if (userWords.length === 0) return;
       document.getElementById('drc-your-words').classList.remove('hidden');
       document.getElementById('drc-your-list').innerHTML = userWords.map(function(w) {
-        var bingoIcon = (w.word && w.word.length === 7) ? ' <span title="Bingo! All 7 tiles used">🎯</span>' : '';
-        return '<span class="px-2 py-0.5 rounded bg-amber-900/30 border border-amber-700/50 text-xs text-amber-300 font-mono uppercase">' + w.word + bingoIcon + ' <span class="text-amber-500 font-bold">' + w.score + '</span></span>';
+        var isBingo = w.word && w.word.length === 7;
+        var bingoIcon = isBingo ? ' <span title="Bingo! All 7 tiles used">🎯</span>' : '';
+        var classes = isBingo
+          ? 'px-2 py-0.5 rounded bg-green-900/20 border-2 border-green-500 text-xs text-purple-300 font-mono uppercase font-bold'
+          : 'px-2 py-0.5 rounded bg-amber-900/30 border border-amber-700/50 text-xs text-amber-300 font-mono uppercase';
+        return '<span class="' + classes + '">' + w.word + bingoIcon + ' <span class="' + (isBingo ? 'text-green-400' : 'text-amber-500') + ' font-bold">' + w.score + '</span></span>';
       }).join('');
     }
 
@@ -241,6 +245,33 @@
       }
       return true;
     }
+
+    // Dictionary for word validation (SOWPODS)
+    var drcDictSet = null;
+    var drcDictLoading = false;
+
+    function loadDrcDictionary() {
+      if (drcDictSet || drcDictLoading) return;
+      drcDictLoading = true;
+      Promise.all([
+        fetch('/data/sowpods-2-7.json').then(function(r) { return r.json(); }),
+        fetch('/data/sowpods-8-15.json').then(function(r) { return r.json(); })
+      ]).then(function(results) {
+        drcDictSet = new Set();
+        results.forEach(function(words) {
+          words.forEach(function(w) { drcDictSet.add(w.toUpperCase()); });
+        });
+        drcDictLoading = false;
+      }).catch(function() { drcDictLoading = false; });
+    }
+
+    function isValidScrabbleWord(word) {
+      if (!drcDictSet) return true; // Allow if dictionary not loaded yet
+      return drcDictSet.has(word.toUpperCase());
+    }
+
+    // Start loading dictionary in background
+    loadDrcDictionary();
 
     function calcScore(word) {
       return word.toUpperCase().split('').reduce(function(s, c) { return s + (scores[c] || 0); }, 0);
@@ -273,6 +304,14 @@
       if (!canMakeFromRack(word, dailyRack)) {
         fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-red-900/30 border border-red-500/50 text-red-300';
         fb.textContent = "❌ Can't make '" + word + "' from today's tiles!";
+        fb.classList.remove('hidden');
+        return;
+      }
+
+      // Check if word is a valid Scrabble word (SOWPODS dictionary)
+      if (!isValidScrabbleWord(word)) {
+        fb.className = 'mb-3 p-3 rounded-lg text-center text-sm font-medium bg-red-900/30 border border-red-500/50 text-red-300';
+        fb.textContent = "❌ '" + word + "' is not a valid Scrabble word!";
         fb.classList.remove('hidden');
         return;
       }
@@ -570,6 +609,17 @@
 
         // Render game-by-game analysis
         renderRackGameAnalysis(data.gameAnalysis || []);
+
+        // PDF Download + Save to Library buttons
+        if (typeof appendCoachingPDFButtons === 'function') {
+          var existingBtns = document.getElementById('lex-rack-pdf-buttons');
+          if (existingBtns) existingBtns.remove();
+          var btnContainer = document.createElement('div');
+          btnContainer.id = 'lex-rack-pdf-buttons';
+          var rackResult = document.getElementById('lex-rack-result');
+          if (rackResult) rackResult.appendChild(btnContainer);
+          appendCoachingPDFButtons(btnContainer, 'rack', data.analysis || '', data.stats || {}, null);
+        }
       })
       .catch(function() {
         loadingEl.classList.add('hidden');
