@@ -213,6 +213,12 @@ GAME-SPECIFIC GUIDANCE FOR EACH SECTION:
   - Short words only → "Try a 6-letter game and solve it"
   - Already strong → "Solve a 7-letter word in 3 guesses or fewer"
 
+CHALLENGE RULES FOR COWS & BULLS:
+- MINIMUM guesses is 1 (always need at least 1 guess)
+- NEVER say "1 guess or fewer" or "0 guesses" — impossible
+- Valid: "Solve in 4 or fewer guesses", "Complete 3 games without giving up", "Try a 7-letter word"
+- Invalid: "Solve in 1 or fewer guesses", "0 attempts"
+
 FIRST-TIME USER (NO GAME HISTORY):
 🏆 Welcome message explaining the game (🐂 = right spot, 🐄 = wrong spot)
 💪 Best opening strategy: start with STARE, CRANE, or TRAIN for max letter coverage
@@ -353,9 +359,18 @@ GAME-SPECIFIC GUIDANCE FOR EACH SECTION:
 
 🎯 LEX'S CHALLENGE — Specific to their level:
   - Low solve rate → "Solve 3 consecutive daily anagrams"
-  - High attempts → "Solve tomorrow's puzzle in 3 or fewer guesses"
+  - High attempts → "Solve the next 3 puzzles in 4 or fewer attempts each"
   - Already strong → "Extend your streak to [current + 5] days"
-  - Perfect player → "Solve in 1 guess — spot the word before your first attempt"
+  - Perfect player → "Solve 3 consecutive anagrams in 3 or fewer attempts each"
+
+CHALLENGE RULES FOR ANAGRAM:
+- The Daily Anagram is a deduction game — you CANNOT solve it in 1 attempt (that would require psychic ability)
+- The difficulty scale for attempts is: 2 = miraculous fluke, 3 = phenomenal, 4 = very good, 5 = average, 6+ = poor
+- REALISTIC challenge targets: "Solve in 3 or fewer attempts" (hard), "Solve in 4 or fewer attempts" (achievable), "Solve 3 consecutive puzzles" (consistency)
+- NEVER set a target of "1 attempt" or "1 guess" — this is physically impossible in a deduction game where you need feedback
+- NEVER say "or fewer" with any number below 3 (even 2 is near-impossible)
+- Good challenges: "Solve the next 3 puzzles in 3 or fewer attempts each", "Extend your streak to 10", "Solve tomorrow in 4 attempts or fewer"
+- Bad challenges: "Solve in 1 attempt", "1 attempt or fewer", "2 attempts or fewer" (too unrealistic as a target)
 
 FIRST-TIME USER (NO HISTORY):
 🏆 Welcome — same puzzle for everyone daily, fair challenge

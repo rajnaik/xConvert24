@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { buildQuizCoachPrompt } from '../../lib/coaching-prompts';
+import { sanitizeChallenge } from '../../lib/sanitize-challenge';
+import { logAiUsage } from '../../lib/log-ai-usage';
 
 const getDB = () => (env as any).DB;
 const getAI = () => (env as any).AI;
@@ -209,19 +211,22 @@ Phase Progression (${totalGames} games split into thirds chronologically):
   });
 
   try {
-    const aiResponse = await ai.run('@cf/meta/llama-3.1-8b-instruct', {
+    const aiResponse = await ai.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1000,
       temperature: 0.7,
     });
 
-    const analysis = aiResponse.response || aiResponse.result?.response || 'Unable to generate analysis right now. Keep playing — your stats are being tracked!';
+    const analysis = (aiResponse.response || aiResponse.result?.response || 'Unable to generate analysis right now. Keep playing — your stats are being tracked!');
+
+    // Log AI usage for counter
+    await logAiUsage(db, { userId, source: 'quiz-coach', model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', responseLength: analysis.length });
 
     return new Response(JSON.stringify({
       hasHistory: true,
       stats: { totalGames, accuracy, avgScore, avgTotal, totalPerfect, totalTimedOut, avgTime, timeUsagePct, avgSecondsPerWord, timerLimitsUsed, wordCountsUsed },
       phases,
-      analysis,
+      analysis: sanitizeChallenge(analysis),
       gameAnalysis,
     }), { headers: { 'Content-Type': 'application/json' } });
   } catch (err: any) {

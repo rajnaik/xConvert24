@@ -4,11 +4,42 @@ import '../styles/global.css';
 ---
 
 <Layout title="My Achievements — ScrabbleWordsFinder" description="View your scored achievements and word milestones on ScrabbleWordsFinder.com. Track your progress from Rising Star to Scrabble Legend with our free." keywords="scrabble achievements, word milestones, scrabble progress, scrabble badges, word finder achievements, Score High, Track you Progress." showSectionLinks={false}>
-  <main class="mx-auto max-w-4xl px-4 sm:px-6 py-12">
-    <a href="/" class="text-sm text-blue-400 hover:underline mb-6 inline-block">← Back to Solver</a>
+  <main class="mx-auto max-w-4xl px-4 sm:px-6 pt-4 pb-12">
 
     <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-2">🏅 My Achievements</h1>
-    <p class="text-sm text-gray-400 mb-8">Your personal word scoring milestones.</p>
+    <div class="flex items-center gap-3 mb-8">
+      <p class="text-sm text-gray-400">Your personal word scoring milestones.</p>
+      <a href="/badges/" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-600/20 border border-purple-500/30 text-xs font-medium text-purple-400 hover:bg-purple-600/40 transition-colors">🏅 Badges</a>
+    </div>
+
+    <!-- Word Score Achievement Badges -->
+    <div id="word-score-badges" class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
+      <div class="flex flex-col items-center p-3 rounded-xl border border-blue-500/30 bg-blue-950/20 text-center" data-tier="1">
+        <img src="/badges/rising-star.svg" alt="Rising Star" class="w-16 h-16 mb-2" style="filter: drop-shadow(0 0 6px #60a5fa) drop-shadow(0 0 12px #a855f7) drop-shadow(0 2px 4px rgba(0,0,0,0.5));" loading="lazy" />
+        <p class="text-xs font-semibold text-blue-300">Rising Star</p>
+        <p class="text-[10px] text-gray-500">1–9 pts</p>
+      </div>
+      <div class="flex flex-col items-center p-3 rounded-xl border border-green-500/30 bg-green-950/20 text-center" data-tier="2">
+        <img src="/badges/word-builder.svg" alt="Word Builder" class="w-16 h-16 mb-2" style="filter: drop-shadow(0 0 6px #60a5fa) drop-shadow(0 0 12px #a855f7) drop-shadow(0 2px 4px rgba(0,0,0,0.5));" loading="lazy" />
+        <p class="text-xs font-semibold text-green-300">Word Builder</p>
+        <p class="text-[10px] text-gray-500">10–19 pts</p>
+      </div>
+      <div class="flex flex-col items-center p-3 rounded-xl border border-orange-500/30 bg-orange-950/20 text-center" data-tier="3">
+        <img src="/badges/hot-streak.svg" alt="Hot Streak" class="w-16 h-16 mb-2" style="filter: drop-shadow(0 0 6px #60a5fa) drop-shadow(0 0 12px #a855f7) drop-shadow(0 2px 4px rgba(0,0,0,0.5));" loading="lazy" />
+        <p class="text-xs font-semibold text-orange-300">Hot Streak</p>
+        <p class="text-[10px] text-gray-500">20–29 pts</p>
+      </div>
+      <div class="flex flex-col items-center p-3 rounded-xl border border-yellow-500/30 bg-yellow-950/20 text-center" data-tier="4">
+        <img src="/badges/triple-threat.svg" alt="Triple Threat" class="w-16 h-16 mb-2" style="filter: drop-shadow(0 0 6px #60a5fa) drop-shadow(0 0 12px #a855f7) drop-shadow(0 2px 4px rgba(0,0,0,0.5));" loading="lazy" />
+        <p class="text-xs font-semibold text-yellow-300">Triple Threat</p>
+        <p class="text-[10px] text-gray-500">30–49 pts</p>
+      </div>
+      <div class="flex flex-col items-center p-3 rounded-xl border border-purple-500/30 bg-purple-950/20 text-center" data-tier="5">
+        <img src="/badges/scrabble-legend.svg" alt="Scrabble Legend" class="w-16 h-16 mb-2" style="filter: drop-shadow(0 0 6px #60a5fa) drop-shadow(0 0 12px #a855f7) drop-shadow(0 2px 4px rgba(0,0,0,0.5));" loading="lazy" />
+        <p class="text-xs font-semibold text-purple-300">Scrabble Legend</p>
+        <p class="text-[10px] text-gray-500">50+ pts</p>
+      </div>
+    </div>
 
     <!-- Loading state -->
     <div id="achievements-loading" class="text-center py-8">
@@ -196,14 +227,18 @@ import '../styles/global.css';
           const date = (a.date_created || a.created_at) ? new Date((a.date_created || a.created_at) + 'Z').toLocaleDateString() : '—';
           const rowBg = (start + i) % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50';
           const noteText = a.encouragement_words || '';
-          return `<tr class="${rowBg}" data-id="${a.id}">
+          let isBingo = false;
+          try { const ad = typeof a.a_data === 'string' ? JSON.parse(a.a_data) : a.a_data; isBingo = ad?.is_bingo === true; } catch {}
+          const bingoTag = isBingo ? '<span class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 border border-amber-500/40 text-amber-300">🎉 BINGO</span>' : '';
+          return `<tr class="${rowBg}" data-id="${a.achievement_id}">
             <td class="px-4 py-3 text-lg">${icon}</td>
-            <td class="px-4 py-3 font-mono font-bold text-white uppercase">${a.word || '—'}</td>
+            <td class="px-4 py-3 font-mono font-bold text-white uppercase">${a.word || '—'}${bingoTag}</td>
             <td class="px-4 py-3 text-blue-400 font-semibold">${a.score || 0} pts</td>
             <td class="px-4 py-3 text-gray-400 text-xs">${name}</td>
             <td class="px-4 py-3 text-xs">
               <span class="note-display text-gray-500">${noteText || '—'}</span>
-              <button class="edit-note-btn ml-2 text-purple-400 hover:text-purple-300 text-xs" data-id="${a.id}">✏️</button>
+              <button class="edit-note-btn ml-2 text-purple-400 hover:text-purple-300 text-xs" data-id="${a.achievement_id}">✏️</button>
+              <button class="delete-ach-btn ml-1 text-red-400 hover:text-red-300 text-xs" data-id="${a.achievement_id}" title="Delete this achievement">🗑️</button>
               <div class="note-edit hidden mt-1">
                 <textarea class="note-input w-full px-2 py-1 rounded bg-gray-800 border border-gray-700 text-xs text-gray-200 resize-none" rows="3" maxlength="200">${noteText}</textarea>
                 <div class="flex gap-1 mt-1">
@@ -274,6 +309,33 @@ import '../styles/global.css';
             }
           });
         });
+
+        // Delete achievement buttons
+        body.querySelectorAll('.delete-ach-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const row = btn.closest('tr')!;
+            const id = row.dataset.id;
+            const word = row.querySelector('.font-mono')?.textContent || '';
+            if (!confirm(`Delete achievement "${word}"? This cannot be undone.`)) return;
+            (btn as HTMLButtonElement).textContent = '⏳';
+            try {
+              const res = await fetch(`/api/achievements/?id=${id}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } });
+              if (res.ok) {
+                row.remove();
+                // Update count in stats
+                const totalEl = document.querySelector('#achievements-stats .text-blue-400');
+                if (totalEl) {
+                  const current = parseInt(totalEl.textContent || '0');
+                  totalEl.textContent = String(Math.max(0, current - 1));
+                }
+              } else {
+                (btn as HTMLButtonElement).textContent = '❌';
+              }
+            } catch {
+              (btn as HTMLButtonElement).textContent = '❌';
+            }
+          });
+        });
       }
 
       prevBtn.addEventListener('click', () => { if (currentPage > 0) renderPage(currentPage - 1); });
@@ -288,4 +350,84 @@ import '../styles/global.css';
   }
 
   loadAchievements();
+
+  // ── Word Score Badge Tier Highlighting ──
+  // Determine which tiers the user has achieved, grey out the rest, save to LS
+  async function highlightWordBadges() {
+    const BADGE_LS_KEY = 'swf-word-badges';
+    const tierNames: Record<number, string> = { 1: 'Rising Star', 2: 'Word Builder', 3: 'Hot Streak', 4: 'Triple Threat', 5: 'Scrabble Legend' };
+    const uid = localStorage.getItem('swf-uid') || '';
+
+    let achievedTiers: Set<number> = new Set();
+
+    // Always fetch from API if user exists (source of truth)
+    if (uid) {
+      try {
+        const res = await fetch(`/api/achievements/?user_id=${encodeURIComponent(uid)}`);
+        if (res.ok) {
+          const { achievements } = await res.json();
+          if (achievements && achievements.length > 0) {
+            for (const a of achievements) {
+              const score = a.score || 0;
+              if (score >= 50) achievedTiers.add(5);
+              else if (score >= 30) achievedTiers.add(4);
+              else if (score >= 20) achievedTiers.add(3);
+              else if (score >= 10) achievedTiers.add(2);
+              else if (score >= 1) achievedTiers.add(1);
+            }
+          }
+        }
+      } catch {}
+    }
+
+    // Fallback to localStorage only if API didn't work
+    if (achievedTiers.size === 0) {
+      try {
+        const saved = localStorage.getItem(BADGE_LS_KEY);
+        if (saved) {
+          const names: string[] = JSON.parse(saved);
+          for (const [tier, name] of Object.entries(tierNames)) {
+            if (names.includes(name)) achievedTiers.add(Number(tier));
+          }
+        }
+      } catch {}
+    }
+
+    // Apply visual state to badge tiles
+    const grid = document.getElementById('word-score-badges');
+    if (!grid) return;
+    const tiles = grid.querySelectorAll('[data-tier]');
+    tiles.forEach(tile => {
+      const tier = Number((tile as HTMLElement).dataset.tier);
+      if (achievedTiers.has(tier)) {
+        // Green tick
+        const tick = document.createElement('span');
+        tick.className = 'text-green-400 text-sm font-bold mt-1';
+        tick.textContent = '✅';
+        tile.appendChild(tick);
+      } else {
+        // Grey out
+        (tile as HTMLElement).style.opacity = '0.35';
+        (tile as HTMLElement).style.filter = 'grayscale(1)';
+        const lock = document.createElement('span');
+        lock.className = 'text-gray-500 text-[10px] mt-1';
+        lock.textContent = '🔒';
+        tile.appendChild(lock);
+      }
+    });
+
+    // Save achieved tiers to localStorage
+    if (achievedTiers.size > 0) {
+      const names = [...achievedTiers].map(t => tierNames[t]);
+      localStorage.setItem(BADGE_LS_KEY, JSON.stringify(names));
+
+      // Show "💾 Saved" indicator
+      const savedEl = document.createElement('p');
+      savedEl.className = 'text-xs text-green-400 font-medium mt-2 text-center';
+      savedEl.textContent = '💾 Saved';
+      grid.insertAdjacentElement('afterend', savedEl);
+    }
+  }
+
+  highlightWordBadges();
 </script>

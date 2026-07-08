@@ -18,7 +18,14 @@ export const onRequest = defineMiddleware(async ({ url, request, redirect }, nex
 
   // Only protect /admin routes
   if (!url.pathname.startsWith('/admin')) {
-    return next();
+    const response = await next();
+    const ct = response.headers.get('content-type') || '';
+    if (ct === 'text/html' || ct === 'text/html; charset=UTF-8') {
+      const newHeaders = new Headers(response.headers);
+      newHeaders.set('content-type', 'text/html; charset=utf-8');
+      return new Response(response.body, { status: response.status, statusText: response.statusText, headers: newHeaders });
+    }
+    return response;
   }
 
   // Skip auth on local development — but ENFORCE on staging/live
@@ -46,5 +53,12 @@ export const onRequest = defineMiddleware(async ({ url, request, redirect }, nex
     return redirect('/api/auth/login/');
   }
 
-  return next();
+  const response = await next();
+  const ct = response.headers.get('content-type') || '';
+  if (ct === 'text/html' || ct === 'text/html; charset=UTF-8') {
+    const newHeaders = new Headers(response.headers);
+    newHeaders.set('content-type', 'text/html; charset=utf-8');
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers: newHeaders });
+  }
+  return response;
 });

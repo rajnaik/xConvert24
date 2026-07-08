@@ -92,6 +92,35 @@ import '../../styles/global.css';
       </button>
     </div>
 
+    <!-- SEO Tag Presence Audit -->
+    <div id="tag-audit-panel" class="mb-6 rounded-xl border border-gray-700 bg-gray-900/50 p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-gray-300">🏷️ SEO Tag Presence Audit</h3>
+        <button id="refresh-audit-btn" class="px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300 text-xs font-medium hover:bg-gray-600 hover:text-white transition-colors">↻ Refresh</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-gray-800/60">
+            <tr>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">SEO Element</th>
+              <th class="px-3 py-2 text-right text-gray-400 font-medium">Present</th>
+              <th class="px-3 py-2 text-right text-gray-400 font-medium">Missing</th>
+              <th class="px-3 py-2 text-right text-gray-400 font-medium">Coverage</th>
+              <th class="px-3 py-2 text-center text-gray-400 font-medium">Stipulated</th>
+              <th class="px-3 py-2 text-right text-gray-400 font-medium">Avg Len</th>
+              <th class="px-3 py-2 text-right text-gray-400 font-medium">Min</th>
+              <th class="px-3 py-2 text-right text-gray-400 font-medium">Max</th>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody id="tag-audit-body" class="divide-y divide-gray-800">
+            <tr><td colspan="5" class="px-4 py-4 text-center text-gray-500 italic">Click Refresh to load...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="audit-timestamp" class="text-[10px] text-gray-600 mt-2 text-right"></p>
+    </div>
+
     <!-- Filters -->
     <div class="flex flex-wrap gap-3 mb-4">
       <select id="filter-status" class="h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
@@ -987,6 +1016,64 @@ import '../../styles/global.css';
     }
 
     // Initial load
+    // --- SEO Tag Audit ---
+    async function loadAudit() {
+      var body = document.getElementById('tag-audit-body');
+      body.innerHTML = '<tr><td colspan="8" class="px-4 py-3 text-center text-gray-500 italic">Loading...</td></tr>';
+      try {
+        var res = await fetch('/api/seo-tag-audit/');
+        var data = await res.json();
+        if (!data.audit) { body.innerHTML = '<tr><td colspan="8" class="px-4 py-3 text-center text-red-400">Error loading audit</td></tr>'; return; }
+        var a = data.audit;
+        var l = data.lengths || {};
+        var total = a.total || 1;
+
+        // Tags with length data: [name, icon, present, stipulated, avgLen, minLen, maxLen]
+        var tags = [
+          { name: 'Title', icon: '📝', present: a.has_title, stipulated: '50-60', avg: l.avg_title_len, min: l.min_title_len, max: l.max_title_len },
+          { name: 'Meta Description', icon: '📋', present: a.has_description, stipulated: '120-155', avg: l.avg_desc_len, min: l.min_desc_len, max: l.max_desc_len },
+          { name: 'Keywords', icon: '🔑', present: a.has_keywords, stipulated: '50-200', avg: l.avg_keywords_len, min: l.min_keywords_len, max: l.max_keywords_len },
+          { name: 'H1 Heading', icon: '🏷️', present: a.has_h1, stipulated: '20-70', avg: l.avg_h1_len, min: l.min_h1_len, max: l.max_h1_len },
+          { name: 'H2 Count', icon: '📌', present: a.has_h2, stipulated: '3-10', avg: l.avg_h2_count_val, min: l.min_h2_count, max: l.max_h2_count },
+          { name: 'Article Schema', icon: '📰', present: a.has_article_schema, stipulated: '—', avg: null, min: null, max: null },
+          { name: 'FAQPage Schema', icon: '❓', present: a.has_faq_schema, stipulated: '—', avg: null, min: null, max: null },
+          { name: 'OG Title', icon: '🌐', present: a.has_og_title, stipulated: '40-60', avg: l.avg_og_title_len, min: l.min_og_title_len, max: l.max_og_title_len },
+          { name: 'OG Description', icon: '🌐', present: a.has_og_desc, stipulated: '80-155', avg: l.avg_og_desc_len, min: l.min_og_desc_len, max: l.max_og_desc_len },
+          { name: 'OG Image', icon: '🖼️', present: a.has_og_image, stipulated: '—', avg: null, min: null, max: null },
+          { name: 'Canonical URL', icon: '🔗', present: a.has_canonical, stipulated: '—', avg: null, min: null, max: null },
+          { name: 'Internal Links', icon: '🔀', present: a.has_internal_links, stipulated: '2-20', avg: l.avg_links, min: l.min_links, max: l.max_links },
+          { name: 'Word Count (≥150)', icon: '📄', present: a.has_sufficient_content, stipulated: '300-2000', avg: l.avg_words, min: l.min_words, max: l.max_words },
+        ];
+
+        body.innerHTML = tags.map(function(t) {
+          var present = t.present || 0;
+          var missing = total - present;
+          var pct = Math.round((present / total) * 100);
+          var color = pct === 100 ? 'text-green-400' : pct >= 95 ? 'text-amber-400' : 'text-red-400';
+          var bar = pct === 100 ? '✅' : pct >= 95 ? '⚠️' : '❌';
+          var avgStr = t.avg != null ? t.avg : '—';
+          var minStr = t.min != null ? t.min : '—';
+          var maxStr = t.max != null ? t.max : '—';
+          return '<tr class="hover:bg-gray-800/50">' +
+            '<td class="px-3 py-2 text-gray-200">' + t.icon + ' ' + t.name + '</td>' +
+            '<td class="px-3 py-2 text-right text-green-400 font-mono">' + present + '</td>' +
+            '<td class="px-3 py-2 text-right ' + (missing > 0 ? 'text-red-400' : 'text-gray-600') + ' font-mono">' + missing + '</td>' +
+            '<td class="px-3 py-2 text-right ' + color + ' font-mono font-semibold">' + pct + '%</td>' +
+            '<td class="px-3 py-2 text-center text-cyan-400 text-xs font-mono">' + t.stipulated + '</td>' +
+            '<td class="px-3 py-2 text-right text-blue-400 font-mono text-xs">' + avgStr + '</td>' +
+            '<td class="px-3 py-2 text-right text-gray-500 font-mono text-xs">' + minStr + '</td>' +
+            '<td class="px-3 py-2 text-right text-gray-500 font-mono text-xs">' + maxStr + '</td>' +
+            '<td class="px-3 py-2 text-center">' + bar + '</td></tr>';
+        }).join('');
+
+        document.getElementById('audit-timestamp').textContent = 'Last checked: ' + new Date(data.timestamp).toLocaleString();
+      } catch(e) {
+        body.innerHTML = '<tr><td colspan="8" class="px-4 py-3 text-center text-red-400">Failed to load: ' + e.message + '</td></tr>';
+      }
+    }
+    document.getElementById('refresh-audit-btn').addEventListener('click', loadAudit);
+    loadAudit();
+
     loadData();
   })();
   </script>

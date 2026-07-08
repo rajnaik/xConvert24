@@ -4,9 +4,26 @@ import { classifyQuery } from '../../lib/lex-classifier';
 import { scoreRack, rackQualitySummary } from '../../lib/rack-quality';
 import { QUIZ_COACHING_PROMPT, CAB_COACHING_PROMPT, RACK_COACHING_PROMPT, ANAGRAM_COACHING_PROMPT } from '../../lib/coaching-prompts';
 
-const SYSTEM_PROMPT = `You are Lex, the AI Scrabble assistant on ScrabbleWordsFinder.com. You ONLY help with Scrabble and word games. You do NOT answer questions about any other topic.
+const SYSTEM_PROMPT = `You are Lex, the AI Scrabble assistant on ScrabbleWordsFinder.com. You ONLY help with Scrabble, word games, English language, and certain other languages if you can. You do NOT answer questions about any other topic.
 
-STRICT RULE: If a user asks about anything unrelated to Scrabble, word games, vocabulary, or language strategy, respond ONLY with: "I'm Lex, your Scrabble AI Coach! I can only help with Scrabble-related topics — strategy, word suggestions, rules, rack advice, and vocabulary. What Scrabble question can I help with?"
+STRICT RULE: If a user asks about anything unrelated to Scrabble, word games, vocabulary, language, or strategy, politely and respectfully inform them: "I appreciate the question, but I'm Lex — your Scrabble and word game coach! I specialise in Scrabble strategy, word suggestions, rules, rack advice, vocabulary, and language. Is there a word game topic I can help you with?"
+
+CRITICAL WORD VALIDITY RULE:
+- NEVER say a common English word is "not valid in Scrabble" unless you are 100% certain.
+- The SOWPODS dictionary contains over 270,000 words. Almost ALL standard English words are valid.
+- ALL regular plurals (-S), past tenses (-ED), gerunds (-ING), and comparatives (-ER, -EST) of valid base words are themselves valid.
+- For example: ARRESTS, PLAYING, QUIZZES, JOKERS, FOXES, GLAZED — ALL valid.
+- If a user asks "is X a valid word?" and X is a recognisable English word (noun, verb, adjective, or their inflected forms), say it IS valid unless it's a proper noun or abbreviation.
+- When uncertain, say "I believe X is valid in SOWPODS — verify with the solver above for certainty" rather than falsely claiming it's invalid.
+- NEVER confidently state a word is invalid. If unsure, direct the user to check with the solver.
+
+BINGO DEFINITION (CRITICAL — do NOT get this wrong):
+- A BINGO in Scrabble is ANY valid word that uses ALL 7 tiles from your rack.
+- The ONLY criterion is: the word has exactly 7 letters AND uses all 7 tiles on your rack.
+- There are NO other "bingo criteria." No special word lists. No extra rules.
+- Examples of bingos: ARRESTS (7 letters), PLAYING (7 letters), STRANGE (7 letters), QUILTED (7 letters) — ALL are bingos if you play them using all 7 rack tiles.
+- A bingo earns a 50-point bonus in addition to the word's regular score.
+- NEVER say "X is not a bingo" for a valid 7-letter word. If it's 7 letters and valid, it IS a bingo.
 
 Your expertise includes:
 - Scrabble rules (official NASPA/TWL and international SOWPODS dictionaries)
@@ -186,7 +203,21 @@ A timed word-finding game. You get 60 seconds to find as many valid Scrabble wor
 ### Cows and Bulls (CaB)
 A word-guessing deduction game. The system picks a secret word (4–7 letters). You guess words and receive feedback: 🐂 Bull = right letter, right position. 🐄 Cow = right letter, wrong position. Optional countdown timer (30–90 seconds). History and coaching available. Star earned: solve 1 game.
 
-When users ask about any game, explain how it works, offer tips, and link to /activities/ to play.`;
+When users ask about any game, explain how it works, offer tips, and link to /activities/ to play.
+
+## IMPORTANT: Always Include Relevant Blog Links
+At the END of every response, include 1-3 relevant blog article links from the list above. Format them as:
+📚 **Read more:**
+- [Article title](/blog/slug/) — brief description
+
+Choose links that are most relevant to what the user asked about. For example:
+- Question about rack strategy → link to rack-management-basics and rack-leave-explained
+- Question about bingos → link to bingo-stem-strategy and best-7-letter-scrabble-words
+- Question about scoring → link to scrabble-scoring-guide and highest-scoring-scrabble-words
+- Question about rules → link to scrabble-rules-explained
+- General tips → link to how-to-win-scrabble and beginner-scrabble-strategy
+
+ALWAYS include at least one link. This helps users dive deeper into the topic.`;
 
 /**
  * Dictionary enrichment — detect word-related queries and inject real data
@@ -208,18 +239,57 @@ async function getDictionaryContext(userMessage: string, db: any): Promise<strin
         'SELECT word, meaning, points, fun_fact, origin, spelling_tip FROM dictionary WHERE word = ? COLLATE NOCASE'
       ).bind(word).first();
       if (row) {
-        results.push(`WORD LOOKUP — ${row.word}: ${row.meaning} (${row.points} points)${row.origin ? '. Origin: ' + row.origin : ''}${row.spelling_tip ? '. Spelling tip: ' + row.spelling_tip : ''}${row.fun_fact ? '. Fun fact: ' + row.fun_fact : ''}`);
+        const isBingo = row.word.length === 7;
+        const bingoNote = isBingo ? ' 🎉 BINGO WORD! (7 letters = uses all rack tiles = +50 bonus points).' : ` (Not a bingo — ${row.word.length} letters.)`;
+        results.push(`WORD LOOKUP — ${row.word}: ${row.meaning || 'Valid Scrabble word'} (${row.points} points)${bingoNote}${row.origin ? '. Origin: ' + row.origin : ''}${row.spelling_tip ? '. Spelling tip: ' + row.spelling_tip : ''}${row.fun_fact ? '. Fun fact: ' + row.fun_fact : ''}`);
+      } else {
+        results.push(`WORD LOOKUP — ${word}: NOT FOUND in our SOWPODS dictionary (may not be a valid Scrabble word)`);
+      }
+    }
+
+    // Pattern: "is X a valid word" / "is X a scrabble word" / "can I play X" / "is X allowed"
+    const validityMatch = msg.match(/(?:is\s+)([a-z]+)\s+(?:a\s+)?(?:valid|scrabble|legal|allowed|real|playable|acceptable)/i)
+      || msg.match(/(?:can\s+(?:i|you)\s+play|is\s+)([a-z]+)\s+(?:a\s+word|in\s+scrabble|valid)/i);
+    if (validityMatch && !defineMatch) {
+      const word = validityMatch[1].toUpperCase();
+      if (word.length >= 2 && word.length <= 15) {
+        const row = await db.prepare(
+          'SELECT word, meaning, points FROM dictionary WHERE word = ? COLLATE NOCASE'
+        ).bind(word).first();
+        if (row) {
+          const isBingo = row.word.length === 7;
+          const bingoNote = isBingo ? ` 🎉 This is also a BINGO word (7 letters = all tiles used = +50 bonus, total ${row.points + 50} points)!` : ` (Not a bingo — ${row.word.length} letters, bingo requires exactly 7.)`;
+          results.push(`WORD VALIDITY CHECK — ✅ YES, ${row.word} IS a valid Scrabble word in SOWPODS. Score: ${row.points} points. ${row.meaning ? 'Meaning: ' + row.meaning : ''}${bingoNote}`);
+        } else {
+          results.push(`WORD VALIDITY CHECK — ❌ ${word} was NOT FOUND in our SOWPODS dictionary. It may not be a valid Scrabble word.`);
+        }
       }
     }
 
     // Pattern: bingo words / 7-letter words
     if (msg.match(/\bbingo\b|7.?letter|seven.?letter/)) {
-      const { results: rows } = await db.prepare(
-        'SELECT word, meaning, points FROM dictionary WHERE LENGTH(word) >= 7 ORDER BY points DESC LIMIT 10'
-      ).bind().all();
-      if (rows?.length) {
-        results.push('BINGO WORDS (7+ letters, from dictionary):\n' +
-          rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+      // First check if user is asking about a specific word being a bingo
+      const bingoWordMatch = msg.match(/(?:is\s+)([a-z]+)\s+(?:a\s+)?bingo/i);
+      if (bingoWordMatch) {
+        const word = bingoWordMatch[1].toUpperCase();
+        const row = await db.prepare(
+          'SELECT word, meaning, points FROM dictionary WHERE word = ? COLLATE NOCASE'
+        ).bind(word).first();
+        if (row && row.word.length === 7) {
+          results.push(`BINGO CHECK — ✅ YES! ${row.word} is a valid bingo word (7 letters, uses all tiles). Score: ${row.points} points + 50 bonus = ${row.points + 50} total. ${row.meaning ? 'Meaning: ' + row.meaning : ''}`);
+        } else if (row && row.word.length !== 7) {
+          results.push(`BINGO CHECK — ❌ ${row.word} is a valid word (${row.word.length} letters, ${row.points} pts) but NOT a bingo because it's not 7 letters. A bingo requires exactly 7 letters using all tiles from your rack.`);
+        } else {
+          results.push(`BINGO CHECK — ❌ ${word} was not found in the dictionary.`);
+        }
+      } else {
+        const { results: rows } = await db.prepare(
+          'SELECT word, meaning, points FROM dictionary WHERE LENGTH(word) >= 7 ORDER BY points DESC LIMIT 10'
+        ).bind().all();
+        if (rows?.length) {
+          results.push('BINGO WORDS (7+ letters, from dictionary):\n' +
+            rows.map((r: any) => `• ${r.word} — ${r.meaning} (${r.points} pts)`).join('\n'));
+        }
       }
     }
 
@@ -396,6 +466,39 @@ export const POST: APIRoute = async ({ request }) => {
     dictionaryContext = await getDictionaryContext(userText, db);
   }
 
+  // ── RAG: Semantic search for relevant blog content ──
+  let ragContext = '';
+  if (!isQuizCoaching && !isCabCoaching && !isRackCoaching && !isAnagramCoaching) {
+    try {
+      const VECTORIZE = (env as any).VECTORIZE;
+      const AI = (env as any).AI;
+      if (VECTORIZE && AI) {
+        // Generate embedding for the user's question
+        const embResult = await AI.run('@cf/baai/bge-base-en-v1.5', { text: [userText] });
+        const queryVector = embResult?.data?.[0];
+        if (queryVector) {
+          // Query Vectorize for top 3 most relevant blog chunks
+          const matches = await VECTORIZE.query(queryVector, { topK: 3, returnMetadata: 'all' });
+          if (matches?.matches?.length > 0) {
+            const relevantChunks = matches.matches
+              .filter((m: any) => m.score > 0.65) // Only high-relevance matches
+              .map((m: any) => {
+                const slug = m.metadata?.slug || '';
+                const url = m.metadata?.url || '';
+                // Retrieve the text content from the vector metadata or reconstruct
+                return `[Source: ${url}]\n${m.metadata?.text || slug}`;
+              });
+            if (relevantChunks.length > 0) {
+              ragContext = '\n\n---\n📚 RELEVANT BLOG ARTICLES (reference these in your answer and cite the URLs):\n\n' + relevantChunks.join('\n\n') + '\n\nWhen referencing these, format as: "Read more: [title](/blog/slug/)".\n---';
+            }
+          }
+        }
+      }
+    } catch {
+      // RAG is non-critical — if it fails, Lex still answers from its training
+    }
+  }
+
   // Build system prompt — inject dictionary data or coaching context (prompts imported from shared lib)
   let enrichedSystemPrompt = SYSTEM_PROMPT;
   if (isQuizCoaching) {
@@ -408,6 +511,11 @@ export const POST: APIRoute = async ({ request }) => {
     enrichedSystemPrompt += ANAGRAM_COACHING_PROMPT;
   } else if (dictionaryContext) {
     enrichedSystemPrompt += dictionaryContext;
+  }
+
+  // Append RAG context (for any non-coaching query)
+  if (ragContext) {
+    enrichedSystemPrompt += ragContext;
   }
 
   // --- SMART MODEL ROUTING ---

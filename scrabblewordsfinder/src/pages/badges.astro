@@ -508,19 +508,19 @@ import '../styles/global.css';
     // If no LS data, try fetching from API to determine achieved badges
     if (!savedBadges || savedBadges.length === 0) {
       var uid = S.getRaw('swf-uid') || '';
-      if (!uid) return;
-      fetch('/api/mybag/?user_id=' + encodeURIComponent(uid) + '&limit=1')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (!data || !data.badges) return;
-          var achieved = data.badges.filter(function(b) { return b.achieved; }).map(function(b) { return b.name; });
-          if (achieved.length > 0) markAchieved(achieved);
-        })
-        .catch(function() {});
-      return;
+      if (uid) {
+        fetch('/api/mybag/?user_id=' + encodeURIComponent(uid) + '&limit=1')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data || !data.badges) return;
+            var achieved = data.badges.filter(function(b) { return b.achieved; }).map(function(b) { return b.name; });
+            if (achieved.length > 0) markAchieved(achieved);
+          })
+          .catch(function() {});
+      }
+    } else {
+      markAchieved(savedBadges);
     }
-
-    markAchieved(savedBadges);
 
     function markAchieved(badgeList) {
       var allH3s = document.querySelectorAll('.grid h3');
@@ -549,6 +549,42 @@ import '../styles/global.css';
           }
         }
       }
+    }
+
+    // ── Word Score Achievement Tiers ──
+    // Also apply "Completed" stamps to Rising Star, Word Builder, etc.
+    var wordBadgeNames = ['Rising Star', 'Word Builder', 'Hot Streak', 'Triple Threat', 'Scrabble Legend'];
+    var achievedWordBadges = [];
+
+    // Check localStorage first
+    try {
+      var wbRaw = localStorage.getItem('swf-word-badges');
+      if (wbRaw) achievedWordBadges = JSON.parse(wbRaw);
+    } catch(e) {}
+
+    // If no LS data, fetch from API
+    if (achievedWordBadges.length === 0) {
+      var uid = S ? S.getRaw('swf-uid') : '';
+      if (uid) {
+        fetch('/api/achievements/?user_id=' + encodeURIComponent(uid))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data || !data.achievements) return;
+            var tiers = new Set();
+            for (var k = 0; k < data.achievements.length; k++) {
+              var score = data.achievements[k].score || 0;
+              if (score >= 50) tiers.add('Scrabble Legend');
+              else if (score >= 30) tiers.add('Triple Threat');
+              else if (score >= 20) tiers.add('Hot Streak');
+              else if (score >= 10) tiers.add('Word Builder');
+              else if (score >= 1) tiers.add('Rising Star');
+            }
+            if (tiers.size > 0) markAchieved(Array.from(tiers));
+          })
+          .catch(function() {});
+      }
+    } else {
+      markAchieved(achievedWordBadges);
     }
   })();
   </script>

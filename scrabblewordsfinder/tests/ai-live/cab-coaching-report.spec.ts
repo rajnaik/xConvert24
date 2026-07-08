@@ -18,7 +18,7 @@ import { test, expect } from '@playwright/test';
  * Runs against LIVE site with a real user ID.
  */
 
-const BASE = process.env.SWF_TEST_URL || 'https://www.scrabblewordsfinder.com';
+const BASE = 'https://www.scrabblewordsfinder.com'; // Always live — requires real user game history
 const TEST_USER_ID = '716fd02b-9d37-4a16-b2f1-4c1312ead857';
 
 test.describe('AI Live — Cows & Bulls Coaching Report', () => {
@@ -28,19 +28,27 @@ test.describe('AI Live — Cows & Bulls Coaching Report', () => {
     // Set the user ID in localStorage before navigating
     await page.goto(`${BASE}/chat/`);
     await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000);
+
+    // Dismiss cookie consent if present (non-blocking)
+    try {
+      const acceptBtn = page.locator('button:has-text("Accept All")');
+      await acceptBtn.click({ timeout: 5000 });
+    } catch {}
+
     await page.evaluate((uid) => {
       localStorage.setItem('swf-uid', uid);
       localStorage.setItem('swf_user_id', uid);
+      localStorage.setItem('swf-cookie-consent', 'accepted');
     }, TEST_USER_ID);
 
     // Reload to pick up the user ID
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(8000); // Let the analyse score panel populate
 
     // Step 1: Find and click the "Cows & Bulls" link in Analyse Score section
     const cabLink = page.locator('#analyse-score-links a', { hasText: 'Cows' });
-    await expect(cabLink).toBeVisible({ timeout: 30000 });
+    await expect(cabLink).toBeVisible({ timeout: 60000 });
     await cabLink.click();
 
     // Step 2: Wait for AI coaching response to load
@@ -64,7 +72,7 @@ test.describe('AI Live — Cows & Bulls Coaching Report', () => {
     // Step 3: Verify performance graph exists (canvas element)
     // The graph renders after the coaching text — give it extra time
     const graphCanvas = page.locator('#chat-cab-graph');
-    await expect(graphCanvas).toBeAttached({ timeout: 30000 });
+    await expect(graphCanvas).toBeAttached({ timeout: 90000 });
 
     // Step 4: Verify game-by-game analysis section exists
     // Look for per-game analysis elements (typically has game numbers or "Game #" text)

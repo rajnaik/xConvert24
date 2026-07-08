@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { buildCabCoachPrompt, CAB_WISDOM } from '../../lib/coaching-prompts';
+import { sanitizeChallenge } from '../../lib/sanitize-challenge';
+import { logAiUsage } from '../../lib/log-ai-usage';
 
 const getDB = () => (env as any).DB;
 const getAI = () => (env as any).AI;
@@ -205,7 +207,9 @@ Phase Progression (${totalGames} games split into thirds chronologically):
       temperature: 0.7,
     });
 
-    const analysis = aiResponse.response || aiResponse.result?.response || 'Unable to generate analysis right now. Keep playing — your stats are being tracked!';
+    const analysis = sanitizeChallenge(aiResponse.response || aiResponse.result?.response || 'Unable to generate analysis right now. Keep playing — your stats are being tracked!');
+
+    await logAiUsage(db, { userId, source: 'cab-coach', model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast', responseLength: analysis.length });
 
     return new Response(JSON.stringify({
       hasHistory: true,

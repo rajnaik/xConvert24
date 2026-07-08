@@ -47,6 +47,12 @@ const showAds = !isAdmin;
     <meta name="keywords" content={keywords} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalURL} />
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#e8d5c0" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- Preload LCP hero banner so the browser fetches it before parsing body -->
     <link rel="preload" href="/banner-options/banner-1.svg" as="image" type="image/svg+xml" fetchpriority="high" />
     <!-- Critical CSS: paint background immediately while stylesheet loads -->
@@ -79,6 +85,24 @@ const showAds = !isAdmin;
             "item": canonicalURL
           }] : [])
         ]
+      })} />
+    )}
+    {/* Organization Schema — GEO: helps LLMs identify site ownership */}
+    {!isAdmin && Astro.url.pathname === '/' && (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "ScrabbleWordsFinder",
+        "url": `https://www.${C.SITE_DOMAIN}/`,
+        "logo": `https://www.${C.SITE_DOMAIN}/favicon.svg`,
+        "description": "Free online Scrabble word finder tool. Find the highest-scoring words from your tiles instantly — no sign-up needed.",
+        "foundingDate": "2026",
+        "sameAs": [],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "url": `https://www.${C.SITE_DOMAIN}/contact/`
+        }
       })} />
     )}
     {/* AdSense — load on first user interaction to reduce unused JS */}
@@ -860,6 +884,14 @@ const showAds = !isAdmin;
         fetch("/api/clicks/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:getUserId(),ui_element:name,url:window.location.pathname,session_id:getSessionId(),screen_width:window.screen.width,screen_height:window.screen.height,viewport_width:window.innerWidth,viewport_height:window.innerHeight,click_x:e.clientX,click_y:e.clientY,page_title:document.title,device_type:getDevice(),browser:getBrowser(),os:getOS()})}).catch(function(){});
       });
     })();
+    </script>
+    <!-- Service Worker registration (PWA) -->
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
+      }
     </script>
   </body>
 </html>

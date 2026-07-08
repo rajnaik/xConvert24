@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500 });
 
   const body = await request.json() as any;
-  const { user_id, achievement_id, encouragement_words, score, word } = body;
+  const { user_id, achievement_id, encouragement_words, score, word, is_bingo } = body;
 
   if (!word) return new Response(JSON.stringify({ error: 'word is required' }), { status: 400 });
 
@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ request }) => {
     info.icon,
     word.toUpperCase(),
     encouragement_words || '',
-    JSON.stringify({ score, level, word: word.toUpperCase() }),
+    JSON.stringify({ score, level, word: word.toUpperCase(), is_bingo: !!is_bingo }),
     user_id || '',
     word.toUpperCase(),
     score || 0,

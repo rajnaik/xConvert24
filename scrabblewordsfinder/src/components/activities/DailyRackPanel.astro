@@ -28,8 +28,8 @@
             <p class="text-[10px] text-gray-500 uppercase mb-1">Your words today</p>
             <div id="drc-your-list" class="flex flex-wrap gap-1.5"></div>
           </div>
-          <!-- Best score -->
-          <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+          <!-- Best score (hidden until 5 words submitted) -->
+          <div id="drc-best-row" class="hidden flex items-center justify-between pt-3 border-t border-gray-800">
             <span class="text-[10px] text-gray-500">Today's best</span>
             <span id="drc-best" class="text-sm font-bold text-amber-400">—</span>
           </div>
@@ -211,9 +211,12 @@
       }).join('');
       document.getElementById('drc-tiles').innerHTML = tilesHtml;
 
-      // Best score
+      // Best score — only reveal after user has 5+ submissions
       if (data.best_word) {
         document.getElementById('drc-best').textContent = data.best_word + ' (' + data.best_score + ' pts)';
+        if (data.userScores && data.userScores.length >= 5) {
+          document.getElementById('drc-best-row').classList.remove('hidden');
+        }
       }
 
       // Show user's previous submissions
@@ -234,6 +237,11 @@
           : 'px-2 py-0.5 rounded bg-amber-900/30 border border-amber-700/50 text-xs text-amber-300 font-mono uppercase';
         return '<span class="' + classes + '">' + w.word + bingoIcon + ' <span class="' + (isBingo ? 'text-green-400' : 'text-amber-500') + ' font-bold">' + w.score + '</span></span>';
       }).join('');
+      // Show best word once user has 5+ submissions
+      if (userWords.length >= 5) {
+        var bestRow = document.getElementById('drc-best-row');
+        if (bestRow) bestRow.classList.remove('hidden');
+      }
     }
 
     function canMakeFromRack(word, rack) {

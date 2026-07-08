@@ -218,6 +218,11 @@ import '../styles/global.css';
         <span class="text-2xl shrink-0">🌱</span>
         <span class="text-sm text-green-300 group-hover:text-green-200">I am a beginner, and I want to get better at Scrabble.</span>
       </button>
+      <button class="static-kw flex items-center gap-3 px-4 py-3 text-left rounded-xl bg-amber-900/20 border border-amber-700/40 hover:border-amber-500/60 hover:bg-amber-900/30 transition-colors group" data-prompt="Tell me about bingo words and strategies in Scrabble. What is a bingo, how do I spot bingo opportunities on my rack, what are the best bingo stems to memorise, and what strategies can I use to play more 7-letter words?">
+        <span class="text-2xl shrink-0">🎯</span>
+        <span class="text-sm text-amber-300 group-hover:text-amber-200">Tell me about Bingo words and strategies</span>
+        <a href="/blog/bingo-stem-strategy/" class="ml-auto shrink-0 text-amber-400 hover:text-amber-300 transition-colors" title="Read Bingo Strategy Guide" onclick="event.stopPropagation()">🔗</a>
+      </button>
       <button class="static-kw flex items-center gap-3 px-4 py-3 text-left rounded-xl bg-blue-900/20 border border-blue-700/40 hover:border-blue-500/60 hover:bg-blue-900/30 transition-colors group" data-prompt="I am an intermediate Scrabble player looking to improve. I know basic words and strategy but want to level up. Teach me about rack management, hook words, parallel plays, and how to score consistently higher.">
         <span class="text-2xl shrink-0">⚡</span>
         <span class="text-sm text-blue-300 group-hover:text-blue-200">I am an intermediate player, and I want to improve.</span>
@@ -959,6 +964,219 @@ import '../styles/global.css';
       return html;
     }
 
+    // ── Client-side dictionary validation ──
+    // Catches false "not valid" claims by checking against SOWPODS dictionary
+    var _validWordCache = null;
+    function loadValidWords() {
+      if (_validWordCache) return Promise.resolve(_validWordCache);
+      return Promise.all([
+        fetch('/data/sowpods-2-7.json').then(function(r) { return r.json(); }),
+        fetch('/data/sowpods-8-15.json').then(function(r) { return r.json(); }),
+      ]).then(function(results) {
+        var all = results[0].concat(results[1]).map(function(w) { return w.toUpperCase(); });
+        _validWordCache = {};
+        for (var i = 0; i < all.length; i++) _validWordCache[all[i]] = true;
+        return _validWordCache;
+      }).catch(function() { return null; });
+    }
+
+    // ── Append relevant blog links based on topic ──
+    function appendBlogLinks(textEl, userMsg, aiResponse) {
+      var msg = (userMsg + ' ' + aiResponse).toLowerCase();
+
+      var blogMap = [
+        { keywords: ['bingo', '7 letter', 'seven letter', 'all tiles', 'bonus'], links: [
+          { url: '/blog/bingo-stem-strategy/', title: 'Bingo Stem Strategy' },
+          { url: '/blog/best-7-letter-scrabble-words/', title: 'Best 7-Letter Bingo Words' },
+          { url: '/blog/bingo-racks-to-memorise/', title: 'Bingo Racks to Memorise' },
+        ]},
+        { keywords: ['beginner', 'start', 'new to', 'first time', 'learn scrabble', 'basics'], links: [
+          { url: '/blog/beginner-scrabble-strategy/', title: 'Beginner Strategy Guide' },
+          { url: '/blog/common-scrabble-mistakes/', title: 'Common Mistakes to Avoid' },
+          { url: '/blog/how-to-win-scrabble/', title: 'How to Win at Scrabble' },
+        ]},
+        { keywords: ['rack', 'tiles', 'leave', 'exchange', 'swap'], links: [
+          { url: '/blog/rack-management-basics/', title: 'Rack Management Basics' },
+          { url: '/blog/rack-leave-explained/', title: 'Rack Leave Strategy' },
+        ]},
+        { keywords: ['two letter', '2 letter', '2-letter'], links: [
+          { url: '/blog/best-two-letter-words-scrabble/', title: 'Best Two-Letter Words' },
+          { url: '/blog/two-letter-scrabble-words-complete-list/', title: 'Complete 2-Letter List' },
+        ]},
+        { keywords: ['three letter', '3 letter', '3-letter'], links: [
+          { url: '/blog/best-three-letter-scrabble-words/', title: 'Best Three-Letter Words' },
+        ]},
+        { keywords: ['q without u', 'q no u', 'qi', 'qat', 'qoph'], links: [
+          { url: '/blog/best-q-words-scrabble/', title: 'Best Q Words in Scrabble' },
+        ]},
+        { keywords: ['high scor', 'power tile', 'z word', 'x word', 'j word'], links: [
+          { url: '/blog/highest-scoring-scrabble-words/', title: 'Highest Scoring Words' },
+          { url: '/blog/best-z-words-scrabble/', title: 'Best Z Words' },
+          { url: '/blog/best-x-words-scrabble/', title: 'Best X Words' },
+        ]},
+        { keywords: ['opening', 'first move', 'start word', 'first word'], links: [
+          { url: '/blog/best-scrabble-opening-words/', title: 'Best Opening Moves' },
+        ]},
+        { keywords: ['endgame', 'end game', 'last tiles', 'final move'], links: [
+          { url: '/blog/endgame-strategy/', title: 'Endgame Strategy' },
+        ]},
+        { keywords: ['defend', 'block', 'triple', 'premium square'], links: [
+          { url: '/blog/defensive-scrabble-strategy/', title: 'Defensive Strategy' },
+          { url: '/blog/blocking-triple-word-squares/', title: 'Blocking Triple Word Squares' },
+        ]},
+        { keywords: ['hook', 'extend', 'add letter', 'front hook', 'back hook'], links: [
+          { url: '/blog/hook-words-advanced/', title: 'Advanced Hook Words' },
+          { url: '/blog/complete-guide-to-hooks/', title: 'Complete Guide to Hooks' },
+        ]},
+        { keywords: ['tournament', 'competitive', 'pro player', 'professional'], links: [
+          { url: '/blog/becoming-a-tournament-player/', title: 'Tournament Preparation' },
+          { url: '/blog/roadmap-to-being-a-pro-player/', title: 'Roadmap to Pro Player' },
+        ]},
+        { keywords: ['dictionary', 'sowpods', 'twl', 'valid word', 'word list'], links: [
+          { url: '/blog/scrabble-rules-explained/', title: 'Scrabble Rules Explained' },
+          { url: '/blog/collins-official-dictionary/', title: 'Collins/SOWPODS Dictionary' },
+        ]},
+        { keywords: ['rule', 'scoring', 'point', 'how to score', 'blank tile'], links: [
+          { url: '/blog/scrabble-scoring-guide/', title: 'Scoring Guide' },
+          { url: '/blog/how-blank-tiles-work/', title: 'How Blank Tiles Work' },
+        ]},
+        // ── NEW CATEGORIES ──
+        { keywords: ['contain', 'words with', 'has the letter', 'include'], links: [
+          { url: '/blog/words-containing-qu-no-u-after/', title: 'Words with QU (no U after)' },
+          { url: '/blog/words-containing-ph/', title: 'Words Containing PH' },
+          { url: '/blog/words-containing-th/', title: 'Words Containing TH' },
+        ]},
+        { keywords: ['cook', 'food', 'pirate', 'halloween', 'christmas', 'mythology', 'theme'], links: [
+          { url: '/blog/scrabble-words-from-cooking/', title: 'Scrabble Words from Cooking' },
+          { url: '/blog/scrabble-words-from-mythology-greek/', title: 'Words from Greek Mythology' },
+          { url: '/blog/scrabble-words-from-science/', title: 'Scrabble Words from Science' },
+        ]},
+        { keywords: ['is it valid', 'is it a word', 'can i play', 'allowed'], links: [
+          { url: '/blog/common-illegal-words-scrabble/', title: 'Common Illegal Words' },
+          { url: '/blog/controversial-scrabble-words/', title: 'Controversial Scrabble Words' },
+        ]},
+        { keywords: ['start with', 'begin with', 'words beginning'], links: [
+          { url: '/blog/words-starting-with-z/', title: 'Words Starting with Z' },
+          { url: '/blog/words-starting-with-x/', title: 'Words Starting with X' },
+          { url: '/blog/words-starting-with-q/', title: 'Words Starting with Q' },
+        ]},
+        { keywords: ['end with', 'ending in', 'suffix', '-ed', '-ing', '-tion'], links: [
+          { url: '/blog/words-ending-with-ed/', title: 'Words Ending in -ED' },
+          { url: '/blog/words-ending-with-ing/', title: 'Words Ending in -ING' },
+          { url: '/blog/words-ending-with-tion/', title: 'Words Ending in -TION' },
+        ]},
+        { keywords: ['vowel', 'consonant', 'no vowel', 'all vowel', 'heavy'], links: [
+          { url: '/blog/best-vowel-heavy-words/', title: 'Best Vowel-Heavy Words' },
+          { url: '/blog/best-consonant-heavy-words/', title: 'Best Consonant-Heavy Words' },
+          { url: '/blog/words-without-vowels/', title: 'Words Without Vowels' },
+        ]},
+        { keywords: ['5 letter', '6 letter', '8 letter', 'four letter', 'five letter', 'six letter'], links: [
+          { url: '/blog/5-letter-words-for-scrabble/', title: '5-Letter Words for Scrabble' },
+          { url: '/blog/best-5-letter-scrabble-words/', title: 'Best 5-Letter Words' },
+          { url: '/blog/best-4-letter-scrabble-words/', title: 'Best 4-Letter Words' },
+        ]},
+        { keywords: ['double letter', 'double l', 'double e', 'double t', 'repeated'], links: [
+          { url: '/blog/words-containing-double-l/', title: 'Words with Double-L' },
+          { url: '/blog/words-containing-double-e/', title: 'Words with Double-E' },
+          { url: '/blog/best-words-with-double-letters/', title: 'Best Double-Letter Words' },
+        ]},
+        { keywords: ['prefix', 'un-', 're-', 'dis-', 'pre-', 'anti', 'over'], links: [
+          { url: '/blog/words-starting-with-un/', title: 'Words Starting with UN-' },
+          { url: '/blog/words-starting-with-re/', title: 'Words Starting with RE-' },
+          { url: '/blog/words-starting-with-dis/', title: 'Words Starting with DIS-' },
+        ]},
+        { keywords: ['history', 'origin', 'invented', 'who created', 'culture', 'famous'], links: [
+          { url: '/blog/scrabble-history-origins-great-depression/', title: 'History of Scrabble' },
+          { url: '/blog/famous-scrabble-controversies/', title: 'Famous Controversies' },
+          { url: '/blog/scrabble-world-champions/', title: 'World Champions' },
+        ]},
+        { keywords: ['brain', 'cognitive', 'benefit', 'mental', 'memory', 'improve mind'], links: [
+          { url: '/blog/cognitive-benefits-of-scrabble/', title: 'Cognitive Benefits of Scrabble' },
+        ]},
+        { keywords: ['app', 'tool', 'solver', 'website', 'online', 'software'], links: [
+          { url: '/blog/best-scrabble-training-tools/', title: 'Best Training Tools' },
+          { url: '/blog/best-scrabble-apps/', title: 'Best Scrabble Apps' },
+          { url: '/blog/best-scrabble-solver-tools/', title: 'Best Solver Tools' },
+        ]},
+        { keywords: ['animal', 'bird', 'fish', 'nature', 'weather', 'sport', 'music'], links: [
+          { url: '/blog/animal-names-scrabble/', title: 'Animal Names in Scrabble' },
+          { url: '/blog/bird-names-accepted-in-scrabble/', title: 'Bird Names Accepted' },
+          { url: '/blog/fish-names-accepted-in-scrabble/', title: 'Fish Names Accepted' },
+        ]},
+      ];
+
+      // Find matching categories
+      var matchedLinks = [];
+      for (var i = 0; i < blogMap.length; i++) {
+        var category = blogMap[i];
+        for (var k = 0; k < category.keywords.length; k++) {
+          if (msg.indexOf(category.keywords[k]) !== -1) {
+            for (var l = 0; l < category.links.length && matchedLinks.length < 3; l++) {
+              var link = category.links[l];
+              var alreadyAdded = false;
+              for (var m = 0; m < matchedLinks.length; m++) {
+                if (matchedLinks[m].url === link.url) { alreadyAdded = true; break; }
+              }
+              if (!alreadyAdded) matchedLinks.push(link);
+            }
+            break;
+          }
+        }
+        if (matchedLinks.length >= 3) break;
+      }
+
+      // Fallback: always show at least one generic link
+      if (matchedLinks.length === 0) {
+        matchedLinks.push({ url: '/blog/how-to-win-scrabble/', title: 'How to Win at Scrabble' });
+      }
+
+      // Render the links
+      var linksHtml = '<div class="mt-3 pt-2 border-t border-gray-700/40"><p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-1.5">📚 Read more</p>';
+      for (var j = 0; j < matchedLinks.length; j++) {
+        linksHtml += '<a href="' + matchedLinks[j].url + '" class="block text-xs text-blue-400 hover:text-blue-300 hover:underline mb-1">→ ' + matchedLinks[j].title + '</a>';
+      }
+      linksHtml += '</div>';
+
+      var linksEl = document.createElement('div');
+      linksEl.innerHTML = linksHtml;
+      textEl.appendChild(linksEl.firstChild);
+    }
+
+    function validateWordClaims(textEl, response) {
+      var invalidPatterns = [
+        /["']?([A-Z]{2,15})["']?\s+is\s+not\s+(a\s+)?valid/gi,
+        /["']?([A-Z]{2,15})["']?\s+is\s+not\s+(recognized|recognised|accepted|found|in the)/gi,
+        /["']?([A-Z]{2,15})["']?\s+is\s+not\s+in\s+(the\s+)?(SOWPODS|TWL|dictionary|scrabble)/gi,
+        /["']?([A-Z]{2,15})["']?\s+isn't\s+(a\s+)?valid/gi,
+      ];
+
+      var claimedInvalid = [];
+      for (var p = 0; p < invalidPatterns.length; p++) {
+        var pat = invalidPatterns[p];
+        var match;
+        while ((match = pat.exec(response)) !== null) {
+          var word = match[1].toUpperCase();
+          if (claimedInvalid.indexOf(word) === -1) claimedInvalid.push(word);
+        }
+      }
+
+      if (claimedInvalid.length === 0) return;
+
+      loadValidWords().then(function(dict) {
+        if (!dict) return;
+        var falselyInvalid = [];
+        for (var i = 0; i < claimedInvalid.length; i++) {
+          if (dict[claimedInvalid[i]]) falselyInvalid.push(claimedInvalid[i]);
+        }
+        if (falselyInvalid.length > 0) {
+          var correction = document.createElement('div');
+          correction.className = 'mt-2 px-3 py-2 rounded-lg bg-amber-900/30 border border-amber-600/40 text-xs text-amber-300';
+          correction.innerHTML = '⚠️ <strong>Correction:</strong> ' + falselyInvalid.join(', ') + ' ' + (falselyInvalid.length === 1 ? 'IS' : 'ARE') + ' valid in SOWPODS. Lex made an error — use the solver above to verify any word.';
+          textEl.appendChild(correction);
+        }
+      });
+    }
+
     // FVT-style rich rendering of AI responses
     function formatAnswer(text) {
       var escaped = escapeHtml(text);
@@ -1115,7 +1333,7 @@ import '../styles/global.css';
               if (data === '[DONE]') continue;
               try {
                 const parsed = JSON.parse(data);
-                const token = parsed.response || '';
+                const token = parsed.response || (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) || '';
                 fullResponse += token;
                 // During streaming, show plain text (linkify at end)
                 textEl.textContent = fullResponse;
@@ -1131,7 +1349,7 @@ import '../styles/global.css';
         if (buffer.startsWith('data: ') && buffer.slice(6) !== '[DONE]') {
           try {
             const parsed = JSON.parse(buffer.slice(6));
-            fullResponse += parsed.response || '';
+            fullResponse += parsed.response || (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) || '';
           } catch {}
         }
 
@@ -1140,6 +1358,10 @@ import '../styles/global.css';
           conversationHistory.push({ role: 'assistant', content: fullResponse });
           // Render with FVT-style rich formatting (bold, steps, bullets, links)
           textEl.innerHTML = formatAnswer(fullResponse);
+          // Client-side dictionary validation: catch false "not valid" claims
+          validateWordClaims(textEl, fullResponse);
+          // Append relevant blog links based on the conversation topic
+          appendBlogLinks(textEl, userMessage, fullResponse);
           // Extract identified words (6+ letter words: ALL-CAPS, or in numbered list with points)
           extractIdentifiedWords(fullResponse);
           // Log chat usage (fire-and-forget)
@@ -1772,10 +1994,17 @@ import '../styles/global.css';
       const wrapper = document.createElement('div');
       wrapper.className = 'flex items-start gap-3' + (role === 'user' ? ' justify-end' : '');
 
+      // Get user avatar + name from localStorage
+      var userAvatarId = localStorage.getItem('swf-avatar') || '1';
+      var userDisplayName = localStorage.getItem('swf-display-name') || 'You';
+
       if (role === 'assistant') {
         wrapper.innerHTML = `
-          <div class="w-8 h-8 rounded-full bg-emerald-900/50 flex items-center justify-center shrink-0">
-            <img src="/lex-avatar-32.png" alt="Lex" width="20" height="20" class="rounded-full" />
+          <div class="flex flex-col items-center shrink-0">
+            <div class="w-8 h-8 rounded-full bg-emerald-900/50 flex items-center justify-center">
+              <img src="/lex-avatar-32.png" alt="Lex" width="20" height="20" class="rounded-full" />
+            </div>
+            <span class="text-[9px] text-emerald-400 mt-0.5 font-medium">Lex AI</span>
           </div>
           <div class="bg-gray-800 rounded-lg rounded-tl-none px-4 py-2.5 max-w-[85%]">
             <div class="msg-text text-sm text-gray-200">${escapeHtml(content)}</div>
@@ -1785,8 +2014,9 @@ import '../styles/global.css';
           <div class="bg-blue-600/20 border border-blue-500/30 rounded-lg rounded-tr-none px-4 py-2.5 max-w-[85%]">
             <p class="msg-text text-sm text-gray-200 whitespace-pre-wrap">${escapeHtml(content)}</p>
           </div>
-          <div class="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center shrink-0">
-            <span class="text-sm">👤</span>
+          <div class="flex flex-col items-center shrink-0">
+            <img src="/avatars/avatar-${userAvatarId}.svg" alt="${userDisplayName}" class="w-8 h-8 rounded-full border border-blue-500/40" />
+            <span class="text-[9px] text-blue-300 mt-0.5 font-medium text-center w-12 leading-tight">${userDisplayName}</span>
           </div>`;
       }
 
