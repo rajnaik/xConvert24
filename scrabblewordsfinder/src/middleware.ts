@@ -20,7 +20,7 @@ export const onRequest = defineMiddleware(async ({ url, request, redirect }, nex
   if (!url.pathname.startsWith('/admin')) {
     const response = await next();
     const ct = response.headers.get('content-type') || '';
-    if (ct === 'text/html' || ct === 'text/html; charset=UTF-8') {
+    if (ct.startsWith('text/html') && !ct.includes('charset')) {
       const newHeaders = new Headers(response.headers);
       newHeaders.set('content-type', 'text/html; charset=utf-8');
       return new Response(response.body, { status: response.status, statusText: response.statusText, headers: newHeaders });
@@ -55,7 +55,7 @@ export const onRequest = defineMiddleware(async ({ url, request, redirect }, nex
 
   const response = await next();
   const ct = response.headers.get('content-type') || '';
-  if (ct === 'text/html' || ct === 'text/html; charset=UTF-8') {
+  if (ct.startsWith('text/html') && !ct.includes('charset')) {
     const newHeaders = new Headers(response.headers);
     newHeaders.set('content-type', 'text/html; charset=utf-8');
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers: newHeaders });
