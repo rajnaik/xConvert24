@@ -19,7 +19,7 @@ export default defineConfig({
     server: { strictPort: true },
     ssr: {
       optimizeDeps: {
-        exclude: ['astro/virtual-modules/middleware.js'],
+        exclude: ['astro/virtual-modules/middleware.js', '@cloudflare/unenv-preset'],
       },
     },
   },

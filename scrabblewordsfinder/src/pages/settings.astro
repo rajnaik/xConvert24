@@ -1,10 +1,11 @@
 ---
 export const prerender = true;
 import Layout from '../layouts/Layout.astro';
+import AdUnit from '../components/AdUnit.astro';
 import '../styles/global.css';
 ---
 
-<Layout title="Settings — ScrabbleWordsFinder (Free, No Sign-Up)" description="Manage your saved words, backup data, or restore from another device. Our free Scrabble solver stores data locally — no sign-up or account needed. Free." keywords="scrabble settings, backup, restore, no signup, free word finder settings, localStorage">
+<Layout title="Settings — ScrabbleWordsFinder (Free, No Sign-Up)" description="Manage your saved words, backup data, or restore from another device. Our free Scrabble solver stores data locally — no sign-up or account needed. Free." keywords="scrabble settings, backup, restore, no signup, free word finder settings, localStorage" noAds={true}>
 
   <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
     <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
@@ -17,7 +18,21 @@ import '../styles/global.css';
     </div>
   </nav>
 
-  <div class="max-w-2xl mx-auto px-6 py-12">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Center banner ad -->
+    <div class="hidden lg:flex justify-center pb-4 border-b border-gray-800/50 mb-6" data-ad-toggle>
+      <AdUnit format="banner" slot="4433159473" />
+    </div>
+    <!-- Mobile rectangle ad — removed -->
+    <table class="w-full border-collapse">
+      <tr class="align-top">
+        <!-- Left skyscraper -->
+        <td class="hidden lg:table-cell w-[160px] align-top pt-4 pr-4" data-ad-toggle>
+          <div class="sticky top-4"><AdUnit format="skyscraper" slot="2761553378" /></div>
+        </td>
+        <!-- Settings content -->
+        <td class="align-top">
+          <div class="max-w-2xl mx-auto">
     <h1 class="text-2xl font-bold text-white mb-2">⚙️ Settings</h1>
     <p class="text-gray-400 text-sm mb-8">Manage your saved words, backup your data, or restore from another device.</p>
 
@@ -151,6 +166,14 @@ import '../styles/global.css';
     <div class="mt-8 text-center">
       <a href="/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to Word Finder</a>
     </div>
+          </div>
+        </td>
+        <!-- Right skyscraper -->
+        <td class="hidden lg:table-cell w-[160px] align-top pt-4 pl-4" data-ad-toggle>
+          <div class="sticky top-4"><AdUnit format="skyscraper" slot="2761553378" /></div>
+        </td>
+      </tr>
+    </table>
   </div>
 
 <script type="application/ld+json">
@@ -166,6 +189,18 @@ import '../styles/global.css';
 </script>
 </Layout>
 
+<script is:inline>
+  // ─── Ad Toggle — show/hide ads based on adsense status ────────────────
+  (function() {
+    // Hide ad containers immediately (prevent flash)
+    document.body.classList.remove('ads-active');
+    fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
+      if(d.adsense==='ON'){
+        document.body.classList.add('ads-active');
+      }
+    }).catch(function(){});
+  })();
+</script>
 <script is:inline>
   // ─── UID Display ──────────────────────────────────────────────────────
   (function() {

@@ -50,7 +50,7 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     <!-- Preload LCP hero banner so the browser fetches it before parsing body -->
     <link rel="preload" href="/banner-options/banner-1.svg" as="image" type="image/svg+xml" fetchpriority="high" />
     <!-- Critical CSS: paint background immediately while stylesheet loads -->
-    <style>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}</style>
+    <style>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}[data-ad-toggle]{display:none}.ads-active [data-ad-toggle]{display:flex}</style>
     <!-- Breadcrumb JSON-LD -->
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
@@ -91,6 +91,15 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     {/* AdSense — deferred load via requestIdleCallback */}
     <script is:inline id="adsense-loader">
     (function(){
+      // Immediately check adsense status — show/hide ad containers
+      fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
+        if(d.adsense==='ON'){
+          document.body.classList.add('ads-active');
+        } else {
+          document.body.classList.remove('ads-active');
+        }
+      }).catch(function(){});
+      // Load AdSense JS lazily
       function loadAds(){
         fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
           if(d.adsense==='ON'){
@@ -99,7 +108,9 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
             s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8890486330870317';
             s.crossOrigin='anonymous';
             document.head.appendChild(s);
-            document.querySelectorAll('[data-ad-toggle]').forEach(function(el){el.style.display='';});
+            document.body.classList.add('ads-active');
+          } else {
+            document.body.classList.remove('ads-active');
           }
         }).catch(function(){});
       }
@@ -325,33 +336,29 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     </script>
 
     {/* Banner ad row — full width between header and content */}
-    <div class="hidden lg:flex justify-center py-3 border-b border-gray-800/50" data-ad-toggle style="display:none">
-      <AdUnit format="banner" />
+    <div class="hidden lg:flex justify-center py-3 border-b border-gray-800/50" data-ad-toggle>
+      <AdUnit format="banner" slot="4433159473" />
     </div>
 
     {/* 3-column layout: left skyscraper | content | right skyscraper */}
-    <div class="flex justify-center gap-0">
-      {/* Left skyscraper — hidden on mobile/tablet */}
-      <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0" data-ad-toggle style="display:none">
-        <AdUnit format="skyscraper" />
-      </aside>
+    <table class="w-full max-w-7xl mx-auto border-collapse" cellspacing="0" cellpadding="0" style="border-spacing:0;">
+      <tr class="align-top">
+        <td class="hidden xl:table-cell w-[160px] align-top p-0 m-0" data-ad-toggle>
+          <div class="ml-[35px]"><AdUnit format="skyscraper" slot="2761553378" /></div>
+        </td>
+        <td class="p-0 m-0 align-top">
+          <main class="min-w-0 max-w-4xl">
+            <slot />
+            {slug && <BlogComments blogid={slug} blogname={pageTitle} />}
+          </main>
+        </td>
+        <td class="hidden xl:table-cell w-[160px] align-top p-0 m-0" data-ad-toggle>
+          <div class="mr-[50px]"><AdUnit format="skyscraper" slot="2761553378" /></div>
+        </td>
+      </tr>
+    </table>
 
-      {/* Main content */}
-      <main class="flex-1 min-w-0 max-w-4xl">
-        <slot />
-        {slug && <BlogComments blogid={slug} blogname={pageTitle} />}
-      </main>
-
-      {/* Right skyscraper — hidden on mobile/tablet */}
-      <aside class="hidden xl:flex flex-col items-center pt-6 w-[160px] shrink-0" data-ad-toggle style="display:none">
-        <AdUnit format="skyscraper" />
-      </aside>
-    </div>
-
-    {/* Mobile-only rectangle ad — between content and footer links on mobile */}
-    <div class="flex lg:hidden justify-center py-3" data-ad-toggle style="display:none">
-      <AdUnit format="rectangle" />
-    </div>
+    {/* Mobile-only rectangle ad — removed */}
 
     <!-- Footer -->
 

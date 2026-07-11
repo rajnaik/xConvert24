@@ -33,27 +33,39 @@ const formatStyles: Record<string, { width: string; height: string; display: str
 const style = formatStyles[format] || formatStyles.responsive;
 // All ad units from Raj use data-ad-format="auto" + responsive=true, so always use responsive display
 const isResponsive = true;
+// Show debug border on localhost
+const isDev = import.meta.env.DEV;
 ---
 
-<div class:list={['ad-unit', `ad-unit--${format}`, className]} data-ad-format={format}>
+<div class:list={['ad-unit', `ad-unit--${format}`, className]} data-ad-format={format} {...(!isDev ? {'data-ad-toggle': ''} : {})}>
   {slot ? (
     <>
-      <ins
-        class="adsbygoogle"
-        style={isResponsive
-          ? 'display:block'
-          : `display:${style.display};width:${style.width};height:${style.height}`
-        }
-        data-ad-client={CLIENT_ID}
-        data-ad-slot={slot}
-        {...(isResponsive ? { 'data-ad-format': 'auto', 'data-full-width-responsive': 'true' } : {})}
-      ></ins>
-      <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      {isDev && (
+        <div
+          class="flex items-center justify-center text-center border border-dashed border-amber-600/50 rounded-lg text-amber-600/70 text-[10px] font-mono"
+          style={`width:${style.width};height:${style.height};max-width:100%;`}
+        >
+          <span>AD: {format} [{slot}]</span>
+        </div>
+      )}
+      {!isDev && (
+        <ins
+          class="adsbygoogle"
+          style={isResponsive
+            ? 'display:block'
+            : `display:${style.display};width:${style.width};height:${style.height}`
+          }
+          data-ad-client={CLIENT_ID}
+          data-ad-slot={slot}
+          {...(isResponsive ? { 'data-ad-format': 'auto', 'data-full-width-responsive': 'true' } : {})}
+        ></ins>
+      )}
+      {!isDev && <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>}
     </>
   ) : (
     <!-- Placeholder: ad slot not configured yet -->
     <div
-      class="flex items-center justify-center border border-dashed border-gray-700 rounded-lg text-gray-600 text-xs"
+      class="flex items-center justify-center text-center border border-dashed border-gray-700 rounded-lg text-gray-600 text-xs"
       style={`width:${style.width};height:${style.height};max-width:100%;`}
     >
       <span>Ad: {format}</span>
@@ -64,8 +76,10 @@ const isResponsive = true;
 <style>
   .ad-unit {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 0;
+    margin: 0;
   }
   .ad-unit--skyscraper {
     position: sticky;
