@@ -50,7 +50,7 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     <!-- Preload LCP hero banner so the browser fetches it before parsing body -->
     <link rel="preload" href="/banner-options/banner-1.svg" as="image" type="image/svg+xml" fetchpriority="high" />
     <!-- Critical CSS: paint background immediately while stylesheet loads -->
-    <style>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}[data-ad-toggle]{display:none}.ads-active [data-ad-toggle]{display:flex}</style>
+    <style is:inline>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}[data-ad-toggle]{display:none !important}.ads-active [data-ad-toggle]{display:revert !important}</style>
     <!-- Breadcrumb JSON-LD -->
     <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
@@ -142,7 +142,7 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     <Header variant="blog" />
 
     <!-- Welcome banner — shows below header when user has avatar -->
-    <div id="welcome-banner" class="hidden mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-0">
+    <div id="welcome-banner" class="hidden mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-0" style="margin-top:16px;">
       <div class="flex items-center gap-3 rounded-b-lg bg-gradient-to-r from-teal-900/30 to-purple-900/20 border-x border-b border-teal-700/30 px-4 py-1.5">
         <img id="welcome-avatar" src="/avatars/avatar-1.svg" alt="Your avatar" class="h-9 w-9 rounded-full border-2 border-teal-500/60 shadow-sm" />
         <p class="text-sm text-gray-200">
@@ -341,22 +341,100 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
     </div>
 
     {/* 3-column layout: left skyscraper | content | right skyscraper */}
-    <table class="w-full max-w-7xl mx-auto border-collapse" cellspacing="0" cellpadding="0" style="border-spacing:0;">
-      <tr class="align-top">
-        <td class="hidden xl:table-cell w-[160px] align-top p-0 m-0" data-ad-toggle>
-          <div class="ml-[35px]"><AdUnit format="skyscraper" slot="2761553378" /></div>
-        </td>
-        <td class="p-0 m-0 align-top">
-          <main class="min-w-0 max-w-4xl">
-            <slot />
-            {slug && <BlogComments blogid={slug} blogname={pageTitle} />}
-          </main>
-        </td>
-        <td class="hidden xl:table-cell w-[160px] align-top p-0 m-0" data-ad-toggle>
-          <div class="mr-[50px]"><AdUnit format="skyscraper" slot="2761553378" /></div>
-        </td>
-      </tr>
-    </table>
+    <div class="relative max-w-7xl mx-auto">
+      {/* Left skyscraper */}
+      <div class="hidden xl:block absolute left-0 top-0 w-[160px]" data-ad-toggle style="margin-left:35px;">
+        <div class="sticky top-4"><AdUnit format="skyscraper" slot="2761553378" /></div>
+      </div>
+
+      {/* Main content — always centered */}
+      <main class="min-w-0 max-w-4xl mx-auto xl:px-[60px]">
+        {/* Add to Favourites heart — moved next to H1 via JS */}
+        {slug && (
+          <button id="fav-btn" class="hidden cursor-pointer hover:scale-125 transition-transform align-middle ml-2 inline-block" title="Add to Favourites" data-slug={slug} style="vertical-align:middle;position:relative;top:-12px;">
+            <svg id="fav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+        )}
+        <slot />
+        {slug && (
+          <script is:inline define:vars={{ slug, title, description }}>
+            (function() {
+              var btn = document.getElementById('fav-btn');
+              var icon = document.getElementById('fav-icon');
+              if (!btn || !icon) return;
+
+              // Move heart next to the first H1
+              var h1 = document.querySelector('main h1');
+              if (h1) {
+                h1.style.display = 'inline';
+                h1.parentNode.insertBefore(btn, h1.nextSibling);
+                btn.classList.remove('hidden');
+              } else {
+                btn.classList.remove('hidden');
+              }
+
+              function getUid() {
+                var S = window.__swfStore;
+                return S ? S.getRaw('swf-uid') : localStorage.getItem('swf-uid');
+              }
+
+              function updateUI(favourited) {
+                if (favourited) {
+                  icon.setAttribute('fill', '#ef4444');
+                  icon.setAttribute('stroke', '#ef4444');
+                } else {
+                  icon.setAttribute('fill', 'none');
+                  icon.setAttribute('stroke', '#ef4444');
+                }
+              }
+
+              var uid = getUid();
+              if (uid) {
+                fetch('/api/fav-blogs/?user_id=' + encodeURIComponent(uid) + '&blog=' + encodeURIComponent(slug))
+                  .then(function(r) { return r.json(); })
+                  .then(function(d) { updateUI(d.favourited); })
+                  .catch(function() {});
+              }
+
+              btn.addEventListener('click', function() {
+                var uid = getUid();
+                if (!uid) {
+                  uid = 'swf-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+                  try { localStorage.setItem('swf-uid', uid); } catch(e) {}
+                }
+                fetch('/api/fav-blogs/', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ user_id: uid, blog: slug })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { updateUI(d.favourited); })
+                .catch(function() {});
+
+                var KEY = 'swf-fav-blogs';
+                var favs = [];
+                try { favs = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) {}
+                var exists = favs.some(function(f) { return f.slug === slug; });
+                if (exists) {
+                  favs = favs.filter(function(f) { return f.slug !== slug; });
+                } else {
+                  favs.push({ slug: slug, title: title, description: description, savedAt: new Date().toISOString() });
+                }
+                localStorage.setItem(KEY, JSON.stringify(favs));
+              });
+            })();
+          </script>
+        )}
+        {slug && <BlogComments blogid={slug} blogname={pageTitle} />}
+      </main>
+
+      {/* Right skyscraper */}
+      <div class="hidden xl:block absolute right-0 top-0 w-[160px]" data-ad-toggle style="margin-right:50px;">
+        <div class="sticky top-4"><AdUnit format="skyscraper" slot="2761553378" /></div>
+      </div>
+    </div>
 
     {/* Mobile-only rectangle ad — removed */}
 

@@ -48,6 +48,10 @@ const COMPLEX_KEYWORDS = [
   // EV and advanced concepts
   'expected value', 'rack quality', 'rack ev', 'leave quality',
   'percentile', 'how good is my rack',
+  // List/ranking requests (need unique generation without looping)
+  'top 10', 'top 20', 'top 30', 'top 40', 'top 50',
+  'list of', 'rank the', 'ranked list', 'highest scoring', 'high scoring',
+  'best words for', 'give me 20', 'give me 30', 'give me 50',
   // Game transcript
   'here are my moves', 'game transcript', 'i played these words',
 ];
@@ -137,7 +141,7 @@ export function classifyQuery(
     if (pattern.test(msg)) {
       return {
         complexity: 'simple',
-        model: MODEL_FAST,
+        model: MODEL_POWERFUL,
         maxTokens: 384,
         reason: 'simple_pattern',
       };
@@ -148,19 +152,18 @@ export function classifyQuery(
   if (msg.length <= 80) {
     return {
       complexity: 'simple',
-      model: MODEL_FAST,
+      model: MODEL_POWERFUL,
       maxTokens: 384,
       reason: 'short_message',
     };
   }
 
-  // Default: medium-length messages without strong signals → use fast model
-  // (keeps costs low, 8B handles most Scrabble Q&A fine)
+  // Default: use 70B for ALL queries (better quality, accurate scores)
   return {
-    complexity: 'simple',
-    model: MODEL_FAST,
-    maxTokens: 512,
-    reason: 'default_fast',
+    complexity: 'complex',
+    model: MODEL_POWERFUL,
+    maxTokens: 768,
+    reason: 'default_70b',
   };
 }
 

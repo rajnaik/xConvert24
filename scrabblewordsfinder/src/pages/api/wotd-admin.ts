@@ -16,6 +16,14 @@ export const GET: APIRoute = async ({ request }) => {
   if (!db) return json({ error: 'DB not available' }, 500);
 
   const url = new URL(request.url);
+
+  // Single record fetch by ID
+  const idParam = url.searchParams.get('id');
+  if (idParam) {
+    const word = await db.prepare('SELECT * FROM word_of_the_day WHERE id = ?').bind(parseInt(idParam)).first();
+    return json({ word: word || null, words: word ? [word] : [] });
+  }
+
   const limit = Math.min(parseInt(url.searchParams.get('limit') || '50'), 200);
   const offset = parseInt(url.searchParams.get('offset') || '0');
   const search = url.searchParams.get('search') || '';

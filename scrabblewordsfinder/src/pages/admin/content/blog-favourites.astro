@@ -1,0 +1,106 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+---
+<Layout title="Blog Favourites — Admin" description="View all user-favourited blog posts" showHeader={false}>
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/content/" class="hover:text-blue-400 transition-colors">Content</a>
+      <a href="/admin/content/blog-favourites/" class="text-red-400 font-medium">Favourites</a>
+      <a href="/" class="hover:text-blue-400 transition-colors">← Site</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">❤️ Blog Favourites</h1>
+        <p class="text-sm text-gray-400 mt-1">All user-favourited blog posts from the fav_blogs table</p>
+      </div>
+      <button id="refresh-btn" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-600 transition-colors">↻ Refresh</button>
+    </div>
+
+    <!-- Summary -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div class="p-3 rounded-xl border border-red-500/30 bg-red-950/10 text-center">
+        <p id="stat-total" class="text-xl font-bold text-red-400">—</p>
+        <p class="text-xs text-gray-400">Total Favourites</p>
+      </div>
+      <div class="p-3 rounded-xl border border-amber-500/30 bg-amber-950/10 text-center">
+        <p id="stat-users" class="text-xl font-bold text-amber-400">—</p>
+        <p class="text-xs text-gray-400">Unique Users</p>
+      </div>
+      <div class="p-3 rounded-xl border border-blue-500/30 bg-blue-950/10 text-center">
+        <p id="stat-blogs" class="text-xl font-bold text-blue-400">—</p>
+        <p class="text-xs text-gray-400">Unique Blogs</p>
+      </div>
+      <div class="p-3 rounded-xl border border-green-500/30 bg-green-950/10 text-center">
+        <p id="stat-active" class="text-xl font-bold text-green-400">—</p>
+        <p class="text-xs text-gray-400">Active</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-800/60">
+          <tr>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">ID</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">User ID</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">Blog</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">Date</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium">Status</th>
+          </tr>
+        </thead>
+        <tbody id="fav-table" class="divide-y divide-gray-800">
+          <tr><td colspan="5" class="px-4 py-8 text-center text-gray-500 italic">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    async function load() {
+      var res = await fetch('/api/fav-blogs/?user_id=__admin_all__');
+      var data = await res.json();
+      var rows = data.favourites || [];
+
+      // Stats
+      document.getElementById('stat-total').textContent = rows.length;
+      var users = new Set(rows.map(function(r) { return r.user_id; }));
+      document.getElementById('stat-users').textContent = users.size;
+      var blogs = new Set(rows.map(function(r) { return r.blog; }));
+      document.getElementById('stat-blogs').textContent = blogs.size;
+      var active = rows.filter(function(r) { return r.status === 'active'; });
+      document.getElementById('stat-active').textContent = active.length;
+
+      // Table
+      var tbody = document.getElementById('fav-table');
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-500 italic">No favourites yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(function(r) {
+        var statusColor = r.status === 'active' ? 'text-green-400' : 'text-gray-500';
+        return '<tr class="hover:bg-gray-800/50">' +
+          '<td class="px-3 py-2 text-gray-500 text-xs">' + r.id + '</td>' +
+          '<td class="px-3 py-2 text-gray-300 text-xs font-mono truncate max-w-[150px]" title="' + r.user_id + '">' + (r.user_id || '').slice(0, 20) + '</td>' +
+          '<td class="px-3 py-2"><a href="/blog/' + r.blog + '/" class="text-blue-400 hover:underline text-xs">' + r.blog + '</a></td>' +
+          '<td class="px-3 py-2 text-gray-400 text-xs">' + (r.datetime_created || '') + '</td>' +
+          '<td class="px-3 py-2 text-xs ' + statusColor + '">' + (r.status || 'active') + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', load);
+    load();
+  })();
+  </script>
+</Layout>

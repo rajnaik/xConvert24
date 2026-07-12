@@ -155,11 +155,12 @@ import '../../styles/global.css';
             <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-14" data-sort="seo_word_count">Words ↕</th>
             <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-14" data-sort="seo_internal_links">Links ↕</th>
             <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-24" data-sort="last_crawled">Crawled ↕</th>
+            <th class="px-3 py-2 text-left text-gray-400 font-medium cursor-pointer hover:text-white w-24" data-sort="created_at">Created ↕</th>
             <th class="px-3 py-2 text-center text-gray-400 font-medium w-16">Act</th>
           </tr>
         </thead>
         <tbody id="seo-table-body" class="divide-y divide-gray-800">
-          <tr><td colspan="7" class="px-4 py-8 text-center text-gray-500 italic">Loading...</td></tr>
+          <tr><td colspan="11" class="px-4 py-8 text-center text-gray-500 italic">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -353,7 +354,7 @@ import '../../styles/global.css';
       document.getElementById('next-page').disabled = currentOffset + pageSize >= data.total;
 
       if (!data.entries || data.entries.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-gray-500 italic">No entries found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-gray-500 italic">No entries found.</td></tr>';
         return;
       }
 
@@ -390,6 +391,7 @@ import '../../styles/global.css';
           '<td class="px-3 py-2 text-xs text-gray-500">' + (e.seo_word_count || 0) + '</td>' +
           '<td class="px-3 py-2 text-xs text-gray-500">' + (e.seo_internal_links || 0) + '</td>' +
           '<td class="px-3 py-2 text-gray-400 text-xs">' + (e.last_crawled || '—') + '</td>' +
+          '<td class="px-3 py-2 text-gray-400 text-xs">' + (e.created_at ? e.created_at.slice(0,10) : '—') + '</td>' +
           '<td class="px-3 py-2 text-center">' +
             '<button class="edit-btn text-blue-400 hover:text-blue-300 text-xs mr-1" data-record=\'' + JSON.stringify({id:e.id,url:e.url,status:e.status,last_crawled:e.last_crawled||'',first_indexed:e.first_indexed||'',notes:e.notes||'',pinned:e.pinned||0,seo_title:e.seo_title||'',seo_h1:e.seo_h1||'',seo_meta_description:e.seo_meta_description||'',seo_meta_keywords:e.seo_meta_keywords||'',seo_h2_count:e.seo_h2_count||0,seo_json_ld_article:e.seo_json_ld_article||0,seo_json_ld_faq:e.seo_json_ld_faq||0}).replace(/'/g,"&#39;") + '\'>Edit</button>' +
             '<button class="del-btn text-red-400 hover:text-red-300 text-xs" data-id="' + e.id + '">✕</button>' +

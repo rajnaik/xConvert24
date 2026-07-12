@@ -1,0 +1,149 @@
+---
+export const prerender = true;
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+<Layout title="My Favourite Blogs — ScrabbleWordsFinder" description="Your saved favourite blog articles from ScrabbleWordsFinder.com. Quick access to the posts you love. Free, no sign-up needed." keywords="favourite blogs, saved articles, scrabble blog bookmarks, Scrabble Words Finder">
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Hero -->
+    <div class="relative overflow-hidden rounded-2xl border border-red-500/30 bg-gradient-to-br from-red-950/40 via-gray-900 to-pink-950/30 p-6 mb-8">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 left-0 w-24 h-24 bg-pink-500/5 rounded-full blur-2xl"></div>
+      <div class="relative">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white mb-2 flex items-center gap-3">
+          <span class="text-3xl animate-pulse">❤️</span> My Favourite Blogs
+        </h1>
+        <p class="text-sm text-gray-300">Your personal collection — saved in your browser, no sign-up needed.</p>
+      </div>
+      <!-- Stats strip -->
+      <div id="fav-stats" class="mt-4 flex flex-wrap gap-4">
+        <div class="px-3 py-1.5 rounded-lg bg-red-900/30 border border-red-700/40">
+          <span class="text-xs text-gray-400">Saved</span>
+          <p id="stat-count" class="text-lg font-bold text-red-400">0</p>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-pink-900/30 border border-pink-700/40">
+          <span class="text-xs text-gray-400">Categories</span>
+          <p id="stat-categories" class="text-lg font-bold text-pink-400">0</p>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-amber-900/30 border border-amber-700/40">
+          <span class="text-xs text-gray-400">Latest</span>
+          <p id="stat-latest" class="text-lg font-bold text-amber-400 text-xs">—</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="fav-empty" class="hidden text-center py-12">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-900/20 border border-red-500/20 mb-4">
+        <span class="text-4xl">💔</span>
+      </div>
+      <p class="text-gray-400 text-sm mb-2">No favourites yet</p>
+      <p class="text-gray-500 text-xs mb-4">Click the <span class="text-red-400 font-bold">❤️</span> button on any blog post to save it here.</p>
+      <a href="/blog/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors">
+        Browse Blog →
+      </a>
+    </div>
+
+    <!-- Favourites list -->
+    <div id="fav-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+    <!-- Quick links (always visible) -->
+    <div class="mt-8 pt-6 border-t border-gray-800">
+      <p class="text-xs text-gray-500 uppercase tracking-wider mb-3 font-semibold">Quick Links</p>
+      <div class="flex flex-wrap gap-2">
+        <a href="/blog/" class="px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/50 text-xs text-gray-300 hover:text-blue-400 hover:border-blue-500/30 transition-colors">📖 All Blogs</a>
+        <a href="/blog/strategy/" class="px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/50 text-xs text-gray-300 hover:text-red-400 hover:border-red-500/30 transition-colors">🎯 Strategy</a>
+        <a href="/blog/bingos/" class="px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/50 text-xs text-gray-300 hover:text-pink-400 hover:border-pink-500/30 transition-colors">🎲 Bingos</a>
+        <a href="/blog/high-scoring/" class="px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/50 text-xs text-gray-300 hover:text-cyan-400 hover:border-cyan-500/30 transition-colors">💎 High-Scoring</a>
+        <a href="/blog/letter-guides/" class="px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/50 text-xs text-gray-300 hover:text-indigo-400 hover:border-indigo-500/30 transition-colors">🔠 Letter Guides</a>
+        <a href="/activities/" class="px-3 py-1.5 rounded-lg border border-gray-700 bg-gray-800/50 text-xs text-gray-300 hover:text-purple-400 hover:border-purple-500/30 transition-colors">🎮 Activities</a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    var KEY = 'swf-fav-blogs';
+    var listEl = document.getElementById('fav-list');
+    var emptyEl = document.getElementById('fav-empty');
+    var statCount = document.getElementById('stat-count');
+    var statCategories = document.getElementById('stat-categories');
+    var statLatest = document.getElementById('stat-latest');
+
+    // Color palette for cards (rotates)
+    var cardColors = [
+      { border: 'border-red-500/30', hover: 'hover:border-red-400', accent: 'text-red-400', bg: 'bg-red-950/10' },
+      { border: 'border-pink-500/30', hover: 'hover:border-pink-400', accent: 'text-pink-400', bg: 'bg-pink-950/10' },
+      { border: 'border-amber-500/30', hover: 'hover:border-amber-400', accent: 'text-amber-400', bg: 'bg-amber-950/10' },
+      { border: 'border-purple-500/30', hover: 'hover:border-purple-400', accent: 'text-purple-400', bg: 'bg-purple-950/10' },
+      { border: 'border-blue-500/30', hover: 'hover:border-blue-400', accent: 'text-blue-400', bg: 'bg-blue-950/10' },
+      { border: 'border-emerald-500/30', hover: 'hover:border-emerald-400', accent: 'text-emerald-400', bg: 'bg-emerald-950/10' },
+    ];
+
+    function getFavs() {
+      try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { return []; }
+    }
+
+    function saveFavs(favs) {
+      localStorage.setItem(KEY, JSON.stringify(favs));
+    }
+
+    function removeFav(slug) {
+      var favs = getFavs().filter(function(f) { return f.slug !== slug; });
+      saveFavs(favs);
+      render();
+    }
+
+    function updateStats(favs) {
+      statCount.textContent = favs.length;
+      // Count unique "categories" (first path segment after blog)
+      var cats = {};
+      favs.forEach(function(f) {
+        var parts = (f.slug || '').split('-');
+        var cat = parts.length > 2 ? parts.slice(0, 2).join('-') : parts[0];
+        cats[cat] = true;
+      });
+      statCategories.textContent = Object.keys(cats).length;
+      // Latest saved
+      if (favs.length > 0) {
+        var sorted = favs.slice().sort(function(a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
+        var d = sorted[0].savedAt ? new Date(sorted[0].savedAt) : null;
+        statLatest.textContent = d ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+      } else {
+        statLatest.textContent = '—';
+      }
+    }
+
+    function render() {
+      var favs = getFavs();
+      updateStats(favs);
+
+      if (favs.length === 0) {
+        emptyEl.classList.remove('hidden');
+        listEl.innerHTML = '';
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      listEl.innerHTML = favs.map(function(f, idx) {
+        var c = cardColors[idx % cardColors.length];
+        var savedDate = f.savedAt ? new Date(f.savedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+        return '<div class="group relative flex flex-col p-4 rounded-xl border ' + c.border + ' ' + c.bg + ' ' + c.hover + ' transition-all duration-200 hover:shadow-lg hover:shadow-red-900/10 hover:-translate-y-0.5">' +
+          '<button onclick="window.__removeFav(\'' + f.slug + '\')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full bg-red-900/60 border border-red-700/50 text-red-400 text-xs flex items-center justify-center hover:bg-red-800 hover:text-white transition-all cursor-pointer" title="Remove">✕</button>' +
+          '<div class="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-lg mb-3 group-hover:scale-110 transition-transform">' +
+            '<span class="' + c.accent + '">❤️</span>' +
+          '</div>' +
+          '<a href="/blog/' + f.slug + '/" class="text-white font-semibold text-sm hover:text-red-400 transition-colors block line-clamp-2 mb-2">' + (f.title || f.slug) + '</a>' +
+          (f.description ? '<p class="text-xs text-gray-400 line-clamp-2 flex-1">' + f.description + '</p>' : '<div class="flex-1"></div>') +
+          (savedDate ? '<p class="text-[10px] text-gray-600 mt-3 flex items-center gap-1"><span class="' + c.accent + '">📌</span> ' + savedDate + '</p>' : '') +
+        '</div>';
+      }).join('');
+    }
+
+    window.__removeFav = removeFav;
+    render();
+  })();
+  </script>
+</Layout>

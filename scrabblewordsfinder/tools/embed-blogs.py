@@ -43,18 +43,10 @@ CHUNK_SIZE = 400  # words per chunk
 CHUNK_OVERLAP = 50  # word overlap between chunks
 BATCH_SIZE = 20  # vectors per insert batch
 
-# ── Cloudflare API ──
-ACCOUNT_ID = os.environ.get('CLOUDFLARE_ACCOUNT_ID', '')
-API_TOKEN = os.environ.get('CLOUDFLARE_API_TOKEN', '')
-
-CF_BASE = f'https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}'
-
-
-def get_headers():
-    return {
-        'Authorization': f'Bearer {API_TOKEN}',
-        'Content-Type': 'application/json',
-    }
+# ── Embed endpoint (uses Worker AI + Vectorize bindings — no API token needed) ──
+EMBED_URL_LOCAL = "http://localhost:4321/api/embed/"
+EMBED_URL_LIVE = "https://www.scrabblewordsfinder.com/api/embed/"
+EMBED_URL_STAGING = "https://scrabblewordsfinder-staging.xconvert.workers.dev/api/embed/"
 
 
 def strip_astro_to_text(content: str) -> str:
@@ -129,57 +121,54 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
 
 
 def generate_embeddings(texts: list) -> list:
-    """Call Cloudflare Workers AI to generate embeddings for a batch of texts."""
-    # URL-encode the model path (@ needs to be %40)
-    model_path = EMBEDDING_MODEL.replace('@', '%40')
-    url = f'{CF_BASE}/ai/run/{model_path}'
-    payload = {'text': texts}
-
-    resp = requests.post(url, headers=get_headers(), json=payload, timeout=60)
-    if resp.status_code != 200:
-        print(f"    ERROR embedding: {resp.status_code} — {resp.text[:200]}")
-        return []
-
-    data = resp.json()
-    if not data.get('success'):
-        print(f"    ERROR: {data.get('errors', 'Unknown error')}")
-        return []
-
-    return data.get('result', {}).get('data', [])
+    """Call /api/embed/ endpoint to generate embeddings (no direct API token needed)."""
+    # This is not used anymore — embed_and_upsert does both in one call
+    raise NotImplementedError("Use embed_and_upsert() instead")
 
 
 def insert_vectors(vectors: list) -> bool:
-    """Insert a batch of vectors into Vectorize index."""
-    url = f'{CF_BASE}/vectorize/v2/indexes/{VECTORIZE_INDEX}/insert'
+    """Insert a batch of vectors into Vectorize index via /api/embed/ endpoint."""
+    # This is not used anymore — embed_and_upsert does both in one call
+    raise NotImplementedError("Use embed_and_upsert() instead")
 
-    # Format for Vectorize API
-    ndjson_lines = []
-    for v in vectors:
-        ndjson_lines.append(json.dumps({
-            'id': v['id'],
-            'values': v['values'],
-            'metadata': v['metadata'],
-        }))
 
-    payload = '\n'.join(ndjson_lines)
+def embed_and_upsert(chunks: list, embed_url: str) -> bool:
+    """Embed texts and upsert to Vectorize via /api/embed/ endpoint in one call."""
+    # Strip non-ASCII (emojis crash the AI model) before embedding
+    import re
+    def clean_text(t):
+        # Remove emojis and non-ASCII, keep basic Latin
+        return re.sub(r'[^\x00-\x7F]+', ' ', t).strip()
 
-    resp = requests.post(
-        url,
-        headers={'Authorization': f'Bearer {API_TOKEN}', 'Content-Type': 'application/x-ndjson'},
-        data=payload,
-        timeout=60,
-    )
+    texts = [clean_text(c['text'])[:512] for c in chunks]
+    ids = [c['id'] for c in chunks]
+    metadata = [c['metadata'] for c in chunks]
 
-    if resp.status_code != 200:
-        print(f"    ERROR inserting: {resp.status_code} — {resp.text[:200]}")
+    headers = {"Content-Type": "application/json"}
+    embed_secret = os.environ.get("EMBED_SECRET", "")
+    if embed_secret:
+        headers["X-Embed-Key"] = embed_secret
+
+    try:
+        resp = requests.post(embed_url, headers=headers, json={
+            "texts": texts,
+            "ids": ids,
+            "metadata": metadata,
+        }, timeout=60)
+
+        if resp.status_code != 200:
+            print(f"    ERROR: {resp.status_code} — {resp.text[:200]}")
+            return False
+
+        data = resp.json()
+        if not data.get("success"):
+            print(f"    ERROR: {data.get('error', 'Unknown')}")
+            return False
+
+        return True
+    except Exception as e:
+        print(f"    ERROR: {e}")
         return False
-
-    data = resp.json()
-    if not data.get('success'):
-        print(f"    ERROR: {data.get('errors', 'Unknown')}")
-        return False
-
-    return True
 
 
 def main():
@@ -187,18 +176,52 @@ def main():
     parser.add_argument('--limit', type=int, default=0, help='Limit number of blog files to process (0=all)')
     parser.add_argument('--dry-run', action='store_true', help='Preview without inserting')
     parser.add_argument('--skip-existing', action='store_true', help='Skip blogs already in the index')
+    parser.add_argument('--live', action='store_true', help='Use live endpoint')
+    parser.add_argument('--staging', action='store_true', help='Use staging endpoint')
+    parser.add_argument('--retry', action='store_true', help='Only retry previously failed chunks')
     args = parser.parse_args()
 
-    # Validate credentials
-    if not args.dry_run:
-        if not ACCOUNT_ID:
-            print("ERROR: Set CLOUDFLARE_ACCOUNT_ID environment variable")
-            print("  export CLOUDFLARE_ACCOUNT_ID='your-account-id'")
-            sys.exit(1)
-        if not API_TOKEN:
-            print("ERROR: Set CLOUDFLARE_API_TOKEN environment variable")
-            print("  export CLOUDFLARE_API_TOKEN='your-api-token'")
-            sys.exit(1)
+    embed_url = EMBED_URL_LIVE if args.live else (EMBED_URL_STAGING if args.staging else EMBED_URL_LOCAL)
+
+    # Retry mode: load failed chunks from previous run
+    if args.retry:
+        failed_file = os.path.join(PROJECT_DIR, 'tools', '.embed-failed.json')
+        if not os.path.exists(failed_file):
+            print("No failed chunks to retry (tools/.embed-failed.json not found).")
+            return
+        with open(failed_file, 'r') as f:
+            all_chunks = json.load(f)
+        print(f"\n{'='*60}")
+        print(f"  RETRY MODE — {len(all_chunks)} failed chunks from previous run")
+        print(f"  Endpoint: {embed_url}")
+        print(f"{'='*60}\n")
+
+        # Go straight to embedding
+        success_count = 0
+        failed_count = 0
+        failed_chunks = []
+        start_time = time.time()
+
+        for i in range(0, len(all_chunks), BATCH_SIZE):
+            batch = all_chunks[i:i + BATCH_SIZE]
+            if embed_and_upsert(batch, embed_url):
+                success_count += len(batch)
+            else:
+                failed_count += len(batch)
+                failed_chunks.extend(batch)
+                time.sleep(3)  # Longer backoff for retries
+            time.sleep(1)  # Slower pace for retries
+
+        elapsed = time.time() - start_time
+        if failed_chunks:
+            with open(failed_file, 'w') as f:
+                json.dump(failed_chunks, f)
+            print(f"\n  Still {len(failed_chunks)} failed. Saved for next retry.")
+        else:
+            os.remove(failed_file)
+            print(f"\n  ✅ All retries succeeded!")
+        print(f"  Embedded: {success_count} | Still failed: {failed_count} | Time: {elapsed:.0f}s")
+        return
 
     # Find all blog files
     blog_files = sorted(glob.glob(os.path.join(BLOG_DIR, '*.astro')))
@@ -234,7 +257,10 @@ def main():
 
         chunks = chunk_text(text)
         for j, chunk in enumerate(chunks):
-            chunk_id = f"blog-{slug}-{j}"
+            # Vectorize max ID is 64 bytes — truncate slug if needed
+            max_slug_len = 64 - len(f"blog--{j}")  # leave room for prefix + chunk index
+            safe_slug = slug[:max_slug_len]
+            chunk_id = f"blog-{safe_slug}-{j}"
             all_chunks.append({
                 'id': chunk_id,
                 'text': chunk,
@@ -259,59 +285,39 @@ def main():
         print(f"  Estimated API calls: {(len(all_chunks) // BATCH_SIZE) + 1} embedding batches")
         return
 
-    # Generate embeddings and insert
-    print(f"\n[2/3] Generating embeddings ({len(all_chunks)} chunks in batches of {BATCH_SIZE})...")
-    vectors_to_insert = []
-    embedded_count = 0
+    # Generate embeddings and upsert via /api/embed/ (does both in one call)
+    print(f"\n[2/3] Embedding + upserting via {embed_url}...")
+    success_count = 0
     failed_count = 0
+    failed_chunks = []
     start_time = time.time()
 
     for i in range(0, len(all_chunks), BATCH_SIZE):
         batch = all_chunks[i:i + BATCH_SIZE]
-        texts = [c['text'] for c in batch]
 
-        embeddings = generate_embeddings(texts)
-        if not embeddings or len(embeddings) != len(batch):
+        if embed_and_upsert(batch, embed_url):
+            success_count += len(batch)
+        else:
             failed_count += len(batch)
-            print(f"  ❌ Batch {i//BATCH_SIZE + 1} failed — skipping")
+            failed_chunks.extend(batch)
             time.sleep(2)  # Back off on failure
-            continue
-
-        for j, emb in enumerate(embeddings):
-            vectors_to_insert.append({
-                'id': batch[j]['id'],
-                'values': emb,
-                'metadata': batch[j]['metadata'],
-            })
-
-        embedded_count += len(batch)
 
         if (i // BATCH_SIZE + 1) % 10 == 0:
             elapsed = time.time() - start_time
-            pct = embedded_count / len(all_chunks) * 100
-            print(f"  [{pct:5.1f}%] Embedded {embedded_count}/{len(all_chunks)} chunks ({elapsed:.0f}s)")
+            pct = success_count / len(all_chunks) * 100
+            print(f"  [{pct:5.1f}%] Embedded {success_count}/{len(all_chunks)} chunks ({elapsed:.0f}s)")
 
-        time.sleep(0.5)  # Rate limit: ~2 requests/sec
+        time.sleep(0.5)  # Rate limit
 
-    print(f"  Embedded: {embedded_count} | Failed: {failed_count}")
-
-    # Insert into Vectorize
-    print(f"\n[3/3] Inserting {len(vectors_to_insert)} vectors into Vectorize...")
-    insert_success = 0
-    insert_failed = 0
-
-    for i in range(0, len(vectors_to_insert), BATCH_SIZE):
-        batch = vectors_to_insert[i:i + BATCH_SIZE]
-        if insert_vectors(batch):
-            insert_success += len(batch)
-        else:
-            insert_failed += len(batch)
-            time.sleep(2)
-
-        if (i // BATCH_SIZE + 1) % 20 == 0:
-            print(f"  Inserted {insert_success} vectors...")
-
-        time.sleep(0.3)
+    # Save failed chunks for --retry
+    failed_file = os.path.join(PROJECT_DIR, 'tools', '.embed-failed.json')
+    if failed_chunks:
+        with open(failed_file, 'w') as f:
+            json.dump(failed_chunks, f)
+        print(f"\n  Saved {len(failed_chunks)} failed chunks to tools/.embed-failed.json")
+        print(f"  Re-run with: python3 tools/embed-blogs.py --live --retry")
+    elif os.path.exists(failed_file):
+        os.remove(failed_file)
 
     elapsed = time.time() - start_time
 
@@ -319,17 +325,17 @@ def main():
     print(f"\n{'='*60}")
     print(f"  COMPLETE")
     print(f"  Blog files processed: {len(blog_files)}")
-    print(f"  Chunks embedded: {embedded_count}")
-    print(f"  Vectors inserted: {insert_success}")
-    print(f"  Failed: {insert_failed}")
+    print(f"  Chunks embedded + upserted: {success_count}")
+    print(f"  Failed: {failed_count}")
     print(f"  Time: {elapsed:.0f}s")
     print(f"  Index: {VECTORIZE_INDEX}")
+    print(f"  Endpoint: {embed_url}")
     print(f"{'='*60}")
 
-    if insert_failed > 0:
-        print(f"\n  ⚠️ {insert_failed} vectors failed. Re-run to retry (duplicates are overwritten).")
+    if failed_count > 0:
+        print(f"\n  ⚠️ {failed_count} chunks failed. Re-run to retry (duplicates are overwritten).")
     else:
-        print(f"\n  ✅ All {insert_success} vectors inserted successfully!")
+        print(f"\n  ✅ All {success_count} chunks embedded successfully!")
         print(f"  Lex can now answer questions using real blog content.")
 
 

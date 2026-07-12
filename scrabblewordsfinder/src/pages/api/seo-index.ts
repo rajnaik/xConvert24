@@ -52,7 +52,7 @@ export const GET: APIRoute = async ({ request }) => {
     countQuery += where;
   }
   const sortField = url.searchParams.get('sort') || '';
-  const validSorts = ['url','status','seo_title_length','seo_desc_length','seo_h2_count','seo_word_count','seo_internal_links','last_crawled','pinned'];
+  const validSorts = ['url','status','seo_title_length','seo_desc_length','seo_h2_count','seo_word_count','seo_internal_links','last_crawled','pinned','created_at'];
   let orderClause: string;
   if (search && !sortField) {
     // When searching without explicit sort, prioritize shorter URLs (more exact matches first)

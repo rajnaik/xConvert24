@@ -246,11 +246,10 @@ import '../../styles/global.css';
     let allWordsCache: any[] = [];
 
     async function openEdit(id: number) {
-      // Fetch fresh data for this word
-      const res = await fetch(`/api/wotd-admin/?search=&limit=200&offset=0`);
+      // Fetch this specific word by ID
+      const res = await fetch(`/api/wotd-admin/?id=${id}`);
       const data = await res.json();
-      allWordsCache = data.words || [];
-      const word = allWordsCache.find((w: any) => w.id === id);
+      const word = data.words?.[0] || data.word;
       if (!word) { showToast('Word not found', false); return; }
 
       document.getElementById('modal-title')!.textContent = `Edit Word #${id}`;

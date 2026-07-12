@@ -56,6 +56,14 @@ function countH2(content) {
   return matches ? matches.length : 0;
 }
 
+function extractH1(content) {
+  // Match <h1 ...>text</h1> — handles classes and attributes
+  const match = content.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  if (!match) return '';
+  // Strip any inner HTML tags (spans, etc.)
+  return match[1].replace(/<[^>]+>/g, '').trim();
+}
+
 function hasJsonLd(content, type) {
   const regex = new RegExp(`"@type"\\s*:\\s*"${type}"`, 'i');
   return regex.test(content) ? 1 : 0;
@@ -96,6 +104,7 @@ async function main() {
     const title = extractProp(content, 'title');
     const description = extractProp(content, 'description');
     const keywords = extractProp(content, 'keywords');
+    const h1 = extractH1(content);
     const h2Count = countH2(content);
     const hasArticle = hasJsonLd(content, 'Article');
     const hasFaq = hasJsonLd(content, 'FAQPage');
@@ -104,13 +113,25 @@ async function main() {
     const titleLength = title.length;
     const descLength = description.length;
 
+    // OG tags + canonical are rendered by Layout/BlogLayout, not in page files.
+    // Infer from title/description since Layout always passes them through.
+    const ogTitle = title;
+    const ogDescription = description;
+    const ogImage = title ? '/social-card.svg' : '';
+    const canonical = title ? `https://www.scrabblewordsfinder.com${url}` : '';
+
     // Only generate update if we have at least a title
     if (title) {
       updates.push(
         `UPDATE seo_index SET ` +
         `seo_title='${escSql(title)}', ` +
+        `seo_h1='${escSql(h1)}', ` +
         `seo_meta_description='${escSql(description)}', ` +
         `seo_meta_keywords='${escSql(keywords)}', ` +
+        `seo_og_title='${escSql(ogTitle)}', ` +
+        `seo_og_description='${escSql(ogDescription)}', ` +
+        `seo_og_image='${escSql(ogImage)}', ` +
+        `seo_canonical='${escSql(canonical)}', ` +
         `seo_h2_count=${h2Count}, ` +
         `seo_json_ld_article=${hasArticle}, ` +
         `seo_json_ld_faq=${hasFaq}, ` +

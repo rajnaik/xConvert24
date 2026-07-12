@@ -68,7 +68,7 @@ const adHideStyle = isDev ? '' : 'display:none';
       <link rel="preload" href="/data/swfdict.json" as="fetch" crossorigin="anonymous" />
     </>}
     <!-- Critical CSS: paint background immediately while stylesheet loads -->
-    <style>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}[data-ad-toggle]{display:none}.ads-active [data-ad-toggle]{display:flex}</style>
+    <style is:inline>body{background:#0a0a0f;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;margin:0}[data-ad-toggle]{display:none !important}.ads-active [data-ad-toggle]{display:revert !important}</style>
     {(noindex || Astro.url.pathname.startsWith('/admin')) && <meta name="robots" content="noindex, nofollow" />}
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -185,7 +185,7 @@ const adHideStyle = isDev ? '' : 'display:none';
     {/* Welcome banner — shows below header when user has avatar */}
     {/* Welcome banner — shows at the very top before header */}
     {showHeader && !isAdmin && (
-      <div id="welcome-banner" class="hidden mx-auto max-w-6xl px-4 sm:px-6 pt-4 sm:pt-2 pb-0">
+      <div id="welcome-banner" class="hidden mx-auto max-w-6xl px-4 sm:px-6 pt-4 sm:pt-2 pb-0" style="margin-top:8px;">
         <div class="flex items-center gap-3 rounded-lg bg-gradient-to-r from-teal-900/30 to-purple-900/20 border border-teal-700/30 px-4 py-1.5">
           <img id="welcome-avatar" src="/avatars/avatar-1.svg" alt="Your avatar" class="h-9 w-9 rounded-full border-2 border-teal-500/60 shadow-sm" />
           <p class="text-sm text-gray-200">
@@ -256,49 +256,45 @@ const adHideStyle = isDev ? '' : 'display:none';
       var toggleMobile = document.getElementById('theme-toggle-mobile');
       if (!toggle && !toggleMobile) return;
       var theme = localStorage.getItem('swf-theme') || 'dark';
+      // Migrate old 'light' theme to 'lite-dark'
+      if (theme === 'light') { theme = 'lite-dark'; localStorage.setItem('swf-theme', theme); }
 
-      // Light mode overrides
-      var lightCSS = document.createElement('style');
-      lightCSS.id = 'light-mode-css';
-      lightCSS.textContent = `
-        body.light-mode { background: #f5f3ef !important; color: #111827 !important; }
-        body.light-mode .bg-gray-950 { background: #f5f3ef !important; }
-        body.light-mode .bg-gray-900\\/50, body.light-mode .bg-gray-900 { background: #ffffff !important; }
-        body.light-mode .bg-gray-800 { background: #f1ede8 !important; }
-        body.light-mode .bg-gray-800\\/40 { background: rgba(241,237,232,0.4) !important; }
-        body.light-mode .border-gray-800, body.light-mode .border-gray-700 { border-color: #d6cfc7 !important; }
-        body.light-mode .border-purple-800\\/50 { border-color: rgba(147,112,219,0.3) !important; }
-        body.light-mode .text-gray-100, body.light-mode .text-white { color: #111827 !important; }
-        body.light-mode .text-gray-300 { color: #1f2937 !important; }
-        body.light-mode .text-gray-400 { color: #374151 !important; }
-        body.light-mode .text-gray-500 { color: #4b5563 !important; }
-        body.light-mode .text-blue-300 { color: #2563eb !important; }
-        body.light-mode .text-blue-400 { color: #2563eb !important; }
-        body.light-mode .text-purple-300 { color: #7c3aed !important; }
-        body.light-mode input, body.light-mode select, body.light-mode textarea { background: #fff !important; color: #111827 !important; border-color: #d6cfc7 !important; }
-        body.light-mode .rounded-xl { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+      // Lite Dark mode overrides (warmer, natural dark — like a dim room with warm light)
+      var liteDarkCSS = document.createElement('style');
+      liteDarkCSS.id = 'lite-dark-css';
+      liteDarkCSS.textContent = `
+        body.lite-dark-mode { background: #1c1917 !important; }
+        body.lite-dark-mode .bg-gray-950 { background: #1c1917 !important; }
+        body.lite-dark-mode .bg-gray-900\\/50, body.lite-dark-mode .bg-gray-900 { background: #292524 !important; }
+        body.lite-dark-mode .bg-gray-800 { background: #322f2c !important; }
+        body.lite-dark-mode .bg-gray-800\\/40 { background: rgba(50,47,44,0.4) !important; }
+        body.lite-dark-mode .border-gray-800, body.lite-dark-mode .border-gray-700 { border-color: #44403c !important; }
+        body.lite-dark-mode .text-gray-400 { color: #a8a29e !important; }
+        body.lite-dark-mode .text-gray-500 { color: #78716c !important; }
+        body.lite-dark-mode .text-gray-300 { color: #d6d3d1 !important; }
+        body.lite-dark-mode input, body.lite-dark-mode select, body.lite-dark-mode textarea { background: #292524 !important; border-color: #44403c !important; }
       `;
-      document.head.appendChild(lightCSS);
+      document.head.appendChild(liteDarkCSS);
 
-      var moonSVG = '<svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24"><path d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>';
-      var sunSVG = '<svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.364-7.364l-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0l-1.414-1.414M7.05 7.05L5.636 5.636"/></svg>';
+      // Icons: half-moon for lite dark, full moon for heavy dark
+      var halfMoonSVG = '<svg class="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 24 24"><path d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>';
+      var fullMoonSVG = '<svg class="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>';
 
       function applyTheme(t) {
-        if (t === 'light') {
-          document.documentElement.classList.remove('dark');
-          document.body.classList.add('light-mode');
-          if (toggle) { toggle.innerHTML = moonSVG; toggle.title = 'Switch to dark mode'; }
-          if (toggleMobile) { toggleMobile.innerHTML = moonSVG; toggleMobile.title = 'Switch to dark mode'; }
+        document.documentElement.classList.add('dark');
+        if (t === 'lite-dark') {
+          document.body.classList.add('lite-dark-mode');
+          if (toggle) { toggle.innerHTML = halfMoonSVG; toggle.title = 'Lite Dark — click for Heavy Dark'; }
+          if (toggleMobile) { toggleMobile.innerHTML = halfMoonSVG; toggleMobile.title = 'Lite Dark — click for Heavy Dark'; }
         } else {
-          document.documentElement.classList.add('dark');
-          document.body.classList.remove('light-mode');
-          if (toggle) { toggle.innerHTML = moonSVG; toggle.title = 'Switch to light mode'; }
-          if (toggleMobile) { toggleMobile.innerHTML = moonSVG; toggleMobile.title = 'Switch to light mode'; }
+          document.body.classList.remove('lite-dark-mode');
+          if (toggle) { toggle.innerHTML = fullMoonSVG; toggle.title = 'Heavy Dark — click for Lite Dark'; }
+          if (toggleMobile) { toggleMobile.innerHTML = fullMoonSVG; toggleMobile.title = 'Heavy Dark — click for Lite Dark'; }
         }
       }
       applyTheme(theme);
       function doToggle() {
-        theme = theme === 'dark' ? 'light' : 'dark';
+        theme = theme === 'dark' ? 'lite-dark' : 'dark';
         localStorage.setItem('swf-theme', theme);
         applyTheme(theme);
       }
@@ -482,7 +478,7 @@ const adHideStyle = isDev ? '' : 'display:none';
 
     {/* Banner ad row — full width between header and content (public pages only) */}
     {showAds && (
-      <div class="hidden lg:flex justify-center py-3 border-b border-gray-800/50" data-ad-toggle>
+      <div class="hidden lg:flex justify-center py-3 border-b border-gray-800/50 max-w-4xl mx-auto" data-ad-toggle>
         <AdUnit format="banner" slot="4433159473" />
       </div>
     )}
@@ -492,25 +488,26 @@ const adHideStyle = isDev ? '' : 'display:none';
 
     {/* 3-column layout: left skyscraper | content | right skyscraper */}
     {!isAdmin ? (
-      <table class="w-full max-w-7xl mx-auto border-collapse" cellspacing="0" cellpadding="0" style="border-spacing:0;">
-        <tr class="align-top">
-          {showAds && (
-            <td class="hidden lg:table-cell w-[160px] align-top p-0 m-0" data-ad-toggle>
-              <div class="ml-[35px]"><AdUnit format="skyscraper" slot="2761553378" /></div>
-            </td>
-          )}
-          <td class="p-0 m-0 align-top">
-            <main class="min-w-0">
-              <slot />
-            </main>
-          </td>
-          {showAds && (
-            <td class="hidden lg:table-cell w-[160px] align-top p-0 m-0" data-ad-toggle>
-              <div class="mr-[50px]"><AdUnit format="skyscraper" slot="2761553378" /></div>
-            </td>
-          )}
-        </tr>
-      </table>
+      <div class="relative max-w-6xl mx-auto">
+        {/* Left skyscraper — positioned absolute to hug content */}
+        {showAds && (
+          <div class="hidden lg:block absolute left-0 top-0 w-[160px]" data-ad-toggle style="margin-left:35px;">
+            <div class="sticky top-4"><AdUnit format="skyscraper" slot="2761553378" /></div>
+          </div>
+        )}
+
+        {/* Main content — always centered */}
+        <main class="min-w-0" style="margin-left:-5px;margin-right:-5px;">
+          <slot />
+        </main>
+
+        {/* Right skyscraper — positioned absolute to hug content */}
+        {showAds && (
+          <div class="hidden lg:block absolute right-0 top-0 w-[160px]" data-ad-toggle style="margin-right:50px;">
+            <div class="sticky top-4"><AdUnit format="skyscraper" slot="2761553378" /></div>
+          </div>
+        )}
+      </div>
     ) : (
       <slot />
     )}
@@ -868,7 +865,7 @@ const adHideStyle = isDev ? '' : 'display:none';
 
         // Style it
         var style = document.createElement('style');
-        style.textContent = '.diamond-mine-gem{position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;align-items:center;gap:6px;padding:14px 18px;min-width:48px;min-height:48px;border-radius:16px;background:linear-gradient(135deg,#1a0533,#2d1b69);border:2px solid rgba(168,85,247,0.6);box-shadow:0 0 20px rgba(168,85,247,0.3),0 4px 12px rgba(0,0,0,0.5);cursor:pointer;transition:all .3s;animation:dm-pulse 2s infinite}' +
+        style.textContent = '.diamond-mine-gem{position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;align-items:center;gap:6px;padding:16px 20px;min-width:48px;min-height:48px;border-radius:16px;background:linear-gradient(135deg,#1a0533,#2d1b69);border:2px solid rgba(168,85,247,0.6);box-shadow:0 0 20px rgba(168,85,247,0.3),0 4px 12px rgba(0,0,0,0.5);cursor:pointer;transition:all .3s;animation:dm-pulse 2s infinite}' +
           '.diamond-mine-gem:hover{transform:scale(1.1);border-color:rgba(168,85,247,0.9);box-shadow:0 0 30px rgba(168,85,247,0.5),0 6px 16px rgba(0,0,0,0.6)}' +
           '.dm-icon{font-size:24px;animation:dm-sparkle 1.5s ease-in-out infinite}' +
           '.dm-label{color:#c4b5fd;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px}' +

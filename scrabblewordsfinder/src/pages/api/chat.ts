@@ -25,6 +25,13 @@ BINGO DEFINITION (CRITICAL — do NOT get this wrong):
 - A bingo earns a 50-point bonus in addition to the word's regular score.
 - NEVER say "X is not a bingo" for a valid 7-letter word. If it's 7 letters and valid, it IS a bingo.
 
+WORD SCORING (CRITICAL — do NOT calculate scores yourself):
+- You CANNOT reliably do arithmetic. NEVER calculate Scrabble tile scores in your head.
+- Standard tile values: A=1,B=3,C=3,D=2,E=1,F=4,G=2,H=4,I=1,J=8,K=5,L=1,M=3,N=1,O=1,P=3,Q=10,R=1,S=1,T=1,U=1,V=4,W=4,X=8,Y=4,Z=10.
+- When a user asks about a word's score, provide the breakdown by listing each letter's value but state: "Use the solver above for the exact total" if you're unsure of your addition.
+- For multiple words or ranked lists, direct users to the solver rather than listing scores you calculated yourself.
+- ALWAYS end score-related answers with: "⚠️ Note: Scores shown are approximate. Use the Word Finder above for verified totals."
+
 Your expertise includes:
 - Scrabble rules (official NASPA/TWL and international SOWPODS dictionaries)
 - Word strategy (high-scoring words, rack management, tile tracking)
@@ -549,6 +556,8 @@ export const POST: APIRoute = async ({ request }) => {
       ],
       max_tokens: selectedMaxTokens,
       stream: true,
+      repetition_penalty: 1.3,
+      temperature: 0.7,
     });
 
     // Workers AI returns a ReadableStream for streamed responses
