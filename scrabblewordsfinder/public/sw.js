@@ -114,3 +114,60 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 });
+
+
+// ── Push Notifications (WOTD daily alerts) ──
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let data;
+  try {
+    data = event.data.json();
+  } catch {
+    data = { title: 'ScrabbleWordsFinder', body: event.data.text() };
+  }
+
+  const options = {
+    body: data.body || 'Check out today\'s Word of the Day!',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    tag: 'wotd-' + (data.date || new Date().toISOString().split('T')[0]),
+    data: {
+      url: data.url || '/activities/#wotd',
+    },
+    actions: [
+      { action: 'open', title: 'View Word' },
+      { action: 'dismiss', title: 'Dismiss' },
+    ],
+    vibrate: [100, 50, 100],
+    renotify: false,
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || '📖 Word of the Day', options)
+  );
+});
+
+// Handle notification click — open the WOTD page
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'dismiss') return;
+
+  const url = event.notification.data?.url || '/activities/#wotd';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // If a tab is already open, focus it
+      for (const client of windowClients) {
+        if (client.url.includes('scrabblewordsfinder') && 'focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      // Otherwise open a new tab
+      return clients.openWindow(url);
+    })
+  );
+});
