@@ -1,0 +1,465 @@
+---
+export const prerender = false;
+import Layout from '../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
+import '../styles/global.css';
+
+const db = (env as any).DB;
+
+let wespaRankings: any[] = [];
+let ytdRankings: any[] = [];
+let onlineRankings: any[] = [];
+let upcomingTournaments: any[] = [];
+let recentResults: any[] = [];
+
+try {
+  const wespaRes = await db.prepare("SELECT * FROM player_rankings WHERE ranking_type = 'wespa' AND active = 1 ORDER BY rank ASC LIMIT 50").all();
+  wespaRankings = wespaRes.results || [];
+
+  const ytdRes = await db.prepare("SELECT * FROM player_rankings WHERE ranking_type = 'ytd' AND active = 1 ORDER BY rank ASC LIMIT 50").all();
+  ytdRankings = ytdRes.results || [];
+
+  const onlineRes = await db.prepare("SELECT * FROM player_rankings WHERE ranking_type = 'online' AND active = 1 ORDER BY rank ASC LIMIT 50").all();
+  onlineRankings = onlineRes.results || [];
+
+  const upcomingRes = await db.prepare("SELECT * FROM tournaments WHERE status IN ('upcoming', 'active') ORDER BY start_date ASC").all();
+  upcomingTournaments = upcomingRes.results || [];
+
+  const recentRes = await db.prepare("SELECT * FROM tournaments WHERE status = 'completed' ORDER BY end_date DESC LIMIT 5").all();
+  recentResults = recentRes.results || [];
+} catch (e) {
+  console.error('Failed to fetch competitive data:', e);
+}
+
+const tierColors: Record<string, string> = {
+  platinum: 'text-purple-400 bg-purple-900/30 border-purple-500/40',
+  gold: 'text-amber-400 bg-amber-900/30 border-amber-500/40',
+  silver: 'text-zinc-200 bg-zinc-700/30 border-zinc-400/50',
+  bronze: 'text-orange-400 bg-orange-900/30 border-orange-500/40',
+  others: 'text-gray-400 bg-gray-900/30 border-gray-600/40',
+};
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
+function daysUntil(dateStr: string) {
+  const now = new Date();
+  const target = new Date(dateStr + 'T00:00:00Z');
+  return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+}
+---
+
+<Layout
+  title="World Scrabble Rankings — WESPA Ratings, Tournaments & Player Profiles"
+  description="Live WESPA world rankings, YTD standings, player profiles, upcoming tournaments, and recent results. Track the top competitive Scrabble players globally. Free."
+  keywords="WESPA rankings, world scrabble rankings, scrabble tournament calendar, competitive scrabble, top scrabble players, WESPAC, scrabble ratings, player profiles, tournament results, scrabble world champion"
+>
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "World Scrabble Rankings — WESPA Ratings, Tournaments & Player Profiles",
+  "description": "Live WESPA world rankings, YTD standings, player profiles, and tournament calendar for competitive Scrabble.",
+  "url": "https://www.scrabblewordsfinder.com/world-rankings/",
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "WESPA World Scrabble Rankings",
+    "numberOfItems": wespaRankings.length,
+    "itemListElement": wespaRankings.slice(0, 10).map((p: any, i: number) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "name": p.name,
+      "description": `Rank #${p.rank} — ${p.country} — Rating: ${p.rating}`
+    }))
+  }
+})} />
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Who is the highest-rated Scrabble player in the world?",
+      "acceptedAnswer": { "@type": "Answer", "text": `As of July 2026, ${wespaRankings[0]?.name || 'David Eldar'} from ${wespaRankings[0]?.country || 'Australia'} holds the #1 WESPA rating with ${wespaRankings[0]?.rating || 2145} points. WESPA ratings are based on performance in internationally-sanctioned over-the-board tournaments.` }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the WESPA rating system?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The WESPA (World English-Language Scrabble Players Association) rating system ranks competitive Scrabble players globally based on their performance in sanctioned over-the-board tournaments. Ratings are calculated using an Elo-style formula that accounts for opponent strength and game results." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do players qualify for the World Scrabble Championship?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Players qualify for the WESPA Championship (WESPAC) through a combination of their WESPA rating and Year-to-Date (YTD) performance points. The top 24 players on the YTD rankings qualify for the Summit Cup, while WESPAC uses a broader qualification based on national championships and rating thresholds." }
+    }
+  ]
+})} />
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+  <!-- Hero -->
+  <div class="text-center mb-10">
+    <h1 class="text-3xl md:text-4xl font-light text-white mb-3">World Scrabble Rankings</h1>
+    <p class="text-gray-400 text-sm max-w-2xl mx-auto">WESPA ratings, Year-to-Date standings, player profiles, and the global tournament calendar — all in one place.</p>
+    <p class="text-xs text-gray-500 mt-2">Last updated: July 2026 • Source: <a href="https://wespa.org/" target="_blank" rel="noopener" class="text-blue-400 hover:underline">wespa.org</a></p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="flex flex-wrap justify-center gap-2 mb-8" id="tab-nav">
+    <button data-tab="wespa" class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600/20 text-blue-400 border border-blue-500/40">WESPA Ratings</button>
+    <button data-tab="ytd" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">YTD Rankings</button>
+    <button data-tab="online" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Online Ratings</button>
+    <button data-tab="players" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Player Profiles</button>
+    <button data-tab="calendar" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Tournaments</button>
+  </div>
+
+  <!-- WESPA Ratings Tab -->
+  <div id="panel-wespa" class="tab-panel">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <h2 class="text-xl font-light text-white">WESPA World Ratings — Top 50</h2>
+      <div class="flex gap-2">
+        <input type="text" id="search-wespa" placeholder="Search player..." class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none w-40" />
+        <select id="filter-country" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-300 focus:border-blue-500 focus:outline-none">
+          <option value="">All Countries</option>
+        </select>
+      </div>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm" id="wespa-table">
+        <thead>
+          <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-3 py-3 text-left w-12">#</th>
+            <th class="px-3 py-3 text-left">Player</th>
+            <th class="px-3 py-3 text-left hidden sm:table-cell">Country</th>
+            <th class="px-3 py-3 text-right">Rating</th>
+            <th class="px-3 py-3 text-right hidden md:table-cell">Games</th>
+            <th class="px-3 py-3 text-right hidden lg:table-cell">Peak</th>
+            <th class="px-3 py-3 text-left hidden xl:table-cell">Titles</th>
+          </tr>
+        </thead>
+        <tbody>
+          {wespaRankings.map((player: any, i: number) => (
+            <tr class={`border-t border-gray-800/50 hover:bg-gray-800/30 transition-colors ${i < 3 ? 'bg-gradient-to-r from-amber-900/5 to-transparent' : ''}`} data-name={player.name.toLowerCase()} data-country={player.country_code}>
+              <td class="px-3 py-2.5">
+                <span class={`text-xs font-bold ${i === 0 ? 'text-amber-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-orange-400' : 'text-gray-500'}`}>
+                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : player.rank}
+                </span>
+              </td>
+              <td class="px-3 py-2.5">
+                <button class="text-white font-medium hover:text-blue-400 transition-colors player-link" data-player-id={player.id}>{player.name}</button>
+                <span class="sm:hidden text-xs text-gray-500 ml-1">{player.country_code}</span>
+              </td>
+              <td class="px-3 py-2.5 hidden sm:table-cell">
+                <span class="text-gray-400 text-xs">{player.country_code}</span>
+                <span class="text-gray-500 text-xs ml-1">{player.country}</span>
+              </td>
+              <td class="px-3 py-2.5 text-right">
+                <span class="text-blue-400 font-mono font-semibold">{player.rating}</span>
+              </td>
+              <td class="px-3 py-2.5 text-right hidden md:table-cell text-gray-400">{player.games_played}</td>
+              <td class="px-3 py-2.5 text-right hidden lg:table-cell text-gray-500">{player.peak_rating}</td>
+              <td class="px-3 py-2.5 hidden xl:table-cell">
+                {player.titles ? (
+                  <span class="text-xs text-amber-400/80">{player.titles}</span>
+                ) : (
+                  <span class="text-xs text-gray-600">—</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-gray-500 mt-3 text-center">Ratings are approximate, based on publicly available WESPA tournament results. Official ratings at <a href="https://wespa.org/ratings/online-ratings" target="_blank" rel="noopener" class="text-blue-400 hover:underline">wespa.org</a>.</p>
+  </div>
+
+  <!-- YTD Rankings Tab -->
+  <div id="panel-ytd" class="tab-panel hidden">
+    <div class="mb-4">
+      <h2 class="text-xl font-light text-white">Year-to-Date Rankings 2026</h2>
+      <p class="text-xs text-gray-500 mt-1">Cumulative points from WESPA-rated OTB tournaments in 2026. Top 24 qualify for the <a href="https://wespa.org/tournaments/summit-cup" target="_blank" rel="noopener" class="text-blue-400 hover:underline">WESPA Summit Cup</a>.</p>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-3 py-3 text-left w-12">#</th>
+            <th class="px-3 py-3 text-left">Player</th>
+            <th class="px-3 py-3 text-left hidden sm:table-cell">Country</th>
+            <th class="px-3 py-3 text-right">Events</th>
+            <th class="px-3 py-3 text-right">Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ytdRankings.map((player: any, i: number) => (
+            <tr class={`border-t border-gray-800/50 hover:bg-gray-800/30 transition-colors ${i < 3 ? 'bg-gradient-to-r from-green-900/5 to-transparent' : ''} ${i === 23 ? 'border-b-2 border-dashed border-amber-500/30' : ''}`}>
+              <td class="px-3 py-2.5">
+                <span class={`text-xs font-bold ${i === 0 ? 'text-green-400' : i === 1 ? 'text-green-300' : i === 2 ? 'text-green-200' : 'text-gray-500'}`}>{player.rank}</span>
+              </td>
+              <td class="px-3 py-2.5 text-white font-medium">{player.name}</td>
+              <td class="px-3 py-2.5 hidden sm:table-cell text-gray-400 text-xs">{player.country}</td>
+              <td class="px-3 py-2.5 text-right text-gray-400">{player.games_played}</td>
+              <td class="px-3 py-2.5 text-right">
+                <span class="text-green-400 font-mono font-semibold">{player.rating.toLocaleString()}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-3 flex items-center justify-center gap-2 text-xs text-gray-500">
+      <span class="inline-block w-4 border-t-2 border-dashed border-amber-500/50"></span>
+      <span>Summit Cup qualification line (top 24)</span>
+    </div>
+  </div>
+
+  <!-- Online Ratings Tab -->
+  <div id="panel-online" class="tab-panel hidden">
+    <div class="mb-4">
+      <h2 class="text-xl font-light text-white">WESPA Online Ratings</h2>
+      <p class="text-xs text-gray-500 mt-1">Ratings from WESPA-sanctioned online tournaments. Separate from OTB (over-the-board) ratings. Source: <a href="https://wespa.org/ratings/online-ratings" target="_blank" rel="noopener" class="text-blue-400 hover:underline">wespa.org/ratings/online-ratings</a></p>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-3 py-3 text-left w-12">#</th>
+            <th class="px-3 py-3 text-left">Player</th>
+            <th class="px-3 py-3 text-left hidden sm:table-cell">Country</th>
+            <th class="px-3 py-3 text-right">Games</th>
+            <th class="px-3 py-3 text-right">Rating</th>
+          </tr>
+        </thead>
+        <tbody>
+          {onlineRankings.map((player: any, i: number) => (
+            <tr class={`border-t border-gray-800/50 hover:bg-gray-800/30 transition-colors ${i < 3 ? 'bg-gradient-to-r from-cyan-900/5 to-transparent' : ''}`}>
+              <td class="px-3 py-2.5">
+                <span class={`text-xs font-bold ${i === 0 ? 'text-cyan-400' : i === 1 ? 'text-cyan-300' : i === 2 ? 'text-cyan-200' : 'text-gray-500'}`}>{player.rank}</span>
+              </td>
+              <td class="px-3 py-2.5 text-white font-medium">{player.name}</td>
+              <td class="px-3 py-2.5 hidden sm:table-cell text-gray-400 text-xs">{player.country}</td>
+              <td class="px-3 py-2.5 text-right text-gray-400">{player.games_played}</td>
+              <td class="px-3 py-2.5 text-right">
+                <span class="text-cyan-400 font-mono font-semibold">{player.rating}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-gray-500 mt-3 text-center">Online ratings are maintained separately from OTB (over-the-board) ratings. Last updated: October 2025.</p>
+  </div>
+
+  <!-- Player Profiles Tab -->
+  <div id="panel-players" class="tab-panel hidden">
+    <div class="mb-4">
+      <h2 class="text-xl font-light text-white">Player Profiles</h2>
+      <p class="text-xs text-gray-500 mt-1">Top-rated competitive Scrabble players worldwide. Click any player in the rankings to highlight their profile.</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="player-profiles">
+      {wespaRankings.slice(0, 24).map((player: any) => (
+        <div class="player-card p-4 rounded-xl border border-gray-800 bg-gray-900/30 hover:border-blue-700 transition-all" data-player-id={player.id}>
+          <div class="flex items-center gap-3 mb-3">
+            <div class={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm ${player.rank <= 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : player.rank <= 10 ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-gray-600 to-gray-700'}`}>
+              #{player.rank}
+            </div>
+            <div>
+              <p class="text-white font-semibold">{player.name}</p>
+              <p class="text-xs text-gray-400">{player.country}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2 rounded-lg bg-gray-800/50">
+              <p class="text-blue-400 font-mono font-bold text-sm">{player.rating}</p>
+              <p class="text-[10px] text-gray-500 uppercase">Rating</p>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-800/50">
+              <p class="text-gray-300 font-mono font-bold text-sm">{player.games_played}</p>
+              <p class="text-[10px] text-gray-500 uppercase">Games</p>
+            </div>
+            <div class="p-2 rounded-lg bg-gray-800/50">
+              <p class="text-purple-400 font-mono font-bold text-sm">{player.peak_rating}</p>
+              <p class="text-[10px] text-gray-500 uppercase">Peak</p>
+            </div>
+          </div>
+          {player.titles && (
+            <div class="mt-3 pt-3 border-t border-gray-800">
+              <p class="text-xs text-gray-500 uppercase mb-1">Titles</p>
+              <div class="flex flex-wrap gap-1">
+                {player.titles.split(', ').map((title: string) => (
+                  <span class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-400 text-[10px]">{title}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Tournament Calendar Tab -->
+  <div id="panel-calendar" class="tab-panel hidden">
+    <div class="mb-6">
+      <h2 class="text-xl font-light text-white">Tournament Calendar 2026</h2>
+      <p class="text-xs text-gray-500 mt-1">WESPA-rated events. Tournaments are classified by tier: Platinum (highest weighting) → Bronze.</p>
+    </div>
+
+    <!-- Upcoming -->
+    <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Upcoming Events</h3>
+    <div class="grid gap-3 mb-8">
+      {upcomingTournaments.map((t: any) => {
+        const days = daysUntil(t.start_date);
+        const tierClass = tierColors[t.tier] || tierColors.others;
+        return (
+          <div class={`p-4 rounded-xl border ${tierClass} transition-all hover:scale-[1.005]`}>
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h4 class="text-white font-medium text-sm">{t.name}</h4>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  📍 {t.location}{t.country ? `, ${t.country}` : ''}
+                  <span class="mx-2">•</span>
+                  📅 {formatDate(t.start_date)} — {formatDate(t.end_date)}
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${tierClass}`}>{t.tier}</span>
+                {days > 0 && <span class="text-xs text-gray-500 font-mono">{days}d</span>}
+                {days === 0 && <span class="text-xs text-green-400 font-medium animate-pulse">TODAY</span>}
+                {days < 0 && t.status === 'active' && <span class="text-xs text-red-400 font-medium">LIVE</span>}
+              </div>
+            </div>
+            {t.url && (
+              <a href={t.url} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:underline mt-1 inline-block">Details →</a>
+            )}
+          </div>
+        );
+      })}
+      {upcomingTournaments.length === 0 && (
+        <p class="text-gray-500 text-sm text-center py-6">No upcoming tournaments scheduled.</p>
+      )}
+    </div>
+
+    <!-- Recent Results -->
+    <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Recent Results</h3>
+    <div class="grid gap-3">
+      {recentResults.map((t: any) => {
+        const tierClass = tierColors[t.tier] || tierColors.others;
+        return (
+          <div class="p-4 rounded-xl border border-gray-800 bg-gray-900/30">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h4 class="text-white font-medium text-sm">{t.name}</h4>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  📍 {t.location}, {t.country}
+                  <span class="mx-2">•</span>
+                  📅 {formatDate(t.end_date)}
+                  {t.participants > 0 && <><span class="mx-2">•</span><span>👥 {t.participants}</span></>}
+                </p>
+              </div>
+              <span class={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${tierClass}`}>{t.tier}</span>
+            </div>
+            {t.winner && (
+              <p class="mt-2 text-sm">
+                <span class="text-amber-400">🏆</span>
+                <span class="text-white font-medium ml-1">{t.winner}</span>
+              </p>
+            )}
+            {t.url && (
+              <a href={t.url} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:underline mt-1 inline-block">Full results →</a>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="mt-12 text-center p-6 rounded-xl border border-gray-800 bg-gradient-to-r from-blue-900/10 to-purple-900/10">
+    <p class="text-gray-300 text-sm mb-3">Want to compete? Start by mastering your word knowledge.</p>
+    <div class="flex flex-wrap justify-center gap-3">
+      <a href="/" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">Free Word Finder →</a>
+      <a href="/blog/bingo-training-methods/" class="px-4 py-2 rounded-lg border border-gray-700 hover:border-blue-600 text-gray-300 hover:text-white text-sm transition-all">Bingo Training →</a>
+      <a href="/blog/tournament/" class="px-4 py-2 rounded-lg border border-gray-700 hover:border-blue-600 text-gray-300 hover:text-white text-sm transition-all">Tournament Guides →</a>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+(function() {
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-tab');
+      tabs.forEach(t => {
+        t.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+        t.classList.add('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+      });
+      btn.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+      btn.classList.remove('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+      panels.forEach(p => p.classList.add('hidden'));
+      document.getElementById('panel-' + target)?.classList.remove('hidden');
+    });
+  });
+
+  // Search + country filter for WESPA table
+  const searchInput = document.getElementById('search-wespa');
+  const filterCountry = document.getElementById('filter-country');
+  const wespaRows = document.querySelectorAll('#wespa-table tbody tr');
+
+  // Populate country filter
+  const countries = new Set();
+  wespaRows.forEach(row => {
+    const code = row.getAttribute('data-country');
+    if (code) countries.add(code);
+  });
+  [...countries].sort().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    filterCountry?.appendChild(opt);
+  });
+
+  function filterTable() {
+    const search = (searchInput?.value || '').toLowerCase();
+    const country = filterCountry?.value || '';
+    wespaRows.forEach(row => {
+      const name = row.getAttribute('data-name') || '';
+      const cc = row.getAttribute('data-country') || '';
+      const matchSearch = !search || name.includes(search);
+      const matchCountry = !country || cc === country;
+      row.style.display = (matchSearch && matchCountry) ? '' : 'none';
+    });
+  }
+
+  searchInput?.addEventListener('input', filterTable);
+  filterCountry?.addEventListener('change', filterTable);
+
+  // Player profile linking — click name in rankings → switch to profiles tab and highlight
+  document.querySelectorAll('.player-link').forEach(link => {
+    link.addEventListener('click', () => {
+      const playerId = link.getAttribute('data-player-id');
+      // Switch to players tab
+      const playersTab = document.querySelector('[data-tab="players"]');
+      playersTab?.click();
+      // Highlight the card
+      setTimeout(() => {
+        const card = document.querySelector(`.player-card[data-player-id="${playerId}"]`);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.classList.add('ring-2', 'ring-blue-500', 'scale-[1.02]');
+          setTimeout(() => card.classList.remove('ring-2', 'ring-blue-500', 'scale-[1.02]'), 2000);
+        }
+      }, 100);
+    });
+  });
+})();
+</script>
+
+</Layout>

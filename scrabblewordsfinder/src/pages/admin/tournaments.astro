@@ -1,0 +1,296 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Tournament Management — Admin" description="Manage Scrabble tournament calendar" keywords="admin, tournaments, calendar, WESPA">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/rankings/" class="hover:text-blue-400 transition-colors">Rankings</a>
+      <a href="/admin/tournaments/" class="text-blue-400 font-medium">Tournaments</a>
+      <a href="/world-rankings/" class="hover:text-blue-400 transition-colors">← Public Page</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white">📅 Tournament Management</h1>
+        <p class="text-gray-400 text-sm mt-1">Add, edit, or remove tournaments. Changes reflect immediately on /world-rankings/.</p>
+      </div>
+      <button id="btn-add" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">+ Add Tournament</button>
+    </div>
+
+    <!-- Status filter -->
+    <div class="flex gap-2 mb-4">
+      <button data-status="" class="status-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/40">All</button>
+      <button data-status="upcoming" class="status-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Upcoming</button>
+      <button data-status="active" class="status-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Active</button>
+      <button data-status="completed" class="status-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Completed</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-blue-400" id="stat-total">—</p>
+        <p class="text-xs text-gray-500">Total</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-green-400" id="stat-upcoming">—</p>
+        <p class="text-xs text-gray-500">Upcoming</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-completed">—</p>
+        <p class="text-xs text-gray-500">Completed</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-purple-400" id="stat-platinum">—</p>
+        <p class="text-xs text-gray-500">Platinum</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm" id="tournaments-table">
+        <thead>
+          <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-3 py-3 text-left">Name</th>
+            <th class="px-3 py-3 text-left">Location</th>
+            <th class="px-3 py-3 text-left">Dates</th>
+            <th class="px-3 py-3 text-center">Tier</th>
+            <th class="px-3 py-3 text-center">Status</th>
+            <th class="px-3 py-3 text-left">Winner</th>
+            <th class="px-3 py-3 text-center w-20">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tournaments-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 rounded-lg bg-green-600 text-white text-sm font-medium shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50"></div>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <h3 id="modal-title" class="text-lg font-bold text-white mb-4">Add Tournament</h3>
+        <form id="tournament-form" class="space-y-3">
+          <input type="hidden" id="form-id" />
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Name *</label>
+            <input type="text" id="form-name" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Location</label>
+              <input type="text" id="form-location" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="Bangkok" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Country</label>
+              <input type="text" id="form-country" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="Thailand" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Start Date *</label>
+              <input type="date" id="form-start" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">End Date *</label>
+              <input type="date" id="form-end" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Tier</label>
+              <select id="form-tier" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none">
+                <option value="platinum">Platinum</option>
+                <option value="gold">Gold</option>
+                <option value="silver">Silver</option>
+                <option value="bronze">Bronze</option>
+                <option value="others">Others</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Status</label>
+              <select id="form-status" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none">
+                <option value="upcoming">Upcoming</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Winner</label>
+              <input type="text" id="form-winner" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Participants</label>
+              <input type="number" id="form-participants" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">URL</label>
+            <input type="url" id="form-url" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="https://..." />
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="form-wespa-rated" checked class="rounded border-gray-600" />
+            <label for="form-wespa-rated" class="text-xs text-gray-400">WESPA Rated</label>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">Save</button>
+            <button type="button" id="btn-cancel" class="px-4 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-white text-sm transition-colors">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    let currentStatus = '';
+    let tournaments = [];
+
+    const tierBadge = { platinum: 'bg-purple-900/40 text-purple-400', gold: 'bg-amber-900/40 text-amber-400', silver: 'bg-gray-700/40 text-gray-300', bronze: 'bg-orange-900/40 text-orange-400', others: 'bg-gray-800/40 text-gray-500' };
+    const statusBadge = { upcoming: 'bg-blue-900/40 text-blue-400', active: 'bg-green-900/40 text-green-400', completed: 'bg-gray-700/40 text-gray-400' };
+
+    async function loadTournaments() {
+      try {
+        const url = currentStatus ? `/api/tournaments/?status=${currentStatus}` : '/api/tournaments/?all=true';
+        const res = await fetch(url);
+        const data = await res.json();
+        tournaments = data.tournaments || [];
+        renderTable();
+        updateStats();
+      } catch (e) { console.error(e); }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tournaments-body');
+      tbody.innerHTML = tournaments.map(t => `
+        <tr class="border-t border-gray-800/50 hover:bg-gray-800/30">
+          <td class="px-3 py-2 text-white font-medium text-xs">${t.name}</td>
+          <td class="px-3 py-2 text-gray-400 text-xs">${t.location}${t.country ? ', ' + t.country : ''}</td>
+          <td class="px-3 py-2 text-gray-400 text-xs">${t.start_date} → ${t.end_date}</td>
+          <td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${tierBadge[t.tier] || tierBadge.others}">${t.tier}</span></td>
+          <td class="px-3 py-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-semibold ${statusBadge[t.status] || statusBadge.upcoming}">${t.status}</span></td>
+          <td class="px-3 py-2 text-amber-400 text-xs">${t.winner || '—'}</td>
+          <td class="px-3 py-2 text-center">
+            <button class="text-blue-400 hover:text-blue-300 text-xs mr-2" onclick="editTournament(${t.id})">Edit</button>
+            <button class="text-red-400 hover:text-red-300 text-xs" onclick="deleteTournament(${t.id}, '${t.name.replace(/'/g, "\\'")}')">Del</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function updateStats() {
+      // For stats, always load all
+      fetch('/api/tournaments/?all=true').then(r => r.json()).then(data => {
+        const all = data.tournaments || [];
+        document.getElementById('stat-total').textContent = all.length;
+        document.getElementById('stat-upcoming').textContent = all.filter(t => t.status === 'upcoming').length;
+        document.getElementById('stat-completed').textContent = all.filter(t => t.status === 'completed').length;
+        document.getElementById('stat-platinum').textContent = all.filter(t => t.tier === 'platinum').length;
+      });
+    }
+
+    // Status filter
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.status-btn').forEach(b => {
+          b.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+          b.classList.add('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+        });
+        btn.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+        btn.classList.remove('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+        currentStatus = btn.getAttribute('data-status');
+        loadTournaments();
+      });
+    });
+
+    // Modal
+    const modal = document.getElementById('modal-overlay');
+    document.getElementById('btn-add').addEventListener('click', () => {
+      document.getElementById('modal-title').textContent = 'Add Tournament';
+      document.getElementById('tournament-form').reset();
+      document.getElementById('form-id').value = '';
+      document.getElementById('form-wespa-rated').checked = true;
+      modal.classList.remove('hidden');
+    });
+    document.getElementById('btn-cancel').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+
+    // Edit
+    window.editTournament = function(id) {
+      const t = tournaments.find(x => x.id === id);
+      if (!t) return;
+      document.getElementById('modal-title').textContent = 'Edit Tournament';
+      document.getElementById('form-id').value = t.id;
+      document.getElementById('form-name').value = t.name;
+      document.getElementById('form-location').value = t.location;
+      document.getElementById('form-country').value = t.country;
+      document.getElementById('form-start').value = t.start_date;
+      document.getElementById('form-end').value = t.end_date;
+      document.getElementById('form-tier').value = t.tier;
+      document.getElementById('form-status').value = t.status;
+      document.getElementById('form-winner').value = t.winner || '';
+      document.getElementById('form-participants').value = t.participants || '';
+      document.getElementById('form-url').value = t.url || '';
+      document.getElementById('form-wespa-rated').checked = !!t.wespa_rated;
+      modal.classList.remove('hidden');
+    };
+
+    // Delete
+    window.deleteTournament = async function(id, name) {
+      if (!confirm(`Delete "${name}"?`)) return;
+      await fetch(`/api/tournaments/?id=${id}`, { method: 'DELETE' });
+      showToast(`Deleted ${name}`);
+      loadTournaments();
+    };
+
+    // Save
+    document.getElementById('tournament-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('form-id').value;
+      const payload = {
+        name: document.getElementById('form-name').value,
+        location: document.getElementById('form-location').value,
+        country: document.getElementById('form-country').value,
+        start_date: document.getElementById('form-start').value,
+        end_date: document.getElementById('form-end').value,
+        tier: document.getElementById('form-tier').value,
+        status: document.getElementById('form-status').value,
+        winner: document.getElementById('form-winner').value,
+        participants: parseInt(document.getElementById('form-participants').value) || 0,
+        url: document.getElementById('form-url').value,
+        wespa_rated: document.getElementById('form-wespa-rated').checked ? 1 : 0,
+      };
+
+      if (id) {
+        await fetch('/api/tournaments/', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id: parseInt(id), ...payload}) });
+        showToast(`Updated "${payload.name}"`);
+      } else {
+        await fetch('/api/tournaments/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        showToast(`Added "${payload.name}"`);
+      }
+      modal.classList.add('hidden');
+      loadTournaments();
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
+    }
+
+    loadTournaments();
+  })();
+  </script>
+</Layout>

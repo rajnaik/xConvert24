@@ -1,0 +1,282 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Rankings Management — Admin" description="Manage world Scrabble rankings" keywords="admin, rankings, WESPA">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/rankings/" class="text-blue-400 font-medium">Rankings</a>
+      <a href="/admin/tournaments/" class="hover:text-blue-400 transition-colors">Tournaments</a>
+      <a href="/world-rankings/" class="hover:text-blue-400 transition-colors">← Public Page</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white">🏅 Rankings Management</h1>
+        <p class="text-gray-400 text-sm mt-1">Add, edit, or remove player rankings. Changes reflect immediately on /world-rankings/.</p>
+      </div>
+      <button id="btn-add" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">+ Add Player</button>
+    </div>
+
+    <!-- Type filter -->
+    <div class="flex gap-2 mb-4">
+      <button data-type="wespa" class="type-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/40">WESPA Ratings</button>
+      <button data-type="ytd" class="type-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">YTD Rankings</button>
+      <button data-type="online" class="type-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Online Ratings</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-blue-400" id="stat-total">—</p>
+        <p class="text-xs text-gray-500">Total Players</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-green-400" id="stat-countries">—</p>
+        <p class="text-xs text-gray-500">Countries</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-titled">—</p>
+        <p class="text-xs text-gray-500">Titled Players</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm" id="rankings-table">
+        <thead>
+          <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-3 py-3 text-left w-12">#</th>
+            <th class="px-3 py-3 text-left">Name</th>
+            <th class="px-3 py-3 text-left">Country</th>
+            <th class="px-3 py-3 text-right">Rating</th>
+            <th class="px-3 py-3 text-right">Games</th>
+            <th class="px-3 py-3 text-right">Peak</th>
+            <th class="px-3 py-3 text-left">Titles</th>
+            <th class="px-3 py-3 text-center w-20">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="rankings-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 rounded-lg bg-green-600 text-white text-sm font-medium shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50"></div>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+        <h3 id="modal-title" class="text-lg font-bold text-white mb-4">Add Player</h3>
+        <form id="player-form" class="space-y-3">
+          <input type="hidden" id="form-id" />
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Rank</label>
+              <input type="number" id="form-rank" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Rating</label>
+              <input type="number" id="form-rating" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Name</label>
+            <input type="text" id="form-name" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Country</label>
+              <input type="text" id="form-country" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="Australia" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Country Code</label>
+              <input type="text" id="form-country-code" maxlength="2" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none uppercase" placeholder="AU" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Games Played</label>
+              <input type="number" id="form-games" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Peak Rating</label>
+              <input type="number" id="form-peak" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Titles (comma-separated)</label>
+            <input type="text" id="form-titles" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="WESPAC 2025, Causeway 2026" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Ranking Type</label>
+            <select id="form-type" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none">
+              <option value="wespa">WESPA Rating</option>
+              <option value="ytd">YTD Points</option>
+              <option value="online">Online Rating</option>
+            </select>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">Save</button>
+            <button type="button" id="btn-cancel" class="px-4 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-white text-sm transition-colors">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    let currentType = 'wespa';
+    let rankings = [];
+
+    // Check URL params for initial type
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlType = urlParams.get('type');
+    if (urlType && ['wespa', 'ytd', 'online'].includes(urlType)) {
+      currentType = urlType;
+      // Activate correct button
+      document.querySelectorAll('.type-btn').forEach(b => {
+        b.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+        b.classList.add('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+        if (b.getAttribute('data-type') === currentType) {
+          b.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+          b.classList.remove('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+        }
+      });
+    }
+
+    async function loadRankings() {
+      try {
+        const res = await fetch(`/api/rankings/?type=${currentType}&limit=200`);
+        const data = await res.json();
+        rankings = data.rankings || [];
+        renderTable();
+        updateStats();
+      } catch (e) { console.error(e); }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('rankings-body');
+      tbody.innerHTML = rankings.map(p => `
+        <tr class="border-t border-gray-800/50 hover:bg-gray-800/30">
+          <td class="px-3 py-2 text-gray-500 text-xs font-bold">${p.rank}</td>
+          <td class="px-3 py-2 text-white font-medium">${p.name}</td>
+          <td class="px-3 py-2 text-gray-400 text-xs">${p.country_code} ${p.country}</td>
+          <td class="px-3 py-2 text-right text-blue-400 font-mono">${p.rating}</td>
+          <td class="px-3 py-2 text-right text-gray-400">${p.games_played}</td>
+          <td class="px-3 py-2 text-right text-gray-500">${p.peak_rating}</td>
+          <td class="px-3 py-2 text-xs text-amber-400/80">${p.titles || '—'}</td>
+          <td class="px-3 py-2 text-center">
+            <button class="text-blue-400 hover:text-blue-300 text-xs mr-2" onclick="editPlayer(${p.id})">Edit</button>
+            <button class="text-red-400 hover:text-red-300 text-xs" onclick="deletePlayer(${p.id}, '${p.name.replace(/'/g, "\\'")}')">Del</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function updateStats() {
+      document.getElementById('stat-total').textContent = rankings.length;
+      const countries = new Set(rankings.map(p => p.country_code));
+      document.getElementById('stat-countries').textContent = countries.size;
+      const titled = rankings.filter(p => p.titles).length;
+      document.getElementById('stat-titled').textContent = titled;
+    }
+
+    // Type filter
+    document.querySelectorAll('.type-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.type-btn').forEach(b => {
+          b.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+          b.classList.add('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+        });
+        btn.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+        btn.classList.remove('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+        currentType = btn.getAttribute('data-type');
+        loadRankings();
+      });
+    });
+
+    // Modal
+    const modal = document.getElementById('modal-overlay');
+    document.getElementById('btn-add').addEventListener('click', () => {
+      document.getElementById('modal-title').textContent = 'Add Player';
+      document.getElementById('player-form').reset();
+      document.getElementById('form-id').value = '';
+      document.getElementById('form-type').value = currentType;
+      modal.classList.remove('hidden');
+    });
+    document.getElementById('btn-cancel').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+
+    // Edit
+    window.editPlayer = function(id) {
+      const p = rankings.find(r => r.id === id);
+      if (!p) return;
+      document.getElementById('modal-title').textContent = 'Edit Player';
+      document.getElementById('form-id').value = p.id;
+      document.getElementById('form-rank').value = p.rank;
+      document.getElementById('form-name').value = p.name;
+      document.getElementById('form-country').value = p.country;
+      document.getElementById('form-country-code').value = p.country_code;
+      document.getElementById('form-rating').value = p.rating;
+      document.getElementById('form-games').value = p.games_played;
+      document.getElementById('form-peak').value = p.peak_rating;
+      document.getElementById('form-titles').value = p.titles || '';
+      document.getElementById('form-type').value = p.ranking_type;
+      modal.classList.remove('hidden');
+    };
+
+    // Delete
+    window.deletePlayer = async function(id, name) {
+      if (!confirm(`Delete ${name}?`)) return;
+      await fetch(`/api/rankings/?id=${id}`, { method: 'DELETE' });
+      showToast(`Deleted ${name}`);
+      loadRankings();
+    };
+
+    // Save
+    document.getElementById('player-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('form-id').value;
+      const payload = {
+        rank: parseInt(document.getElementById('form-rank').value),
+        name: document.getElementById('form-name').value,
+        country: document.getElementById('form-country').value,
+        country_code: document.getElementById('form-country-code').value.toUpperCase(),
+        rating: parseInt(document.getElementById('form-rating').value) || 0,
+        games_played: parseInt(document.getElementById('form-games').value) || 0,
+        peak_rating: parseInt(document.getElementById('form-peak').value) || 0,
+        titles: document.getElementById('form-titles').value,
+        ranking_type: document.getElementById('form-type').value,
+      };
+
+      if (id) {
+        await fetch('/api/rankings/', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id: parseInt(id), ...payload}) });
+        showToast(`Updated ${payload.name}`);
+      } else {
+        await fetch('/api/rankings/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        showToast(`Added ${payload.name}`);
+      }
+      modal.classList.add('hidden');
+      loadRankings();
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
+    }
+
+    loadRankings();
+  })();
+  </script>
+</Layout>
