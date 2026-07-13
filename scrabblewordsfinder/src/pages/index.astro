@@ -138,6 +138,13 @@ import '../styles/global.css';
           <p class="text-[10px] text-purple-400 uppercase tracking-wider mb-1">📖 Word of the Day</p>
           <p id="wotd-solver-bubble-word" class="text-lg font-black text-purple-300 tracking-wider mb-1"></p>
           <p id="wotd-solver-bubble-meaning" class="text-xs text-gray-300 italic leading-relaxed"></p>
+          <div id="wotd-enriched" class="hidden mt-2 pt-2 border-t border-purple-500/20 space-y-1.5">
+            <p id="wotd-origin" class="text-[10px] text-gray-400"><span class="text-blue-400 font-medium">Origin:</span> <span></span></p>
+            <p id="wotd-example" class="text-[10px] text-gray-400"><span class="text-green-400 font-medium">Example:</span> <span></span></p>
+            <p id="wotd-spelling" class="text-[10px] text-gray-400"><span class="text-purple-400 font-medium">Tip:</span> <span></span></p>
+            <p id="wotd-funfact" class="text-[10px] text-gray-400"><span class="text-amber-400 font-medium">Fun fact:</span> <span></span></p>
+            <p id="wotd-languages" class="text-[10px] text-gray-400"><span class="text-cyan-400 font-medium">🌍</span> <span></span></p>
+          </div>
           <a id="wotd-solver-bubble-link" href="/activities/#wotd" class="inline-block mt-2 text-[10px] text-blue-400 hover:underline">Explore →</a>
         </div>
       </div>
@@ -2719,6 +2726,21 @@ import '../styles/global.css';
       wordEl.textContent = word.word;
       bubbleWord.textContent = word.word;
       bubbleMeaning.textContent = word.meaning || 'Click "Lookup" on Activities to fetch meaning';
+      // Populate enriched fields if available
+      var enrichedEl = document.getElementById('wotd-enriched');
+      if (enrichedEl && (word.origin || word.usage_example || word.fun_fact || word.spelling_tip || word.cultural_note)) {
+        enrichedEl.classList.remove('hidden');
+        if (word.origin) document.querySelector('#wotd-origin span:last-child')!.textContent = word.origin;
+        else document.getElementById('wotd-origin')!.style.display = 'none';
+        if (word.usage_example) document.querySelector('#wotd-example span:last-child')!.textContent = word.usage_example;
+        else document.getElementById('wotd-example')!.style.display = 'none';
+        if (word.spelling_tip) document.querySelector('#wotd-spelling span:last-child')!.textContent = word.spelling_tip;
+        else document.getElementById('wotd-spelling')!.style.display = 'none';
+        if (word.fun_fact) document.querySelector('#wotd-funfact span:last-child')!.textContent = word.fun_fact;
+        else document.getElementById('wotd-funfact')!.style.display = 'none';
+        if (word.cultural_note) document.querySelector('#wotd-languages span:last-child')!.textContent = word.cultural_note;
+        else document.getElementById('wotd-languages')!.style.display = 'none';
+      }
       const bubbleLink = document.getElementById('wotd-solver-bubble-link');
       if (bubbleLink) bubbleLink.textContent = 'Explore ' + word.word + ' →';
 

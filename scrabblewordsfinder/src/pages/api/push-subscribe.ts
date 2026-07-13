@@ -14,7 +14,7 @@ export const prerender = false;
 const getDB = () => (env as any).DB;
 
 // VAPID public key — safe to expose (the private key is in Worker secrets)
-const VAPID_PUBLIC_KEY = (env as any).VAPID_PUBLIC_KEY || '';
+const VAPID_PUBLIC_KEY = (env as any).VAPID_PUBLIC_KEY || 'BP3ROjKGasdCS1GuqKO7UGDrA3eu7B-btGb_dcoDBzZbcFLPbLilSdXzvJI3k0iIeY7s4fxTmkEdKX3-4C3n4FQ';
 
 export const GET: APIRoute = async () => {
   const db = getDB();

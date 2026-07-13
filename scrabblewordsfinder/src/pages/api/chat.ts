@@ -155,6 +155,13 @@ TOOLS:
 - /achievements/ — Personal word scoring milestones
 - /mybag/ — Your star & diamond earnings
 
+## External Scrabble Resources (share these URLs when relevant)
+- Scrabble GO (official mobile app): https://www.scopely.com/en/games/scrabble-go
+- Woogles.io (free online rated Scrabble): https://woogles.io/
+- Zyzzyva (word study software): https://zyzzyva.net/
+- NASPA (North American Scrabble Players Association): https://www.scrabbleplayers.org/
+- WESPA (World English-Language Scrabble Players Association): https://www.wespa.org/
+
 ## Diamond Hunt
 Diamond Hunt is a collectible treasure game on ScrabbleWordsFinder. Hidden diamond mines are placed across the site — blog articles, tool pages, activity hubs, and more. When users visit a page with an active mine, a floating 💎 gem appears. Clicking it claims the reward. Key facts:
 - Each mine offers 1–100 diamonds per claim depending on rarity

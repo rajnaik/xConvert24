@@ -20,7 +20,7 @@ const startDate = `${year}-${mon}-01`;
 const endDate = `${year}-${mon}-31`;
 
 const result = await db.prepare(
-  'SELECT id, word, date, meaning, fun_fact FROM word_of_the_day WHERE date >= ? AND date <= ? ORDER BY date ASC'
+  'SELECT id, word, date, meaning, fun_fact, origin, usage_example, spelling_tip, cultural_note FROM word_of_the_day WHERE date >= ? AND date <= ? ORDER BY date ASC'
 ).bind(startDate, endDate).all();
 
 const allWords = result.results || [];
@@ -150,10 +150,21 @@ const nextSlug = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).
               const sc = w.word.split('').reduce((s: number, c: string) => s + (SCORES[c] || 0), 0);
               return (
                 <tr class={i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/50'}>
-                  <td class="px-4 py-3 font-mono text-xs text-gray-500">{dayNum}</td>
-                  <td class="px-4 py-3 font-bold text-white tracking-wider">{w.word}</td>
-                  <td class="px-4 py-3 text-amber-400 font-mono text-sm">{sc}</td>
-                  <td class="px-4 py-3 text-sm text-gray-400 italic">{w.meaning || '—'}</td>
+                  <td class="px-4 py-3 font-mono text-xs text-gray-500 align-top">{dayNum}</td>
+                  <td class="px-4 py-3 align-top" colspan="3">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-bold text-white tracking-wider">{w.word}</span>
+                      <span class="text-amber-400 font-mono text-sm">{sc} pts</span>
+                    </div>
+                    {w.meaning && <p class="text-sm text-gray-400 italic mb-2">{w.meaning}</p>}
+                    <div class="grid gap-1.5 text-xs">
+                      {w.origin && <p class="text-gray-500"><span class="text-blue-400 font-medium">Origin:</span> {w.origin}</p>}
+                      {w.usage_example && <p class="text-gray-500"><span class="text-green-400 font-medium">Example:</span> {w.usage_example}</p>}
+                      {w.spelling_tip && <p class="text-gray-500"><span class="text-purple-400 font-medium">Spelling tip:</span> {w.spelling_tip}</p>}
+                      {w.fun_fact && <p class="text-gray-500"><span class="text-amber-400 font-medium">Fun fact:</span> {w.fun_fact}</p>}
+                      {w.cultural_note && <p class="text-gray-500"><span class="text-cyan-400 font-medium">🌍 In other languages:</span> {w.cultural_note}</p>}
+                    </div>
+                  </td>
                 </tr>
               );
             })}

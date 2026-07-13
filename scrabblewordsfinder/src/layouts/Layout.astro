@@ -117,16 +117,23 @@ const adHideStyle = isDev ? '' : 'display:none';
         }
       })} />
     )}
-    {/* AdSense — load on first user interaction to reduce unused JS */}
+    {/* AdSense — single site-status call, cached globally, loads AdSense on interaction */}
     {showAds && (
       <script is:inline id="adsense-loader">
       (function(){
+        // Single site-status fetch — cache result for reuse by other scripts
+        window.__siteStatus = window.__siteStatus || fetch('/api/site-status/').then(function(r){return r.json()}).catch(function(){return {}});
+        window.__siteStatus.then(function(d){
+          if(d.adsense==='ON') document.body.classList.add('ads-active');
+          else document.body.classList.remove('ads-active');
+        });
+        // Load AdSense JS lazily on first interaction
         var fired=false;
         function loadAds(){
           if(fired)return;fired=true;
           evts.forEach(function(e){document.removeEventListener(e,loadAds,{passive:true});});
           clearTimeout(fallback);
-          fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
+          window.__siteStatus.then(function(d){
             if(d.adsense==='ON'){
               var s=document.createElement('script');
               s.async=true;
@@ -134,20 +141,9 @@ const adHideStyle = isDev ? '' : 'display:none';
               s.crossOrigin='anonymous';
               document.head.appendChild(s);
               document.body.classList.add('ads-active');
-            } else {
-              document.body.classList.remove('ads-active');
             }
-          }).catch(function(){});
+          });
         }
-        // Check adsense status immediately (don't wait for interaction)
-        fetch('/api/site-status/').then(function(r){return r.json()}).then(function(d){
-          if(d.adsense==='ON'){
-            document.body.classList.add('ads-active');
-          } else {
-            document.body.classList.remove('ads-active');
-          }
-        }).catch(function(){});
-        // Load AdSense JS lazily on first interaction
         var evts=['scroll','click','mouseover','touchstart','keydown'];
         evts.forEach(function(e){document.addEventListener(e,loadAds,{once:true,passive:true});});
         var fallback=setTimeout(loadAds,12000);
@@ -772,12 +768,10 @@ const adHideStyle = isDev ? '' : 'display:none';
       function loadSiteAssets() {
         (async function() {
         try {
-          const res = await fetch("/api/site-status/");
-          if (res.ok) {
-            const data = await res.json();
-            const logoImg = document.getElementById("site-logo");
-            if (logoImg) logoImg.setAttribute("src", "/logo-options/option-" + (data.logo_option || 1) + ".svg");
-          }
+          // Reuse cached site-status (no duplicate fetch)
+          const data = await (window.__siteStatus || fetch("/api/site-status/").then(r=>r.json()).catch(()=>({})));
+          const logoImg = document.getElementById("site-logo");
+          if (logoImg && data.logo_option) logoImg.setAttribute("src", "/logo-options/option-" + data.logo_option + ".svg");
         } catch {}
         try {
           const bres = await fetch("/api/banners?active=true");
@@ -951,26 +945,57 @@ const adHideStyle = isDev ? '' : 'display:none';
       // Push notification subscription (bell icon)
       (function() {
         var bell = document.getElementById('push-bell');
+        var bellMobile = document.getElementById('push-bell-mobile');
         var dot = document.getElementById('push-bell-dot');
-        if (!bell || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-          if (bell) bell.style.display = 'none'; // Hide bell if push not supported
+        var dotMobile = document.getElementById('push-bell-dot-mobile');
+        var activeBell = bell || bellMobile;
+        if (!activeBell || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+          if (bell) bell.style.display = 'none';
+          if (bellMobile) bellMobile.style.display = 'none';
           return;
         }
 
+        function showDot() {
+          if (dot) dot.classList.remove('hidden');
+          if (dotMobile) dotMobile.classList.remove('hidden');
+          // Turn bell green when subscribed
+          if (bell) { bell.classList.remove('hover:border-amber-400'); bell.classList.add('hover:border-green-400', 'border-green-500/60'); bell.querySelector('svg').classList.remove('text-amber-400'); bell.querySelector('svg').classList.add('text-green-400'); }
+          if (bellMobile) { bellMobile.classList.remove('hover:border-amber-400'); bellMobile.classList.add('hover:border-green-400', 'border-green-500/60'); bellMobile.querySelector('svg').classList.remove('text-amber-400'); bellMobile.querySelector('svg').classList.add('text-green-400'); }
+        }
+        function hideDot() {
+          if (dot) dot.classList.add('hidden');
+          if (dotMobile) dotMobile.classList.add('hidden');
+          // Revert bell to amber when unsubscribed
+          if (bell) { bell.classList.remove('hover:border-green-400', 'border-green-500/60'); bell.classList.add('hover:border-amber-400'); bell.querySelector('svg').classList.remove('text-green-400'); bell.querySelector('svg').classList.add('text-amber-400'); }
+          if (bellMobile) { bellMobile.classList.remove('hover:border-green-400', 'border-green-500/60'); bellMobile.classList.add('hover:border-amber-400'); bellMobile.querySelector('svg').classList.remove('text-green-400'); bellMobile.querySelector('svg').classList.add('text-amber-400'); }
+        }
+        function setTitle(t) {
+          if (bell) bell.title = t;
+          if (bellMobile) bellMobile.title = t;
+        }
+
         // Check current subscription state
-        navigator.serviceWorker.ready.then(function(reg) {
+        navigator.serviceWorker.getRegistration().then(function(reg) {
+          if (!reg) return;
           reg.pushManager.getSubscription().then(function(sub) {
             if (sub) {
-              // Already subscribed — show active dot
-              dot.classList.remove('hidden');
-              bell.title = 'You are subscribed to daily WOTD notifications (click to unsubscribe)';
+              showDot();
+              setTitle('You are subscribed to daily WOTD notifications (click to unsubscribe)');
             }
           });
         });
 
-        bell.addEventListener('click', async function() {
+        async function handleBellClick() {
           try {
-            var reg = await navigator.serviceWorker.ready;
+            var reg = await navigator.serviceWorker.getRegistration();
+            if (!reg) {
+              // SW not registered yet — register and wait
+              reg = await navigator.serviceWorker.register('/sw.js');
+              await new Promise(function(resolve) { setTimeout(resolve, 1000); });
+              reg = await navigator.serviceWorker.getRegistration();
+            }
+            if (!reg) { console.error('Service worker not available'); return; }
+
             var existingSub = await reg.pushManager.getSubscription();
 
             if (existingSub) {
@@ -981,8 +1006,8 @@ const adHideStyle = isDev ? '' : 'display:none';
                 body: JSON.stringify({ endpoint: existingSub.endpoint })
               });
               await existingSub.unsubscribe();
-              dot.classList.add('hidden');
-              bell.title = 'Get daily Word of the Day notifications';
+              hideDot();
+              setTitle('Get daily Word of the Day notifications');
             } else {
               // Subscribe — first get VAPID key
               var keyRes = await fetch('/api/push-subscribe/');
@@ -1014,13 +1039,16 @@ const adHideStyle = isDev ? '' : 'display:none';
                 })
               });
 
-              dot.classList.remove('hidden');
-              bell.title = 'You are subscribed to daily WOTD notifications (click to unsubscribe)';
+              showDot();
+              setTitle('You are subscribed to daily WOTD notifications (click to unsubscribe)');
             }
           } catch (err) {
             console.error('Push subscription error:', err);
           }
-        });
+        }
+
+        if (bell) bell.addEventListener('click', handleBellClick);
+        if (bellMobile) bellMobile.addEventListener('click', handleBellClick);
 
         // Helper: Convert VAPID base64 key to Uint8Array
         function urlBase64ToUint8Array(base64String) {
@@ -1033,6 +1061,55 @@ const adHideStyle = isDev ? '' : 'display:none';
           }
           return outputArray;
         }
+
+        // Soft prompt: show a popup on 2nd visit if user hasn't subscribed
+        // Only triggers if: PushManager supported, not subscribed, 2nd+ visit, after 5 min on page
+        (function softPrompt() {
+          var visits = parseInt(localStorage.getItem('swf-push-visits') || '0') + 1;
+          localStorage.setItem('swf-push-visits', String(visits));
+          var dismissed = localStorage.getItem('swf-push-dismissed');
+          if (dismissed || visits < 2) return;
+
+          // Check if already subscribed
+          navigator.serviceWorker.getRegistration().then(function(reg) {
+            if (!reg) return;
+            reg.pushManager.getSubscription().then(function(sub) {
+              if (sub) return; // Already subscribed
+              // Show prompt after 5 minutes (300000ms) on the 2nd+ visit
+              setTimeout(function() {
+                // Double-check not subscribed (user may have clicked bell in the meantime)
+                reg.pushManager.getSubscription().then(function(sub2) {
+                  if (sub2) return;
+                  showPushPrompt();
+                });
+              }, 300000);
+            });
+          });
+
+          function showPushPrompt() {
+            var popup = document.createElement('div');
+            popup.id = 'push-prompt';
+            popup.innerHTML = '<div style="position:fixed;bottom:24px;right:24px;z-index:9999;max-width:320px;background:#1a1a2e;border:1px solid rgba(34,197,94,0.4);border-radius:16px;padding:16px 20px;box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:slideUp .3s ease-out">' +
+              '<p style="color:#22c55e;font-size:13px;font-weight:600;margin:0 0 6px">🔔 Get Daily Word of the Day</p>' +
+              '<p style="color:#a1a1aa;font-size:12px;margin:0 0 12px;line-height:1.4">Get a push notification every day with a new Scrabble word, meaning, and score. Free, no sign-up.</p>' +
+              '<div style="display:flex;gap:8px">' +
+                '<button id="push-prompt-yes" style="flex:1;padding:8px 12px;border-radius:8px;background:#22c55e;color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer">Allow</button>' +
+                '<button id="push-prompt-no" style="flex:1;padding:8px 12px;border-radius:8px;background:#27272a;color:#a1a1aa;font-size:12px;border:1px solid #3f3f46;cursor:pointer">Not now</button>' +
+              '</div>' +
+            '</div>';
+            popup.querySelector('style') || (function() { var s = document.createElement('style'); s.textContent = '@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}'; document.head.appendChild(s); })();
+            document.body.appendChild(popup);
+
+            document.getElementById('push-prompt-yes').addEventListener('click', function() {
+              popup.remove();
+              handleBellClick(); // Trigger the same subscribe flow
+            });
+            document.getElementById('push-prompt-no').addEventListener('click', function() {
+              popup.remove();
+              localStorage.setItem('swf-push-dismissed', '1');
+            });
+          }
+        })();
       })();
     </script>
   </body>
