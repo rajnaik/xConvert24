@@ -1,0 +1,54 @@
+---
+/**
+ * Citations — orange-themed sources & references block for blog articles.
+ * Placed before AuthorInfo at the bottom of articles that discuss
+ * rules, official gameplay, dictionaries, or tournament information.
+ *
+ * Props:
+ *   sources: string[] — array of citation strings to display
+ */
+
+interface Props {
+  sources: string[];
+}
+
+const { sources } = Astro.props;
+
+// Known URLs to auto-linkify
+const LINK_MAP: Record<string, string> = {
+  'scrabble.hasbro.com': 'https://scrabble.hasbro.com/',
+  'scrabbleplayers.org': 'https://www.scrabbleplayers.org/',
+  'wespa.org': 'https://www.wespa.org/',
+  'collinsdictionary.com/scrabble': 'https://www.collinsdictionary.com/scrabble',
+  'Scrabble: The Complete History by Stefan Fatsis (2001)': 'https://www.amazon.com/Word-Freak-Heartbreak-Obsession-Competitive/dp/0142002267',
+};
+
+function linkify(text: string): string {
+  let result = text;
+  for (const [match, url] of Object.entries(LINK_MAP)) {
+    if (result.includes(match)) {
+      result = result.replace(match, `<a href="${url}" target="_blank" rel="noopener" class="text-orange-300 hover:underline">${match}</a>`);
+    }
+  }
+  return result;
+}
+---
+
+{sources && sources.length > 0 && (
+  <aside class="not-prose mt-8 p-5 rounded-xl border-2 border-orange-500/40 bg-gradient-to-br from-orange-950/20 to-amber-950/10 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-20 h-20 bg-orange-500/5 rounded-full blur-2xl"></div>
+    <div class="relative">
+      <p class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+        <span class="text-base">📚</span> Sources & References
+      </p>
+      <ul class="space-y-1.5">
+        {sources.map((source) => (
+          <li class="flex items-start gap-2 text-xs text-gray-300 leading-relaxed">
+            <span class="text-orange-400 mt-0.5 shrink-0">•</span>
+            <span set:html={linkify(source)} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </aside>
+)}
