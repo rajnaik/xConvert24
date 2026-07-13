@@ -30,10 +30,10 @@ export const GET: APIRoute = async ({ url }) => {
       query = 'SELECT * FROM latest_news ORDER BY fetched_at DESC LIMIT ?';
       params = [limit];
     } else if (category) {
-      query = 'SELECT * FROM latest_news WHERE active = 1 AND category = ? ORDER BY fetched_at DESC LIMIT ?';
+      query = 'SELECT * FROM latest_news WHERE active = 1 AND approved = 1 AND category = ? ORDER BY fetched_at DESC LIMIT ?';
       params = [category, limit];
     } else {
-      query = "SELECT * FROM latest_news WHERE active = 1 AND fetched_at > datetime('now', '-30 days') ORDER BY fetched_at DESC LIMIT ?";
+      query = "SELECT * FROM latest_news WHERE active = 1 AND approved = 1 AND fetched_at > datetime('now', '-30 days') ORDER BY fetched_at DESC LIMIT ?";
       params = [limit];
     }
 
@@ -84,7 +84,7 @@ export const PUT: APIRoute = async ({ request }) => {
 
     if (!id) return jsonError('id is required', 400);
 
-    const allowed = ['title', 'summary', 'source_url', 'source_name', 'category', 'published_date', 'active', 'media_url', 'media_type'];
+    const allowed = ['title', 'summary', 'source_url', 'source_name', 'category', 'published_date', 'active', 'media_url', 'media_type', 'approved'];
     const updates: string[] = [];
     const params: any[] = [];
 

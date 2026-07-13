@@ -13,12 +13,12 @@ let heroNews: any[] = [];
 
 try {
   // Hero news: items with media
-  const heroRes = await db.prepare("SELECT * FROM latest_news WHERE active = 1 AND media_url != '' AND fetched_at > datetime('now', '-30 days') ORDER BY fetched_at DESC LIMIT 3").all();
+  const heroRes = await db.prepare("SELECT * FROM latest_news WHERE active = 1 AND approved = 1 AND media_url != '' AND fetched_at > datetime('now', '-30 days') ORDER BY fetched_at DESC LIMIT 3").all();
   heroNews = heroRes.results || [];
 
   // Regular news (exclude hero items)
   const heroIds = heroNews.map((h: any) => h.id);
-  const res = await db.prepare("SELECT * FROM latest_news WHERE active = 1 AND fetched_at > datetime('now', '-30 days') ORDER BY fetched_at DESC LIMIT 50").all();
+  const res = await db.prepare("SELECT * FROM latest_news WHERE active = 1 AND approved = 1 AND fetched_at > datetime('now', '-30 days') ORDER BY fetched_at DESC LIMIT 50").all();
   newsItems = (res.results || []).filter((n: any) => !heroIds.includes(n.id));
 
   const catRes = await db.prepare("SELECT DISTINCT category FROM latest_news WHERE active = 1 ORDER BY category").all();

@@ -17,23 +17,51 @@ import '../../styles/global.css';
   </nav>
 
   <div class="max-w-6xl mx-auto px-6 py-10">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
       <div>
         <h1 class="text-2xl font-bold text-white">📰 Latest News Management</h1>
         <p class="text-gray-400 text-sm mt-1">Review, edit, or remove auto-fetched Scrabble news. Inactive items are hidden from the public page.</p>
       </div>
-      <button id="btn-add" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">+ Add Manually</button>
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btn-add" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">+ Add Manually</button>
+        <select id="fetch-query" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs focus:border-emerald-500 focus:outline-none max-w-[180px]">
+          <option value="competitive scrabble tournament results 2026">Tournament Results 2026</option>
+          <option value="WESPA scrabble news">WESPA News</option>
+          <option value="NASPA scrabble tournament winners 2026">NASPA Tournament</option>
+          <option value="world scrabble championship news">World Championship</option>
+          <option value="scrabble community news events 2026">Community Events</option>
+          <option value="international scrabble tournament results">International Results</option>
+          <option value="scrabble player achievements 2026">Player Achievements</option>
+          <option value="Scrabble News">Scrabble News (General)</option>
+        </select>
+        <input type="number" id="fetch-days" value="7" min="1" max="30" class="w-14 px-2 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs text-center focus:border-emerald-500 focus:outline-none" title="Days freshness" />
+        <span class="text-xs text-gray-500">days</span>
+        <button id="btn-fetch" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors">🔄 Fetch</button>
+      </div>
+    </div>
+
+    <!-- Fetch Results -->
+    <div id="fetch-results" class="hidden mb-6 rounded-xl border border-emerald-800/40 bg-emerald-950/10 p-4">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Fetch Results</p>
+        <button id="fetch-results-close" class="text-xs text-gray-500 hover:text-white">✕</button>
+      </div>
+      <div id="fetch-results-content" class="text-xs text-gray-300 space-y-1"></div>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-5 gap-4 mb-6">
       <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
         <p class="text-2xl font-bold text-blue-400" id="stat-total">—</p>
         <p class="text-xs text-gray-500">Total</p>
       </div>
       <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
-        <p class="text-2xl font-bold text-green-400" id="stat-active">—</p>
-        <p class="text-xs text-gray-500">Active</p>
+        <p class="text-2xl font-bold text-green-400" id="stat-approved">—</p>
+        <p class="text-xs text-gray-500">Approved</p>
+      </div>
+      <div class="p-3 rounded-xl border border-amber-800/50 bg-amber-900/10 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-pending">—</p>
+        <p class="text-xs text-gray-500">Pending</p>
       </div>
       <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
         <p class="text-2xl font-bold text-gray-500" id="stat-inactive">—</p>
@@ -131,36 +159,56 @@ import '../../styles/global.css';
       const container = document.getElementById('news-list');
       const catIcons = { tournament: '🏆', player: '👤', rules: '📜', community: '🌍', general: '📰' };
       container.innerHTML = allNews.map(item => `
-        <div class="p-4 rounded-xl border ${item.active ? 'border-gray-800' : 'border-red-900/30 opacity-60'} bg-gray-900/30 flex items-start gap-4">
+        <div class="p-4 rounded-xl border ${!item.active ? 'border-red-900/30 opacity-60' : !item.approved ? 'border-amber-500/40 bg-amber-950/10' : 'border-gray-800'} bg-gray-900/30 flex items-start gap-4">
           <span class="text-2xl shrink-0 mt-0.5">${catIcons[item.category] || '📰'}</span>
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-2">
               <h3 class="text-white font-medium text-sm">${item.title}</h3>
-              <span class="text-[10px] text-gray-500 shrink-0 whitespace-nowrap">${item.fetched_at?.split('T')[0] || ''}</span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                ${!item.approved ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-900/40 text-amber-400 border border-amber-500/30">PENDING</span>' : '<span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-900/40 text-green-400 border border-green-500/30">APPROVED</span>'}
+                <span class="text-[10px] text-gray-500">${item.fetched_at?.split('T')[0] || ''}</span>
+              </div>
             </div>
             <p class="text-gray-400 text-xs mt-1">${item.summary}</p>
             <div class="flex items-center gap-3 mt-2">
               <span class="text-[10px] text-gray-500 uppercase">${item.category}</span>
               ${item.source_name ? `<span class="text-[10px] text-gray-500">via ${item.source_name}</span>` : ''}
               ${item.source_url ? `<a href="${item.source_url}" target="_blank" class="text-[10px] text-blue-400 hover:underline">Source</a>` : ''}
+              ${item.media_url ? '<span class="text-[10px] text-purple-400">🎬 Media</span>' : ''}
             </div>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button class="text-xs ${item.active ? 'text-amber-400' : 'text-green-400'} hover:opacity-80" onclick="toggleActive(${item.id}, ${item.active ? 0 : 1})">${item.active ? 'Hide' : 'Show'}</button>
+          <div class="flex flex-col items-end gap-1.5 shrink-0">
+            ${!item.approved ? `<button class="text-xs text-green-400 hover:text-green-300 font-medium px-2 py-1 rounded border border-green-700 hover:bg-green-900/30" onclick="approveItem(${item.id})">✓ Approve</button>` : `<button class="text-xs text-amber-400 hover:text-amber-300 px-2 py-1 rounded border border-amber-700 hover:bg-amber-900/30" onclick="unapproveItem(${item.id})">↩ Unpublish</button>`}
             <button class="text-xs text-blue-400 hover:opacity-80" onclick="editItem(${item.id})">Edit</button>
+            <button class="text-xs ${item.active ? 'text-gray-400' : 'text-green-400'} hover:opacity-80" onclick="toggleActive(${item.id}, ${item.active ? 0 : 1})">${item.active ? 'Hide' : 'Show'}</button>
             <button class="text-xs text-red-400 hover:opacity-80" onclick="deleteItem(${item.id})">Del</button>
           </div>
         </div>
-      `).join('') || '<p class="text-gray-500 text-center py-8">No news items yet. They\'ll appear after the first daily cron run.</p>';
+      `).join('') || '<p class="text-gray-500 text-center py-8">No news items yet.</p>';
     }
 
     function updateStats() {
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('stat-total').textContent = allNews.length;
-      document.getElementById('stat-active').textContent = allNews.filter(n => n.active).length;
+      document.getElementById('stat-approved').textContent = allNews.filter(n => n.approved && n.active).length;
+      document.getElementById('stat-pending').textContent = allNews.filter(n => !n.approved && n.active).length;
       document.getElementById('stat-inactive').textContent = allNews.filter(n => !n.active).length;
       document.getElementById('stat-today').textContent = allNews.filter(n => (n.fetched_at || '').startsWith(today)).length;
     }
+
+    // Approve
+    window.approveItem = async function(id) {
+      await fetch('/api/latest-news/', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id, approved: 1 }) });
+      showToast('Approved ✓');
+      loadNews();
+    };
+
+    // Unapprove (back to pending)
+    window.unapproveItem = async function(id) {
+      await fetch('/api/latest-news/', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id, approved: 0 }) });
+      showToast('Moved back to pending');
+      loadNews();
+    };
 
     // Toggle active/hidden
     window.toggleActive = async function(id, active) {
@@ -193,6 +241,46 @@ import '../../styles/global.css';
       document.getElementById('form-media-type').value = item.media_type || '';
       document.getElementById('modal-overlay').classList.remove('hidden');
     };
+
+    // Fetch Latest News button
+    document.getElementById('btn-fetch').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-fetch');
+      const query = document.getElementById('fetch-query').value;
+      const days = parseInt(document.getElementById('fetch-days').value) || 7;
+      const resultsPanel = document.getElementById('fetch-results');
+      const resultsContent = document.getElementById('fetch-results-content');
+      btn.textContent = '⏳ Fetching...';
+      btn.disabled = true;
+      resultsPanel.classList.remove('hidden');
+      resultsContent.innerHTML = '<p class="text-gray-500 animate-pulse">Searching Tavily for "' + query + '" (last ' + days + ' days)...</p>';
+      try {
+        const res = await fetch('/api/fetch-news/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ query, days }) });
+        const data = await res.json();
+        if (data.success) {
+          resultsContent.innerHTML = `
+            <p class="text-emerald-400 font-medium">✓ Inserted ${data.inserted} new items (${data.total_found} found)</p>
+            <p class="text-gray-500">Query: "${data.query}" • Days: ${data.days} • Source: ${data.source || 'tavily'}</p>
+            ${data.inserted === 0 && data.total_found > 0 ? '<p class="text-amber-400 text-[10px] mt-1">All items were duplicates of existing entries.</p>' : ''}
+            ${data.inserted === 0 && data.total_found === 0 ? '<p class="text-amber-400 text-[10px] mt-1">No results found. Try a different query or increase days.</p>' : ''}
+          `;
+          showToast(`Fetched ${data.inserted} new items`);
+        } else {
+          resultsContent.innerHTML = `<p class="text-red-400">✗ Error: ${data.error || 'Unknown'}</p>`;
+          showToast(`Error: ${data.error || 'Unknown'}`);
+        }
+      } catch (e) {
+        resultsContent.innerHTML = `<p class="text-red-400">✗ Fetch failed: ${e.message}</p>`;
+        showToast('Fetch failed');
+      }
+      btn.textContent = '🔄 Fetch';
+      btn.disabled = false;
+      loadNews();
+    });
+
+    // Close fetch results
+    document.getElementById('fetch-results-close').addEventListener('click', () => {
+      document.getElementById('fetch-results').classList.add('hidden');
+    });
 
     // Modal
     const modal = document.getElementById('modal-overlay');
