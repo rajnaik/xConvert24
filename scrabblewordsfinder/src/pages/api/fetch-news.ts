@@ -1,96 +1,26 @@
-/**
- * Custom Worker entrypoint for ScrabbleWordsFinder
- * Handles both HTTP requests (via Astro) and scheduled cron events (WOTD push)
- */
-import { handle } from '@astrojs/cloudflare/handler';
-
-export default {
-  async fetch(request: Request, env: any, ctx: ExecutionContext) {
-    return handle(request, env, ctx);
-  },
-
-  async scheduled(event: ScheduledEvent, env: any, ctx: ExecutionContext) {
-    // Daily cron (0 0 * * *) — send WOTD push notification + fetch latest scrabble news
-    ctx.waitUntil(sendDailyWOTD(env));
-    ctx.waitUntil(fetchLatestNews(env));
-  },
-} satisfies ExportedHandler;
-
-async function sendDailyWOTD(env: any) {
-  try {
-    const db = env.DB;
-    if (!db) return;
-
-    const today = new Date().toISOString().split('T')[0];
-
-    // Get today's WOTD
-    const wotd = await db.prepare(
-      'SELECT word, meaning, fun_fact FROM word_of_the_day WHERE date = ?'
-    ).bind(today).first();
-
-    if (!wotd) return;
-
-    // Get all active subscribers
-    const subs = await db.prepare(
-      'SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE active = 1'
-    ).all();
-
-    const subscribers = subs.results || [];
-    if (subscribers.length === 0) return;
-
-    const vapidPublicKey = env.VAPID_PUBLIC_KEY || '';
-    const vapidPrivateKey = env.VAPID_PRIVATE_KEY || '';
-    if (!vapidPublicKey || !vapidPrivateKey) return;
-
-    // Build notification payload
-    const payload = JSON.stringify({
-      title: `📖 Word of the Day: ${wotd.word}`,
-      body: wotd.meaning || 'Discover today\'s word!',
-      url: '/activities/#wotd',
-      date: today,
-    });
-
-    // Send to all subscribers (fire-and-forget per sub)
-    for (const sub of subscribers) {
-      try {
-        // Simple push — the full encryption is handled by the push service
-        const response = await fetch(sub.endpoint as string, {
-          method: 'POST',
-          headers: {
-            'TTL': '86400',
-            'Urgency': 'normal',
-            'Content-Length': '0',
-          },
-        });
-
-        if (response.status === 410 || response.status === 404) {
-          // Subscription expired
-          await db.prepare('UPDATE push_subscriptions SET active = 0 WHERE id = ?').bind(sub.id).run();
-        } else if (response.ok) {
-          await db.prepare("UPDATE push_subscriptions SET last_sent = datetime('now') WHERE id = ?").bind(sub.id).run();
-        }
-      } catch {
-        // Individual send failure — skip
-      }
-    }
-  } catch (err) {
-    console.error('WOTD push cron error:', err);
-  }
-}
-
+import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 
 /**
- * Fetch latest Scrabble news from Tavily web search, AI-summarise, store in DB.
- * Runs daily via cron. Rotates search queries to cover different angles.
+ * POST /api/fetch-news/ — Manually trigger the news fetch (admin only)
+ * Uses Workers AI to search for Scrabble news and store summaries.
  */
-async function fetchLatestNews(env: any) {
-  try {
-    const db = env.DB;
-    const ai = env.AI;
-    const tavilyKey = env.TAVILY_API_KEY;
-    if (!db || !tavilyKey) return;
 
-    // Rotate queries by day of week
+export const prerender = false;
+
+export const POST: APIRoute = async ({ request }) => {
+  const db = (env as any).DB;
+  const ai = (env as any).AI;
+  const tavilyKey = (env as any).TAVILY_API_KEY;
+  if (!db) return jsonError('DB not configured', 500);
+  if (!tavilyKey) return jsonError('TAVILY_API_KEY not configured', 500);
+
+  try {
+    // Accept optional overrides from POST body
+    let body: any = {};
+    try { body = await request.json(); } catch {}
+
+    // Rotate queries (or use override)
     const queries = [
       'competitive scrabble tournament results 2026',
       'WESPA scrabble news',
@@ -101,9 +31,10 @@ async function fetchLatestNews(env: any) {
       'scrabble player achievements 2026',
     ];
     const dayOfWeek = new Date().getDay();
-    const query = queries[dayOfWeek % queries.length];
+    const query = body.query || queries[dayOfWeek % queries.length];
+    const days = body.days || 30;
 
-    // Step 1: Search with Tavily for real, current results
+    // Step 1: Search with Tavily
     const searchRes = await fetch('https://api.tavily.com/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -112,15 +43,14 @@ async function fetchLatestNews(env: any) {
         query,
         search_depth: 'basic',
         max_results: 8,
-        days: 30,
+        days,
         include_answer: false,
         include_raw_content: false,
       }),
     });
 
     if (!searchRes.ok) {
-      console.error(`[News Cron] Tavily search failed: ${searchRes.status}`);
-      return;
+      return json({ success: false, error: `Tavily search failed: ${searchRes.status}` }, 500);
     }
 
     const searchData: any = await searchRes.json();
@@ -129,28 +59,30 @@ async function fetchLatestNews(env: any) {
     // Filter out generic topic/tag/category pages — only keep actual articles
     const results = rawResults.filter((r: any) => {
       const url = r.url || '';
+      // Reject URLs that are topic/tag aggregate pages
       if (/\/topic\/|\/tag\/|\/tags\/|\/category\/|\/categories\/|\/search\?/.test(url)) return false;
+      // Reject URLs that end in just a domain or a single path segment with no article slug
       const path = new URL(url).pathname;
       if (path === '/' || path === '') return false;
+      // Reject very short paths (likely homepages or section pages)
       if (path.split('/').filter(Boolean).length < 2 && !path.includes('-')) return false;
       return true;
     });
 
     if (results.length === 0) {
-      console.log('[News Cron] No article-level results after filtering');
-      return;
+      return json({ success: true, inserted: 0, message: 'No article-level results after filtering', query, days, filtered_out: rawResults.length });
     }
 
     // Step 2: Build news items directly from Tavily results + optional AI summary
     let newsItems: any[] = [];
 
-    // Build items from raw Tavily results (guaranteed real URLs + dates)
+    // Always build items from raw Tavily results first (guaranteed real URLs + dates)
     const rawItems = results.slice(0, 5).map((r: any) => ({
       title: (r.title || '').slice(0, 80),
       summary: (r.content || '').slice(0, 300),
       source_url: r.url || '',
       source_name: (() => { try { return new URL(r.url || '').hostname.replace('www.', ''); } catch { return ''; } })(),
-      category: 'general' as string,
+      category: 'general',
       published_date: r.published_date ? r.published_date.split('T')[0] : '',
     }));
 
@@ -163,8 +95,8 @@ async function fetchLatestNews(env: any) {
 
         const response = await ai.run('@cf/meta/llama-4-scout-17b-16e-instruct', {
           messages: [
-            { role: 'system', content: 'You improve news summaries. For each numbered item, write a better 2-sentence summary. Return a JSON array of strings. JSON only.' },
-            { role: 'user', content: `Improve these Scrabble news summaries:\n${snippets}\n\nReturn JSON array of summaries, e.g. ["summary1", "summary2", ...]` }
+            { role: 'system', content: 'You improve news summaries. For each numbered item, write a better 2-sentence summary. Return a JSON array of strings (one summary per item). JSON only, no markdown.' },
+            { role: 'user', content: `Improve these Scrabble news summaries:\n${snippets}\n\nReturn JSON array of 2-sentence summaries, e.g. ["summary1", "summary2", ...]` }
           ],
           max_tokens: 1000,
         });
@@ -180,7 +112,7 @@ async function fetchLatestNews(env: any) {
             });
           }
         } catch { /* keep raw summaries */ }
-      } catch { /* AI failed, use raw */ }
+      } catch { /* AI failed, use raw summaries */ }
     }
 
     // Categorise based on keywords
@@ -199,13 +131,12 @@ async function fetchLatestNews(env: any) {
 
     newsItems = rawItems;
 
-    // Step 3: Deduplicate against last 7 days
+    // Step 3: Deduplicate
     const existingTitles = await db.prepare(
       "SELECT title FROM latest_news WHERE fetched_at > datetime('now', '-7 days')"
     ).all();
     const existing = new Set((existingTitles.results || []).map((r: any) => r.title.toLowerCase()));
 
-    // Step 4: Insert new items
     let inserted = 0;
     for (const item of newsItems.slice(0, 5)) {
       if (!item.title || !item.summary) continue;
@@ -225,14 +156,25 @@ async function fetchLatestNews(env: any) {
       inserted++;
     }
 
-    // Cleanup: remove news older than 60 days
-    await db.prepare("DELETE FROM latest_news WHERE fetched_at < datetime('now', '-60 days')").run();
-
-    // Record last fetch time in site_status
+    // Update last fetch time
     await db.prepare("UPDATE site_status SET last_news_fetch = datetime('now') WHERE id = 1").run();
 
-    console.log(`[News Cron] Inserted ${inserted} news items for query: "${query}"`);
-  } catch (err) {
-    console.error('Latest news cron error:', err);
+    return json({ success: true, inserted, total_found: newsItems.length, query, days, source: 'tavily' });
+  } catch (e: any) {
+    return json({ success: false, error: e.message }, 500);
   }
+};
+
+function json(data: any, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+function jsonError(message: string, status = 400) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }

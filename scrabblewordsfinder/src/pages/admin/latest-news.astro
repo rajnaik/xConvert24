@@ -1,0 +1,244 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Latest News — Admin" description="Manage auto-curated Scrabble news feed" keywords="admin, news, scrabble">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/latest-news/" class="text-blue-400 font-medium">Latest News</a>
+      <a href="/latest-news/" class="hover:text-blue-400 transition-colors">← Public Page</a>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white">📰 Latest News Management</h1>
+        <p class="text-gray-400 text-sm mt-1">Review, edit, or remove auto-fetched Scrabble news. Inactive items are hidden from the public page.</p>
+      </div>
+      <button id="btn-add" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">+ Add Manually</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-blue-400" id="stat-total">—</p>
+        <p class="text-xs text-gray-500">Total</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-green-400" id="stat-active">—</p>
+        <p class="text-xs text-gray-500">Active</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-gray-500" id="stat-inactive">—</p>
+        <p class="text-xs text-gray-500">Hidden</p>
+      </div>
+      <div class="p-3 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-today">—</p>
+        <p class="text-xs text-gray-500">Today</p>
+      </div>
+    </div>
+
+    <!-- News List -->
+    <div id="news-list" class="space-y-3"></div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 rounded-lg bg-green-600 text-white text-sm font-medium shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50"></div>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+        <h3 id="modal-title" class="text-lg font-bold text-white mb-4">Add News Item</h3>
+        <form id="news-form" class="space-y-3">
+          <input type="hidden" id="form-id" />
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Title *</label>
+            <input type="text" id="form-title" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Summary *</label>
+            <textarea id="form-summary" rows="3" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Source Name</label>
+              <input type="text" id="form-source-name" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="WESPA" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Category</label>
+              <select id="form-category" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none">
+                <option value="general">General</option>
+                <option value="tournament">Tournament</option>
+                <option value="player">Player</option>
+                <option value="rules">Rules</option>
+                <option value="community">Community</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Source URL</label>
+            <input type="url" id="form-source-url" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="https://..." />
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Published Date</label>
+            <input type="date" id="form-published" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Media URL</label>
+              <input type="url" id="form-media-url" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="YouTube embed or image URL" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Media Type</label>
+              <select id="form-media-type" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none">
+                <option value="">None</option>
+                <option value="youtube">YouTube</option>
+                <option value="video">Video</option>
+                <option value="image">Image</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">Save</button>
+            <button type="button" id="btn-cancel" class="px-4 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-white text-sm transition-colors">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    let allNews = [];
+
+    async function loadNews() {
+      try {
+        const res = await fetch('/api/latest-news/?all=true&limit=100');
+        const data = await res.json();
+        allNews = data.news || [];
+        renderList();
+        updateStats();
+      } catch (e) { console.error(e); }
+    }
+
+    function renderList() {
+      const container = document.getElementById('news-list');
+      const catIcons = { tournament: '🏆', player: '👤', rules: '📜', community: '🌍', general: '📰' };
+      container.innerHTML = allNews.map(item => `
+        <div class="p-4 rounded-xl border ${item.active ? 'border-gray-800' : 'border-red-900/30 opacity-60'} bg-gray-900/30 flex items-start gap-4">
+          <span class="text-2xl shrink-0 mt-0.5">${catIcons[item.category] || '📰'}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="text-white font-medium text-sm">${item.title}</h3>
+              <span class="text-[10px] text-gray-500 shrink-0 whitespace-nowrap">${item.fetched_at?.split('T')[0] || ''}</span>
+            </div>
+            <p class="text-gray-400 text-xs mt-1">${item.summary}</p>
+            <div class="flex items-center gap-3 mt-2">
+              <span class="text-[10px] text-gray-500 uppercase">${item.category}</span>
+              ${item.source_name ? `<span class="text-[10px] text-gray-500">via ${item.source_name}</span>` : ''}
+              ${item.source_url ? `<a href="${item.source_url}" target="_blank" class="text-[10px] text-blue-400 hover:underline">Source</a>` : ''}
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button class="text-xs ${item.active ? 'text-amber-400' : 'text-green-400'} hover:opacity-80" onclick="toggleActive(${item.id}, ${item.active ? 0 : 1})">${item.active ? 'Hide' : 'Show'}</button>
+            <button class="text-xs text-blue-400 hover:opacity-80" onclick="editItem(${item.id})">Edit</button>
+            <button class="text-xs text-red-400 hover:opacity-80" onclick="deleteItem(${item.id})">Del</button>
+          </div>
+        </div>
+      `).join('') || '<p class="text-gray-500 text-center py-8">No news items yet. They\'ll appear after the first daily cron run.</p>';
+    }
+
+    function updateStats() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('stat-total').textContent = allNews.length;
+      document.getElementById('stat-active').textContent = allNews.filter(n => n.active).length;
+      document.getElementById('stat-inactive').textContent = allNews.filter(n => !n.active).length;
+      document.getElementById('stat-today').textContent = allNews.filter(n => (n.fetched_at || '').startsWith(today)).length;
+    }
+
+    // Toggle active/hidden
+    window.toggleActive = async function(id, active) {
+      await fetch('/api/latest-news/', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id, active }) });
+      showToast(active ? 'Item shown' : 'Item hidden');
+      loadNews();
+    };
+
+    // Delete
+    window.deleteItem = async function(id) {
+      if (!confirm('Delete this news item?')) return;
+      await fetch(`/api/latest-news/?id=${id}`, { method: 'DELETE' });
+      showToast('Deleted');
+      loadNews();
+    };
+
+    // Edit
+    window.editItem = function(id) {
+      const item = allNews.find(n => n.id === id);
+      if (!item) return;
+      document.getElementById('modal-title').textContent = 'Edit News Item';
+      document.getElementById('form-id').value = item.id;
+      document.getElementById('form-title').value = item.title;
+      document.getElementById('form-summary').value = item.summary;
+      document.getElementById('form-source-name').value = item.source_name || '';
+      document.getElementById('form-source-url').value = item.source_url || '';
+      document.getElementById('form-category').value = item.category || 'general';
+      document.getElementById('form-published').value = item.published_date || '';
+      document.getElementById('form-media-url').value = item.media_url || '';
+      document.getElementById('form-media-type').value = item.media_type || '';
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    };
+
+    // Modal
+    const modal = document.getElementById('modal-overlay');
+    document.getElementById('btn-add').addEventListener('click', () => {
+      document.getElementById('modal-title').textContent = 'Add News Item';
+      document.getElementById('news-form').reset();
+      document.getElementById('form-id').value = '';
+      modal.classList.remove('hidden');
+    });
+    document.getElementById('btn-cancel').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+
+    // Save
+    document.getElementById('news-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('form-id').value;
+      const payload = {
+        title: document.getElementById('form-title').value,
+        summary: document.getElementById('form-summary').value,
+        source_name: document.getElementById('form-source-name').value,
+        source_url: document.getElementById('form-source-url').value,
+        category: document.getElementById('form-category').value,
+        published_date: document.getElementById('form-published').value,
+        media_url: document.getElementById('form-media-url').value,
+        media_type: document.getElementById('form-media-type').value,
+      };
+
+      if (id) {
+        await fetch('/api/latest-news/', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: parseInt(id), ...payload }) });
+        showToast('Updated');
+      } else {
+        await fetch('/api/latest-news/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        showToast('Added');
+      }
+      modal.classList.add('hidden');
+      loadNews();
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
+    }
+
+    loadNews();
+  })();
+  </script>
+</Layout>

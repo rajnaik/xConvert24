@@ -80,6 +80,12 @@ import '../../styles/global.css';
           <p class="text-sm font-medium" id="todo-count-text"><span class="text-gray-500">Checking...</span></p>
           <a id="todo-review-link" href="/admin/content/blog-comments/" class="hidden mt-1 inline-block text-[10px] text-amber-400 hover:underline">Review →</a>
         </div>
+        <!-- Last News Fetch -->
+        <div class="rounded-lg bg-gray-800/60 p-4">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">📰 News Fetch</p>
+          <p class="text-sm font-medium text-emerald-400" id="news-fetch-time">—</p>
+          <a href="/admin/latest-news/" class="mt-1 inline-block text-[10px] text-blue-400 hover:underline">Review →</a>
+        </div>
         <!-- Telemetry -->
         <div class="rounded-lg bg-gray-800/60 p-4 sm:col-span-2 lg:col-span-6">
           <div class="flex items-center justify-between mb-2">
@@ -372,6 +378,23 @@ import '../../styles/global.css';
       </a>
     </div>
 
+    <!-- Latest News Section -->
+    <h2 class="text-xl font-semibold text-white mb-4 flex items-center gap-2">📰 Latest News</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <a href="/admin/latest-news/" class="block rounded-xl border border-gray-800 bg-gray-900/50 p-6 hover:border-emerald-700 transition-colors group">
+        <h2 class="text-xl font-semibold text-white mb-2 group-hover:text-emerald-400 transition-colors">📰 News Feed</h2>
+        <p class="text-gray-400 text-sm">Review, edit, or hide auto-curated Scrabble news.</p>
+        <ul class="mt-3 space-y-1 text-xs text-gray-500">
+          <li>• Auto-fetched daily via AI cron job</li>
+          <li>• Toggle active/hidden per item</li>
+          <li>• Add manual news items</li>
+        </ul>
+      </a>
+      <div class="rounded-xl border border-dashed border-gray-700 bg-gray-900/20 p-6 flex items-center justify-center">
+        <p class="text-gray-500 text-sm text-center">Cron runs daily at midnight UTC.<br/>Uses Workers AI to search &amp; summarise.</p>
+      </div>
+    </div>
+
     <!-- Users Section -->
     <h2 class="text-xl font-semibold text-white mt-10 mb-4 flex items-center gap-2">👥 Users</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -545,6 +568,16 @@ import '../../styles/global.css';
         }
         if (data.updated_by) {
           updatedByEl.textContent = `by ${data.updated_by}`;
+        }
+
+        // News fetch time
+        const newsFetchEl = document.getElementById('news-fetch-time');
+        if (newsFetchEl && data.last_news_fetch) {
+          const d = new Date(data.last_news_fetch + 'Z');
+          newsFetchEl.textContent = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        } else if (newsFetchEl) {
+          newsFetchEl.textContent = 'Never';
+          newsFetchEl.className = 'text-sm font-medium text-gray-500';
         }
       } catch {
         const statusEl = document.getElementById('widget-status')!;
