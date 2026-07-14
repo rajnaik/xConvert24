@@ -1,0 +1,52 @@
+---
+/**
+ * CiteThis — Encourage citations by providing a ready-to-copy attribution block.
+ * Place at the bottom of research-heavy or statistics articles, before AuthorInfo.
+ *
+ * Props:
+ *   title: Article title
+ *   slug: URL slug (without /blog/ prefix)
+ *   date: Published date (YYYY-MM-DD)
+ */
+interface Props {
+  title: string;
+  slug: string;
+  date?: string;
+}
+
+const { title, slug, date = '2026' } = Astro.props;
+const url = `https://www.scrabblewordsfinder.com/blog/${slug}/`;
+const year = date.split('-')[0] || '2026';
+const apa = `ScrabbleWordsFinder.com. (${year}). ${title}. Retrieved from ${url}`;
+---
+
+<div class="not-prose mt-10 p-5 rounded-xl border border-gray-700 bg-gray-900/50">
+  <div class="flex items-center justify-between mb-3">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">📎 Cite This Page</p>
+    <button id="cite-copy-btn" class="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors" data-cite={apa}>
+      Copy Citation
+    </button>
+  </div>
+  <p class="text-xs text-gray-400 leading-relaxed font-mono bg-gray-800/50 p-3 rounded-lg break-all" id="cite-text">{apa}</p>
+  <p class="text-[10px] text-gray-500 mt-3">If you reference these statistics or data in your article, blog, or research, please cite ScrabbleWordsFinder.com as the source.</p>
+</div>
+
+<script is:inline>
+(function() {
+  var btn = document.getElementById('cite-copy-btn');
+  if (!btn) return;
+  btn.addEventListener('click', function() {
+    var text = btn.getAttribute('data-cite');
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = '✓ Copied!';
+      btn.classList.remove('text-blue-400');
+      btn.classList.add('text-green-400');
+      setTimeout(function() {
+        btn.textContent = 'Copy Citation';
+        btn.classList.remove('text-green-400');
+        btn.classList.add('text-blue-400');
+      }, 2000);
+    });
+  });
+})();
+</script>

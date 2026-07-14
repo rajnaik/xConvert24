@@ -109,11 +109,11 @@ function daysUntil(dateStr: string) {
 
   <!-- Tab Navigation -->
   <div class="flex flex-wrap justify-center gap-2 mb-8" id="tab-nav">
-    <button data-tab="wespa" class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600/20 text-blue-400 border border-blue-500/40">WESPA Ratings</button>
-    <button data-tab="ytd" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">YTD Rankings</button>
-    <button data-tab="online" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Online Ratings</button>
-    <button data-tab="players" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Player Profiles</button>
-    <button data-tab="calendar" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">Tournaments</button>
+    <button data-tab="wespa" class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600/20 text-blue-400 border border-blue-500/40">🏆 WESPA Ratings</button>
+    <button data-tab="ytd" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">📊 YTD Rankings</button>
+    <button data-tab="online" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">🌐 Online Ratings</button>
+    <button data-tab="players" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">👤 Player Profiles</button>
+    <button data-tab="calendar" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">📅 Tournaments</button>
   </div>
 
   <!-- WESPA Ratings Tab -->
@@ -231,6 +231,7 @@ function daysUntil(dateStr: string) {
             <th class="px-3 py-3 text-left hidden sm:table-cell">Country</th>
             <th class="px-3 py-3 text-right">Games</th>
             <th class="px-3 py-3 text-right">Rating</th>
+            <th class="px-3 py-3 text-right hidden md:table-cell">Last Played</th>
           </tr>
         </thead>
         <tbody>
@@ -245,6 +246,7 @@ function daysUntil(dateStr: string) {
               <td class="px-3 py-2.5 text-right">
                 <span class="text-cyan-400 font-mono font-semibold">{player.rating}</span>
               </td>
+              <td class="px-3 py-2.5 text-right hidden md:table-cell text-gray-500 text-xs">{player.last_played || '—'}</td>
             </tr>
           ))}
         </tbody>
@@ -390,21 +392,37 @@ function daysUntil(dateStr: string) {
 
 <script is:inline>
 (function() {
-  // Tab switching
+  // Tab switching with localStorage persistence
   const tabs = document.querySelectorAll('.tab-btn');
   const panels = document.querySelectorAll('.tab-panel');
+  const STORAGE_KEY = 'swf-rankings-tab';
+
+  function activateTab(target) {
+    tabs.forEach(t => {
+      t.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+      t.classList.add('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+    });
+    const btn = document.querySelector(`[data-tab="${target}"]`);
+    if (btn) {
+      btn.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+      btn.classList.remove('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+    }
+    panels.forEach(p => p.classList.add('hidden'));
+    const panel = document.getElementById('panel-' + target);
+    if (panel) panel.classList.remove('hidden');
+  }
+
+  // Restore last selected tab
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved && document.getElementById('panel-' + saved)) {
+    activateTab(saved);
+  }
 
   tabs.forEach(btn => {
     btn.addEventListener('click', () => {
       const target = btn.getAttribute('data-tab');
-      tabs.forEach(t => {
-        t.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
-        t.classList.add('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
-      });
-      btn.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
-      btn.classList.remove('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
-      panels.forEach(p => p.classList.add('hidden'));
-      document.getElementById('panel-' + target)?.classList.remove('hidden');
+      activateTab(target);
+      localStorage.setItem(STORAGE_KEY, target);
     });
   });
 

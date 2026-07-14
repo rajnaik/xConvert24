@@ -629,5 +629,70 @@ if (pathParts.length > 1 && pathParts[0] === 'blog') {
       });
     })();
     </script>
+    <script is:inline>
+    // Push notification subscription (bell icon) — BlogLayout
+    (function() {
+      var bell = document.getElementById('push-bell');
+      var bellMobile = document.getElementById('push-bell-mobile');
+      var dot = document.getElementById('push-bell-dot');
+      var dotMobile = document.getElementById('push-bell-dot-mobile');
+      var activeBell = bell || bellMobile;
+      if (!activeBell || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+      function showDot() {
+        if (dot) dot.classList.remove('hidden');
+        if (dotMobile) dotMobile.classList.remove('hidden');
+        if (bell) { bell.classList.add('border-green-500/60'); bell.querySelector('svg').classList.remove('text-amber-400'); bell.querySelector('svg').classList.add('text-green-400'); }
+        if (bellMobile) { bellMobile.classList.add('border-green-500/60'); bellMobile.querySelector('svg').classList.remove('text-amber-400'); bellMobile.querySelector('svg').classList.add('text-green-400'); }
+      }
+      function hideDot() {
+        if (dot) dot.classList.add('hidden');
+        if (dotMobile) dotMobile.classList.add('hidden');
+        if (bell) { bell.classList.remove('border-green-500/60'); bell.querySelector('svg').classList.remove('text-green-400'); bell.querySelector('svg').classList.add('text-amber-400'); }
+        if (bellMobile) { bellMobile.classList.remove('border-green-500/60'); bellMobile.querySelector('svg').classList.remove('text-green-400'); bellMobile.querySelector('svg').classList.add('text-amber-400'); }
+      }
+
+      navigator.serviceWorker.getRegistration().then(function(reg) {
+        if (!reg) return;
+        reg.pushManager.getSubscription().then(function(sub) { if (sub) showDot(); });
+      });
+
+      function urlBase64ToUint8Array(base64String) {
+        var padding = '='.repeat((4 - base64String.length % 4) % 4);
+        var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        var raw = atob(base64);
+        var arr = new Uint8Array(raw.length);
+        for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+        return arr;
+      }
+
+      async function handleBellClick() {
+        try {
+          var reg = await navigator.serviceWorker.getRegistration();
+          if (!reg) { reg = await navigator.serviceWorker.register('/sw.js'); await new Promise(r => setTimeout(r, 1000)); reg = await navigator.serviceWorker.getRegistration(); }
+          if (!reg) return;
+          var existingSub = await reg.pushManager.getSubscription();
+          if (existingSub) {
+            await fetch('/api/push-subscribe/', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ endpoint: existingSub.endpoint }) });
+            await existingSub.unsubscribe();
+            hideDot();
+          } else {
+            var keyRes = await fetch('/api/push-subscribe/');
+            var keyData = await keyRes.json();
+            if (!keyData.vapidPublicKey) return;
+            var permission = await Notification.requestPermission();
+            if (permission !== 'granted') return;
+            var sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(keyData.vapidPublicKey) });
+            var subJson = sub.toJSON();
+            await fetch('/api/push-subscribe/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys, userId: localStorage.getItem('swf-uid') || '' }) });
+            showDot();
+          }
+        } catch (err) { console.error('Push subscription error:', err); }
+      }
+
+      if (bell) bell.addEventListener('click', handleBellClick);
+      if (bellMobile) bellMobile.addEventListener('click', handleBellClick);
+    })();
+    </script>
   </body>
 </html>
