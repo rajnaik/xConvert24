@@ -1,0 +1,148 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Maintenance Tasks — Admin" description="Recurring data maintenance tasks" keywords="admin, maintenance">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/maintenance/" class="text-blue-400 font-medium">Maintenance</a>
+      <a href="/admin/rankings/" class="hover:text-blue-400 transition-colors">Rankings</a>
+      <a href="/world-rankings/" class="hover:text-blue-400 transition-colors">← Public</a>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white">🔧 Maintenance Tasks</h1>
+        <p class="text-gray-400 text-sm mt-1">Recurring tasks to keep competitive Scrabble data fresh and accurate.</p>
+      </div>
+      <div id="summary" class="text-right">
+        <p class="text-xs text-gray-500">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Overdue alert -->
+    <div id="overdue-alert" class="hidden mb-6 p-4 rounded-xl border border-red-500/40 bg-red-950/20">
+      <p class="text-sm text-red-400 font-medium">⚠️ <span id="overdue-count">0</span> task(s) overdue</p>
+    </div>
+
+    <!-- Task groups -->
+    <div id="tasks-container" class="space-y-8">
+      <p class="text-gray-500 text-sm text-center py-8">Loading tasks...</p>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    function formatDate(d) { if (!d) return '—'; return d; }
+    function isOverdue(nextDue) {
+      if (!nextDue) return false;
+      return new Date(nextDue + 'T00:00:00Z') < new Date();
+    }
+    function daysUntil(nextDue) {
+      if (!nextDue) return '—';
+      var diff = Math.ceil((new Date(nextDue + 'T00:00:00Z') - new Date()) / (1000*60*60*24));
+      if (diff < 0) return diff + 'd overdue';
+      if (diff === 0) return 'Today';
+      return diff + 'd';
+    }
+
+    function render(tasks) {
+      var overdue = tasks.filter(function(t) { return isOverdue(t.next_due); });
+      var alertEl = document.getElementById('overdue-alert');
+      var countEl = document.getElementById('overdue-count');
+      if (overdue.length > 0) {
+        alertEl.classList.remove('hidden');
+        countEl.textContent = overdue.length;
+      } else {
+        alertEl.classList.add('hidden');
+      }
+
+      // Summary
+      var completed = tasks.filter(function(t) { return t.last_completed; }).length;
+      document.getElementById('summary').innerHTML =
+        '<p class="text-sm text-gray-300">' + completed + '/' + tasks.length + ' completed at least once</p>' +
+        '<p class="text-xs text-gray-500">' + overdue.length + ' overdue</p>';
+
+      // Group by frequency
+      var groups = { monthly: [], quarterly: [], annual: [] };
+      tasks.forEach(function(t) { (groups[t.frequency] || groups.monthly).push(t); });
+
+      var html = '';
+      var freqLabels = { monthly: '📅 Monthly Tasks', quarterly: '📆 Quarterly Tasks', annual: '🗓️ Annual Tasks' };
+      var freqColors = { monthly: 'blue', quarterly: 'purple', annual: 'amber' };
+
+      ['monthly', 'quarterly', 'annual'].forEach(function(freq) {
+        var items = groups[freq];
+        if (!items || items.length === 0) return;
+        var color = freqColors[freq];
+
+        html += '<div>';
+        html += '<h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">' + freqLabels[freq] + '</h2>';
+        html += '<div class="space-y-2">';
+
+        items.forEach(function(task) {
+          var overdueCls = isOverdue(task.next_due) ? 'border-red-500/40 bg-red-950/10' : 'border-gray-800 bg-gray-900/30';
+          var dueBadge = isOverdue(task.next_due)
+            ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-900/50 text-red-400 border border-red-500/40">' + daysUntil(task.next_due) + '</span>'
+            : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">' + daysUntil(task.next_due) + '</span>';
+
+          html += '<div class="flex items-center gap-4 p-4 rounded-xl border ' + overdueCls + '">';
+          html += '<button class="mark-done-btn shrink-0 w-6 h-6 rounded-md border-2 border-' + color + '-500/50 hover:bg-' + color + '-500/20 flex items-center justify-center transition-colors" data-id="' + task.id + '" title="Mark as done">';
+          if (task.last_completed) {
+            html += '<svg class="w-3.5 h-3.5 text-' + color + '-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>';
+          }
+          html += '</button>';
+          html += '<div class="flex-1 min-w-0">';
+          html += '<div class="flex items-center gap-2 flex-wrap">';
+          html += '<p class="text-sm font-medium text-white">' + task.name + '</p>';
+          html += '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-gray-800 text-gray-500 border border-gray-700">' + task.category + '</span>';
+          html += '</div>';
+          html += '<p class="text-xs text-gray-500 mt-0.5">' + task.description + '</p>';
+          html += '</div>';
+          html += '<div class="text-right shrink-0">';
+          html += dueBadge;
+          if (task.last_completed) {
+            html += '<p class="text-[9px] text-gray-600 mt-1">Done: ' + formatDate(task.last_completed) + '</p>';
+          }
+          html += '</div>';
+          html += '</div>';
+        });
+
+        html += '</div></div>';
+      });
+
+      document.getElementById('tasks-container').innerHTML = html;
+
+      // Attach click handlers
+      document.querySelectorAll('.mark-done-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var id = parseInt(this.dataset.id);
+          fetch('/api/maintenance-tasks/', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, status: 1 })
+          }).then(function(r) { return r.json(); }).then(function() {
+            loadTasks();
+          });
+        });
+      });
+    }
+
+    function loadTasks() {
+      fetch('/api/maintenance-tasks/').then(function(r) { return r.json(); }).then(function(data) {
+        render(data.tasks || []);
+      });
+    }
+
+    loadTasks();
+  })();
+  </script>
+</Layout>
