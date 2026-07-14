@@ -95,3 +95,20 @@ Static files (images, CSS, JS, SVGs) do NOT get trailing slashes:
 ## Agent Attribution
 
 This is a **kiro** steering rule, created June 26, 2026.
+
+
+## SEO Fix Log — LOCKED
+
+| Date | Issue | Fix | Commit |
+|------|-------|-----|--------|
+| July 14, 2026 | `trailingSlash: 'ignore'` causing 189 GSC "Page with redirect" warnings | Changed to `'always'` in astro.config.mjs | `ce396d9` |
+| July 14, 2026 | BlogCrossLinks had 3 hrefs without trailing slashes | Fixed `/anagram`, `/dictionary`, `/word-of-the-day` | `ce396d9` |
+
+### LOCK: Never revert `trailingSlash` to 'ignore'
+
+The `trailingSlash: 'always'` setting in `astro.config.mjs` is **LOCKED**. Do not change it to `'ignore'` or `'never'`. This setting ensures:
+1. All non-slash URLs get 301-redirected to trailing-slash versions
+2. Google indexes a single canonical URL per page
+3. No duplicate content signals
+
+If this setting is reverted, 189+ pages will immediately show redirect issues in Google Search Console.

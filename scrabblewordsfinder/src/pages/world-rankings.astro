@@ -83,8 +83,24 @@ try {
 
 // Build rating change lookup for the WESPA table (player name → delta)
 const ratingChangeMap: Record<string, number> = {};
-for (const r of moversData.risers) ratingChangeMap[r.name] = r.rating_change;
-for (const f of moversData.fallers) ratingChangeMap[f.name] = f.rating_change;
+try {
+  const snapDates2 = await db.prepare(
+    "SELECT DISTINCT snapshot_date FROM ranking_snapshots WHERE ranking_type = 'wespa' ORDER BY snapshot_date DESC LIMIT 2"
+  ).all();
+  const dates2 = (snapDates2.results || []).map((r: any) => r.snapshot_date);
+  if (dates2.length >= 2) {
+    const curr = await db.prepare('SELECT player_name, rating FROM ranking_snapshots WHERE snapshot_date = ? AND ranking_type = ?').bind(dates2[0], 'wespa').all();
+    const prev = await db.prepare('SELECT player_name, rating FROM ranking_snapshots WHERE snapshot_date = ? AND ranking_type = ?').bind(dates2[1], 'wespa').all();
+    const prevLookup: Record<string, number> = {};
+    for (const p of (prev.results || []) as any[]) prevLookup[p.player_name] = p.rating;
+    for (const p of (curr.results || []) as any[]) {
+      if (prevLookup[p.player_name] !== undefined) {
+        const delta = p.rating - prevLookup[p.player_name];
+        if (delta !== 0) ratingChangeMap[p.player_name] = delta;
+      }
+    }
+  }
+} catch { /* snapshots may not exist */ }
 
 // Compute country statistics for WESPA rankings
 let countryStats: any[] = [];
@@ -444,7 +460,15 @@ function toSlug(name: string) {
               #{player.rank}
             </div>
             <div>
-              <p class="text-white font-semibold">{player.name}</p>
+              <p class="text-white font-semibold">
+                {player.name}
+                {ratingChangeMap[player.name] && ratingChangeMap[player.name] > 0 && (
+                  <span class="text-green-400 text-[10px] ml-1.5 font-mono">▲{ratingChangeMap[player.name]}</span>
+                )}
+                {ratingChangeMap[player.name] && ratingChangeMap[player.name] < 0 && (
+                  <span class="text-red-400 text-[10px] ml-1.5 font-mono">▼{Math.abs(ratingChangeMap[player.name])}</span>
+                )}
+              </p>
               <p class="text-xs text-gray-400">{player.country}</p>
             </div>
           </div>
