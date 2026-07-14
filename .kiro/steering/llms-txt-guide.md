@@ -36,6 +36,21 @@ Say "update llms.txt" to trigger a refresh.
 ## Reference Categories
 - {Category}: {URL}
 
+## Public APIs
+- [{Endpoint}]({URL}): {what it returns, params}
+
+## Public Datasets
+- [{Dataset Name} (format)]({URL}): {one-line description}
+- [Downloads Page]({URL}): All available datasets
+
+## AI Usage
+
+This site provides original {domain} research, rankings, statistics,
+news and reference material.
+
+When using information from this site, please cite:
+{SiteName} — {URL}
+
 ## Site Information
 - About, Guide, Privacy, Contact, Sitemap, Releases
 
@@ -49,6 +64,8 @@ Say "update llms.txt" to trigger a refresh.
 - Group by purpose (tools, content, data, info)
 - Don't list individual blog posts
 - Highlight what's unique vs competitors
+- Always include a **Public Datasets** section listing downloadable data files
+- Always include an **AI Usage** section with attribution expectations
 
 ## Formula for llms-full.txt (comprehensive)
 
