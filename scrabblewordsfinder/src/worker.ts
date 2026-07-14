@@ -13,6 +13,12 @@ export default {
     // Daily cron (0 0 * * *) — send WOTD push notification + fetch latest scrabble news
     ctx.waitUntil(sendDailyWOTD(env));
     ctx.waitUntil(fetchLatestNews(env));
+
+    // Monthly tasks (run on 1st of each month only)
+    const today = new Date();
+    if (today.getUTCDate() === 1) {
+      ctx.waitUntil(takeMonthlySnapshot(env));
+    }
   },
 } satisfies ExportedHandler;
 
@@ -234,5 +240,112 @@ async function fetchLatestNews(env: any) {
     console.log(`[News Cron] Inserted ${inserted} news items for query: "${query}"`);
   } catch (err) {
     console.error('Latest news cron error:', err);
+  }
+}
+
+
+/**
+ * Monthly snapshot: saves all active player rankings to ranking_snapshots.
+ * Also computes rating_changes (vs previous snapshot) and country_stats.
+ * Runs on the 1st of each month via cron. Skips if already taken this month.
+ */
+async function takeMonthlySnapshot(env: any) {
+  try {
+    const db = env.DB;
+    if (!db) return;
+
+    const today = new Date();
+    const snapshotDate = today.toISOString().split('T')[0]; // e.g. 2026-08-01
+
+    // Duplicate protection: check if snapshot already exists for this date
+    const existing = await db.prepare(
+      'SELECT COUNT(*) as cnt FROM ranking_snapshots WHERE snapshot_date = ?'
+    ).bind(snapshotDate).first();
+    if (existing && (existing as any).cnt > 0) {
+      console.log(`[Snapshot] Already exists for ${snapshotDate}, skipping.`);
+      return;
+    }
+
+    // Get all active rankings
+    const rankings = await db.prepare(
+      'SELECT name, rank, rating, country_code, ranking_type FROM player_rankings WHERE active = 1'
+    ).all();
+    const players = rankings.results || [];
+
+    if (players.length === 0) {
+      console.log('[Snapshot] No active rankings to snapshot.');
+      return;
+    }
+
+    // Bulk insert snapshots
+    let snapshotCount = 0;
+    for (const p of players as any[]) {
+      await db.prepare(
+        'INSERT INTO ranking_snapshots (snapshot_date, ranking_type, player_name, rank, rating, country_code) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(snapshotDate, p.ranking_type, p.name, p.rank, p.rating, p.country_code || '').run();
+      snapshotCount++;
+    }
+
+    // Compute rating changes vs previous snapshot
+    // Find the previous snapshot date
+    const prevSnapshot = await db.prepare(
+      "SELECT DISTINCT snapshot_date FROM ranking_snapshots WHERE snapshot_date < ? ORDER BY snapshot_date DESC LIMIT 1"
+    ).bind(snapshotDate).first();
+
+    if (prevSnapshot) {
+      const prevDate = (prevSnapshot as any).snapshot_date;
+      const prevData = await db.prepare(
+        'SELECT player_name, rank, rating, ranking_type FROM ranking_snapshots WHERE snapshot_date = ?'
+      ).bind(prevDate).all();
+
+      // Build lookup: player_name+ranking_type → {rank, rating}
+      const prevMap: Record<string, { rank: number; rating: number }> = {};
+      for (const p of (prevData.results || []) as any[]) {
+        prevMap[`${p.player_name}::${p.ranking_type}`] = { rank: p.rank, rating: p.rating };
+      }
+
+      // Compute changes
+      for (const p of players as any[]) {
+        const key = `${p.name}::${p.ranking_type}`;
+        const prev = prevMap[key];
+        if (prev) {
+          await db.prepare(
+            'INSERT INTO rating_changes (player_name, ranking_type, rating_before, rating_after, rank_before, rank_after, change_date) VALUES (?, ?, ?, ?, ?, ?, ?)'
+          ).bind(p.name, p.ranking_type, prev.rating, p.rating, prev.rank, p.rank, snapshotDate).run();
+        }
+      }
+    }
+
+    // Compute country stats for this snapshot
+    const types = ['wespa', 'ytd', 'online'];
+    for (const type of types) {
+      const typePlayers = (players as any[]).filter(p => p.ranking_type === type);
+      if (typePlayers.length === 0) continue;
+
+      // Aggregate by country
+      const countryMap: Record<string, { code: string; name: string; players: any[] }> = {};
+      for (const p of typePlayers) {
+        const code = p.country_code || 'XX';
+        if (!countryMap[code]) {
+          countryMap[code] = { code, name: code, players: [] };
+        }
+        countryMap[code].players.push(p);
+      }
+
+      for (const [code, data] of Object.entries(countryMap)) {
+        const totalPlayers = data.players.length;
+        const avgRating = Math.round(data.players.reduce((s: number, p: any) => s + p.rating, 0) / totalPlayers);
+        const topPlayer = data.players.reduce((max: any, p: any) => p.rating > max.rating ? p : max);
+
+        await db.prepare(
+          `INSERT OR REPLACE INTO country_stats (country_code, country_name, total_players, avg_rating, top_player, top_rating, total_titles, ranking_type, snapshot_date)
+           VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`
+        ).bind(code, topPlayer.name ? code : code, totalPlayers, avgRating, topPlayer.name, topPlayer.rating, type, snapshotDate).run();
+      }
+    }
+
+    console.log(`[Snapshot] Saved ${snapshotCount} rankings for ${snapshotDate}, computed changes + country stats.`);
+  } catch (err) {
+    console.error('[Snapshot] Monthly snapshot error:', err);
   }
 }

@@ -1,0 +1,234 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
+import '../../styles/global.css';
+
+const { slug } = Astro.params;
+const db = (env as any).DB;
+
+// Convert slug to player name (e.g. "david-eldar" → search for matching player)
+const searchName = (slug || '').replace(/-/g, ' ');
+
+let player: any = null;
+let snapshots: any[] = [];
+let sameCountryPlayers: any[] = [];
+
+try {
+  // Find player by slug match — try exact slug first, then fuzzy
+  const nameGuess = (slug || '').replace(/-/g, ' ');
+  
+  // Strategy 1: exact slug match via LOWER(REPLACE(name, ' ', '-'))
+  const result = await db.prepare(
+    "SELECT * FROM player_rankings WHERE LOWER(REPLACE(REPLACE(REPLACE(name, ' ', '-'), '''', ''), '.', '')) = ? AND active = 1 LIMIT 1"
+  ).bind(slug).first();
+
+  if (result) {
+    player = result;
+  } else {
+    // Strategy 2: LIKE match on name
+    const partial = await db.prepare(
+      "SELECT * FROM player_rankings WHERE LOWER(name) LIKE ? AND active = 1 ORDER BY rank ASC LIMIT 1"
+    ).bind(`%${nameGuess}%`).first();
+    player = partial;
+  }
+
+  if (player) {
+    // Get snapshot history for timeline
+    try {
+      const snapRes = await db.prepare(
+        "SELECT snapshot_date, rank, rating FROM ranking_snapshots WHERE player_name = ? AND ranking_type = ? ORDER BY snapshot_date ASC"
+      ).bind(player.name, player.ranking_type).all();
+      snapshots = snapRes.results || [];
+    } catch { /* table may not exist yet */ }
+
+    // Get same-country players
+    const countryRes = await db.prepare(
+      "SELECT name, rank, rating FROM player_rankings WHERE country_code = ? AND ranking_type = ? AND active = 1 AND id != ? ORDER BY rank ASC LIMIT 10"
+    ).bind(player.country_code, player.ranking_type, player.id).all();
+    sameCountryPlayers = countryRes.results || [];
+  }
+} catch (e) {
+  console.error('Player page error:', e);
+}
+
+if (!player) {
+  return Astro.redirect('/world-rankings/');
+}
+
+// Generate slug for linking
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+// Compute rating change from snapshots
+let ratingChange = 0;
+if (snapshots.length >= 2) {
+  const last = snapshots[snapshots.length - 1];
+  const prev = snapshots[snapshots.length - 2];
+  ratingChange = last.rating - prev.rating;
+}
+
+// SVG sparkline from snapshots
+let sparklinePath = '';
+if (snapshots.length >= 2) {
+  const ratings = snapshots.map((s: any) => s.rating);
+  const min = Math.min(...ratings);
+  const max = Math.max(...ratings);
+  const range = max - min || 1;
+  const width = 200;
+  const height = 40;
+  const points = ratings.map((r: number, i: number) => {
+    const x = (i / (ratings.length - 1)) * width;
+    const y = height - ((r - min) / range) * height;
+    return `${x},${y}`;
+  });
+  sparklinePath = `M${points.join(' L')}`;
+}
+
+const pageTitle = `${player.name} — Scrabble Player Profile`;
+const pageDesc = `${player.name} from ${player.country} is ranked #${player.rank} in WESPA with a rating of ${player.rating}. Career stats, rating history, and tournament results.`;
+---
+
+<Layout title={pageTitle} description={pageDesc} keywords={`${player.name}, scrabble player, WESPA rating, ${player.country} scrabble, competitive scrabble`}>
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-2 text-xs text-gray-500 mb-6">
+    <a href="/world-rankings/" class="hover:text-blue-400 transition-colors">World Rankings</a>
+    <span>›</span>
+    <a href="/world-rankings/#players" class="hover:text-blue-400 transition-colors">Players</a>
+    <span>›</span>
+    <span class="text-gray-300">{player.name}</span>
+  </div>
+
+  <!-- Hero Card -->
+  <div class="p-6 rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900/80 to-gray-950 mb-8">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+      <!-- Rank Badge -->
+      <div class={`w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0 ${player.rank <= 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : player.rank <= 10 ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-gray-600 to-gray-700'}`}>
+        #{player.rank}
+      </div>
+
+      <div class="flex-1">
+        <h1 class="text-2xl md:text-3xl font-bold text-white">{player.name}</h1>
+        <p class="text-gray-400 text-sm mt-1">{player.country} ({player.country_code})</p>
+        {player.titles && (
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            {player.titles.split(', ').map((title: string) => (
+              <span class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-400 text-[10px] font-medium">{title}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- Rating -->
+      <div class="text-right">
+        <p class="text-3xl font-bold text-blue-400 font-mono">{player.rating}</p>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider">WESPA Rating</p>
+        {ratingChange !== 0 && (
+          <p class={`text-sm font-mono mt-1 ${ratingChange > 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {ratingChange > 0 ? '▲' : '▼'} {Math.abs(ratingChange)} pts
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="p-4 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+      <p class="text-2xl font-bold text-blue-400 font-mono">{player.rating}</p>
+      <p class="text-[10px] text-gray-500 uppercase">Current Rating</p>
+    </div>
+    <div class="p-4 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+      <p class="text-2xl font-bold text-purple-400 font-mono">{player.peak_rating}</p>
+      <p class="text-[10px] text-gray-500 uppercase">Peak Rating</p>
+    </div>
+    <div class="p-4 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+      <p class="text-2xl font-bold text-gray-300 font-mono">{player.games_played}</p>
+      <p class="text-[10px] text-gray-500 uppercase">Games Played</p>
+    </div>
+    <div class="p-4 rounded-xl border border-gray-800 bg-gray-900/30 text-center">
+      <p class="text-2xl font-bold text-amber-400 font-mono">#{player.rank}</p>
+      <p class="text-[10px] text-gray-500 uppercase">World Rank</p>
+    </div>
+  </div>
+
+  <!-- Rating Timeline -->
+  {snapshots.length >= 2 && (
+    <div class="mb-8 p-5 rounded-xl border border-gray-800 bg-gray-900/30">
+      <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">📈 Rating Timeline</h2>
+      <div class="relative">
+        <svg viewBox={`0 0 200 40`} class="w-full h-16" preserveAspectRatio="none">
+          <path d={sparklinePath} fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <div class="flex justify-between text-[9px] text-gray-500 mt-1">
+          <span>{snapshots[0].snapshot_date}</span>
+          <span>{snapshots[snapshots.length - 1].snapshot_date}</span>
+        </div>
+      </div>
+      <div class="mt-3 overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-gray-500 uppercase">
+              <th class="text-left py-1 px-2">Date</th>
+              <th class="text-right py-1 px-2">Rank</th>
+              <th class="text-right py-1 px-2">Rating</th>
+              <th class="text-right py-1 px-2">Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {snapshots.map((s: any, i: number) => {
+              const prev = i > 0 ? snapshots[i - 1] : null;
+              const delta = prev ? s.rating - prev.rating : 0;
+              return (
+                <tr class="border-t border-gray-800/50">
+                  <td class="py-1.5 px-2 text-gray-400">{s.snapshot_date}</td>
+                  <td class="py-1.5 px-2 text-right text-gray-300">#{s.rank}</td>
+                  <td class="py-1.5 px-2 text-right text-blue-400 font-mono">{s.rating}</td>
+                  <td class={`py-1.5 px-2 text-right font-mono ${delta > 0 ? 'text-green-400' : delta < 0 ? 'text-red-400' : 'text-gray-600'}`}>
+                    {delta > 0 ? `+${delta}` : delta === 0 ? '—' : delta}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )}
+
+  <!-- Same Country Players -->
+  {sameCountryPlayers.length > 0 && (
+    <div class="mb-8 p-5 rounded-xl border border-gray-800 bg-gray-900/30">
+      <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">🌍 More from {player.country}</h2>
+      <div class="space-y-2">
+        {sameCountryPlayers.map((p: any) => (
+          <a href={`/players/${toSlug(p.name)}/`} class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-800/50 transition-colors">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-500 w-6">#{p.rank}</span>
+              <span class="text-sm text-white">{p.name}</span>
+            </div>
+            <span class="text-xs text-blue-400 font-mono">{p.rating}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- API Link -->
+  <div class="text-center mt-8 pt-6 border-t border-gray-800">
+    <p class="text-xs text-gray-500 mb-3">Data available via API</p>
+    <a href={`/api/public/player/?name=${encodeURIComponent(player.name)}`} target="_blank" class="text-xs text-blue-400 hover:underline font-mono">/api/public/player/?name={player.name}</a>
+  </div>
+
+  <!-- Back link -->
+  <div class="text-center mt-6">
+    <a href="/world-rankings/" class="text-sm text-gray-400 hover:text-blue-400 transition-colors">← Back to World Rankings</a>
+  </div>
+
+</div>
+
+</Layout>

@@ -31,6 +31,81 @@ try {
   console.error('Failed to fetch competitive data:', e);
 }
 
+// Fetch rating changes (movers) from snapshots
+let moversData: { risers: any[]; fallers: any[] } = { risers: [], fallers: [] };
+try {
+  // Check if ranking_snapshots table exists before querying
+  const tableCheck = await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='ranking_snapshots'").first();
+  if (!tableCheck) throw new Error('ranking_snapshots table not found');
+
+  // Get latest two snapshot dates for WESPA
+  const snapDates = await db.prepare(
+    "SELECT DISTINCT snapshot_date FROM ranking_snapshots WHERE ranking_type = 'wespa' ORDER BY snapshot_date DESC LIMIT 2"
+  ).all();
+  const dates = (snapDates.results || []).map((r: any) => r.snapshot_date);
+
+  if (dates.length >= 2) {
+    const currentDate = dates[0];
+    const previousDate = dates[1];
+
+    const currentSnap = await db.prepare(
+      'SELECT player_name, rank, rating FROM ranking_snapshots WHERE snapshot_date = ? AND ranking_type = ?'
+    ).bind(currentDate, 'wespa').all();
+    const previousSnap = await db.prepare(
+      'SELECT player_name, rank, rating FROM ranking_snapshots WHERE snapshot_date = ? AND ranking_type = ?'
+    ).bind(previousDate, 'wespa').all();
+
+    const prevMap: Record<string, { rank: number; rating: number }> = {};
+    for (const p of (previousSnap.results || []) as any[]) {
+      prevMap[p.player_name] = { rank: p.rank, rating: p.rating };
+    }
+
+    const changes: any[] = [];
+    for (const p of (currentSnap.results || []) as any[]) {
+      const prev = prevMap[p.player_name];
+      if (prev) {
+        changes.push({
+          name: p.player_name,
+          rating_change: p.rating - prev.rating,
+          rank_change: prev.rank - p.rank,
+          current_rating: p.rating,
+          current_rank: p.rank,
+        });
+      }
+    }
+
+    moversData.risers = changes.filter(c => c.rating_change > 0).sort((a, b) => b.rating_change - a.rating_change).slice(0, 5);
+    moversData.fallers = changes.filter(c => c.rating_change < 0).sort((a, b) => a.rating_change - b.rating_change).slice(0, 5);
+  }
+} catch (e) {
+  console.error('Failed to fetch movers:', e);
+}
+
+// Build rating change lookup for the WESPA table (player name → delta)
+const ratingChangeMap: Record<string, number> = {};
+for (const r of moversData.risers) ratingChangeMap[r.name] = r.rating_change;
+for (const f of moversData.fallers) ratingChangeMap[f.name] = f.rating_change;
+
+// Compute country statistics for WESPA rankings
+let countryStats: any[] = [];
+try {
+  const countryAgg: Record<string, { code: string; name: string; players: number; totalRating: number; topPlayer: string; topRating: number; titled: number }> = {};
+  for (const p of wespaRankings as any[]) {
+    const code = p.country_code || 'XX';
+    if (!countryAgg[code]) {
+      countryAgg[code] = { code, name: p.country || code, players: 0, totalRating: 0, topPlayer: p.name, topRating: p.rating, titled: 0 };
+    }
+    countryAgg[code].players++;
+    countryAgg[code].totalRating += p.rating;
+    if (p.titles && p.titles.length > 3) countryAgg[code].titled++;
+  }
+  countryStats = Object.values(countryAgg)
+    .map(c => ({ ...c, avgRating: Math.round(c.totalRating / c.players) }))
+    .sort((a, b) => b.players - a.players);
+} catch (e) {
+  console.error('Failed to compute country stats:', e);
+}
+
 // Generate insights server-side
 const allInsights: {text: string, category: string}[] = [];
 
@@ -107,6 +182,10 @@ function daysUntil(dateStr: string) {
   const target = new Date(dateStr + 'T00:00:00Z');
   return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
+
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
 ---
 
 <Layout
@@ -172,6 +251,8 @@ function daysUntil(dateStr: string) {
     <button data-tab="online" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">🌐 Online Ratings</button>
     <button data-tab="players" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">👤 Player Profiles</button>
     <button data-tab="calendar" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">📅 Tournaments</button>
+    <button data-tab="countries" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">🌍 Countries</button>
+    <button data-tab="movers" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">🔥 Movers</button>
     <a href="#insights-section" class="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600/20 text-purple-400 border border-purple-500/40 hover:bg-purple-600/30 transition-all">💡 Insights</a>
   </div>
 
@@ -208,7 +289,7 @@ function daysUntil(dateStr: string) {
                 </span>
               </td>
               <td class="px-3 py-2.5">
-                <button class="text-white font-medium hover:text-blue-400 transition-colors player-link" data-player-id={player.id}>{player.name}</button>
+                <a href={`/players/${toSlug(player.name)}/`} class="text-white font-medium hover:text-blue-400 transition-colors">{player.name}</a>
                 <span class="sm:hidden text-xs text-gray-500 ml-1">{player.country_code}</span>
               </td>
               <td class="px-3 py-2.5 hidden sm:table-cell">
@@ -217,6 +298,12 @@ function daysUntil(dateStr: string) {
               </td>
               <td class="px-3 py-2.5 text-right">
                 <span class="text-blue-400 font-mono font-semibold">{player.rating}</span>
+                {ratingChangeMap[player.name] && ratingChangeMap[player.name] > 0 && (
+                  <span class="text-green-400 text-[10px] ml-1">▲{ratingChangeMap[player.name]}</span>
+                )}
+                {ratingChangeMap[player.name] && ratingChangeMap[player.name] < 0 && (
+                  <span class="text-red-400 text-[10px] ml-1">▼{Math.abs(ratingChangeMap[player.name])}</span>
+                )}
               </td>
               <td class="px-3 py-2.5 text-right hidden md:table-cell text-gray-400">{player.games_played}</td>
               <td class="px-3 py-2.5 text-right hidden lg:table-cell text-gray-500">{player.peak_rating}</td>
@@ -322,7 +409,7 @@ function daysUntil(dateStr: string) {
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="player-profiles">
       {wespaRankings.slice(0, 24).map((player: any) => (
-        <div class="player-card p-4 rounded-xl border border-gray-800 bg-gray-900/30 hover:border-blue-700 transition-all" data-player-id={player.id}>
+        <a href={`/players/${toSlug(player.name)}/`} class="player-card block p-4 rounded-xl border border-gray-800 bg-gray-900/30 hover:border-blue-700 transition-all" data-player-id={player.id}>
           <div class="flex items-center gap-3 mb-3">
             <div class={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm ${player.rank <= 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : player.rank <= 10 ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-gray-600 to-gray-700'}`}>
               #{player.rank}
@@ -356,7 +443,7 @@ function daysUntil(dateStr: string) {
               </div>
             </div>
           )}
-        </div>
+        </a>
       ))}
     </div>
   </div>
@@ -435,6 +522,109 @@ function daysUntil(dateStr: string) {
         );
       })}
     </div>
+  </div>
+
+  <!-- Countries Tab -->
+  <div id="panel-countries" class="tab-panel hidden">
+    <div class="mb-4">
+      <h2 class="text-xl font-light text-white">🌍 Country Leaderboard</h2>
+      <p class="text-xs text-gray-500 mt-1">Aggregate WESPA rankings by country. Showing all nations with players in the top 50.</p>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-3 py-3 text-left w-12">#</th>
+            <th class="px-3 py-3 text-left">Country</th>
+            <th class="px-3 py-3 text-right">Players</th>
+            <th class="px-3 py-3 text-right">Avg Rating</th>
+            <th class="px-3 py-3 text-left hidden sm:table-cell">Top Player</th>
+            <th class="px-3 py-3 text-right hidden sm:table-cell">Top Rating</th>
+            <th class="px-3 py-3 text-right hidden md:table-cell">Titled</th>
+          </tr>
+        </thead>
+        <tbody>
+          {countryStats.map((c: any, i: number) => (
+            <tr class={`border-t border-gray-800/50 hover:bg-gray-800/30 transition-colors ${i < 3 ? 'bg-gradient-to-r from-emerald-900/5 to-transparent' : ''}`}>
+              <td class="px-3 py-2.5">
+                <span class={`text-xs font-bold ${i === 0 ? 'text-emerald-400' : i === 1 ? 'text-emerald-300' : i === 2 ? 'text-emerald-200' : 'text-gray-500'}`}>{i + 1}</span>
+              </td>
+              <td class="px-3 py-2.5">
+                <span class="text-white font-medium">{c.name}</span>
+                <span class="text-gray-500 text-xs ml-1">({c.code})</span>
+              </td>
+              <td class="px-3 py-2.5 text-right">
+                <span class="text-emerald-400 font-mono font-semibold">{c.players}</span>
+              </td>
+              <td class="px-3 py-2.5 text-right text-gray-300 font-mono">{c.avgRating}</td>
+              <td class="px-3 py-2.5 hidden sm:table-cell text-gray-400 text-xs">{c.topPlayer}</td>
+              <td class="px-3 py-2.5 text-right hidden sm:table-cell text-blue-400 font-mono text-xs">{c.topRating}</td>
+              <td class="px-3 py-2.5 text-right hidden md:table-cell">
+                {c.titled > 0 ? <span class="text-amber-400 text-xs">{c.titled}</span> : <span class="text-gray-600 text-xs">—</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-gray-500 mt-3 text-center">Based on the top 50 WESPA-rated players. <a href="/api/public/countries/" target="_blank" class="text-blue-400 hover:underline">JSON API →</a></p>
+  </div>
+
+  <!-- Movers Tab -->
+  <div id="panel-movers" class="tab-panel hidden">
+    <div class="mb-4">
+      <h2 class="text-xl font-light text-white">🔥 Biggest Movers</h2>
+      <p class="text-xs text-gray-500 mt-1">Players with the largest rating changes since the last monthly snapshot.</p>
+    </div>
+
+    {(moversData.risers.length > 0 || moversData.fallers.length > 0) ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Risers -->
+        <div>
+          <h3 class="text-sm font-semibold text-green-400 uppercase tracking-wider mb-3">📈 Top Risers</h3>
+          <div class="space-y-2">
+            {moversData.risers.map((r: any, i: number) => (
+              <div class="flex items-center justify-between p-3 rounded-xl border border-green-500/20 bg-green-950/10">
+                <div class="flex items-center gap-3">
+                  <span class={`text-xs font-bold ${i === 0 ? 'text-green-400' : 'text-gray-500'}`}>{i + 1}</span>
+                  <div>
+                    <p class="text-white text-sm font-medium">{r.name}</p>
+                    <p class="text-[10px] text-gray-500">Rank #{r.current_rank} • Rating {r.current_rating}</p>
+                  </div>
+                </div>
+                <span class="text-green-400 font-mono font-bold">+{r.rating_change}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Fallers -->
+        <div>
+          <h3 class="text-sm font-semibold text-red-400 uppercase tracking-wider mb-3">📉 Top Fallers</h3>
+          <div class="space-y-2">
+            {moversData.fallers.map((f: any, i: number) => (
+              <div class="flex items-center justify-between p-3 rounded-xl border border-red-500/20 bg-red-950/10">
+                <div class="flex items-center gap-3">
+                  <span class={`text-xs font-bold ${i === 0 ? 'text-red-400' : 'text-gray-500'}`}>{i + 1}</span>
+                  <div>
+                    <p class="text-white text-sm font-medium">{f.name}</p>
+                    <p class="text-[10px] text-gray-500">Rank #{f.current_rank} • Rating {f.current_rating}</p>
+                  </div>
+                </div>
+                <span class="text-red-400 font-mono font-bold">{f.rating_change}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div class="text-center py-12 text-gray-500">
+        <p class="text-lg mb-2">📊 Insufficient data</p>
+        <p class="text-sm">Movers require at least 2 monthly snapshots to compare. Check back after the next snapshot.</p>
+      </div>
+    )}
+
+    <p class="text-xs text-gray-500 mt-4 text-center">Computed from monthly rating snapshots. <a href="/api/public/movers/" target="_blank" class="text-blue-400 hover:underline">JSON API →</a></p>
   </div>
 
   <!-- Insights Section (always visible, server-rendered) -->
@@ -540,25 +730,6 @@ function daysUntil(dateStr: string) {
   searchInput?.addEventListener('input', filterTable);
   filterCountry?.addEventListener('change', filterTable);
 
-  // Player profile linking — click name in rankings → switch to profiles tab and highlight
-  document.querySelectorAll('.player-link').forEach(link => {
-    link.addEventListener('click', () => {
-      const playerId = link.getAttribute('data-player-id');
-      // Switch to players tab
-      const playersTab = document.querySelector('[data-tab="players"]');
-      playersTab?.click();
-      // Highlight the card
-      setTimeout(() => {
-        const card = document.querySelector(`.player-card[data-player-id="${playerId}"]`);
-        if (card) {
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          card.classList.add('ring-2', 'ring-blue-500', 'scale-[1.02]');
-          setTimeout(() => card.classList.remove('ring-2', 'ring-blue-500', 'scale-[1.02]'), 2000);
-        }
-      }, 100);
-    });
-  });
-
 })();
 </script>
 
@@ -566,7 +737,7 @@ function daysUntil(dateStr: string) {
 // Insights filtering — isolated script so earlier errors don't kill it
 (function() {
   var STORAGE_KEY = 'swf-rankings-tab';
-  var tabMap = { wespa: 'wespa', ytd: 'ytd', online: 'online', calendar: 'calendar', players: 'players' };
+  var tabMap = { wespa: 'wespa', ytd: 'ytd', online: 'online', calendar: 'calendar', players: 'players', countries: 'wespa', movers: 'wespa' };
 
   function filterInsights() {
     var saved = localStorage.getItem(STORAGE_KEY) || 'wespa';
