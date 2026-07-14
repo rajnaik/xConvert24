@@ -8,18 +8,18 @@ Last updated: July 14, 2026
 
 ## Build Order (priority sequence)
 
-| # | Feature | Effort | Dependencies | Version | Status |
-|---|---------|--------|--------------|---------|--------|
-| 1 | Monthly Snapshot Automation | 2h | Existing snapshot table | v1.21.0 | ✅ Done |
-| 2 | Rating Changes & Movers | 3h | Snapshots populated | v1.21.0 | ✅ Done |
-| 3 | Player Career Timelines | 4h | Multiple snapshots | v1.21.1 | ✅ Done (in player pages) |
-| 4 | Country Statistics | 3h | Rankings data | v1.21.0 | ✅ Done |
-| 5 | Records & Milestones | 3h | Snapshots + rankings | v1.21.2 | 🔲 Planned |
-| 6 | Tournament History & Results | 4h | Tournaments table | v1.21.2 | 🔲 Planned |
-| 7 | Player Detail Pages | 5h | All above | v1.21.0 | ✅ Done |
-| 8 | Analytics Dashboard (public) | 5h | All above | v1.21.3 | 🔲 Planned |
-| 9 | Historical Ranking Graphs | 4h | Snapshots + charting | v1.21.4 | 🔲 Planned |
-| 10 | Public API v2 (history endpoints) | 3h | All above | v1.21.0 | ✅ Done (movers + countries) |
+| # | Feature | Effort | Dependencies | Version | Status | Delivered |
+|---|---------|--------|--------------|---------|--------|-----------|
+| 1 | Monthly Snapshot Automation | 2h | Existing snapshot table | v1.21.0 | ✅ Done | v1.21.0 |
+| 2 | Rating Changes & Movers | 3h | Snapshots populated | v1.21.0 | ✅ Done | v1.21.0 |
+| 3 | Player Career Timelines | 4h | Multiple snapshots | v1.21.1 | ✅ Done (in player pages) | v1.21.0 |
+| 4 | Country Statistics | 3h | Rankings data | v1.21.0 | ✅ Done | v1.21.0 |
+| 5 | Records & Milestones | 3h | Snapshots + rankings | v1.21.2 | 🔲 Planned | — |
+| 6 | Tournament History & Results | 4h | Tournaments table | v1.21.2 | 🔲 Planned | — |
+| 7 | Player Detail Pages | 5h | All above | v1.21.0 | ✅ Done | v1.21.0 |
+| 8 | Analytics Dashboard (public) | 5h | All above | v1.21.3 | 🔲 Planned | — |
+| 9 | Historical Ranking Graphs | 4h | Snapshots + charting | v1.21.4 | 🔲 Planned | — |
+| 10 | Public API v2 (history endpoints) | 3h | All above | v1.21.0 | ✅ Done (movers + countries) | v1.21.0 |
 
 **Total estimated: ~36 hours**
 

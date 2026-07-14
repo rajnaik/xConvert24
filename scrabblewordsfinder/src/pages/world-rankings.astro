@@ -106,6 +106,34 @@ try {
   console.error('Failed to compute country stats:', e);
 }
 
+// Fetch records
+let records: any[] = [];
+try {
+  const tableCheck = await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='scrabble_records'").first();
+  if (tableCheck) {
+    const recordsRes = await db.prepare('SELECT * FROM scrabble_records WHERE active = 1 ORDER BY category ASC, id ASC').all();
+    records = recordsRes.results || [];
+  }
+} catch (e) {
+  console.error('Failed to fetch records:', e);
+}
+
+// Fetch tournament results for completed tournaments
+let tournamentResults: Record<number, any[]> = {};
+try {
+  const tableCheck = await db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='tournament_results'").first();
+  if (tableCheck) {
+    for (const t of recentResults as any[]) {
+      const res = await db.prepare('SELECT * FROM tournament_results WHERE tournament_id = ? ORDER BY position ASC').bind(t.id).all();
+      if (res.results && res.results.length > 0) {
+        tournamentResults[t.id] = res.results;
+      }
+    }
+  }
+} catch (e) {
+  console.error('Failed to fetch tournament results:', e);
+}
+
 // Generate insights server-side
 const allInsights: {text: string, category: string}[] = [];
 
@@ -253,6 +281,7 @@ function toSlug(name: string) {
     <button data-tab="calendar" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">📅 Tournaments</button>
     <button data-tab="countries" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">🌍 Countries</button>
     <button data-tab="movers" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">🔥 Movers</button>
+    <button data-tab="records" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">🏅 Records</button>
     <a href="#insights-section" class="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600/20 text-purple-400 border border-purple-500/40 hover:bg-purple-600/30 transition-all">💡 Insights</a>
   </div>
 
@@ -515,6 +544,28 @@ function toSlug(name: string) {
                 <span class="text-white font-medium ml-1">{t.winner}</span>
               </p>
             )}
+            {tournamentResults[t.id] && (
+              <div class="mt-3 pt-2 border-t border-gray-800/50">
+                <p class="text-[10px] text-gray-500 uppercase mb-1.5">Top 3</p>
+                <div class="space-y-1">
+                  {tournamentResults[t.id].map((r: any) => (
+                    <div class="flex items-center justify-between text-xs">
+                      <div class="flex items-center gap-2">
+                        <span class={`font-bold ${r.position === 1 ? 'text-amber-400' : r.position === 2 ? 'text-gray-300' : 'text-orange-400'}`}>
+                          {r.position === 1 ? '🥇' : r.position === 2 ? '🥈' : '🥉'}
+                        </span>
+                        <a href={`/players/${toSlug(r.player_name)}/`} class="text-white hover:text-blue-400 transition-colors">{r.player_name}</a>
+                        <span class="text-gray-600">{r.country_code}</span>
+                      </div>
+                      <div class="flex items-center gap-3 text-gray-400">
+                        <span>{r.games_won}W/{r.games_played}G</span>
+                        <span class="text-green-400/70">+{r.spread}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {t.url && (
               <a href={t.url} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:underline mt-1 inline-block">Full results →</a>
             )}
@@ -627,6 +678,54 @@ function toSlug(name: string) {
     <p class="text-xs text-gray-500 mt-4 text-center">Computed from monthly rating snapshots. <a href="/api/public/movers/" target="_blank" class="text-blue-400 hover:underline">JSON API →</a></p>
   </div>
 
+  <!-- Records Tab -->
+  <div id="panel-records" class="tab-panel hidden">
+    <div class="mb-4">
+      <h2 class="text-xl font-light text-white">🏅 Records & Milestones</h2>
+      <p class="text-xs text-gray-500 mt-1">All-time bests and notable achievements in competitive Scrabble.</p>
+    </div>
+
+    {records.length > 0 ? (
+      <div class="space-y-6">
+        {['rating', 'tournament', 'career', 'improvement'].map(cat => {
+          const catRecords = records.filter((r: any) => r.category === cat);
+          if (catRecords.length === 0) return null;
+          const catLabels = {
+            rating: { title: 'Rating Records', icon: '📊', color: 'border-blue-500/30 bg-blue-950/10' },
+            tournament: { title: 'Tournament Records', icon: '🏆', color: 'border-amber-500/30 bg-amber-950/10' },
+            career: { title: 'Career Milestones', icon: '⭐', color: 'border-purple-500/30 bg-purple-950/10' },
+            improvement: { title: 'Biggest Improvements', icon: '📈', color: 'border-green-500/30 bg-green-950/10' },
+          };
+          const info = catLabels[cat] || { title: cat, icon: '🎯', color: 'border-gray-500/30 bg-gray-950/10' };
+          return (
+            <div>
+              <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">{info.icon} {info.title}</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {catRecords.map((r: any) => (
+                  <div class={`p-4 rounded-xl border ${info.color} hover:scale-[1.01] transition-transform`}>
+                    <div class="flex items-start justify-between gap-2">
+                      <div>
+                        <p class="text-sm font-medium text-white">{r.record_name}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">{r.holder_name} ({r.holder_country})</p>
+                      </div>
+                      <span class="text-lg font-bold text-white font-mono shrink-0">{r.record_value}</span>
+                    </div>
+                    {r.notes && <p class="text-[10px] text-gray-500 mt-2">{r.notes}</p>}
+                    {r.source && <p class="text-[9px] text-gray-600 mt-1">Source: {r.source}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <p class="text-gray-500 text-sm text-center py-8">Records data loading...</p>
+    )}
+
+    <p class="text-xs text-gray-500 mt-4 text-center">Data compiled from WESPA, NASPA, and publicly available tournament records. <a href="/api/public/records/" target="_blank" class="text-blue-400 hover:underline">JSON API →</a></p>
+  </div>
+
   <!-- Insights Section (always visible, server-rendered) -->
   <div id="insights-section" class="mt-12 border-t border-gray-800 pt-8">
     <div class="flex items-center justify-between mb-4">
@@ -737,7 +836,7 @@ function toSlug(name: string) {
 // Insights filtering — isolated script so earlier errors don't kill it
 (function() {
   var STORAGE_KEY = 'swf-rankings-tab';
-  var tabMap = { wespa: 'wespa', ytd: 'ytd', online: 'online', calendar: 'calendar', players: 'players', countries: 'wespa', movers: 'wespa' };
+  var tabMap = { wespa: 'wespa', ytd: 'ytd', online: 'online', calendar: 'calendar', players: 'players', countries: 'wespa', movers: 'wespa', records: 'wespa' };
 
   function filterInsights() {
     var saved = localStorage.getItem(STORAGE_KEY) || 'wespa';

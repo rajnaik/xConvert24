@@ -11,7 +11,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   const query = showAll
     ? 'SELECT * FROM roadmap_features ORDER BY sort_order ASC'
-    : 'SELECT id, name, description, category, progress, icon, sort_order FROM roadmap_features WHERE status = 1 ORDER BY sort_order ASC';
+    : 'SELECT id, name, description, category, progress, icon, sort_order, delivered_version, feature_url FROM roadmap_features WHERE status = 1 ORDER BY sort_order ASC';
 
   const result = await db.prepare(query).all();
   return jsonOk({ features: result.results });

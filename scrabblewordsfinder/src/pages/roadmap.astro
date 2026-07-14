@@ -34,6 +34,9 @@ import '../styles/global.css';
       </div>
     </div>
 
+    <!-- Status filter (Delivered / Planned) -->
+    <div id="status-filters" class="flex gap-2 mb-4"></div>
+
     <!-- Category filter -->
     <div id="category-filters" class="flex flex-wrap gap-2 mb-6"></div>
 
@@ -78,6 +81,14 @@ import '../styles/global.css';
     function setCache(data) { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: data })); }
 
     var activeCategory = 'all';
+    var activeStatus = 'delivered'; // default to showing delivered features
+
+    // Parse version string to a sortable number (e.g. "v1.21.0" → 1210, "v1.20.5" → 1205)
+    function versionToNum(v) {
+      if (!v) return 0;
+      var parts = v.replace('v', '').split('.');
+      return (parseInt(parts[0] || 0) * 10000) + (parseInt(parts[1] || 0) * 100) + (parseInt(parts[2] || 0));
+    }
 
     function render(features) {
       var live = features.filter(function(f) { return f.progress === 'live'; }).length;
@@ -87,9 +98,27 @@ import '../styles/global.css';
       document.getElementById('count-planned').textContent = planned;
       document.getElementById('count-wip').textContent = wip;
 
+      // Status filter (Delivered / Planned)
+      var statusFilterHtml = '';
+      ['delivered', 'planned', 'all'].forEach(function(s) {
+        var label = s === 'delivered' ? '✅ Delivered (' + live + ')' : s === 'planned' ? '📋 Planned (' + planned + ')' : 'All (' + features.length + ')';
+        var isActive = activeStatus === s;
+        statusFilterHtml += '<button class="status-btn px-4 py-1.5 rounded-lg text-xs font-medium border transition-colors ' + (isActive ? 'border-blue-500 bg-blue-900/30 text-blue-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-blue-500') + '" data-status="' + s + '">' + label + '</button>';
+      });
+      document.getElementById('status-filters').innerHTML = statusFilterHtml;
+      document.querySelectorAll('.status-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { activeStatus = this.dataset.status; render(features); });
+      });
+
+      // Filter by status
+      var statusFiltered = features;
+      if (activeStatus === 'delivered') statusFiltered = features.filter(function(f) { return f.progress === 'live'; });
+      else if (activeStatus === 'planned') statusFiltered = features.filter(function(f) { return f.progress === 'planned' || f.progress === 'in-progress'; });
+
+      // Category filter
       var cats = {};
-      features.forEach(function(f) { cats[f.category] = (cats[f.category] || 0) + 1; });
-      var filterHtml = '<button class="cat-btn px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (activeCategory === 'all' ? 'border-amber-500 bg-amber-900/30 text-amber-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-amber-500') + '" data-cat="all">All (' + features.length + ')</button>';
+      statusFiltered.forEach(function(f) { cats[f.category] = (cats[f.category] || 0) + 1; });
+      var filterHtml = '<button class="cat-btn px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (activeCategory === 'all' ? 'border-amber-500 bg-amber-900/30 text-amber-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-amber-500') + '" data-cat="all">All (' + statusFiltered.length + ')</button>';
       Object.keys(cats).sort().forEach(function(c) {
         var active = activeCategory === c;
         filterHtml += '<button class="cat-btn px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (active ? 'border-amber-500 bg-amber-900/30 text-amber-300' : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-amber-500') + '" data-cat="' + c + '">' + c + ' (' + cats[c] + ')</button>';
@@ -99,18 +128,27 @@ import '../styles/global.css';
         btn.addEventListener('click', function() { activeCategory = this.dataset.cat; render(features); });
       });
 
-      var filtered = activeCategory === 'all' ? features : features.filter(function(f) { return f.category === activeCategory; });
+      // Apply category filter
+      var filtered = activeCategory === 'all' ? statusFiltered : statusFiltered.filter(function(f) { return f.category === activeCategory; });
+
+      // Sort: delivered features by version descending, planned by sort_order
+      if (activeStatus === 'delivered') {
+        filtered.sort(function(a, b) { return versionToNum(b.delivered_version) - versionToNum(a.delivered_version); });
+      }
 
       var html = filtered.map(function(f) {
         var progressColor = f.progress === 'live' ? 'bg-green-500' : f.progress === 'in-progress' ? 'bg-blue-500' : 'bg-amber-500';
         var progressLabel = f.progress === 'live' ? '✅ Live' : f.progress === 'in-progress' ? '🔨 Building' : '📋 Planned';
         var borderColor = f.progress === 'live' ? 'border-green-800/50' : f.progress === 'in-progress' ? 'border-blue-800/50' : 'border-gray-700';
+        var versionBadge = (f.progress === 'live' && f.delivered_version) ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-gray-800 text-gray-400 border border-gray-700">' + f.delivered_version + '</span>' : '';
+        var nameHtml = (f.progress === 'live' && f.feature_url) ? '<a href="' + f.feature_url + '" class="text-sm font-semibold text-white hover:text-blue-400 transition-colors">' + f.name + ' →</a>' : '<h3 class="text-sm font-semibold text-white">' + f.name + '</h3>';
         return '<div class="rounded-xl border ' + borderColor + ' bg-gray-900/50 p-4 flex items-start gap-4">' +
           '<span class="text-2xl shrink-0">' + f.icon + '</span>' +
           '<div class="flex-1 min-w-0">' +
             '<div class="flex items-center gap-2 mb-1 flex-wrap">' +
-              '<h3 class="text-sm font-semibold text-white">' + f.name + '</h3>' +
+              nameHtml +
               '<span class="px-2 py-0.5 rounded-full text-[10px] font-medium ' + progressColor + ' text-white">' + progressLabel + '</span>' +
+              versionBadge +
             '</div>' +
             '<p class="text-xs text-gray-400 leading-relaxed">' + f.description + '</p>' +
           '</div>' +
