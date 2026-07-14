@@ -36,6 +36,12 @@ const staticPages = [
   { url: '/privacy', priority: '0.3', changefreq: 'yearly', lastmod: '2026-06-10' },
   { url: '/disclaimer', priority: '0.3', changefreq: 'yearly', lastmod: '2026-06-10' },
   { url: '/terms', priority: '0.3', changefreq: 'yearly', lastmod: '2026-06-10' },
+  { url: '/world-rankings', priority: '0.8', changefreq: 'weekly', lastmod: BUILD_DATE },
+  { url: '/latest-news', priority: '0.7', changefreq: 'daily', lastmod: BUILD_DATE },
+  { url: '/data', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { url: '/methodology', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { url: '/reference', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
+  { url: '/developers', priority: '0.6', changefreq: 'monthly', lastmod: BUILD_DATE },
   { url: '/blog/useful-links', priority: '0.5', changefreq: 'monthly', lastmod: BUILD_DATE },
   // Blog category landing pages
   { url: '/blog/beginner-guides', priority: '0.7', changefreq: 'weekly', lastmod: BUILD_DATE },
