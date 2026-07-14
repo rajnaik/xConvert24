@@ -1,7 +1,7 @@
 # SWF Roadmap — Games & AI Intelligence Upgrades
 
 Living document tracking planned multiplayer games and AI chatbot (Lex) upgrades.
-Last updated: July 6, 2026 (v1.19.0)
+Last updated: July 14, 2026 (v1.20.5)
 
 ## AI Intelligence Upgrades (Lex Chatbot)
 

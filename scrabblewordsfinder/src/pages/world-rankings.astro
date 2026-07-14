@@ -31,6 +31,64 @@ try {
   console.error('Failed to fetch competitive data:', e);
 }
 
+// Generate insights server-side
+const allInsights: {text: string, category: string}[] = [];
+
+// WESPA insights
+if (wespaRankings.length > 0) {
+  const top = wespaRankings[0] as any;
+  allInsights.push({text: `${top.name} (${top.country}) holds the #1 WESPA rating at ${top.rating} points.`, category: 'wespa'});
+  if (wespaRankings.length > 1) {
+    const second = wespaRankings[1] as any;
+    allInsights.push({text: `The gap between #1 and #2 is ${top.rating - second.rating} rating points.`, category: 'wespa'});
+  }
+  const countryCounts: Record<string, number> = {};
+  for (const p of wespaRankings as any[]) countryCounts[p.country] = (countryCounts[p.country] || 0) + 1;
+  const topCountry = Object.entries(countryCounts).sort((a, b) => b[1] - a[1])[0];
+  if (topCountry) allInsights.push({text: `${topCountry[0]} leads with ${topCountry[1]} players in the top ${wespaRankings.length}.`, category: 'wespa'});
+  const avgRating = Math.round((wespaRankings as any[]).reduce((s, p) => s + p.rating, 0) / wespaRankings.length);
+  allInsights.push({text: `Average WESPA rating in the top ${wespaRankings.length}: ${avgRating}.`, category: 'wespa'});
+  const uniqueCountries = Object.keys(countryCounts).length;
+  allInsights.push({text: `${uniqueCountries} countries represented in the WESPA top ${wespaRankings.length}.`, category: 'wespa'});
+}
+
+// YTD insights
+if (ytdRankings.length > 0) {
+  const ytdTop = ytdRankings[0] as any;
+  allInsights.push({text: `${ytdTop.name} leads YTD with ${ytdTop.rating.toLocaleString()} points from ${ytdTop.games_played} events.`, category: 'ytd'});
+  const ytdCountries: Record<string, number> = {};
+  for (const p of ytdRankings as any[]) ytdCountries[p.country] = (ytdCountries[p.country] || 0) + 1;
+  const ytdTopCountry = Object.entries(ytdCountries).sort((a, b) => b[1] - a[1])[0];
+  if (ytdTopCountry) allInsights.push({text: `${ytdTopCountry[0]} dominates YTD with ${ytdTopCountry[1]} players.`, category: 'ytd'});
+  if (ytdRankings.length >= 24) {
+    const cutoff = ytdRankings[23] as any;
+    allInsights.push({text: `Summit Cup cutoff (#24): ${cutoff.name} with ${cutoff.rating.toLocaleString()} pts.`, category: 'ytd'});
+  }
+}
+
+// Online insights
+if (onlineRankings.length > 0) {
+  const onTop = onlineRankings[0] as any;
+  allInsights.push({text: `${onTop.name} (${onTop.country}) leads online ratings at ${onTop.rating}.`, category: 'online'});
+  const onlineCountries = new Set((onlineRankings as any[]).map(p => p.country));
+  allInsights.push({text: `${onlineCountries.size} countries in the online top ${onlineRankings.length}.`, category: 'online'});
+}
+
+// Tournament insights
+if (upcomingTournaments.length > 0 || recentResults.length > 0) {
+  allInsights.push({text: `${upcomingTournaments.length} tournaments upcoming, ${recentResults.length} recently completed.`, category: 'calendar'});
+}
+
+// Player profile insights
+if (wespaRankings.length > 0) {
+  const titledPlayers = (wespaRankings as any[]).filter(p => p.titles && p.titles.length > 5);
+  if (titledPlayers.length > 0) {
+    allInsights.push({text: `${titledPlayers.length} players in the top 50 hold major titles.`, category: 'players'});
+  }
+  const peakPlayer = (wespaRankings as any[]).reduce((max, p) => p.peak_rating > max.peak_rating ? p : max);
+  allInsights.push({text: `Highest peak ever: ${peakPlayer.name} at ${peakPlayer.peak_rating}.`, category: 'players'});
+}
+
 const tierColors: Record<string, string> = {
   platinum: 'text-purple-400 bg-purple-900/30 border-purple-500/40',
   gold: 'text-amber-400 bg-amber-900/30 border-amber-500/40',
@@ -114,6 +172,7 @@ function daysUntil(dateStr: string) {
     <button data-tab="online" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">🌐 Online Ratings</button>
     <button data-tab="players" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">👤 Player Profiles</button>
     <button data-tab="calendar" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-800/50 text-gray-400 border border-gray-700 hover:border-gray-500">📅 Tournaments</button>
+    <a href="#insights-section" class="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600/20 text-purple-400 border border-purple-500/40 hover:bg-purple-600/30 transition-all">💡 Insights</a>
   </div>
 
   <!-- WESPA Ratings Tab -->
@@ -378,6 +437,28 @@ function daysUntil(dateStr: string) {
     </div>
   </div>
 
+  <!-- Insights Section (always visible, server-rendered) -->
+  <div id="insights-section" class="mt-12 border-t border-gray-800 pt-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-light text-white">💡 Scrabble Insights</h2>
+      <a href="/api/public/insights/" target="_blank" class="text-[10px] text-blue-400 hover:underline">JSON API →</a>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {allInsights.map((insight, i) => {
+        const colors = ['border-amber-500/30 bg-amber-950/10','border-blue-500/30 bg-blue-950/10','border-emerald-500/30 bg-emerald-950/10','border-purple-500/30 bg-purple-950/10','border-cyan-500/30 bg-cyan-950/10','border-pink-500/30 bg-pink-950/10','border-orange-500/30 bg-orange-950/10','border-indigo-500/30 bg-indigo-950/10'];
+        const icons = ['🏆','📊','🌍','📈','⚡','🎯','🗺️','🎲'];
+        return (
+          <div class={`p-4 rounded-xl border ${colors[i % colors.length]} hover:scale-[1.02] transition-transform`} data-insight-cat={insight.category}>
+            <div class="flex items-start gap-2.5">
+              <span class="text-lg shrink-0">{icons[i % icons.length]}</span>
+              <p class="text-sm text-gray-200 leading-relaxed">{insight.text}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
   <!-- CTA -->
   <div class="mt-12 text-center p-6 rounded-xl border border-gray-800 bg-gradient-to-r from-blue-900/10 to-purple-900/10">
     <p class="text-gray-300 text-sm mb-3">Want to compete? Start by mastering your word knowledge.</p>
@@ -477,6 +558,35 @@ function daysUntil(dateStr: string) {
       }, 100);
     });
   });
+
+})();
+</script>
+
+<script is:inline>
+// Insights filtering — isolated script so earlier errors don't kill it
+(function() {
+  var STORAGE_KEY = 'swf-rankings-tab';
+  var tabMap = { wespa: 'wespa', ytd: 'ytd', online: 'online', calendar: 'calendar', players: 'players' };
+
+  function filterInsights() {
+    var saved = localStorage.getItem(STORAGE_KEY) || 'wespa';
+    var category = tabMap[saved] || 'wespa';
+    var cards = document.querySelectorAll('[data-insight-cat]');
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].style.display = (cards[i].getAttribute('data-insight-cat') === category) ? '' : 'none';
+    }
+  }
+
+  // Run on load
+  filterInsights();
+
+  // Re-run when tabs are clicked
+  var tabs = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].addEventListener('click', function() {
+      setTimeout(filterInsights, 150);
+    });
+  }
 })();
 </script>
 

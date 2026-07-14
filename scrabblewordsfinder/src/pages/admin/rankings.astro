@@ -49,6 +49,31 @@ import '../../styles/global.css';
       </div>
     </div>
 
+    <!-- Snapshot + Reminders -->
+    <div class="flex flex-wrap items-center gap-3 mb-6 p-4 rounded-xl border border-gray-800 bg-gray-900/30">
+      <button id="btn-snapshot" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-colors">📷 Take Snapshot</button>
+      <span id="snapshot-result" class="text-xs text-gray-400"></span>
+      <div class="ml-auto flex items-center gap-2">
+        <span class="text-xs text-gray-500">Reminders:</span>
+        <button class="reminder-btn px-2 py-1 rounded text-xs bg-gray-700/50 border border-gray-600 text-gray-300 hover:bg-amber-600/30 hover:border-amber-500/40 hover:text-amber-400" data-minutes="5">5m test</button>
+        <button class="reminder-btn px-2 py-1 rounded text-xs bg-amber-600/20 border border-amber-500/40 text-amber-400 hover:bg-amber-600/30" data-days="7">7d</button>
+        <button class="reminder-btn px-2 py-1 rounded text-xs bg-amber-600/20 border border-amber-500/40 text-amber-400 hover:bg-amber-600/30" data-days="14">14d</button>
+        <button class="reminder-btn px-2 py-1 rounded text-xs bg-amber-600/20 border border-amber-500/40 text-amber-400 hover:bg-amber-600/30" data-days="30">30d</button>
+        <span id="reminder-countdown" class="hidden text-xs text-purple-400 font-mono bg-purple-900/30 border border-purple-500/40 px-2 py-1 rounded"></span>
+      </div>
+    </div>
+
+    <!-- Reminder popup (hidden, shown when due) -->
+    <div id="reminder-popup" class="hidden fixed top-6 right-6 p-4 rounded-xl border border-amber-500 bg-gray-900 shadow-2xl z-50 max-w-sm">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-amber-400 font-semibold text-sm">⏰ Reminder</p>
+          <p id="reminder-msg" class="text-gray-300 text-sm mt-1"></p>
+        </div>
+        <button id="reminder-dismiss" class="text-gray-500 hover:text-white text-lg">✕</button>
+      </div>
+    </div>
+
     <!-- Table -->
     <div class="overflow-x-auto rounded-xl border border-gray-800">
       <table class="w-full text-sm" id="rankings-table">
@@ -277,6 +302,124 @@ import '../../styles/global.css';
     }
 
     loadRankings();
+
+    // --- Snapshot ---
+    document.getElementById('btn-snapshot').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-snapshot');
+      const result = document.getElementById('snapshot-result');
+      btn.textContent = '⏳ Taking...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/ranking-snapshot/', { method: 'POST' });
+        const data = await res.json();
+        result.textContent = data.message || data.error || '';
+        result.className = data.success ? 'text-xs text-green-400' : 'text-xs text-amber-400';
+        if (data.success) showToast('Snapshot taken ✓');
+      } catch (e) {
+        result.textContent = 'Failed: ' + e.message;
+        result.className = 'text-xs text-red-400';
+      }
+      btn.textContent = '📷 Take Snapshot';
+      btn.disabled = false;
+    });
+
+    // --- Reminders (localStorage) ---
+    const REMINDER_KEY = 'swf-admin-reminders';
+
+    function getReminders() {
+      try { return JSON.parse(localStorage.getItem(REMINDER_KEY) || '[]'); } catch { return []; }
+    }
+    function saveReminders(arr) { localStorage.setItem(REMINDER_KEY, JSON.stringify(arr)); }
+
+    // Set reminder
+    document.querySelectorAll('.reminder-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const days = parseInt(btn.getAttribute('data-days') || '0');
+        const minutes = parseInt(btn.getAttribute('data-minutes') || '0');
+        let dueMs;
+        let label;
+        if (minutes > 0) {
+          dueMs = Date.now() + minutes * 60000;
+          label = `${minutes}m test`;
+        } else {
+          dueMs = Date.now() + days * 86400000;
+          label = `${days}d`;
+        }
+        const dueISO = new Date(dueMs).toISOString();
+        const reminders = getReminders();
+        if (reminders.length >= 3) reminders.shift(); // max 3
+        reminders.push({ due: dueISO, msg: `Take ranking snapshot (set ${label} ago)`, created: new Date().toISOString() });
+        saveReminders(reminders);
+        showToast(`Reminder set for ${minutes > 0 ? minutes + ' minutes' : days + ' days'}`);
+        const origText = btn.textContent;
+        btn.textContent = '✓ Set';
+        setTimeout(() => { btn.textContent = origText; }, 1500);
+      });
+    });
+
+    // Check reminders on load (supports both date-only and full ISO comparison)
+    (function checkReminders() {
+      const now = new Date().toISOString();
+      const reminders = getReminders();
+      const due = reminders.filter(r => r.due <= now);
+      if (due.length > 0) {
+        const popup = document.getElementById('reminder-popup');
+        document.getElementById('reminder-msg').textContent = due.map(r => r.msg).join(' | ');
+        popup.classList.remove('hidden');
+        // Remove fired reminders
+        saveReminders(reminders.filter(r => r.due > now));
+      }
+    })();
+
+    // Also check every 60 seconds for the 5-minute test
+    setInterval(function() {
+      const now = new Date().toISOString();
+      const reminders = getReminders();
+      const due = reminders.filter(r => r.due <= now);
+      if (due.length > 0) {
+        const popup = document.getElementById('reminder-popup');
+        document.getElementById('reminder-msg').textContent = due.map(r => r.msg).join(' | ');
+        popup.classList.remove('hidden');
+        saveReminders(reminders.filter(r => r.due > now));
+      }
+    }, 60000);
+
+    // Countdown display for active reminders
+    function updateCountdown() {
+      const reminders = getReminders();
+      const countdownEl = document.getElementById('reminder-countdown');
+      if (reminders.length === 0) {
+        countdownEl.classList.add('hidden');
+        return;
+      }
+      // Show countdown to nearest reminder
+      const nearest = reminders.sort((a, b) => a.due.localeCompare(b.due))[0];
+      const now = Date.now();
+      const target = new Date(nearest.due).getTime();
+      const diff = target - now;
+      if (diff <= 0) {
+        countdownEl.textContent = '⏰ Due now!';
+        countdownEl.classList.remove('hidden');
+        return;
+      }
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      let text = '⏰ ';
+      if (days > 0) text += days + 'd ';
+      if (hours > 0) text += hours + 'h ';
+      if (mins > 0) text += mins + 'm ';
+      text += secs + 's';
+      countdownEl.textContent = text;
+      countdownEl.classList.remove('hidden');
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    document.getElementById('reminder-dismiss').addEventListener('click', () => {
+      document.getElementById('reminder-popup').classList.add('hidden');
+    });
   })();
   </script>
 </Layout>
