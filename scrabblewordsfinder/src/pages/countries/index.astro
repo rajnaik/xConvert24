@@ -1,0 +1,166 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
+import '../../styles/global.css';
+
+const db = (env as any).DB;
+
+// Aggregate country stats from player_rankings (WESPA)
+let countryStats: any[] = [];
+let totalPlayers = 0;
+
+try {
+  const res = await db.prepare(
+    "SELECT name, country, country_code, rating, titles, rank FROM player_rankings WHERE ranking_type = 'wespa' AND active = 1 ORDER BY rank ASC"
+  ).all();
+  const players = (res.results || []) as any[];
+  totalPlayers = players.length;
+
+  const countryMap: Record<string, {
+    code: string;
+    name: string;
+    players: number;
+    totalRating: number;
+    topPlayer: string;
+    topRating: number;
+    topRank: number;
+    titled: number;
+  }> = {};
+
+  for (const p of players) {
+    const code = (p.country_code || 'XX').toUpperCase();
+    const name = p.country || code;
+    if (!countryMap[code]) {
+      countryMap[code] = { code, name, players: 0, totalRating: 0, topPlayer: p.name, topRating: p.rating, topRank: p.rank, titled: 0 };
+    }
+    countryMap[code].players++;
+    countryMap[code].totalRating += p.rating;
+    if (p.titles && p.titles.length > 3) countryMap[code].titled++;
+  }
+
+  countryStats = Object.values(countryMap)
+    .map(c => ({
+      ...c,
+      avgRating: Math.round(c.totalRating / c.players),
+      representation: Math.round((c.players / totalPlayers) * 100),
+    }))
+    .sort((a, b) => b.players - a.players);
+} catch (e) {
+  console.error('Country index error:', e);
+}
+
+const pageTitle = 'Scrabble Countries — Players by Nation | ScrabbleWordsFinder';
+const pageDesc = `Explore competitive Scrabble players from ${countryStats.length} countries. View player counts, average ratings, and top-rated players for each nation.`;
+---
+
+<Layout title={pageTitle} description={pageDesc} keywords="scrabble countries, scrabble players by country, international scrabble, WESPA countries, scrabble nations">
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-2 text-xs text-gray-500 mb-6">
+    <a href="/" class="hover:text-blue-400 transition-colors">Home</a>
+    <span>›</span>
+    <a href="/world-rankings/" class="hover:text-blue-400 transition-colors">World Rankings</a>
+    <span>›</span>
+    <span class="text-gray-300">Countries</span>
+  </div>
+
+  <!-- Hero -->
+  <div class="mb-8">
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-3">🌍 Scrabble Countries</h1>
+    <p class="text-gray-400 text-sm max-w-2xl">
+      Competitive Scrabble spans the globe. Browse all {countryStats.length} nations represented in the WESPA world rankings — see how many top players each country has, their average rating, and who leads the pack.
+    </p>
+    <div class="flex flex-wrap gap-4 mt-4 text-xs text-gray-500">
+      <span class="px-3 py-1.5 rounded-full border border-gray-700 bg-gray-900/50">
+        <span class="text-emerald-400 font-mono font-bold">{countryStats.length}</span> nations
+      </span>
+      <span class="px-3 py-1.5 rounded-full border border-gray-700 bg-gray-900/50">
+        <span class="text-blue-400 font-mono font-bold">{totalPlayers}</span> ranked players
+      </span>
+    </div>
+  </div>
+
+  <!-- Country Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {countryStats.map((c, i) => (
+      <a href={`/countries/${c.code.toLowerCase()}/`} class="block p-4 rounded-xl border border-gray-800 bg-gray-900/40 hover:border-emerald-500/40 hover:bg-gray-800/50 transition-all group">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h2 class="text-white font-semibold group-hover:text-emerald-400 transition-colors">{c.name}</h2>
+            <p class="text-[10px] text-gray-500 uppercase tracking-wider">{c.code}</p>
+          </div>
+          <span class={`text-xs font-bold px-2 py-0.5 rounded-full ${i === 0 ? 'bg-emerald-900/40 text-emerald-400' : i < 3 ? 'bg-emerald-900/20 text-emerald-300' : 'bg-gray-800 text-gray-400'}`}>
+            #{i + 1}
+          </span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <p class="text-emerald-400 font-mono font-bold text-sm">{c.players}</p>
+            <p class="text-[10px] text-gray-500">Players</p>
+          </div>
+          <div>
+            <p class="text-blue-400 font-mono font-bold text-sm">{c.avgRating}</p>
+            <p class="text-[10px] text-gray-500">Avg Rating</p>
+          </div>
+          <div>
+            <p class="text-amber-400 font-mono font-bold text-sm">{c.topRating}</p>
+            <p class="text-[10px] text-gray-500">Top Rating</p>
+          </div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-gray-800/50">
+          <p class="text-xs text-gray-400 truncate">
+            <span class="text-gray-500">Top:</span> {c.topPlayer} (#{c.topRank})
+          </p>
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <!-- SEO Content -->
+  <div class="mt-12 prose prose-invert prose-sm max-w-none">
+    <h2 class="text-lg font-semibold text-white">About Scrabble Country Rankings</h2>
+    <p class="text-gray-400">
+      The country rankings are derived from the WESPA (World English-Language Scrabble Players Association) player database. Each country's statistics reflect players in the top {totalPlayers} globally ranked Scrabble competitors.
+    </p>
+    <p class="text-gray-400">
+      Countries are ranked by total player representation. The average rating indicates the overall strength of a nation's competitive Scrabble community, while the top-rated player highlights each country's strongest competitor.
+    </p>
+  </div>
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Which country has the most top Scrabble players?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": countryStats.length > 0 ? `${countryStats[0].name} leads with ${countryStats[0].players} players in the WESPA top ${totalPlayers}.` : "Data is being computed."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How many countries are represented in competitive Scrabble?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `${countryStats.length} countries have players in the current WESPA world rankings.`
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the average Scrabble rating by country?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": countryStats.length > 0 ? `The highest average national rating is ${countryStats.sort((a, b) => b.avgRating - a.avgRating)[0]?.avgRating} held by ${countryStats.sort((a, b) => b.avgRating - a.avgRating)[0]?.name}. Country averages range from approximately 1400 to over 2000.` : "Data is being computed."
+        }
+      }
+    ]
+  })} />
+
+</div>
+</Layout>

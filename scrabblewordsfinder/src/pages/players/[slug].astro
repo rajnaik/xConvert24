@@ -115,9 +115,24 @@ const pageDesc = `${player.name} from ${player.country} is ranked #${player.rank
         <p class="text-gray-400 text-sm mt-1">{player.country} ({player.country_code})</p>
         {player.titles && (
           <div class="flex flex-wrap gap-1.5 mt-2">
-            {player.titles.split(', ').map((title: string) => (
-              <span class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-400 text-[10px] font-medium">{title}</span>
-            ))}
+            {player.titles.split(', ').map((title: string) => {
+              // Map title abbreviations to tournament blog pages
+              const titleLower = title.toLowerCase();
+              let href = '';
+              if (titleLower.includes('wsc') || titleLower.includes('world champion')) href = '/blog/world-scrabble-championship/';
+              else if (titleLower.includes('wespac')) href = '/blog/wespac-scrabble-championship/';
+              else if (titleLower.includes('nsc') || titleLower.includes('nasc') || titleLower.includes('spc') || titleLower.includes('national')) href = '/blog/national-scrabble-championship/';
+              else if (titleLower.includes('causeway')) href = '/blog/causeway-challenge-scrabble/';
+              else if (titleLower.includes('wysc') || titleLower.includes('youth')) href = '/blog/world-youth-scrabble-championship/';
+              else if (titleLower.includes('world cup')) href = '/blog/scrabble-world-cup/';
+              else if (titleLower.includes('jwsc') || titleLower.includes('junior')) href = '/blog/junior-world-scrabble-championship/';
+
+              return href ? (
+                <a href={href} class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-400 text-[10px] font-medium hover:bg-amber-800/40 hover:border-amber-400/50 transition-colors">{title}</a>
+              ) : (
+                <span class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-400 text-[10px] font-medium">{title}</span>
+              );
+            })}
           </div>
         )}
       </div>

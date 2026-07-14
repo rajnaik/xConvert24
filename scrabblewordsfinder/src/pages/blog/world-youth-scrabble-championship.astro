@@ -1,0 +1,214 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/BlogLayout.astro';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+import '../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const db = (env as any).DB;
+let winners: any[] = [];
+try {
+  const res = await db.prepare("SELECT * FROM tournament_winners WHERE tournament = 'WYSC' ORDER BY year DESC").all();
+  winners = (res.results || []) as any[];
+} catch (e) { console.error('WYSC winners fetch error:', e); }
+
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+---
+
+<Layout
+  title="World Youth Scrabble Championship (WYSC) — Winners & History"
+  description="Complete history of the World Youth Scrabble Championships. Every champion since 2006, records, and the rise of young players from Pakistan, India, and Sri Lanka."
+  keywords="world youth scrabble championship, WYSC, youth scrabble, junior scrabble players, Ali Salman, Hasham Hadi Khan, Janul de Silva, young scrabble champions"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "World Youth Scrabble Championship (WYSC) — Winners & History",
+    "description": "Complete history of the World Youth Scrabble Championships. Every champion since 2006.",
+    "datePublished": "2026-07-14",
+    "dateModified": "2026-07-14",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.scrabblewordsfinder.com/about/" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/world-youth-scrabble-championship/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is the WYSC?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The WYSC (World Youth Scrabble Championships) is the premier international Scrabble tournament for young players. Held since 2006, it showcases the next generation of competitive Scrabble talent from around the world." }
+      },
+      {
+        "@type": "Question",
+        "name": "Which country dominates the World Youth Scrabble Championship?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Pakistan has been dominant in recent WYSC history with multiple champions including Ali Salman (2022) and Hasham Hadi Khan (2017, 2018). Sri Lanka's Janul de Silva won three consecutive titles (2014–2016), and Australia's Alastair Richards won in 2009 and 2011." }
+      },
+      {
+        "@type": "Question",
+        "name": "How old are WYSC competitors?",
+        "acceptedAnswer": { "@type": "Answer", "text": "WYSC competitors are typically under 18 years old. The tournament is designed for youth players who are already competing at a high level in their national Scrabble associations." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
+
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-600 dark:text-gray-300">Tournament History</span>
+      </nav>
+
+      <BlogCrossLinks title="World Youth Scrabble Championship (WYSC) — Winners & History" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">World Youth Scrabble Championship (WYSC) — Winners & History</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-07-14">July 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>5 min read</span>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">
+        The World Youth Scrabble Championships (WYSC) is where the future of competitive Scrabble takes shape. Since 2006, young players from Pakistan, India, Sri Lanka, Australia, and beyond have competed for the title of Youth World Champion — and many have gone on to become elite adult players.
+      </p>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">2006</p><p class="text-xs text-gray-400">First WYSC</p></div>
+          <div><p class="text-xl font-bold text-amber-400">{winners.length}</p><p class="text-xs text-gray-400">Editions</p></div>
+          <div><p class="text-xl font-bold text-amber-400">🇵🇰</p><p class="text-xs text-gray-400">Most Titles</p></div>
+          <div><p class="text-xl font-bold text-amber-400">U18</p><p class="text-xs text-gray-400">Age Limit</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">All WYSC Champions</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Year</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Champion</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Country</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Location</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {winners.map((w, i) => (
+              <tr class={i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                <td class="px-4 py-3">{w.year}</td>
+                <td class="px-4 py-3"><a href={`/players/${toSlug(w.winner_name)}/`} class="text-emerald-400 hover:underline">{w.winner_name}</a></td>
+                <td class="px-4 py-3">{w.winner_country}</td>
+                <td class="px-4 py-3">{w.location}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-xs text-gray-500 mt-2">Data sourced from the <a href="/api/public/tournament-winners/?tournament=WYSC" target="_blank" class="text-blue-400 hover:underline">Tournament Winners API →</a></p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Country Dominance</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🇦🇺 Australia (5 titles)</p>
+          <p class="text-xs text-gray-400">David Eldar (2006), Anand Bharadwaj (2011), Michael McKenna (2012), Jack Durand (2014), Yagan Gunes (2021)</p>
+        </div>
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🇲🇾 Malaysia (3 titles)</p>
+          <p class="text-xs text-gray-400">Suanne Ong (2009), Ker Jen Ho (2010), Nicholas Hong (2015)</p>
+        </div>
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🇵🇰 Pakistan (3 titles)</p>
+          <p class="text-xs text-gray-400">Moizullah Baig (2013), Abdullah Abbasi (2018), Affan Salman (2024)</p>
+        </div>
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🇱🇰 Sri Lanka (2 titles)</p>
+          <p class="text-xs text-gray-400">Aabid Ismail (2017), Hivin Dilmith (2023)</p>
+        </div>
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🇮🇳 India (2 titles)</p>
+          <p class="text-xs text-gray-400">Akshat Sharma (2022), Madhav Gopal Kamath (2025)</p>
+        </div>
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🇳🇬 🇹🇭 🇸🇬 🇦🇪 (1 each)</p>
+          <p class="text-xs text-gray-400">Nigeria (2019), Thailand (2008), Singapore (2007), UAE (2016)</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Milestones & Records</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">🏆 Most titles:</span> Australia leads with 5 WYSC championships — David Eldar (2006), Anand Bharadwaj (2011), Michael McKenna (2012), Jack Durand (2014), and Yagan Gunes (2021).</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">🇵🇰 Pakistan rising:</span> One of the strongest recent youth Scrabble nations, winning in 2013, 2018, and 2024. Pakistan's pipeline from youth to elite adult Scrabble is now well established.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">🇮🇳 India breakthrough:</span> Claimed its first WYSC title in 2022 (Akshat Sharma) and followed it with Madhav Gopal Kamath in 2025 — signalling a new era for Indian youth Scrabble.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">⭐ Youth to World Champion:</span> David Eldar won the very first WYSC in 2006 at age 14 — and went on to become the 2017 World Scrabble Champion and current world #1.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">🏷️ WESPA Youth Cup:</span> From 2017 onward, the event has run under the WESPA Youth Cup branding while continuing to crown the World Youth Scrabble Champion.</p>
+        </div>
+      </div>
+
+      <!-- Cross-links -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/junior-world-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Junior World Scrabble Championship (JWSC) — held alongside the WSC</span>
+          </a>
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">World Scrabble Championship — the senior equivalent</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Related Articles -->
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">World Scrabble Championship — All Winners Since 1991</span>
+          </a>
+          <a href="/blog/junior-world-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Junior World Scrabble Championship — JWSC History</span>
+          </a>
+          <a href="/blog/causeway-challenge-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Causeway Challenge — The World's Biggest Scrabble Event</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl shadow-sm">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">🔍 Train like the next world champion — find winning words instantly</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+      </div>
+
+    </article>
+  </div>
+</Layout>

@@ -1,0 +1,221 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/BlogLayout.astro';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+import '../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const db = (env as any).DB;
+let winners: any[] = [];
+try {
+  const res = await db.prepare("SELECT * FROM tournament_winners WHERE tournament = 'WSC' ORDER BY year DESC").all();
+  winners = (res.results || []) as any[];
+} catch (e) { console.error('WSC winners fetch error:', e); }
+
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+---
+
+<Layout
+  title="World Scrabble Championship (WSC) — Winners, History & Records"
+  description="Complete history of the World Scrabble Championship from 1991 to 2025. Every winner, runner-up, host city, and records. Free Scrabble reference."
+  keywords="world scrabble championship, WSC, scrabble world champion, nigel richards, scrabble tournament history, WESPA championship, scrabble winners list"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "World Scrabble Championship (WSC) — Complete Winners History",
+    "description": "Complete history of the World Scrabble Championship from 1991 to 2025. Every winner, runner-up, host city, and records.",
+    "datePublished": "2026-07-14",
+    "dateModified": "2026-07-14",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.scrabblewordsfinder.com/about/" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/world-scrabble-championship/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Who has won the most World Scrabble Championships?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Nigel Richards of New Zealand holds the record with 5 World Scrabble Championship titles (2007, 2011, 2013, 2018, 2019). He is widely regarded as the greatest Scrabble player of all time." }
+      },
+      {
+        "@type": "Question",
+        "name": "When was the first World Scrabble Championship held?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The first World Scrabble Championship was held in 1991 in London, United Kingdom. It was organized by Philip Nelkon of Mattel and won by Peter Morris, a Canadian residing in the United States." }
+      },
+      {
+        "@type": "Question",
+        "name": "How often is the World Scrabble Championship held?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The WSC was originally held every two years from 1991 to 2013. From 2013 onwards it has been held annually. The format typically involves 24+ rounds of Swiss-system play followed by a knockout final." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
+
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-600 dark:text-gray-300">Tournament History</span>
+      </nav>
+
+      <BlogCrossLinks title="World Scrabble Championship (WSC) — Winners, History & Records" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">World Scrabble Championship (WSC) — Complete Winners History</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-07-14">July 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>8 min read</span>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">
+        The World Scrabble Championship is the most prestigious title in competitive English-language Scrabble. Since 1991, the best players on Earth have gathered to compete for the crown — and one player, Nigel Richards, has dominated the modern era with five titles.
+      </p>
+
+      <!-- Stat Strip -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">1991</p><p class="text-xs text-gray-400">First WSC</p></div>
+          <div><p class="text-xl font-bold text-amber-400">16</p><p class="text-xs text-gray-400">Editions Held</p></div>
+          <div><p class="text-xl font-bold text-amber-400">5</p><p class="text-xs text-gray-400">Nigel's Titles</p></div>
+          <div><p class="text-xl font-bold text-amber-400">40+</p><p class="text-xs text-gray-400">Countries</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Complete Winners List</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Year</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Champion</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Country</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Location</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {winners.map((w, i) => (
+              <tr class={i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                <td class="px-4 py-3">{w.year}</td>
+                <td class="px-4 py-3"><a href={`/players/${toSlug(w.winner_name)}/`} class="text-emerald-400 hover:underline">{w.winner_name}</a></td>
+                <td class="px-4 py-3">{w.winner_country}</td>
+                <td class="px-4 py-3">{w.location}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-xs text-gray-500 mt-2">Data sourced from the <a href="/api/public/tournament-winners/?tournament=WSC" target="_blank" class="text-blue-400 hover:underline">Tournament Winners API →</a></p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">The Nigel Richards Era</h2>
+
+      <!-- Hero Card -->
+      <div class="not-prose my-8 p-6 rounded-2xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/30 to-yellow-950/20 relative overflow-hidden">
+        <div class="absolute top-3 right-4 text-xs font-bold uppercase tracking-widest text-amber-500/70">👑 GOAT</div>
+        <p class="text-2xl font-black text-white tracking-wider mb-2">NIGEL RICHARDS</p>
+        <p class="text-sm text-amber-300 font-semibold mb-3">5× World Champion (2007, 2011, 2013, 2018, 2019)</p>
+        <p class="text-sm text-gray-300 leading-relaxed">Widely regarded as the greatest Scrabble player in history. Richards also won the French-language World Championship in 2015 despite not speaking French — memorizing the entire French Scrabble dictionary instead.</p>
+      </div>
+
+      <p class="text-gray-300 text-sm">Richards' dominance reshaped competitive Scrabble. No other player has won the WSC more than once. His five titles span 12 years (2007–2019), and his ability to compete at the highest level across multiple dictionaries (English and French) is unprecedented in word game history.</p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tournament Format</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Qualification:</span> Players qualify through national rankings, regional championships, or WESPA rating thresholds. Typically 100–150 players compete.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Swiss rounds:</span> 24+ rounds of Swiss-system play over 4–5 days. Top 8 or top 2 advance to finals depending on the year.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Finals:</span> A best-of-five or best-of-seven match between the top qualifiers to determine the champion.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20 hover:border-purple-400 transition-colors">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Dictionary:</span> Collins Scrabble Words (SOWPODS) — the international English-language Scrabble dictionary maintained by Collins.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Records & Milestones</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🏆 Most Titles</p>
+          <p class="text-xs text-gray-400">Nigel Richards — 5 titles (2007–2019)</p>
+        </div>
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🌍 Countries Represented</p>
+          <p class="text-xs text-gray-400">40+ nations compete at each championship</p>
+        </div>
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🇹🇭 Southeast Asian Dominance</p>
+          <p class="text-xs text-gray-400">Thailand has produced 2 champions (Panupol, Pakorn)</p>
+        </div>
+        <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-blue-400 font-semibold text-sm mb-1">🇨🇦 Canada's Legacy</p>
+          <p class="text-xs text-gray-400">4 Canadian champions: Morris, Boys, Wapnick, Logan</p>
+        </div>
+      </div>
+
+      <!-- Cross-links -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/wespac-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">WESPAC Championship — the parallel WESPA title since 2015</span>
+          </a>
+          <a href="/blog/competitive-scrabble-tournament-world/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Inside Competitive Scrabble — tournament structure and the mental game</span>
+          </a>
+          <a href="/world-rankings/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">World Rankings — current WESPA player ratings and records</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Related Articles -->
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/wespac-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">WESPAC Championship — History & Winners</span>
+          </a>
+          <a href="/blog/national-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">National Scrabble Championship (USA) — Complete History</span>
+          </a>
+          <a href="/blog/causeway-challenge-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Causeway Challenge — The World's Biggest Scrabble Event</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- CTA Box -->
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl shadow-sm">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">🔍 Train like a champion — find the highest-scoring words from any rack</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+      </div>
+
+    </article>
+  </div>
+</Layout>

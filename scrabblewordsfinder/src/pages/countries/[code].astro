@@ -1,0 +1,234 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { env } from 'cloudflare:workers';
+import '../../styles/global.css';
+
+const { code } = Astro.params;
+const db = (env as any).DB;
+
+const countryCode = (code || '').toUpperCase();
+
+// Fetch all players from this country
+let players: any[] = [];
+let countryName = countryCode;
+
+try {
+  const res = await db.prepare(
+    "SELECT name, country, country_code, rating, rank, titles, ranking_type FROM player_rankings WHERE UPPER(country_code) = ? AND ranking_type = 'wespa' AND active = 1 ORDER BY rank ASC"
+  ).bind(countryCode).all();
+  players = (res.results || []) as any[];
+  if (players.length > 0) {
+    countryName = players[0].country || countryCode;
+  }
+} catch (e) {
+  console.error('Country page error:', e);
+}
+
+// Redirect to countries index if no players found
+if (players.length === 0) {
+  return Astro.redirect('/countries/');
+}
+
+// Compute stats
+const avgRating = Math.round(players.reduce((sum, p) => sum + p.rating, 0) / players.length);
+const topPlayer = players[0];
+const titledPlayers = players.filter(p => p.titles && p.titles.length > 3);
+const ratingRange = { min: players[players.length - 1].rating, max: players[0].rating };
+
+// Generate slug for player links
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+const pageTitle = `${countryName} Scrabble Players — Rankings & Stats | ScrabbleWordsFinder`;
+const pageDesc = `${players.length} competitive Scrabble players from ${countryName}. Top player: ${topPlayer.name} (rating ${topPlayer.rating}, ranked #${topPlayer.rank} globally). View full player list and stats.`;
+---
+
+<Layout title={pageTitle} description={pageDesc} keywords={`${countryName} scrabble, ${countryName} scrabble players, WESPA ${countryName}, scrabble rankings ${countryName}`}>
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-2 text-xs text-gray-500 mb-6">
+    <a href="/" class="hover:text-blue-400 transition-colors">Home</a>
+    <span>›</span>
+    <a href="/world-rankings/" class="hover:text-blue-400 transition-colors">World Rankings</a>
+    <span>›</span>
+    <a href="/countries/" class="hover:text-blue-400 transition-colors">Countries</a>
+    <span>›</span>
+    <span class="text-gray-300">{countryName}</span>
+  </div>
+
+  <!-- Hero Card -->
+  <div class="p-6 rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900/80 to-gray-950 mb-8">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+      <!-- Country Badge -->
+      <div class="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0 bg-gradient-to-br from-emerald-600 to-teal-700">
+        {countryCode}
+      </div>
+
+      <div class="flex-1">
+        <h1 class="text-2xl md:text-3xl font-bold text-white">{countryName}</h1>
+        <p class="text-gray-400 text-sm mt-1">WESPA-ranked competitive Scrabble players</p>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-5 border-t border-gray-800/50">
+      <div class="text-center">
+        <p class="text-emerald-400 font-mono font-bold text-xl">{players.length}</p>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider">Players</p>
+      </div>
+      <div class="text-center">
+        <p class="text-blue-400 font-mono font-bold text-xl">{avgRating}</p>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider">Avg Rating</p>
+      </div>
+      <div class="text-center">
+        <p class="text-amber-400 font-mono font-bold text-xl">{topPlayer.rating}</p>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider">Top Rating</p>
+      </div>
+      <div class="text-center">
+        <p class="text-purple-400 font-mono font-bold text-xl">{titledPlayers.length}</p>
+        <p class="text-[10px] text-gray-500 uppercase tracking-wider">Titled</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Players Table -->
+  <div class="mb-8">
+    <h2 class="text-lg font-semibold text-white mb-4">All Players from {countryName}</h2>
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-3 py-3 text-left w-16">Global #</th>
+            <th class="px-3 py-3 text-left">Player</th>
+            <th class="px-3 py-3 text-right">Rating</th>
+            <th class="px-3 py-3 text-left hidden sm:table-cell">Titles</th>
+          </tr>
+        </thead>
+        <tbody>
+          {players.map((p, i) => (
+            <tr class={`border-t border-gray-800/50 hover:bg-gray-800/30 transition-colors ${i === 0 ? 'bg-gradient-to-r from-emerald-900/10 to-transparent' : ''}`}>
+              <td class="px-3 py-2.5">
+                <span class={`text-xs font-bold ${p.rank <= 3 ? 'text-amber-400' : p.rank <= 10 ? 'text-blue-400' : 'text-gray-500'}`}>#{p.rank}</span>
+              </td>
+              <td class="px-3 py-2.5">
+                <a href={`/players/${toSlug(p.name)}/`} class="text-white font-medium hover:text-emerald-400 transition-colors">
+                  {p.name}
+                </a>
+                {i === 0 && <span class="ml-2 text-[10px] text-emerald-400 bg-emerald-900/30 px-1.5 py-0.5 rounded-full">Top</span>}
+              </td>
+              <td class="px-3 py-2.5 text-right">
+                <span class="text-emerald-400 font-mono font-semibold">{p.rating}</span>
+              </td>
+              <td class="px-3 py-2.5 hidden sm:table-cell">
+                {p.titles && p.titles.length > 3 ? (
+                  <div class="flex flex-wrap gap-1">
+                    {p.titles.split(', ').slice(0, 3).map((title: string) => {
+                      const tl = title.toLowerCase();
+                      let href = '';
+                      if (tl.includes('wsc') || tl.includes('world champion')) href = '/blog/world-scrabble-championship/';
+                      else if (tl.includes('wespac')) href = '/blog/wespac-scrabble-championship/';
+                      else if (tl.includes('nsc') || tl.includes('nasc') || tl.includes('spc') || tl.includes('national')) href = '/blog/national-scrabble-championship/';
+                      else if (tl.includes('causeway')) href = '/blog/causeway-challenge-scrabble/';
+                      else if (tl.includes('wysc') || tl.includes('youth')) href = '/blog/world-youth-scrabble-championship/';
+                      else if (tl.includes('world cup')) href = '/blog/scrabble-world-cup/';
+                      else if (tl.includes('jwsc') || tl.includes('junior')) href = '/blog/junior-world-scrabble-championship/';
+                      return href ? (
+                        <a href={href} class="px-1.5 py-0.5 rounded bg-amber-900/30 border border-amber-500/20 text-amber-400 text-[10px] hover:bg-amber-800/40 hover:border-amber-400/50 transition-colors">{title}</a>
+                      ) : (
+                        <span class="px-1.5 py-0.5 rounded bg-amber-900/30 border border-amber-500/20 text-amber-400 text-[10px]">{title}</span>
+                      );
+                    })}
+                    {p.titles.split(', ').length > 3 && <span class="text-gray-500 text-[10px]">+{p.titles.split(', ').length - 3}</span>}
+                  </div>
+                ) : (
+                  <span class="text-gray-600 text-xs">—</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Rating Distribution -->
+  {players.length >= 3 && (
+    <div class="mb-8 p-5 rounded-xl border border-gray-800 bg-gray-900/30">
+      <h3 class="text-sm font-semibold text-white mb-3">Rating Distribution</h3>
+      <div class="flex items-end justify-between gap-1 h-20">
+        {players.map((p) => {
+          const height = ((p.rating - ratingRange.min) / (ratingRange.max - ratingRange.min || 1)) * 100;
+          return (
+            <div class="flex-1 flex flex-col items-center justify-end h-full" title={`${p.name}: ${p.rating}`}>
+              <div class="w-full rounded-t bg-gradient-to-t from-emerald-600 to-emerald-400 opacity-70 hover:opacity-100 transition-opacity"
+                style={`height: ${Math.max(height, 8)}%`}></div>
+            </div>
+          );
+        })}
+      </div>
+      <div class="flex justify-between mt-2 text-[10px] text-gray-500">
+        <span>{ratingRange.max} (highest)</span>
+        <span>{ratingRange.min} (lowest)</span>
+      </div>
+    </div>
+  )}
+
+  <!-- SEO Content -->
+  <div class="prose prose-invert prose-sm max-w-none">
+    <h2 class="text-lg font-semibold text-white">Scrabble in {countryName}</h2>
+    <p class="text-gray-400">
+      {countryName} has {players.length} player{players.length !== 1 ? 's' : ''} in the <a href="/world-rankings/" class="text-blue-400 hover:underline">WESPA global rankings</a> with an average rating of {avgRating}. 
+      The top-rated player is <a href={`/players/${toSlug(topPlayer.name)}/`} class="text-emerald-400 hover:underline">{topPlayer.name}</a>, ranked #{topPlayer.rank} globally with a rating of {topPlayer.rating}.
+      {titledPlayers.length > 0 && ` ${titledPlayers.length} player${titledPlayers.length !== 1 ? 's' : ''} from ${countryName} hold${titledPlayers.length === 1 ? 's' : ''} tournament titles.`}
+    </p>
+    <p class="text-gray-400">
+      The rating range spans from {ratingRange.min} to {ratingRange.max}, with a spread of {ratingRange.max - ratingRange.min} points between the highest and lowest ranked players from {countryName}. 
+      View all <a href="/countries/" class="text-blue-400 hover:underline">{countryName === 'United States' ? 'countries' : 'nations'} in competitive Scrabble</a> or explore the <a href="/blog/competitive-scrabble-tournament-world/" class="text-blue-400 hover:underline">world of competitive Scrabble</a>.
+    </p>
+  </div>
+
+  <!-- Related Links -->
+  <div class="mt-8 flex flex-wrap gap-3">
+    <a href="/countries/" class="text-xs px-3 py-1.5 rounded-full border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors">← All Countries</a>
+    <a href="/world-rankings/" class="text-xs px-3 py-1.5 rounded-full border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors">World Rankings</a>
+    <a href={`/api/public/countries/?type=wespa`} target="_blank" class="text-xs px-3 py-1.5 rounded-full border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors">JSON API →</a>
+  </div>
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": `Who is the best Scrabble player from ${countryName}?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `${topPlayer.name} is the top-rated Scrabble player from ${countryName}, ranked #${topPlayer.rank} globally with a WESPA rating of ${topPlayer.rating}.`
+        }
+      },
+      {
+        "@type": "Question",
+        "name": `How many competitive Scrabble players does ${countryName} have?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `${countryName} has ${players.length} player${players.length !== 1 ? 's' : ''} in the WESPA world rankings with an average rating of ${avgRating}.`
+        }
+      },
+      {
+        "@type": "Question",
+        "name": `What is the average Scrabble rating for ${countryName}?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `The average WESPA rating for ${countryName}'s competitive Scrabble players is ${avgRating}. Ratings range from ${ratingRange.min} to ${ratingRange.max}.`
+        }
+      }
+    ]
+  })} />
+
+</div>
+</Layout>

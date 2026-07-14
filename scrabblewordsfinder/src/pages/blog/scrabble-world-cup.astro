@@ -1,0 +1,172 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/BlogLayout.astro';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+import '../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const db = (env as any).DB;
+let winners: any[] = [];
+try {
+  const res = await db.prepare("SELECT * FROM tournament_winners WHERE tournament = 'WorldCup' ORDER BY year DESC").all();
+  winners = (res.results || []) as any[];
+} catch (e) { console.error('WorldCup winners fetch error:', e); }
+
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+---
+
+<Layout
+  title="Scrabble World Cup — Winners, Format & History"
+  description="Guide to the Scrabble World Cup — a knockout-format international event held alongside WESPAC. Winners, format, and how it differs from the Swiss-system WSC."
+  keywords="scrabble world cup, world cup scrabble, knockout scrabble, Nigel Richards, David Eldar, WESPA scrabble, international scrabble"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Scrabble World Cup — Winners, Format & History",
+    "description": "Guide to the Scrabble World Cup — a knockout-format event held alongside WESPAC.",
+    "datePublished": "2026-07-14",
+    "dateModified": "2026-07-14",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.scrabblewordsfinder.com/about/" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/scrabble-world-cup/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is the Scrabble World Cup?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The Scrabble World Cup is a knockout-format tournament typically held alongside WESPAC events. Unlike the Swiss-system WSC which spans 24+ rounds, the World Cup uses direct elimination matches — adding drama and unpredictability to the proceedings." }
+      },
+      {
+        "@type": "Question",
+        "name": "Who has won the Scrabble World Cup?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Nigel Richards won the 2019 Scrabble World Cup in Goa, India, and David Eldar won the 2017 edition in Nairobi, Kenya. Both events were held alongside their respective WESPAC championships." }
+      },
+      {
+        "@type": "Question",
+        "name": "How is the World Cup different from the World Scrabble Championship?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The WSC uses Swiss-system rounds (24+ games) rewarding consistency over many games. The World Cup uses knockout brackets where a single bad game can eliminate you — making it more volatile and exciting for spectators." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
+
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-600 dark:text-gray-300">Tournament History</span>
+      </nav>
+
+      <BlogCrossLinks title="Scrabble World Cup — Winners, Format & History" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Scrabble World Cup — Winners, Format & History</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-07-14">July 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>4 min read</span>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">
+        The Scrabble World Cup brings knockout drama to competitive Scrabble. Unlike the marathon Swiss-system championships, the World Cup uses direct elimination — one loss and you're out. This format rewards nerve, adaptability, and peak performance under pressure.
+      </p>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">KO</p><p class="text-xs text-gray-400">Format</p></div>
+          <div><p class="text-xl font-bold text-amber-400">{winners.length}</p><p class="text-xs text-gray-400">Editions</p></div>
+          <div><p class="text-xl font-bold text-amber-400">WESPA</p><p class="text-xs text-gray-400">Organizer</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">World Cup Winners</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Year</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Champion</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Country</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Location</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {winners.map((w, i) => (
+              <tr class={i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                <td class="px-4 py-3">{w.year}</td>
+                <td class="px-4 py-3"><a href={`/players/${toSlug(w.winner_name)}/`} class="text-emerald-400 hover:underline">{w.winner_name}</a></td>
+                <td class="px-4 py-3">{w.winner_country}</td>
+                <td class="px-4 py-3">{w.location}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-xs text-gray-500 mt-2">Data sourced from the <a href="/api/public/tournament-winners/?tournament=WorldCup" target="_blank" class="text-blue-400 hover:underline">Tournament Winners API →</a></p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Format Comparison</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🏆 World Cup (Knockout)</p>
+          <p class="text-xs text-gray-400">Direct elimination. Best-of-3 or best-of-5 matches. High drama. Rewards clutch play. Can be won in a single day.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-amber-400 font-semibold text-sm mb-1">📊 WSC (Swiss System)</p>
+          <p class="text-xs text-gray-400">24+ rounds over 4–5 days. Rewards consistency across many games. Less variance. Top performers advance to final.</p>
+        </div>
+      </div>
+
+      <!-- Cross-links -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">World Scrabble Championship — the Swiss-system equivalent</span>
+          </a>
+          <a href="/blog/wespac-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">WESPAC Championship — often held alongside the World Cup</span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">World Scrabble Championship — All Winners Since 1991</span>
+          </a>
+          <a href="/blog/wespac-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">WESPAC Championship — History & Winners</span>
+          </a>
+        </div>
+      </aside>
+
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl shadow-sm">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">🔍 Find knockout-winning words from any rack</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+      </div>
+
+    </article>
+  </div>
+</Layout>

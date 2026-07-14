@@ -1,0 +1,186 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/BlogLayout.astro';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+import '../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const db = (env as any).DB;
+let winners: any[] = [];
+try {
+  const res = await db.prepare("SELECT * FROM tournament_winners WHERE tournament = 'NSC' ORDER BY year DESC").all();
+  winners = (res.results || []) as any[];
+} catch (e) { console.error('NSC winners fetch error:', e); }
+
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+---
+
+<Layout
+  title="National Scrabble Championship (USA) — Complete Winners History"
+  description="Every winner of the National Scrabble Championship / Scrabble Players Championship from 1978 to 2025. Joe Edley, Nigel Richards, and the evolution of competitive Scrabble in North America."
+  keywords="national scrabble championship, NSC, NASC, scrabble players championship, USA scrabble, Nigel Richards, Joe Edley, North American scrabble"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "National Scrabble Championship (USA) — Complete Winners History",
+    "description": "Every winner of the National Scrabble Championship from 1978 to 2025.",
+    "datePublished": "2026-07-14",
+    "dateModified": "2026-07-14",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.scrabblewordsfinder.com/about/" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/national-scrabble-championship/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Who has won the most National Scrabble Championships?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Nigel Richards holds the record with 5 NSC/NASC titles (2008, 2010, 2011, 2012, 2013 — four consecutively). Joe Edley won 3 titles (1980, 1992, 2000) and was the first person to win it three times." }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the National Scrabble Championship called now?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The tournament has been renamed multiple times: National Scrabble Championship (1978–2008), North American Scrabble Championship (NASC, 2009–2013), and Scrabble Players Championship (SPC, 2014–present). It is organized by NASPA (North American Scrabble Players Association)." }
+      },
+      {
+        "@type": "Question",
+        "name": "Where is the National Scrabble Championship held?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The championship rotates between major US cities. Recent venues include South Bend, Indiana (2024), Las Vegas (2023), Baltimore (2022), and Orlando (2019). It typically takes place in July over 5 days with 30+ rounds of play." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
+
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-600 dark:text-gray-300">Tournament History</span>
+      </nav>
+
+      <BlogCrossLinks title="National Scrabble Championship (USA) — Complete Winners History" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">National Scrabble Championship (USA) — Complete Winners History</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-07-14">July 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">
+        The National Scrabble Championship is North America's premier competitive Scrabble event. Running since 1978, it has crowned legends like Joe Edley and Nigel Richards, and evolved from a casual championship into one of the most fiercely contested word game tournaments in the world.
+      </p>
+
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">1978</p><p class="text-xs text-gray-400">First NSC</p></div>
+          <div><p class="text-xl font-bold text-amber-400">35</p><p class="text-xs text-gray-400">Editions Held</p></div>
+          <div><p class="text-xl font-bold text-amber-400">5</p><p class="text-xs text-gray-400">Nigel's Titles</p></div>
+          <div><p class="text-xl font-bold text-amber-400">TWL</p><p class="text-xs text-gray-400">Dictionary Used</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">All Champions</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Year</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Champion</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Country</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Location</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {winners.map((w, i) => (
+              <tr class={i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                <td class="px-4 py-3">{w.year}</td>
+                <td class="px-4 py-3"><a href={`/players/${toSlug(w.winner_name)}/`} class="text-emerald-400 hover:underline">{w.winner_name}</a></td>
+                <td class="px-4 py-3">{w.winner_country}</td>
+                <td class="px-4 py-3">{w.location}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-xs text-gray-500 mt-2">Data sourced from the <a href="/api/public/tournament-winners/?tournament=NSC" target="_blank" class="text-blue-400 hover:underline">Tournament Winners API →</a></p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Name Evolution</h2>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Tournament Name Timeline</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">1978–2008:</strong> National Scrabble Championship (NSC)</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2009–2013:</strong> North American Scrabble Championship (NASC) — recognizing Canadian participation</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2014–present:</strong> Scrabble Players Championship (SPC) — organized by NASPA after manufacturer split</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cross-links -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">World Scrabble Championship — the international equivalent</span>
+          </a>
+          <a href="/blog/wespac-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">WESPAC Championship — WESPA's premier international event</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Related Articles -->
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">World Scrabble Championship — All Winners Since 1991</span>
+          </a>
+          <a href="/blog/causeway-challenge-scrabble/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Causeway Challenge — The World's Biggest Scrabble Event</span>
+          </a>
+          <a href="/blog/competitive-scrabble-tournament-world/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Inside Competitive Scrabble — Tournaments, Records & the Mental Game</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- CTA Box -->
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl shadow-sm">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">🔍 Train like an NSC champion — find the highest-scoring words instantly</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+      </div>
+
+    </article>
+  </div>
+</Layout>

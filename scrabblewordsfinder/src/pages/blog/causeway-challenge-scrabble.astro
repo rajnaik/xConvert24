@@ -1,0 +1,290 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/BlogLayout.astro';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+import '../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const db = (env as any).DB;
+let winners: any[] = [];
+try {
+  const res = await db.prepare("SELECT * FROM tournament_winners WHERE tournament = 'Causeway' ORDER BY year DESC, division ASC").all();
+  winners = (res.results || []) as any[];
+} catch (e) { console.error('Causeway winners fetch error:', e); }
+
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+---
+
+<Layout
+  title="Causeway Challenge — The World's Biggest Scrabble Tournament"
+  description="Everything about the Causeway Scrabble Challenge: from its 2002 origins as a Singapore–Malaysia friendly to its current status as a 440-player international mega-event in Bangkok."
+  keywords="causeway challenge scrabble, causeway scrabble Bangkok, Michael Tang scrabble, biggest scrabble tournament, David Eldar, Nigel Richards, international scrabble event"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Causeway Challenge — The World's Biggest Scrabble Tournament",
+    "description": "Everything about the Causeway Scrabble Challenge: origins, growth, format, and why it attracts the world's best.",
+    "datePublished": "2026-07-14",
+    "dateModified": "2026-07-14",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.scrabblewordsfinder.com/about/" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/causeway-challenge-scrabble/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is the Causeway Challenge?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The Causeway Challenge is an annual international Scrabble tournament that started in 2002 as a bilateral match between Singapore and Malaysia. Named after the Johor–Singapore Causeway, it has expanded into one of the largest rated Scrabble events globally, attracting 440+ players from 30+ countries in its 2026 edition." }
+      },
+      {
+        "@type": "Question",
+        "name": "Why is the Causeway Challenge considered the biggest Scrabble tournament?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The 2026 Causeway Challenge in Bangkok attracted over 440 players from 30 countries, making it one of the largest competitive Scrabble fields ever assembled. It features 45 rounds over 5 days, multiple divisions, a team championship, and has historically drawn nine world champions to a single event (2010 edition)." }
+      },
+      {
+        "@type": "Question",
+        "name": "Who won the Causeway Challenge 2026?",
+        "acceptedAnswer": { "@type": "Answer", "text": "David Eldar of Australia won the 2026 Causeway Challenge Premier Division in Bangkok, defeating Nigeria's Hakeem Olaribigbe. A Krishnan of India won Division 1, becoming the first Indian player to claim a Causeway title." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
+
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <a href="/blog/popular-tournaments/" class="hover:text-amber-500 transition-colors">Tournaments</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-600 dark:text-gray-300">Causeway Challenge</span>
+      </nav>
+
+      <BlogCrossLinks title="Causeway Challenge — The World's Biggest Scrabble Tournament" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">Causeway Challenge — The World's Biggest Scrabble Tournament</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-07-14">July 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>9 min read</span>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">
+        What started as a friendly inter-country match between Singapore and Malaysia in 2002 has transformed into competitive Scrabble's largest gathering. The Causeway Challenge — named after the bridge connecting those two nations — now draws 440+ players from across the globe for five days of marathon play that tests endurance, vocabulary, and nerve like no other event.
+      </p>
+
+      <!-- Stat Strip -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">2002</p><p class="text-xs text-gray-400">Founded</p></div>
+          <div><p class="text-xl font-bold text-amber-400">440+</p><p class="text-xs text-gray-400">Players (2026)</p></div>
+          <div><p class="text-xl font-bold text-amber-400">45</p><p class="text-xs text-gray-400">Rounds</p></div>
+          <div><p class="text-xl font-bold text-amber-400">30+</p><p class="text-xs text-gray-400">Countries</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Origins & Growth</h2>
+
+      <p class="text-sm text-gray-300 mb-4">Tournament founder Michael Tang created the Causeway Challenge to bring Scrabble communities together across Southeast Asia. The name references the Johor–Singapore Causeway — a physical bridge that inspired a metaphorical one connecting word game players across borders.</p>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Growth Timeline</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2002:</strong> Launched as a bilateral team match — Singapore versus Malaysia, a handful of players, pure friendly rivalry.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2004–2005:</strong> Thailand and the Philippines joined, turning it into a multi-nation Asia-Pacific event.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2006:</strong> Australia and India accepted invitations, pushing the event into major international territory.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2008:</strong> The UK, USA, New Zealand, and Nigeria entered — making it a genuinely global tournament for the first time.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2010:</strong> Peak prestige — nine former world champions competed in a single field. Offered the largest prize fund in tournament Scrabble history at that point.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">6</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2017–2024:</strong> Scaled back to a smaller bilateral Singapore–Malaysia format during this period.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">7</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2025–2026:</strong> Roared back as a full international mega-event. The 2026 Bangkok edition smashed records with 440+ players from 30 countries and professional live broadcast coverage.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">What Makes It Special</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">💪 Brutal Endurance Test</p>
+          <p class="text-xs text-gray-400">45 games across 5 days. No other major tournament demands this many rounds — it rewards consistency and mental stamina over luck.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🌍 Deepest International Field</p>
+          <p class="text-xs text-gray-400">30+ nations represented. Players from Nigeria, India, Thailand, Australia, UK, USA, Canada, Pakistan, Sri Lanka, and more compete side by side.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🏆 World Champions in Attendance</p>
+          <p class="text-xs text-gray-400">Nigel Richards, David Eldar, Panupol Sujjayakorn, Adam Logan, Mark Nyman, Akshay Bhandarkar, and Wellington Jighere have all competed here.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🎯 Team + Individual Format</p>
+          <p class="text-xs text-gray-400">Unique structure with national 5-player teams competing in round-robin alongside individual standings — bridging team spirit and personal glory.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Champions</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Year</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Champion</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Country</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Division</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {winners.map((w, i) => (
+              <tr class={i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                <td class="px-4 py-3 font-semibold">{w.year}</td>
+                <td class="px-4 py-3"><a href={`/players/${toSlug(w.winner_name)}/`} class="text-emerald-400 hover:underline">{w.winner_name}</a></td>
+                <td class="px-4 py-3">{w.winner_country}</td>
+                <td class="px-4 py-3 capitalize">{w.division}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-xs text-gray-500 mt-2">Data sourced from the <a href="/api/public/tournament-winners/?tournament=Causeway" target="_blank" class="text-blue-400 hover:underline">Tournament Winners API →</a></p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tournament Structure</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Duration:</span> Five intensive days, typically 8–9 rounds per day. Total of 45 rated games — making it the marathon of Scrabble events.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Field size:</span> Recent editions attract 180–440+ players. The event caters to all levels with multiple divisions from Premier (elite) through Division 6 (recreational).</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Team event:</span> National teams of five players each compete in a round-robin team championship. Individual standings are tracked simultaneously.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Word list & rules:</span> Collins Scrabble Words (CSW) under WESPA tournament regulations. Digital clocks, certified word judges.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Records & Firsts</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">Longest tournament:</span> The 2009 edition (186 players, 45 rounds, five days) held the record for the longest competitive Scrabble event ever staged.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">Most champions at one event:</span> The 2010 field included nine former world champions competing together — an unprecedented concentration of elite talent.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">Largest field (2026):</span> Over 440 players from 30 countries — the biggest participation numbers in the event's history and among the largest for any English-language Scrabble tournament.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">First Indian Division 1 winner:</span> A Krishnan of Chennai won Division 1 at the 2026 edition — no Indian player had previously claimed a Causeway title in any division.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Broadcasting & Coverage</h2>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">📺 Modern Coverage</p>
+        <p class="text-base text-gray-200">Recent editions have brought chess-style broadcasting to Scrabble: live-streamed feature tables, real-time annotated games on Woogles, YouTube commentary, television coverage, and live statistics dashboards. The 2026 Bangkok edition planned <span class="text-white font-medium">professional broadcasts of every top-board game</span> alongside dozens of annotated matches for online spectators.</p>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why Causeway Stands Apart</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Not just another tournament:</span> It combines world-class competition with a gruelling multi-day format that separates the truly elite from the merely good.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Accessibility:</span> Multiple divisions mean club-level players compete at the same venue as world champions — experiencing the atmosphere even without the rating.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Community builder:</span> The team format and social events create bonds between players from different countries — exactly what Michael Tang envisioned with the "Causeway" name.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+          <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Innovation leader:</span> From live broadcasting to Woogles integration, Causeway pushes how Scrabble is presented to audiences beyond the playing hall.</p>
+        </div>
+      </div>
+
+      <!-- Cross-links -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">World Scrabble Championship — the other pinnacle of the sport</span>
+          </a>
+          <a href="/blog/wespac-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">WESPAC — WESPA's flagship invitational championship</span>
+          </a>
+          <a href="/countries/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Scrabble Countries — see which nations produce top players</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Related Articles -->
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">World Scrabble Championship — All Winners Since 1991</span>
+          </a>
+          <a href="/blog/world-youth-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">World Youth Scrabble Championship — The Next Generation</span>
+          </a>
+          <a href="/blog/competitive-scrabble-tournament-world/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Inside Competitive Scrabble — Tournaments, Records & the Mental Game</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- CTA Box -->
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl shadow-sm">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">🔍 Build endurance — practice finding the best words from any rack</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+      </div>
+
+    </article>
+  </div>
+</Layout>

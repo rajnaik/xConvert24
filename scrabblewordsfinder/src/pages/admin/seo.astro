@@ -332,7 +332,7 @@ import '../../styles/global.css';
       if (sortField) params.set('sort', sortField);
       params.set('order', sortDir);
 
-      var res = await fetch('/api/seo-index?' + params.toString());
+      var res = await fetch('/api/seo-index/?' + params.toString());
       var data = await res.json();
 
       var counts = { indexed: 0, discovered: 0, not_indexed: 0, excluded: 0, error: 0 };
@@ -462,7 +462,7 @@ import '../../styles/global.css';
 
     async function deleteEntry(id) {
       if (!confirm('Delete this entry?')) return;
-      await fetch('/api/seo-index?id=' + id, { method: 'DELETE' });
+      await fetch('/api/seo-index/?id=' + id, { method: 'DELETE' });
       loadData();
     }
 
@@ -573,10 +573,10 @@ import '../../styles/global.css';
       };
       if (id) {
         payload.id = id;
-        await fetch('/api/seo-index', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        await fetch('/api/seo-index/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       } else {
         payload.force_status = true;
-        await fetch('/api/seo-index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        await fetch('/api/seo-index/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       }
       closeModal();
       // Highlight saved record briefly
@@ -762,7 +762,7 @@ import '../../styles/global.css';
       var btn = this;
       btn.textContent = 'Nuking...';
       btn.disabled = true;
-      await fetch('/api/seo-index?nuke=true', { method: 'DELETE' });
+      await fetch('/api/seo-index/?nuke=true', { method: 'DELETE' });
       btn.textContent = '☢️ Nuked ✓';
       setTimeout(function() { btn.textContent = '☢️ Nuke'; btn.disabled = false; }, 2000);
       loadData();

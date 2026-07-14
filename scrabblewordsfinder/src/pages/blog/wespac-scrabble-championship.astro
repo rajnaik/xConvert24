@@ -1,0 +1,270 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/BlogLayout.astro';
+import BlogCrossLinks from '../../components/BlogCrossLinks.astro';
+import '../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const db = (env as any).DB;
+let winners: any[] = [];
+try {
+  const res = await db.prepare("SELECT * FROM tournament_winners WHERE tournament = 'WESPAC' ORDER BY year DESC").all();
+  winners = (res.results || []) as any[];
+} catch (e) { console.error('WESPAC winners fetch error:', e); }
+
+function toSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+---
+
+<Layout
+  title="WESPAC — WESPA Championship History, Winners & Format"
+  description="Complete guide to WESPAC (World English-Language Scrabble Players Association Championship). All 6 champions from 2015 to 2025, format, qualification pathways, and notable records."
+  keywords="WESPAC, WESPA championship, scrabble championship, Adam Logan, David Eldar, Nigel Richards, Wellington Jighere, international scrabble, world scrabble"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "WESPAC — WESPA Championship History, Winners & Format",
+    "description": "Complete guide to WESPAC. All 6 champions from 2015 to 2025, format, qualification, and records.",
+    "datePublished": "2026-07-14",
+    "dateModified": "2026-07-14",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.scrabblewordsfinder.com/about/" },
+    "publisher": { "@type": "Organization", "name": "ScrabbleWordsFinder.com" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.scrabblewordsfinder.com/blog/wespac-scrabble-championship/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is WESPAC?",
+        "acceptedAnswer": { "@type": "Answer", "text": "WESPAC is the WESPA Championship — the premier international English-language Scrabble championship organized by the World English-language Scrabble Players Association (WESPA). Established in 2015, it is a biennial invitational world championship for the strongest players from around the globe." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do you qualify for WESPAC?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Players qualify through national association allocations, WESPA ratings and national rankings, host nation places, continental allocations, Last Chance Qualifiers (LCQ), and special invitations or wild cards at WESPA's discretion." }
+      },
+      {
+        "@type": "Question",
+        "name": "Who has won WESPAC?",
+        "acceptedAnswer": { "@type": "Answer", "text": "WESPAC champions are: Adam Logan (2025, Canada), David Eldar (2023, Australia), Alastair Richards (2021, New Zealand), Nigel Richards (2019, New Zealand), Akshay Bhandarkar (2017, India), and Wellington Jighere (2015, Nigeria)." }
+      }
+    ]
+  })} />
+
+  <div class="max-w-3xl mx-auto px-4">
+    <article class="prose dark:prose-invert prose-gray max-w-none">
+
+      <nav class="text-sm text-gray-400 mb-6 not-prose flex items-center gap-1">
+        <a href="/blog/" class="hover:text-amber-500 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <a href="/blog/popular-tournaments/" class="hover:text-amber-500 transition-colors">Tournaments</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-600 dark:text-gray-300">WESPAC</span>
+      </nav>
+
+      <BlogCrossLinks title="WESPAC — WESPA Championship History, Winners & Format" />
+
+      <h1 class="text-3xl font-bold text-white mb-4">WESPAC — WESPA Championship History, Winners & Format</h1>
+
+      <div class="not-prose mb-8 flex items-center gap-3 text-sm text-gray-400">
+        <time datetime="2026-07-14">July 14, 2026</time>
+        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+        <span>7 min read</span>
+      </div>
+
+      <p class="text-lg leading-relaxed text-gray-600 dark:text-gray-300 mb-8">
+        WESPAC is competitive Scrabble's biggest stage. Run by WESPA — the global governing body for English-language tournament play — this biennial championship gathers elite players from across the world to battle for the title. Since its debut in 2015, every edition has produced a different winner, making it one of the most unpredictable events in the sport.
+      </p>
+
+      <!-- Stat Strip -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-center">
+          <div><p class="text-xl font-bold text-amber-400">2015</p><p class="text-xs text-gray-400">First WESPAC</p></div>
+          <div><p class="text-xl font-bold text-amber-400">6</p><p class="text-xs text-gray-400">Editions</p></div>
+          <div><p class="text-xl font-bold text-amber-400">6</p><p class="text-xs text-gray-400">Different Winners</p></div>
+          <div><p class="text-xl font-bold text-amber-400">CSW</p><p class="text-xs text-gray-400">Dictionary</p></div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">History</h2>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+        <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 WESPAC Timeline</p>
+        <div class="space-y-3">
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2015 — Perth, Australia:</strong> The very first WESPAC. Nigeria's Wellington Jighere stunned the field, becoming the first African player to claim a world Scrabble title by defeating Scotland's Lewis Mackay in the final.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2017 — Nairobi, Kenya:</strong> Held on African soil for the first time. India's Akshay Bhandarkar took the crown, beating Nigeria's Moses Peter in a tightly contested final.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2019 — Goa, India:</strong> Nigel Richards added the WESPAC title to his collection, overcoming Canada's Jesse Day. This event ran alongside the WSC.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2021 — Online (Virtual Gladiators):</strong> The pandemic forced the event online via Woogles. New Zealand's Alastair Richards emerged as champion in an edition that tested adaptability as much as word knowledge.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">5</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2023 — Las Vegas, USA:</strong> Back to live play. Australia's David Eldar dominated the field, beating Sri Lanka's Harshan Lamabadusuriya in the final to solidify his world #1 ranking.</p>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">6</span>
+            <p class="text-sm text-gray-300"><strong class="text-white">2025 — Accra, Ghana:</strong> Adam Logan pulled off a remarkable comeback, winning the title exactly 20 years after his 2005 WSC victory. He edged out Nigel Richards in the final — the first WESPAC held in West Africa.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">WESPAC Champions</h2>
+
+      <div class="overflow-x-auto not-prose my-6">
+        <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Year</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Champion</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Runner-up</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Venue</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+            {winners.map((w, i) => (
+              <tr class={i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800/50'}>
+                <td class="px-4 py-3 font-semibold">{w.year}</td>
+                <td class="px-4 py-3"><a href={`/players/${toSlug(w.winner_name)}/`} class="text-emerald-400 hover:underline">{w.winner_name}</a> <span class="text-gray-500 text-xs">({w.winner_country})</span></td>
+                <td class="px-4 py-3 text-gray-400">{w.runner_up || '—'} {w.runner_up_country ? `(${w.runner_up_country})` : ''}</td>
+                <td class="px-4 py-3 text-gray-400">{w.location}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-xs text-gray-500 mt-2">Data sourced from the <a href="/api/public/tournament-winners/?tournament=WESPAC" target="_blank" class="text-blue-400 hover:underline">Tournament Winners API →</a></p>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Tournament Format</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Schedule:</span> Held every two years. Each edition spans 5–7 days of intense competition.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Word list:</span> All games use Collins Scrabble Words (CSW) — the combined international lexicon with 280,000+ valid entries.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Main stage:</span> A gruelling Swiss or round-robin preliminary of roughly 30–32 games determines who advances to the knockout phase.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Championship match:</span> The top qualifiers face off in a best-of-seven final (exact playoff structure can differ between editions).</p>
+        </div>
+        <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Governance:</span> All matches follow the official WESPA Tournament Rules, with certified referees and digital clocks.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Qualification Pathways</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🏛️ National Quotas</p>
+          <p class="text-xs text-gray-400">Each country's Scrabble association receives a set number of places, weighted by how many active rated players they have.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">📊 Rating-Based Entry</p>
+          <p class="text-xs text-gray-400">Top-rated players within each country earn spots based on their WESPA rating and domestic ranking.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🌍 Regional Representation</p>
+          <p class="text-xs text-gray-400">Dedicated slots ensure players from all continents with competitive Scrabble scenes can participate.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-green-400 font-semibold text-sm mb-1">🎯 Last Chance & Wild Cards</p>
+          <p class="text-xs text-gray-400">Pre-tournament qualifiers and discretionary invitations give fringe players a path to the main draw.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Notable Records</h2>
+
+      <div class="not-prose my-6 grid grid-cols-1 gap-4">
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">🇨🇦 Logan's 20-year gap:</span> Adam Logan won his second world title at WESPAC 2025 — two decades after his first (WSC 2005). No other player has bridged such a gap between championship victories.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">🇳🇬 Jighere's breakthrough:</span> Wellington Jighere's 2015 victory in Perth was a watershed moment — the first time an African player had ever won a world-level Scrabble championship.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">🇳🇿 Richards in every final:</span> Nigel Richards has featured in multiple WESPAC finals, winning in 2019 and finishing runner-up in 2025. His consistency across decades remains unmatched.</p>
+        </div>
+        <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-gray-300"><span class="text-amber-400 font-semibold">Zero repeat winners:</span> Remarkably, all six editions have been won by different players. No one has managed to defend the title — a testament to how fiercely competitive the field is.</p>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-light text-amber-600 dark:text-amber-400 mt-10 mb-4 border-l-4 border-amber-400 pl-4">Why WESPAC Matters</h2>
+
+      <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+        <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Why It Matters</p>
+        <p class="text-base text-gray-200">WESPAC sits at the apex of rated Scrabble. It's the one event where every serious international player dreams of competing — and winning it places you in a small club of players recognized as the absolute best in the English-speaking Scrabble world. With players from 30+ nations, it's as close to a <span class="text-white font-medium">true world championship</span> as the sport gets.</p>
+      </div>
+
+      <!-- Cross-links -->
+      <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+        <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">📚 Dig Deeper</p>
+        <div class="grid gap-2">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">World Scrabble Championship — the WSC from 1991 to present</span>
+          </a>
+          <a href="/blog/causeway-challenge-scrabble/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">Causeway Challenge — the world's biggest rated Scrabble event</span>
+          </a>
+          <a href="/world-rankings/" class="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-900/20 transition-all group">
+            <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+            <span class="text-sm text-gray-300 group-hover:text-indigo-300 transition-colors">World Rankings — current WESPA player ratings</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Related Articles -->
+      <aside class="border-t border-gray-200 dark:border-gray-800 mt-12 pt-8 not-prose">
+        <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid gap-3">
+          <a href="/blog/world-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">World Scrabble Championship — All Winners Since 1991</span>
+          </a>
+          <a href="/blog/national-scrabble-championship/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">National Scrabble Championship (USA) — History & Winners</span>
+          </a>
+          <a href="/blog/competitive-scrabble-tournament-world/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group">
+            <span class="text-amber-500 group-hover:translate-x-0.5 transition-transform">→</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Inside Competitive Scrabble — Tournaments, Records & the Mental Game</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- CTA Box -->
+      <div class="not-prose mt-10 p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl shadow-sm">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <p class="text-sm text-blue-800 dark:text-blue-300 font-medium">🔍 Play like a WESPAC champion — find the best words from any rack instantly</p>
+          <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm">Open Word Finder →</a>
+        </div>
+      </div>
+
+      <div class="not-prose mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-amber-500 transition-colors">← Back to all articles</a>
+      </div>
+
+    </article>
+  </div>
+</Layout>
