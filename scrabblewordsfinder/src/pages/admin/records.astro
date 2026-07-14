@@ -1,0 +1,249 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+---
+
+<Layout title="Records Management — Admin" description="Manage Scrabble records" keywords="admin, records">
+  <meta name="robots" content="noindex, nofollow" slot="head" />
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 border-b border-gray-800">
+    <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+      <span class="text-blue-400">Scrabble</span><span class="text-gray-300">WordsFinder</span>
+    </a>
+    <div class="flex items-center gap-6 text-sm text-gray-400">
+      <a href="/admin/" class="hover:text-blue-400 transition-colors">Admin</a>
+      <a href="/admin/records/" class="text-blue-400 font-medium">Records</a>
+      <a href="/admin/rankings/" class="hover:text-blue-400 transition-colors">Rankings</a>
+      <a href="/world-rankings/" class="hover:text-blue-400 transition-colors">← Public</a>
+    </div>
+  </nav>
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-white">🏅 Records Management</h1>
+        <p class="text-gray-400 text-sm mt-1">Add, edit, or remove Scrabble records and milestones.</p>
+      </div>
+      <button id="btn-add" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors">+ Add Record</button>
+    </div>
+
+    <!-- Category filter -->
+    <div class="flex gap-2 mb-4 flex-wrap">
+      <button data-cat="all" class="cat-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/40">All</button>
+      <button data-cat="rating" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700">Rating</button>
+      <button data-cat="tournament" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700">Tournament</button>
+      <button data-cat="career" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700">Career</button>
+      <button data-cat="improvement" class="cat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800/50 text-gray-400 border border-gray-700">Improvement</button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-900/80 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-3 py-3 text-left">Record</th>
+            <th class="px-3 py-3 text-left">Value</th>
+            <th class="px-3 py-3 text-left">Holder</th>
+            <th class="px-3 py-3 text-left">Category</th>
+            <th class="px-3 py-3 text-left hidden md:table-cell">Source</th>
+            <th class="px-3 py-3 text-center w-24">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="records-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 rounded-lg bg-green-600 text-white text-sm font-medium shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50"></div>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 w-full max-w-lg">
+        <h3 id="modal-title" class="text-lg font-bold text-white mb-4">Add Record</h3>
+        <form id="record-form" class="space-y-3">
+          <input type="hidden" id="form-id" />
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Record Name</label>
+            <input type="text" id="form-name" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required placeholder="Highest WESPA Rating Ever" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Value</label>
+              <input type="text" id="form-value" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" required placeholder="2180" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Category</label>
+              <select id="form-category" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none">
+                <option value="rating">Rating</option>
+                <option value="tournament">Tournament</option>
+                <option value="career">Career</option>
+                <option value="improvement">Improvement</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Holder Name</label>
+              <input type="text" id="form-holder" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="Nigel Richards" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Holder Country</label>
+              <input type="text" id="form-country" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="New Zealand" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Date Achieved</label>
+              <input type="date" id="form-date" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 block mb-1">Source</label>
+              <input type="text" id="form-source" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="WESPA" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Notes</label>
+            <textarea id="form-notes" rows="2" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-blue-500 focus:outline-none" placeholder="Additional context..."></textarea>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium">Save</button>
+            <button type="button" id="btn-cancel" class="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function() {
+    let records = [];
+    let activeCategory = 'all';
+
+    async function loadRecords() {
+      const res = await fetch('/api/public/records/');
+      const data = await res.json();
+      records = [];
+      for (const cat of Object.keys(data.records || {})) {
+        for (const r of data.records[cat]) records.push(r);
+      }
+      renderTable();
+    }
+
+    function renderTable() {
+      const filtered = activeCategory === 'all' ? records : records.filter(r => r.category === activeCategory);
+      const tbody = document.getElementById('records-body');
+      tbody.innerHTML = filtered.map(r => `
+        <tr class="border-t border-gray-800/50 hover:bg-gray-800/30">
+          <td class="px-3 py-2 text-white text-sm">${r.record_name}</td>
+          <td class="px-3 py-2 text-blue-400 font-mono font-bold">${r.record_value}</td>
+          <td class="px-3 py-2 text-gray-300 text-xs">${r.holder_name} (${r.holder_country})</td>
+          <td class="px-3 py-2"><span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">${r.category}</span></td>
+          <td class="px-3 py-2 text-gray-500 text-xs hidden md:table-cell">${r.source || '—'}</td>
+          <td class="px-3 py-2 text-center">
+            <button class="text-blue-400 hover:text-blue-300 text-xs mr-2" onclick="editRecord(${r.id})">Edit</button>
+            <button class="text-red-400 hover:text-red-300 text-xs" onclick="deleteRecord(${r.id})">Del</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="6" class="px-3 py-8 text-center text-gray-500">No records found.</td></tr>';
+    }
+
+    // Category filter
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => {
+          b.classList.remove('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+          b.classList.add('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+        });
+        btn.classList.add('active', 'bg-blue-600/20', 'text-blue-400', 'border-blue-500/40');
+        btn.classList.remove('bg-gray-800/50', 'text-gray-400', 'border-gray-700');
+        activeCategory = btn.dataset.cat;
+        renderTable();
+      });
+    });
+
+    // Modal
+    function openModal(title) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.add('hidden');
+      document.getElementById('record-form').reset();
+      document.getElementById('form-id').value = '';
+    }
+
+    document.getElementById('btn-add').addEventListener('click', () => openModal('Add Record'));
+    document.getElementById('btn-cancel').addEventListener('click', closeModal);
+
+    // Edit
+    window.editRecord = function(id) {
+      const r = records.find(x => x.id === id);
+      if (!r) return;
+      document.getElementById('form-id').value = r.id;
+      document.getElementById('form-name').value = r.record_name;
+      document.getElementById('form-value').value = r.record_value;
+      document.getElementById('form-category').value = r.category;
+      document.getElementById('form-holder').value = r.holder_name || '';
+      document.getElementById('form-country').value = r.holder_country || '';
+      document.getElementById('form-date').value = r.achieved_date || '';
+      document.getElementById('form-source').value = r.source || '';
+      document.getElementById('form-notes').value = r.notes || '';
+      openModal('Edit Record');
+    };
+
+    // Delete
+    window.deleteRecord = async function(id) {
+      if (!confirm('Delete this record?')) return;
+      try {
+        const res = await fetch('/api/records/?id=' + id, { method: 'DELETE' });
+        if (!res.ok) { showToast('Error deleting: ' + (await res.text())); return; }
+        showToast('Record deleted');
+        loadRecords();
+      } catch (err) {
+        showToast('Network error: ' + err.message);
+      }
+    };
+
+    // Save
+    document.getElementById('record-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('form-id').value;
+      const body = {
+        record_name: document.getElementById('form-name').value,
+        record_value: document.getElementById('form-value').value,
+        category: document.getElementById('form-category').value,
+        holder_name: document.getElementById('form-holder').value,
+        holder_country: document.getElementById('form-country').value,
+        achieved_date: document.getElementById('form-date').value,
+        source: document.getElementById('form-source').value,
+        notes: document.getElementById('form-notes').value,
+      };
+
+      try {
+        if (id) {
+          body.id = parseInt(id);
+          const res = await fetch('/api/records/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          if (!res.ok) { showToast('Error: ' + (await res.text())); return; }
+          showToast('Record updated');
+        } else {
+          const res = await fetch('/api/records/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          if (!res.ok) { showToast('Error: ' + (await res.text())); return; }
+          showToast('Record added');
+        }
+        closeModal();
+        loadRecords();
+      } catch (err) {
+        showToast('Network error: ' + err.message);
+      }
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
+    }
+
+    loadRecords();
+  })();
+  </script>
+</Layout>

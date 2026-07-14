@@ -25,6 +25,57 @@ Last updated: July 14, 2026
 
 ---
 
+## v1.21.x Remaining + v1.22 New Features
+
+### Priority-Sorted by Impact vs Effort
+
+| # | Feature | Effort | Impact | Dependencies | Target | Low Hanging? |
+|---|---------|--------|--------|-------------|--------|-------------|
+| A | **Country Pages** `/countries/[code]/` | 3h | ⭐⭐⭐⭐ | Existing rankings data | v1.21.2 | ✅ YES |
+| B | **Biggest Movers History** (all-time, monthly, yearly) | 2h | ⭐⭐⭐ | Snapshots (need 3+ months) | v1.21.2 | ✅ YES |
+| C | **Records Timeline** (who held record when) | 2h | ⭐⭐⭐ | Records table + snapshots | v1.21.2 | ✅ YES |
+| D | **Rankings Archive** `/rankings/2026-07/` | 3h | ⭐⭐⭐⭐ | Snapshots (more = better) | v1.21.3 | ⚠️ Better with 4+ months |
+| E | **Compare Players** `/compare/?a=X&b=Y` | 4h | ⭐⭐⭐⭐⭐ | Player pages + snapshots | v1.22.0 | ⚠️ Medium |
+| F | **Rating History Graph (SVG)** on player pages | 4h | ⭐⭐⭐⭐⭐ | Snapshots (3+ data points) | v1.21.4 | ⚠️ Better with 4+ months |
+| G | **Analytics Dashboard** `/stats/` public page | 5h | ⭐⭐⭐⭐ | All data sources | v1.21.3 | ❌ Bigger build |
+| H | **Player Search** (autocomplete across all players) | 2h | ⭐⭐⭐ | Player rankings table | v1.21.2 | ✅ YES |
+
+---
+
+### Analysis
+
+**Low Hanging Fruit (build now, high ROI):**
+
+1. **Country Pages (A)** — 3h. You already compute country stats. Just create `/countries/[code].astro` that shows all players from that country, avg rating, tournaments, and links. High SEO value (ranks for "Nigeria Scrabble", "Thailand Scrabble players", etc.).
+
+2. **Player Search (H)** — 2h. Simple autocomplete text input on world-rankings that filters/searches across all players by name. Greatly improves UX when you have 130+ players.
+
+3. **Biggest Movers History (B)** — 2h. Add to the Records tab: "All-time biggest rise", "Biggest monthly gain", "Biggest yearly climb". Just MAX queries on `rating_changes` table. Works even with 2 snapshots.
+
+4. **Records Timeline (C)** — 2h. Add a `held_since` / `previous_holder` column to records, show who held each record before the current holder.
+
+**Wait for data (build in Sept/Oct when snapshots accumulate):**
+
+5. **Rankings Archive (D)** — needs 4+ monthly snapshots to be visually compelling
+6. **Rating History Graph (F)** — SVG sparklines already work but look better with 6+ data points
+7. **Compare Players (E)** — most impactful with rich timelines (needs history)
+
+**Bigger build (schedule for dedicated sprint):**
+
+8. **Analytics Dashboard (G)** — 5h, visual-heavy, best done as a focused session
+
+---
+
+### Recommended Next Session Build Order
+
+1. Country Pages (3h) → most SEO value per hour invested
+2. Player Search (2h) → immediate UX improvement
+3. Biggest Movers History (2h) → enriches existing Records tab
+
+**Total: 7h for 3 high-impact features.**
+
+---
+
 ## Feature Specs
 
 ### 1. Monthly Snapshot Automation

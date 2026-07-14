@@ -81,6 +81,13 @@ export const PUT: APIRoute = async ({ request }) => {
 
   try {
     const body = await request.json();
+
+    // Handle YTD reset
+    if (body.reset_ytd) {
+      await db.prepare("UPDATE player_rankings SET rating = 0, games_played = 0, last_updated = datetime('now') WHERE ranking_type = 'ytd'").run();
+      return json({ success: true, message: 'YTD rankings reset to 0' });
+    }
+
     const { id, ...fields } = body;
 
     if (!id) return jsonError('id is required', 400);

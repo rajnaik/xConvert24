@@ -75,6 +75,13 @@ import '../../styles/global.css';
     </div>
 
     <!-- Table -->
+    <div class="flex items-center justify-between mb-2">
+      <span></span>
+      <div class="flex items-center gap-2">
+        <button id="btn-reset-ytd" class="px-4 py-2 rounded-lg border border-gray-700 text-gray-600 text-sm font-medium cursor-not-allowed opacity-50" disabled title="Available after Jan 1 each year">🔄 Reset YTD</button>
+        <button id="btn-recalc" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors" onclick="recalculateRankings()">🔄 Recalculate Rankings</button>
+      </div>
+    </div>
     <div class="overflow-x-auto rounded-xl border border-gray-800">
       <table class="w-full text-sm" id="rankings-table">
         <thead>
@@ -188,9 +195,11 @@ import '../../styles/global.css';
       } catch (e) { console.error(e); }
     }
 
+    let reranked = false;
+
     function renderTable() {
       const tbody = document.getElementById('rankings-body');
-      tbody.innerHTML = rankings.map(p => `
+      tbody.innerHTML = rankings.map((p, i) => `
         <tr class="border-t border-gray-800/50 hover:bg-gray-800/30">
           <td class="px-3 py-2 text-gray-500 text-xs font-bold">${p.rank}</td>
           <td class="px-3 py-2 text-white font-medium">${p.name}</td>
@@ -206,6 +215,96 @@ import '../../styles/global.css';
         </tr>
       `).join('');
     }
+
+    async function recalculateRankings() {
+      if (!confirm('Recalculate all rankings by rating (highest = rank 1)? This updates the database.')) return;
+      const btn = document.getElementById('btn-recalc');
+      btn.textContent = 'Calculating...';
+      btn.disabled = true;
+
+      // Sort by rating descending
+      const sorted = [...rankings].sort((a, b) => b.rating - a.rating);
+
+      try {
+        for (let i = 0; i < sorted.length; i++) {
+          sorted[i].rank = i + 1;
+          await fetch('/api/rankings/', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: sorted[i].id, rank: i + 1 })
+          });
+        }
+        rankings = sorted;
+        renderTable();
+        showToast('Rankings recalculated by rating!');
+      } catch (e) {
+        showToast('Error recalculating');
+      }
+      btn.textContent = '🔄 Recalculate Rankings';
+      btn.disabled = false;
+    }
+    window.recalculateRankings = recalculateRankings;
+
+    // Reset YTD — only show after Jan 1 of new year, hide once completed for this year
+    async function resetYTD() {
+      const year = new Date().getFullYear();
+      if (!confirm(`Reset YTD rankings for ${year - 1}?\n\nThis will:\n1. Take a final snapshot of last year's YTD\n2. Set all YTD ratings and games to 0\n\nThis cannot be undone.`)) return;
+
+      const btn = document.getElementById('btn-reset-ytd');
+      btn.textContent = 'Resetting...';
+      btn.disabled = true;
+
+      try {
+        // 1. Take final snapshot
+        await fetch('/api/ranking-snapshot/', { method: 'POST' });
+
+        // 2. Reset all YTD rankings
+        await fetch('/api/rankings/', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reset_ytd: true })
+        });
+
+        // 3. Mark as done for this year
+        localStorage.setItem('swf-ytd-reset-year', String(year));
+
+        btn.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white', 'cursor-pointer');
+        btn.classList.add('border-gray-700', 'text-gray-600', 'cursor-not-allowed', 'opacity-50');
+        btn.disabled = true;
+        btn.removeAttribute('onclick');
+        btn.textContent = '🔄 Reset YTD';
+        btn.title = 'YTD reset complete for ' + year;
+        showToast(`YTD rankings reset! Snapshot saved for ${year - 1}. All YTD points set to 0.`);
+
+        // Reload if viewing YTD
+        if (currentType === 'ytd') loadRankings();
+      } catch (e) {
+        showToast('Error resetting YTD');
+        btn.textContent = '🔄 Reset YTD';
+        btn.disabled = false;
+      }
+    }
+    window.resetYTD = resetYTD;
+
+    // Show Reset YTD button active only in January of a new year (and not yet reset)
+    function checkYTDResetVisibility() {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // 0 = January
+      const lastResetYear = parseInt(localStorage.getItem('swf-ytd-reset-year') || '0');
+      const btn = document.getElementById('btn-reset-ytd');
+
+      // Activate ONLY if it's January AND we haven't reset for this year yet
+      if (currentMonth === 0 && lastResetYear < currentYear) {
+        btn.classList.remove('border-gray-700', 'text-gray-600', 'cursor-not-allowed', 'opacity-50');
+        btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white', 'cursor-pointer');
+        btn.disabled = false;
+        btn.setAttribute('onclick', 'resetYTD()');
+        btn.title = 'Reset YTD rankings for new year';
+      }
+      // Otherwise stays greyed out (default state in HTML)
+    }
+    checkYTDResetVisibility();
 
     function updateStats() {
       document.getElementById('stat-total').textContent = rankings.length;
