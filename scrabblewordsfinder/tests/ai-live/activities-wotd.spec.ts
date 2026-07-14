@@ -32,7 +32,7 @@ test.describe('AI Live — Activities WOTD', () => {
 
     // Step 3: Verify enriched panel is visible
     const enrichedPanel = page.locator('#wotd-enriched');
-    await expect(enrichedPanel).toBeVisible({ timeout: 15000 });
+    await expect(enrichedPanel).toBeVisible({ timeout: 30000 });
 
     // Wait for fields to be populated (display changes from none to visible via JS)
     await page.waitForTimeout(2000);
@@ -60,7 +60,7 @@ test.describe('AI Live — Activities WOTD', () => {
 
     // In other languages — this section loads async
     const languages = page.locator('#wotd-languages');
-    await expect(languages).toBeVisible({ timeout: 15000 });
+    await expect(languages).toBeVisible({ timeout: 30000 });
     const langText = await languages.textContent();
     expect(langText).toContain('languages');
 

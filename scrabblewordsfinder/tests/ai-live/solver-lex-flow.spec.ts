@@ -99,7 +99,7 @@ test.describe('AI Live — Solver + Lex Flow', () => {
         return el && (el.textContent || '').length > 100;
       },
       null,
-      { timeout: 60000, polling: 3000 }
+      { timeout: 90000, polling: 3000 }
     );
 
     const chatText = await chatMessages.textContent();

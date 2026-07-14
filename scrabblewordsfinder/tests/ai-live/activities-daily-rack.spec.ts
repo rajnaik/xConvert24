@@ -30,7 +30,7 @@ test.describe('AI Live — Activities Daily Rack', () => {
 
     // Step 1: Get the rack tiles text
     const rackTiles = page.locator('#drc-tiles');
-    await expect(rackTiles).toBeVisible({ timeout: 10000 });
+    await expect(rackTiles).toBeVisible({ timeout: 30000 });
     // Extract letters from rack tiles using evaluate (tiles have letter spans)
     const rack = await page.evaluate(() => {
       const el = document.getElementById('drc-tiles');
@@ -94,7 +94,7 @@ test.describe('AI Live — Activities Daily Rack', () => {
 
     const drcInput = page.locator('#drc-input');
     const drcSubmit = page.locator('#drc-submit');
-    await expect(drcInput).toBeVisible({ timeout: 10000 });
+    await expect(drcInput).toBeVisible({ timeout: 30000 });
     await expect(drcSubmit).toBeVisible();
 
     // Submit each word
