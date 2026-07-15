@@ -102,6 +102,38 @@ try {
   }
 } catch { /* snapshots may not exist */ }
 
+// Compute all-time biggest movers from snapshots
+let allTimeMovers: { biggestRise: any[]; biggestFall: any[] } = { biggestRise: [], biggestFall: [] };
+try {
+  // Get first and latest snapshot for each player to compute net change
+  const allSnaps = await db.prepare(
+    "SELECT player_name, rating, snapshot_date FROM ranking_snapshots WHERE ranking_type = 'wespa' ORDER BY player_name, snapshot_date ASC"
+  ).all();
+  const snapPlayers = (allSnaps.results || []) as any[];
+  
+  // Group by player to get first and last rating
+  const playerHistory: Record<string, { first: number; last: number; peak: number; trough: number }> = {};
+  for (const s of snapPlayers) {
+    if (!playerHistory[s.player_name]) {
+      playerHistory[s.player_name] = { first: s.rating, last: s.rating, peak: s.rating, trough: s.rating };
+    }
+    playerHistory[s.player_name].last = s.rating;
+    if (s.rating > playerHistory[s.player_name].peak) playerHistory[s.player_name].peak = s.rating;
+    if (s.rating < playerHistory[s.player_name].trough) playerHistory[s.player_name].trough = s.rating;
+  }
+
+  const changes = Object.entries(playerHistory)
+    .filter(([_, h]) => h.peak !== h.trough) // Must have some movement
+    .map(([name, h]) => ({
+      name,
+      max_gain: h.peak - h.trough, // Biggest range ever
+      net_change: h.last - h.first, // Net over entire history
+    }));
+
+  allTimeMovers.biggestRise = [...changes].sort((a, b) => b.max_gain - a.max_gain).slice(0, 5);
+  allTimeMovers.biggestFall = [...changes].filter(c => c.net_change < 0).sort((a, b) => a.net_change - b.net_change).slice(0, 5);
+} catch { /* snapshots may not have enough data */ }
+
 // Compute country statistics for WESPA rankings
 let countryStats: any[] = [];
 try {
@@ -288,6 +320,24 @@ function toSlug(name: string) {
     <p class="text-xs text-gray-500 mt-2">Last updated: July 2026 • Source: <a href="https://wespa.org/" target="_blank" rel="noopener" class="text-blue-400 hover:underline">wespa.org</a></p>
   </div>
 
+  <!-- Global Player Search -->
+  <div class="relative max-w-md mx-auto mb-8" id="player-search-container">
+    <div class="relative">
+      <input
+        type="text"
+        id="player-search-input"
+        placeholder="Search any player by name..."
+        autocomplete="off"
+        class="w-full px-4 py-3 pl-10 text-sm rounded-xl bg-gray-900/80 border border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none transition-all"
+      />
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <span id="player-search-spinner" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 text-xs animate-pulse">...</span>
+    </div>
+    <div id="player-search-results" class="hidden absolute z-50 w-full mt-1 rounded-xl border border-gray-700 bg-gray-900 shadow-2xl overflow-hidden max-h-80 overflow-y-auto"></div>
+  </div>
+
   <!-- Tab Navigation -->
   <div class="flex flex-wrap justify-center gap-2 mb-8" id="tab-nav">
     <button data-tab="wespa" class="tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600/20 text-blue-400 border border-blue-500/40">🏆 WESPA Ratings</button>
@@ -306,7 +356,6 @@ function toSlug(name: string) {
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
       <h2 class="text-xl font-light text-white">WESPA World Ratings — Top 50</h2>
       <div class="flex gap-2">
-        <input type="text" id="search-wespa" placeholder="Search player..." class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none w-40" />
         <select id="filter-country" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-300 focus:border-blue-500 focus:outline-none">
           <option value="">All Countries</option>
         </select>
@@ -505,22 +554,9 @@ function toSlug(name: string) {
             <div class="mt-3 pt-3 border-t border-gray-800">
               <p class="text-xs text-gray-500 uppercase mb-1">Titles</p>
               <div class="flex flex-wrap gap-1">
-                {player.titles.split(', ').map((title: string) => {
-                  const tl = title.toLowerCase();
-                  let href = '';
-                  if (tl.includes('wsc') || tl.includes('world champion')) href = '/blog/world-scrabble-championship/';
-                  else if (tl.includes('wespac')) href = '/blog/wespac-scrabble-championship/';
-                  else if (tl.includes('nsc') || tl.includes('nasc') || tl.includes('spc') || tl.includes('national')) href = '/blog/national-scrabble-championship/';
-                  else if (tl.includes('causeway')) href = '/blog/causeway-challenge-scrabble/';
-                  else if (tl.includes('wysc') || tl.includes('youth')) href = '/blog/world-youth-scrabble-championship/';
-                  else if (tl.includes('world cup')) href = '/blog/scrabble-world-cup/';
-                  else if (tl.includes('jwsc') || tl.includes('junior')) href = '/blog/junior-world-scrabble-championship/';
-                  return href ? (
-                    <a href={href} class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-400 text-[10px] hover:bg-amber-800/40 hover:border-amber-400/50 transition-colors">{title}</a>
-                  ) : (
-                    <span class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-400 text-[10px]">{title}</span>
-                  );
-                })}
+                {player.titles.split(', ').map((title: string) => (
+                  <span class="px-2 py-0.5 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-400 text-[10px]">{title}</span>
+                ))}
               </div>
             </div>
           )}
@@ -728,6 +764,52 @@ function toSlug(name: string) {
     )}
 
     <p class="text-xs text-gray-500 mt-4 text-center">Computed from monthly rating snapshots. <a href="/api/public/movers/" target="_blank" class="text-blue-400 hover:underline">JSON API →</a></p>
+
+    <!-- All-Time Biggest Movers History -->
+    {(allTimeMovers.biggestRise.length > 0 || allTimeMovers.biggestFall.length > 0) && (
+      <div class="mt-8 pt-6 border-t border-gray-800">
+        <h3 class="text-lg font-light text-white mb-1">📜 All-Time Movers Records</h3>
+        <p class="text-xs text-gray-500 mb-4">Biggest rating gains ever recorded across all monthly snapshots.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- All-time biggest rises -->
+          {allTimeMovers.biggestRise.length > 0 && (
+            <div>
+              <h4 class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-3">🚀 All-Time Biggest Rating Gains</h4>
+              <div class="space-y-2">
+                {allTimeMovers.biggestRise.map((r: any, i: number) => (
+                  <div class="flex items-center justify-between p-3 rounded-xl border border-emerald-500/20 bg-emerald-950/10">
+                    <div class="flex items-center gap-3">
+                      <span class={`text-xs font-bold ${i === 0 ? 'text-emerald-400' : 'text-gray-500'}`}>{i + 1}</span>
+                      <p class="text-white text-sm font-medium">{r.name}</p>
+                    </div>
+                    <span class="text-emerald-400 font-mono font-bold">+{r.max_gain}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <!-- All-time biggest falls -->
+          {allTimeMovers.biggestFall.length > 0 && (
+            <div>
+              <h4 class="text-xs font-semibold text-orange-400 uppercase tracking-wider mb-3">📉 All-Time Biggest Rating Drops</h4>
+              <div class="space-y-2">
+                {allTimeMovers.biggestFall.map((f: any, i: number) => (
+                  <div class="flex items-center justify-between p-3 rounded-xl border border-orange-500/20 bg-orange-950/10">
+                    <div class="flex items-center gap-3">
+                      <span class={`text-xs font-bold ${i === 0 ? 'text-orange-400' : 'text-gray-500'}`}>{i + 1}</span>
+                      <p class="text-white text-sm font-medium">{f.name}</p>
+                    </div>
+                    <span class="text-orange-400 font-mono font-bold">{f.net_change}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
   </div>
 
   <!-- Records Tab -->
@@ -759,9 +841,20 @@ function toSlug(name: string) {
                       <div>
                         <p class="text-sm font-medium text-white">{r.record_name}</p>
                         <p class="text-xs text-gray-400 mt-0.5">{r.holder_name} ({r.holder_country})</p>
+                        {r.held_since && (
+                          <p class="text-[10px] text-gray-500 mt-0.5">Held since {r.held_since}</p>
+                        )}
                       </div>
                       <span class="text-lg font-bold text-white font-mono shrink-0">{r.record_value}</span>
                     </div>
+                    {r.previous_holder && r.previous_holder !== '—' && (
+                      <div class="mt-2 pt-2 border-t border-gray-800/40">
+                        <p class="text-[10px] text-gray-500">
+                          <span class="text-gray-600">Previous:</span> {r.previous_holder}
+                          {r.previous_value && r.previous_value !== '—' && <span class="text-gray-600 ml-1">({r.previous_value})</span>}
+                        </p>
+                      </div>
+                    )}
                     {r.notes && <p class="text-[10px] text-gray-500 mt-2">{r.notes}</p>}
                     {r.source && <p class="text-[9px] text-gray-600 mt-1">Source: {r.source}</p>}
                   </div>
@@ -828,6 +921,123 @@ function toSlug(name: string) {
 </div>
 
 <script is:inline>
+// Global Player Search — autocomplete across all players
+(function() {
+  const input = document.getElementById('player-search-input');
+  const results = document.getElementById('player-search-results');
+  const spinner = document.getElementById('player-search-spinner');
+  let debounceTimer = null;
+  let abortController = null;
+
+  if (!input || !results) return;
+
+  function toSlug(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+
+  function renderResults(data) {
+    if (!data.results || data.results.length === 0) {
+      results.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">No players found</div>';
+      results.classList.remove('hidden');
+      return;
+    }
+
+    results.innerHTML = data.results.map(function(p) {
+      return '<a href="/players/' + toSlug(p.name) + '/" class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-800/80 transition-colors border-b border-gray-800/50 last:border-0">' +
+        '<div class="flex items-center gap-3">' +
+          '<span class="text-xs text-gray-500 font-mono w-8">#' + p.rank + '</span>' +
+          '<div>' +
+            '<p class="text-sm text-white font-medium">' + p.name + '</p>' +
+            '<p class="text-[10px] text-gray-500">' + p.country + ' (' + p.country_code + ')</p>' +
+          '</div>' +
+        '</div>' +
+        '<span class="text-blue-400 font-mono text-sm font-semibold">' + p.rating + '</span>' +
+      '</a>';
+    }).join('');
+    results.classList.remove('hidden');
+  }
+
+  function doSearch(query) {
+    if (abortController) abortController.abort();
+    abortController = new AbortController();
+    spinner.classList.remove('hidden');
+
+    fetch('/api/public/players/search/?q=' + encodeURIComponent(query) + '&type=all&limit=8', { signal: abortController.signal })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        spinner.classList.add('hidden');
+        renderResults(data);
+      })
+      .catch(function(e) {
+        spinner.classList.add('hidden');
+        if (e.name !== 'AbortError') {
+          results.innerHTML = '<div class="px-4 py-3 text-sm text-red-400">Search error</div>';
+          results.classList.remove('hidden');
+        }
+      });
+  }
+
+  input.addEventListener('input', function() {
+    var q = input.value.trim();
+    if (q.length < 2) {
+      results.classList.add('hidden');
+      results.innerHTML = '';
+      spinner.classList.add('hidden');
+      return;
+    }
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function() { doSearch(q); }, 250);
+  });
+
+  input.addEventListener('focus', function() {
+    if (input.value.trim().length >= 2 && results.innerHTML) {
+      results.classList.remove('hidden');
+    }
+  });
+
+  // Close on outside click
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#player-search-container')) {
+      results.classList.add('hidden');
+    }
+  });
+
+  // Keyboard navigation
+  input.addEventListener('keydown', function(e) {
+    var items = results.querySelectorAll('a');
+    var active = results.querySelector('a.bg-gray-800\\/80');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!active && items.length > 0) {
+        items[0].classList.add('bg-gray-800/80');
+      } else if (active) {
+        active.classList.remove('bg-gray-800/80');
+        var next = active.nextElementSibling;
+        if (next) next.classList.add('bg-gray-800/80');
+        else items[0].classList.add('bg-gray-800/80');
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (active) {
+        active.classList.remove('bg-gray-800/80');
+        var prev = active.previousElementSibling;
+        if (prev) prev.classList.add('bg-gray-800/80');
+        else items[items.length - 1].classList.add('bg-gray-800/80');
+      }
+    } else if (e.key === 'Enter') {
+      if (active) {
+        e.preventDefault();
+        window.location.href = active.getAttribute('href');
+      }
+    } else if (e.key === 'Escape') {
+      results.classList.add('hidden');
+      input.blur();
+    }
+  });
+})();
+</script>
+
+<script is:inline>
 (function() {
   // Tab switching with localStorage persistence
   const tabs = document.querySelectorAll('.tab-btn');
@@ -863,8 +1073,7 @@ function toSlug(name: string) {
     });
   });
 
-  // Search + country filter for WESPA table
-  const searchInput = document.getElementById('search-wespa');
+  // Country filter for WESPA table
   const filterCountry = document.getElementById('filter-country');
   const wespaRows = document.querySelectorAll('#wespa-table tbody tr');
 
@@ -882,18 +1091,14 @@ function toSlug(name: string) {
   });
 
   function filterTable() {
-    const search = (searchInput?.value || '').toLowerCase();
     const country = filterCountry?.value || '';
     wespaRows.forEach(row => {
-      const name = row.getAttribute('data-name') || '';
       const cc = row.getAttribute('data-country') || '';
-      const matchSearch = !search || name.includes(search);
       const matchCountry = !country || cc === country;
-      row.style.display = (matchSearch && matchCountry) ? '' : 'none';
+      row.style.display = matchCountry ? '' : 'none';
     });
   }
 
-  searchInput?.addEventListener('input', filterTable);
   filterCountry?.addEventListener('change', filterTable);
 
 })();

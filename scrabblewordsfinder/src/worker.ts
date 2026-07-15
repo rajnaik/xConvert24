@@ -56,23 +56,28 @@ async function sendDailyWOTD(env: any) {
       date: today,
     });
 
-    // Send to all subscribers (fire-and-forget per sub)
+    // Send to all subscribers using proper VAPID authorization
     for (const sub of subscribers) {
       try {
-        // Simple push — the full encryption is handled by the push service
+        const audience = new URL(sub.endpoint as string).origin;
+        const vapidToken = await createCronVAPIDToken(audience, vapidPrivateKey, vapidPublicKey);
+
         const response = await fetch(sub.endpoint as string, {
           method: 'POST',
           headers: {
+            'Authorization': `vapid t=${vapidToken}, k=${vapidPublicKey}`,
+            'Content-Type': 'application/octet-stream',
+            'Content-Encoding': 'aes128gcm',
             'TTL': '86400',
             'Urgency': 'normal',
-            'Content-Length': '0',
           },
+          body: new TextEncoder().encode(payload),
         });
 
         if (response.status === 410 || response.status === 404) {
           // Subscription expired
           await db.prepare('UPDATE push_subscriptions SET active = 0 WHERE id = ?').bind(sub.id).run();
-        } else if (response.ok) {
+        } else if (response.ok || response.status === 201) {
           await db.prepare("UPDATE push_subscriptions SET last_sent = datetime('now') WHERE id = ?").bind(sub.id).run();
         }
       } catch {
@@ -82,6 +87,50 @@ async function sendDailyWOTD(env: any) {
   } catch (err) {
     console.error('WOTD push cron error:', err);
   }
+}
+
+/**
+ * Create VAPID JWT token for cron push authorization (ES256)
+ */
+async function createCronVAPIDToken(audience: string, privateKeyBase64: string, publicKeyBase64: string): Promise<string> {
+  const header = { typ: 'JWT', alg: 'ES256' };
+  const now = Math.floor(Date.now() / 1000);
+  const claims = { aud: audience, exp: now + 86400, sub: 'mailto:contact@scrabblewordsfinder.com' };
+
+  const headerB64 = cronBase64url(JSON.stringify(header));
+  const claimsB64 = cronBase64url(JSON.stringify(claims));
+  const unsignedToken = `${headerB64}.${claimsB64}`;
+
+  const keyData = cronBase64urlDecode(privateKeyBase64);
+  const key = await crypto.subtle.importKey(
+    'pkcs8',
+    keyData,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    { name: 'ECDSA', hash: 'SHA-256' },
+    key,
+    new TextEncoder().encode(unsignedToken)
+  );
+
+  return `${unsignedToken}.${cronBase64url(new Uint8Array(signature))}`;
+}
+
+function cronBase64url(data: string | Uint8Array): string {
+  const str = typeof data === 'string' ? btoa(data) : btoa(String.fromCharCode(...data));
+  return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function cronBase64urlDecode(str: string): ArrayBuffer {
+  const padding = '='.repeat((4 - str.length % 4) % 4);
+  const base64 = (str + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes.buffer;
 }
 
 

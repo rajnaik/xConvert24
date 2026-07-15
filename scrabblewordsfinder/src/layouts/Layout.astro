@@ -949,9 +949,12 @@ const adHideStyle = isDev ? '' : 'display:none';
         var dot = document.getElementById('push-bell-dot');
         var dotMobile = document.getElementById('push-bell-dot-mobile');
         var activeBell = bell || bellMobile;
-        if (!activeBell || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-          if (bell) bell.style.display = 'none';
-          if (bellMobile) bellMobile.style.display = 'none';
+        if (!activeBell) return;
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          // Push not supported — bell remains visible but shows a tooltip on click
+          function unsupported() { alert('Push notifications are not supported on this browser. Try Chrome, Edge, or Firefox.'); }
+          if (bell) bell.addEventListener('click', unsupported);
+          if (bellMobile) bellMobile.addEventListener('click', unsupported);
           return;
         }
 

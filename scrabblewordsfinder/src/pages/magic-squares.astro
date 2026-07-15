@@ -1,0 +1,90 @@
+---
+export const prerender = false;
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+<Layout title="Magic Squares — Word Puzzle Game | ScrabbleWordsFinder" description="Fill the grid so every row and column is a valid Scrabble word. Daily challenge, unlimited mode, 4x4 to 6x6 grids." keywords="magic squares, word square puzzle, word grid game, scrabble puzzle, daily word game">
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <div class="text-center mb-6"><h1 class="text-3xl font-bold text-white mb-2">🪄 Magic Squares</h1><p class="text-gray-400 text-sm">Fill the grid so every row and column is a valid word</p></div>
+  <div class="flex flex-wrap items-center justify-center gap-2 mb-6">
+    <select id="ms-mode" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-300"><option value="daily">📅 Daily</option><option value="random">🔀 Unlimited</option></select>
+    <select id="ms-size" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-300"><option value="4">4×4</option><option value="5">5×5</option><option value="6">6×6</option></select>
+    <select id="ms-diff" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-300"><option value="easy">🟢 Easy</option><option value="medium">🟡 Intermediate</option><option value="hard">🔴 Hard</option></select>
+    <select id="ms-var" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-300"><option value="any">Both</option><option value="classic">Classic</option><option value="cross">Cross</option></select>
+    <button id="ms-new" class="px-3 py-1.5 text-xs rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium">New Puzzle</button>
+  </div>
+  <div class="flex justify-center mb-1"><div class="flex items-center gap-2"><span class="text-gray-500">⏱️</span><span id="ms-tm" class="text-sm font-mono text-gray-400">0:00</span></div></div>
+  <div class="flex justify-center mb-6"><div id="ms-grid" class="inline-grid gap-0.5 bg-gray-800 p-1 rounded-xl border border-gray-700"></div></div>
+  <div class="mb-6 px-2"><div class="p-3 rounded-xl border border-gray-700 bg-gray-900/40"><div class="flex items-start gap-0"><div class="flex-1"><p class="text-[10px] text-gray-500 uppercase mb-1 text-center">Rows</p><div id="ms-rl" class="text-center"></div></div><div class="flex flex-col items-center justify-center mx-3 self-stretch"><div class="flex-1 w-px bg-gray-700"></div><button id="ms-chk" class="my-2 px-3 py-1.5 text-xs rounded-lg border border-blue-500/40 bg-blue-900/20 text-blue-400 hover:bg-blue-900/40 whitespace-nowrap">✓ Check</button><div class="flex-1 w-px bg-gray-700"></div></div><div class="flex-1"><p class="text-[10px] text-gray-500 uppercase mb-1 text-center">Columns</p><div id="ms-cl" class="text-center"></div></div></div></div></div>
+  <div class="mb-6 px-2"><div class="p-3 rounded-xl border border-gray-700 bg-gray-900/40"><div class="flex flex-wrap items-center gap-2"><span class="text-xs text-gray-400 font-medium">Hints:</span><button id="ms-h1" class="px-3 py-1.5 text-xs rounded-lg border border-amber-500/40 bg-amber-900/20 text-amber-400 hover:bg-amber-900/40">💡 Reveal Letter</button><button id="ms-h2" class="px-3 py-1.5 text-xs rounded-lg border border-amber-500/40 bg-amber-900/20 text-amber-400 hover:bg-amber-900/40">📝 Reveal Row</button><button id="ms-h3" class="px-3 py-1.5 text-xs rounded-lg border border-amber-500/40 bg-amber-900/20 text-amber-400 hover:bg-amber-900/40">📋 Reveal Column</button><span class="ml-auto text-xs text-gray-500">Hints Used: <span id="ms-hc" class="text-amber-400 font-mono">0</span></span></div></div></div>
+  <div id="ms-win" class="hidden mb-6 p-5 rounded-xl border border-green-500/40 bg-green-950/20 text-center"><p class="text-2xl mb-2">🎉</p><p class="text-green-400 font-semibold text-lg">Solved!</p><p id="ms-ws" class="text-gray-400 text-sm mt-1"></p><div class="mt-4 flex justify-center gap-3"><button id="ms-sh" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-medium">📤 Share</button><button id="ms-ag" class="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 text-sm">Again</button></div></div>
+  <div class="flex items-center justify-center gap-6 mb-6 text-center"><div><p class="text-xl font-bold text-white font-mono" id="ms-s1">0</p><p class="text-[10px] text-gray-500">Streak</p></div><div><p class="text-xl font-bold text-white font-mono" id="ms-s2">0</p><p class="text-[10px] text-gray-500">Played</p></div><div><p class="text-xl font-bold text-white font-mono" id="ms-s3">0</p><p class="text-[10px] text-gray-500">Solved</p></div><div><p class="text-xl font-bold text-white font-mono" id="ms-s4">—</p><p class="text-[10px] text-gray-500">Best</p></div></div>
+  <details class="mb-8"><summary class="text-sm text-gray-400 cursor-pointer hover:text-white">How to play</summary><div class="mt-3 p-4 rounded-xl border border-gray-800 bg-gray-900/30 text-sm text-gray-400 space-y-2"><p>Fill every empty cell so <strong class="text-white">each row</strong> and <strong class="text-white">each column</strong> spells a valid Scrabble word.</p><p><strong class="text-purple-400">Classic</strong> = symmetric (rows=cols). <strong class="text-blue-400">Cross</strong> = independent words.</p></div></details>
+
+  <!-- Skills blurb -->
+  <div class="mb-8 p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+    <h2 class="text-sm font-semibold text-indigo-300 mb-2">🧠 Why Play Magic Squares?</h2>
+    <p class="text-xs text-gray-400 leading-relaxed mb-2">Magic Squares train the exact skills that make strong Scrabble players. You're forced to think in two directions simultaneously — building valid words across rows while satisfying column constraints at the same time.</p>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+      <div class="p-2 rounded-lg bg-gray-800/50 text-center"><p class="text-lg mb-0.5">🔤</p><p class="text-[10px] text-gray-400">Pattern Recognition</p></div>
+      <div class="p-2 rounded-lg bg-gray-800/50 text-center"><p class="text-lg mb-0.5">🧩</p><p class="text-[10px] text-gray-400">Constraint Solving</p></div>
+      <div class="p-2 rounded-lg bg-gray-800/50 text-center"><p class="text-lg mb-0.5">📚</p><p class="text-[10px] text-gray-400">Vocabulary Depth</p></div>
+      <div class="p-2 rounded-lg bg-gray-800/50 text-center"><p class="text-lg mb-0.5">⚡</p><p class="text-[10px] text-gray-400">Anagram Speed</p></div>
+      <div class="p-2 rounded-lg bg-gray-800/50 text-center"><p class="text-lg mb-0.5">🎯</p><p class="text-[10px] text-gray-400">Letter Placement</p></div>
+      <div class="p-2 rounded-lg bg-gray-800/50 text-center"><p class="text-lg mb-0.5">🧮</p><p class="text-[10px] text-gray-400">Cross-Word Logic</p></div>
+    </div>
+    <p class="text-xs text-gray-500 mt-3">Regular play improves your ability to spot hooks, parallel plays, and interlocking words on the Scrabble board — the same skill used by tournament players to maximise scoring opportunities.</p>
+  </div>
+  <div class="text-center"><a href="/activities/" class="text-sm text-gray-400 hover:text-blue-400">← Activities</a></div>
+
+  <!-- FAQPage Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is a Magic Square word puzzle?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A Magic Square is a word puzzle where you fill a grid so that every row and every column spells a valid Scrabble word. In the Classic variant, rows and columns are identical (symmetric). In the Cross Grid variant, all rows and columns are valid words but independent of each other."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What grid sizes are available?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Magic Squares are available in 4×4, 5×5, and 6×6 sizes. 4×4 is the most accessible, 5×5 is challenging, and 6×6 is expert-level. Each size has Easy, Intermediate, and Hard difficulty modes that control how many letters are revealed at the start."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does the Daily Magic Square work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The Daily Magic Square gives everyone the same puzzle each day, similar to Wordle. You can share your result (time and hints used) with friends. A new daily puzzle is assigned automatically at midnight UTC. Unlimited mode lets you play as many random puzzles as you like."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What skills does Magic Squares improve?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Magic Squares improve pattern recognition, constraint solving, vocabulary depth, anagram speed, letter placement, and cross-word logic. These are the same skills used by tournament Scrabble players to spot hooks, parallel plays, and interlocking words on the board."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the difference between Classic and Cross Grid?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "In Classic mode, the grid is symmetric — the words reading across rows are identical to the words reading down columns. In Cross Grid mode, every row and every column is a valid word, but they are independent of each other, creating a much larger puzzle space with more variety."
+        }
+      }
+    ]
+  })} />
+</div>
+</Layout>
+
+<script is:inline src="/js/magic-squares.js?v=11"></script>
