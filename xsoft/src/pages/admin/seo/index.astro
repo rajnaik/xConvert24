@@ -1,0 +1,259 @@
+---
+import '../../../styles/global.css';
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEO Index — xSoft Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <!-- Admin Nav -->
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="/admin/" class="text-lg font-bold bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">xSoft Admin</a>
+      <a href="/admin/emails/" class="text-sm text-gray-400 hover:text-indigo-400 transition-colors">Emails</a>
+      <a href="/admin/seo/" class="text-sm text-emerald-400 font-medium">SEO</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/" class="text-sm text-gray-500 hover:text-white transition-colors">← Site</a>
+      <a href="/api/auth/logout/" class="text-sm text-red-400 hover:text-red-300 transition-colors">Logout</a>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold text-white">SEO Index</h1>
+      <div class="flex items-center gap-3">
+        <span id="total-count" class="text-sm text-gray-400"></span>
+        <span id="indexed-count" class="text-sm text-emerald-400"></span>
+        <button id="refresh-btn" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-medium transition-colors">Refresh</button>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div class="p-4 rounded-xl border border-gray-800 bg-gray-900/50 text-center">
+        <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+        <p class="text-xs text-gray-400">Total Pages</p>
+      </div>
+      <div class="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10 text-center">
+        <p class="text-2xl font-bold text-emerald-400" id="stat-indexed">—</p>
+        <p class="text-xs text-gray-400">Indexed</p>
+      </div>
+      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-pending">—</p>
+        <p class="text-xs text-gray-400">Not Indexed</p>
+      </div>
+      <div class="p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10 text-center">
+        <p class="text-2xl font-bold text-indigo-400" id="stat-faq">—</p>
+        <p class="text-xs text-gray-400">With FAQ Schema</p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-900 border-b border-gray-800">
+          <tr>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">URL</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Title <span class="text-gray-600">(≤70)</span></th>
+            <th class="px-3 py-3 text-center text-gray-400 font-medium">T.Len</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Description <span class="text-gray-600">(≤160)</span></th>
+            <th class="px-3 py-3 text-center text-gray-400 font-medium">D.Len</th>
+            <th class="px-3 py-3 text-center text-gray-400 font-medium">FAQ</th>
+            <th class="px-3 py-3 text-center text-gray-400 font-medium">OG</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Schemas</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Status</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="seo-body" class="divide-y divide-gray-800">
+          <tr><td colspan="10" class="px-3 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full p-6 max-h-[85vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white">Edit SEO Entry</h2>
+          <button id="modal-close" class="text-gray-400 hover:text-white text-xl">&times;</button>
+        </div>
+        <form id="edit-form" class="space-y-4">
+          <input type="hidden" id="edit-id" />
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">URL</label>
+            <p id="edit-url" class="text-sm text-indigo-400"></p>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Title <span id="title-count" class="text-gray-500"></span></label>
+            <input type="text" id="edit-title" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Description <span id="desc-count" class="text-gray-500"></span></label>
+            <textarea id="edit-desc" rows="3" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Keywords</label>
+            <input type="text" id="edit-keywords" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Schemas</label>
+              <input type="text" id="edit-schemas" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Index Status</label>
+              <select id="edit-status" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-indigo-500">
+                <option value="not_indexed">Not Indexed</option>
+                <option value="indexed">Indexed</option>
+                <option value="crawled">Crawled</option>
+                <option value="excluded">Excluded</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Notes</label>
+            <input type="text" id="edit-notes" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" placeholder="Optional notes..." />
+          </div>
+          <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script is:inline>
+    let pages = [];
+
+    async function loadPages() {
+      try {
+        const res = await fetch('/api/seo-index/');
+        if (res.ok) {
+          const data = await res.json();
+          pages = data.pages || [];
+          renderTable();
+          updateStats();
+        }
+      } catch {}
+    }
+
+    function updateStats() {
+      document.getElementById('stat-total').textContent = pages.length;
+      document.getElementById('stat-indexed').textContent = pages.filter(p => p.index_status === 'indexed').length;
+      document.getElementById('stat-pending').textContent = pages.filter(p => p.index_status === 'not_indexed').length;
+      document.getElementById('stat-faq').textContent = pages.filter(p => p.has_faq).length;
+      document.getElementById('total-count').textContent = `${pages.length} pages`;
+      document.getElementById('indexed-count').textContent = `${pages.filter(p => p.index_status === 'indexed').length} indexed`;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('seo-body');
+      if (!pages.length) { tbody.innerHTML = '<tr><td colspan="10" class="px-3 py-8 text-center text-gray-500">No pages found</td></tr>'; return; }
+
+      tbody.innerHTML = pages.map((p, i) => {
+        const titleOk = p.title_length <= 70;
+        const descOk = p.description_length <= 160;
+        const statusColor = p.index_status === 'indexed' ? 'text-emerald-400' : p.index_status === 'crawled' ? 'text-blue-400' : 'text-amber-400';
+        return `
+        <tr class="${i % 2 === 0 ? 'bg-gray-950' : 'bg-gray-900/50'} hover:bg-gray-800/50">
+          <td class="px-3 py-2 text-indigo-400 whitespace-nowrap">${esc(p.url)}</td>
+          <td class="px-3 py-2 text-gray-300 max-w-[200px] truncate" title="${esc(p.title)}">${esc(p.title?.substring(0, 40))}${p.title?.length > 40 ? '...' : ''}</td>
+          <td class="px-3 py-2 text-center ${titleOk ? 'text-emerald-400' : 'text-red-400'} font-mono">${p.title_length}</td>
+          <td class="px-3 py-2 text-gray-400 max-w-[200px] truncate" title="${esc(p.description)}">${esc(p.description?.substring(0, 40))}${p.description?.length > 40 ? '...' : ''}</td>
+          <td class="px-3 py-2 text-center ${descOk ? 'text-emerald-400' : 'text-red-400'} font-mono">${p.description_length}</td>
+          <td class="px-3 py-2 text-center">${p.has_faq ? '<span class="text-emerald-400">✓</span>' : '<span class="text-gray-600">—</span>'}</td>
+          <td class="px-3 py-2 text-center">${p.has_og ? '<span class="text-emerald-400">✓</span>' : '<span class="text-red-400">✗</span>'}</td>
+          <td class="px-3 py-2 text-gray-400">${esc(p.schemas || '—')}</td>
+          <td class="px-3 py-2 ${statusColor} font-medium">${p.index_status}</td>
+          <td class="px-3 py-2">
+            <button onclick="editPage(${p.id})" class="text-indigo-400 hover:underline mr-2">Edit</button>
+            <button onclick="deletePage(${p.id})" class="text-red-400 hover:underline">Del</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    function editPage(id) {
+      const p = pages.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('edit-id').value = p.id;
+      document.getElementById('edit-url').textContent = p.url;
+      document.getElementById('edit-title').value = p.title;
+      document.getElementById('edit-desc').value = p.description;
+      document.getElementById('edit-keywords').value = p.keywords || '';
+      document.getElementById('edit-schemas').value = p.schemas || '';
+      document.getElementById('edit-status').value = p.index_status;
+      document.getElementById('edit-notes').value = p.notes || '';
+      updateCounts();
+      document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function updateCounts() {
+      const t = document.getElementById('edit-title').value;
+      const d = document.getElementById('edit-desc').value;
+      document.getElementById('title-count').textContent = `(${t.length}/70)`;
+      document.getElementById('title-count').className = t.length > 70 ? 'text-red-400' : 'text-gray-500';
+      document.getElementById('desc-count').textContent = `(${d.length}/160)`;
+      document.getElementById('desc-count').className = d.length > 160 ? 'text-red-400' : 'text-gray-500';
+    }
+
+    document.getElementById('edit-title')?.addEventListener('input', updateCounts);
+    document.getElementById('edit-desc')?.addEventListener('input', updateCounts);
+
+    document.getElementById('edit-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('edit-id').value;
+      await fetch('/api/seo-index/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: parseInt(id),
+          title: document.getElementById('edit-title').value,
+          description: document.getElementById('edit-desc').value,
+          keywords: document.getElementById('edit-keywords').value,
+          schemas: document.getElementById('edit-schemas').value,
+          index_status: document.getElementById('edit-status').value,
+          notes: document.getElementById('edit-notes').value,
+        }),
+      });
+      document.getElementById('edit-modal').classList.add('hidden');
+      loadPages();
+    });
+
+    async function deletePage(id) {
+      if (!confirm('Delete this SEO entry?')) return;
+      await fetch('/api/seo-index/', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      loadPages();
+    }
+
+    document.getElementById('modal-close')?.addEventListener('click', () => document.getElementById('edit-modal').classList.add('hidden'));
+    document.getElementById('edit-modal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden'); });
+    document.getElementById('refresh-btn')?.addEventListener('click', async () => {
+      const btn = document.getElementById('refresh-btn');
+      btn.textContent = 'Refreshing...';
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+      await loadPages();
+      btn.textContent = '✓ Refreshed';
+      btn.classList.remove('opacity-50');
+      btn.classList.add('bg-emerald-600');
+      setTimeout(() => {
+        btn.textContent = 'Refresh';
+        btn.classList.remove('bg-emerald-600');
+        btn.disabled = false;
+      }, 1500);
+    });
+
+    loadPages();
+  </script>
+</body>
+</html>

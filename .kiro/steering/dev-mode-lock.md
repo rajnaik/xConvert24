@@ -10,10 +10,11 @@ The user says **"Dev Mode [workspace]"** to unlock that workspace for writes. Al
 
 | Trigger Command | Workspace | Root Path | Unlocked For Writes |
 |----------------|-----------|-----------|-------------------|
-| `Dev Mode xconvert` | xConvert24 | `/Users/rajeevnaik/Code/xConvert.com/` (excluding `scrabblewordsfinder/` and `coins/` and `playground/`) | xConvert files only |
+| `Dev Mode xconvert` | xConvert24 | `/Users/rajeevnaik/Code/xConvert.com/` (excluding `scrabblewordsfinder/` and `coins/` and `playground/` and `xsoft/`) | xConvert files only |
 | `Dev Mode swf` | ScrabbleWordsFinder | `/Users/rajeevnaik/Code/xConvert.com/scrabblewordsfinder/` | SWF files only |
 | `Dev Mode coins` | Crypto Coins | `/Users/rajeevnaik/Code/xConvert.com/coins/` | Coins files only |
 | `Dev Mode playground` | Playground | `/Users/rajeevnaik/Code/xConvert.com/playground/` | Playground files only |
+| `Dev Mode xsoft` | xSoft Ltd | `/Users/rajeevnaik/Code/xConvert.com/xsoft/` | xSoft files only |
 
 
 ## Rules

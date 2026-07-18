@@ -1,0 +1,210 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+export const prerender = true;
+---
+
+<Layout title="Building RAG Chatbots on Cloudflare Workers AI | xSoft" description="How to build a production RAG chatbot using Cloudflare Workers AI, Vectorize, and D1. Architecture, code patterns, and lessons learned." keywords="RAG chatbot, Cloudflare Workers AI, Vectorize, vector embeddings, semantic search, AI chatbot architecture">
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Building RAG Chatbots on Cloudflare Workers AI + Vectorize",
+    "description": "How to build a production RAG chatbot using Cloudflare Workers AI, Vectorize, and D1.",
+    "datePublished": "2026-07-15",
+    "dateModified": "2026-07-15",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.xsoftlimited.com/about/" },
+    "publisher": { "@type": "Organization", "name": "xSoft Ltd", "logo": { "@type": "ImageObject", "url": "https://www.xsoftlimited.com/social-card.svg" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.xsoftlimited.com/blog/building-rag-chatbots-cloudflare/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is RAG in the context of AI chatbots?", "acceptedAnswer": { "@type": "Answer", "text": "RAG (Retrieval-Augmented Generation) is a technique where the chatbot first searches a knowledge base for relevant content, then uses that content as context when generating a response. This grounds the AI's answers in real data rather than relying on training knowledge alone." }},
+      { "@type": "Question", "name": "Why use Cloudflare Vectorize for RAG?", "acceptedAnswer": { "@type": "Answer", "text": "Cloudflare Vectorize provides a serverless vector database that runs on the same edge network as Workers AI. This means vector similarity searches happen in under 50ms with no cold starts, and you don't need to manage infrastructure." }},
+      { "@type": "Question", "name": "How much does it cost to run a RAG chatbot on Cloudflare?", "acceptedAnswer": { "@type": "Answer", "text": "Cloudflare Workers AI offers a generous free tier. For most small-to-medium chatbots (under 10,000 queries/month), the total cost is under $5/month. Vectorize storage is included in the Workers paid plan at $5/month." }}
+    ]
+  })} />
+
+  <!-- Article -->
+  <section class="pt-10 pb-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+        <a href="/blog/" class="hover:text-indigo-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">RAG Chatbots</span>
+      </nav>
+
+      <article class="prose prose-invert max-w-none">
+        <div class="mb-8">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">AI</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Cloudflare</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">RAG</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white leading-tight">Building RAG Chatbots on Cloudflare Workers AI + Vectorize</h1>
+          <div class="mt-4 flex items-center gap-3 text-sm text-gray-400">
+            <time datetime="2026-07-15">15 July 2026</time>
+            <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+            <span>8 min read</span>
+          </div>
+        </div>
+
+        <p class="text-lg text-gray-300 leading-relaxed mb-8">We built Lex — an AI Scrabble coach that answers strategy questions using 1,000+ blog articles as its knowledge base. Here's the architecture, the code patterns, and the lessons learned from deploying a production RAG chatbot entirely on Cloudflare's edge.</p>
+
+        <!-- What is RAG -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">What is RAG and Why Does It Matter?</h2>
+
+        <p class="text-gray-300 leading-relaxed">Standard LLMs hallucinate. They confidently make up facts because they have no access to your specific data. RAG (Retrieval-Augmented Generation) solves this by giving the AI real context before it generates a response.</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 The RAG Flow</p>
+          <p class="text-sm text-gray-300">User asks a question → Embed the question into a vector → Search your knowledge base for similar vectors → Return the top 5 most relevant chunks → Feed those chunks + the question to the LLM → LLM generates an answer grounded in your actual data.</p>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed">The result: answers that are accurate, cite-able, and specific to your business — not generic training data.</p>
+
+        <!-- Architecture -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Architecture Overview</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Our stack runs entirely on Cloudflare — no external dependencies, no cold starts, no region selection:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">Workers AI</p>
+            <p class="text-xs text-gray-400">LLM inference (Llama 3 8B) and embedding generation (bge-base-en). Runs on the same edge as your Worker.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">Vectorize</p>
+            <p class="text-xs text-gray-400">Vector database for semantic search. Stores 768-dimension embeddings with metadata (source URL, title).</p>
+          </div>
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">D1 (SQLite)</p>
+            <p class="text-xs text-gray-400">Conversation history, user sessions, rate limiting. Persistent storage at the edge.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">Astro (SSR)</p>
+            <p class="text-xs text-gray-400">Frontend chat UI with streaming responses. Server-side API route handles the RAG pipeline.</p>
+          </div>
+        </div>
+
+        <!-- Embedding Pipeline -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Step 1: Building the Knowledge Base</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Before the chatbot can answer questions, you need to embed your content into vectors. We wrote a Python script that:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+          <p class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3">🧩 Embedding Pipeline</p>
+          <div class="space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+              <p class="text-sm text-gray-300">Reads all blog .astro files and extracts text content (strips HTML tags)</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+              <p class="text-sm text-gray-300">Chunks content into ~500 token segments with 50-token overlap</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+              <p class="text-sm text-gray-300">Calls Workers AI embedding model (bge-base-en-v1.5) to get 768-dim vectors</p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+              <p class="text-sm text-gray-300">Upserts vectors to Vectorize index with metadata (title, URL, category)</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed">For ScrabbleWordsFinder, we embedded 1,000+ articles — roughly 3,500 vector chunks. The entire indexing process takes about 10 minutes.</p>
+
+        <!-- Query Flow -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Step 2: The Query Pipeline</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">When a user sends a message, the API route does this:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-3">⚡ Request Flow (~300ms total)</p>
+          <div class="space-y-2 text-sm text-gray-300">
+            <p><span class="text-cyan-400 font-mono">1.</span> Embed the user's question → <span class="text-gray-500">~30ms</span></p>
+            <p><span class="text-cyan-400 font-mono">2.</span> Query Vectorize for top 5 similar chunks → <span class="text-gray-500">~20ms</span></p>
+            <p><span class="text-cyan-400 font-mono">3.</span> Build system prompt + context + question → <span class="text-gray-500">~1ms</span></p>
+            <p><span class="text-cyan-400 font-mono">4.</span> Stream LLM response back to client → <span class="text-gray-500">~250ms first token</span></p>
+          </div>
+        </div>
+
+        <!-- Prompt Engineering -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Step 3: Prompt Engineering</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The system prompt is critical. Ours includes:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-4">
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+            <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Role definition:</span> "You are Lex, an AI Scrabble coach. Only answer questions about Scrabble, word games, and vocabulary."</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+            <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Context injection:</span> "Use ONLY the following sources to answer. If the answer isn't in the sources, say so."</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+            <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Guardrails:</span> Topic boundaries, response length limits (under 200 words), no personal advice, safe fallback behaviours.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+            <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">Tone control:</span> Friendly, knowledgeable, concise. Uses British English. Doesn't over-explain.</p>
+          </div>
+        </div>
+
+        <!-- Lessons Learned -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Lessons from Production</h2>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+            <p class="text-green-400 font-semibold text-sm mb-1">✓ Chunk size matters</p>
+            <p class="text-xs text-gray-400">500 tokens with overlap works better than whole-document embeddings. Too large = diluted relevance. Too small = missing context.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+            <p class="text-green-400 font-semibold text-sm mb-1">✓ Metadata is essential</p>
+            <p class="text-xs text-gray-400">Store title, URL, and category with each vector. This lets you filter results and provide citation links in responses.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">✗ Don't skip guardrails</p>
+            <p class="text-xs text-gray-400">Without topic boundaries, users will ask the chatbot to write code, tell jokes, or generate harmful content. Define boundaries early.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">✗ Don't trust cosine similarity alone</p>
+            <p class="text-xs text-gray-400">A 0.85 similarity score doesn't guarantee relevance. Set a minimum threshold (we use 0.75) and return "I don't know" below it.</p>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="not-prose mt-12 p-6 rounded-2xl bg-gradient-to-r from-indigo-950/30 to-blue-950/20 border border-indigo-500/30 text-center">
+          <h3 class="text-xl font-bold text-white">Want a RAG chatbot for your business?</h3>
+          <p class="mt-2 text-sm text-gray-400">We build and deploy AI chatbots in 2-4 weeks. Trained on your data, deployed on Cloudflare's edge.</p>
+          <a href="/contact/" class="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all">
+            Get in Touch →
+          </a>
+        </div>
+
+        <!-- Related -->
+        <aside class="not-prose border-t border-gray-800 mt-12 pt-8">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Related Articles</h3>
+          <div class="grid gap-3">
+            <a href="/blog/cloudflare-d1-vs-kv/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">Cloudflare D1 vs KV — When to Use What</span>
+            </a>
+            <a href="/blog/seo-at-scale-1000-pages/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">SEO at Scale — 1000 Pages in 30 Days</span>
+            </a>
+          </div>
+        </aside>
+
+        <div class="not-prose mt-8 text-center">
+          <a href="/blog/" class="text-sm text-gray-400 hover:text-indigo-400 transition-colors">← Back to all articles</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</Layout>

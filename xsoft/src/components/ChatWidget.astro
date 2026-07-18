@@ -1,0 +1,241 @@
+---
+// xSoft AI Chat Widget — text-based chatbot that knows everything about the business
+// Uses Cloudflare Workers AI via /api/chat/ endpoint
+---
+
+<!-- Chat button + panel -->
+<div id="chat-widget" class="fixed bottom-6 left-6 z-50">
+  <!-- Chat panel -->
+  <div id="chat-panel" class="hidden mb-3 w-80 sm:w-96 rounded-2xl border border-gray-700 bg-gray-950 shadow-2xl shadow-black/50 overflow-hidden flex flex-col" style="height: 480px;">
+    <!-- Header -->
+    <div class="px-4 py-3 bg-gray-900 border-b border-gray-800 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
+          <span class="text-sm">💬</span>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-white">xSoft Assistant</p>
+          <p class="text-xs text-emerald-400">Online</p>
+        </div>
+      </div>
+      <button id="chat-close" class="text-gray-400 hover:text-white text-lg">&times;</button>
+    </div>
+
+    <!-- Messages -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+      <div class="flex gap-2">
+        <div class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0 mt-0.5">
+          <span class="text-xs">🤖</span>
+        </div>
+        <div class="bg-gray-800 rounded-xl rounded-tl-sm px-3 py-2 max-w-[85%]">
+          <p class="text-sm text-gray-200">Hi! I'm the xSoft assistant. I can help you with questions about our services, pricing, timeline, or anything else. What can I help you with?</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="px-3 py-3 border-t border-gray-800 bg-gray-900 shrink-0">
+      <form id="chat-form" class="flex gap-2">
+        <input type="text" id="chat-input" placeholder="Ask about our services..." class="flex-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none" autocomplete="off" />
+        <button type="submit" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        </button>
+      </form>
+      <p class="text-xs text-gray-600 mt-1.5 text-center">Powered by xSoft AI · <a href="/contact/" class="text-indigo-500 hover:underline">Book a call</a></p>
+    </div>
+  </div>
+
+  <!-- Toggle button -->
+  <button id="chat-toggle" class="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/25 flex items-center justify-center transition-all hover:scale-105 active:scale-95" aria-label="Chat with us">
+    <svg id="chat-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+    <svg id="chat-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+  </button>
+</div>
+
+<script is:inline>
+(function() {
+  const SYSTEM_KNOWLEDGE = `You are the xSoft website assistant. You help potential clients understand our services and encourage them to book a discovery call.
+
+KEY BUSINESS INFORMATION:
+
+COMPANY: xSoft Ltd (Company No. 17308915), registered in England & Wales. Founded June 2026 by Raj Naik (27+ years tech experience).
+
+SERVICES & PRICING:
+- Our standard rate is £1,000 per week of development.
+- For bespoke projects, depending on complexity and time, the total cost is a multiple of £1,000 (e.g., a 3-week project = £3,000).
+- AI Chatbots: Typically 2-4 weeks. Custom RAG chatbots trained on your business data.
+- Web Development: High-performance sites on Cloudflare Workers + Astro. SEO-first, admin dashboard included.
+- Chrome Extensions: Manifest V3, Chrome Web Store submission included.
+- SEO & Content Strategy: Technical audits, structured data, AI content at scale.
+- Every project is scoped individually — complexity determines the timeline and cost.
+
+DELIVERY:
+- Standard rate: £1,000 per week of development
+- Bespoke projects: total cost = number of weeks × £1,000
+- Payment: 50% upfront, 50% on delivery
+- Free 30-day post-launch support included
+- Optional retainer: £100/month for ongoing maintenance
+
+PROCESS: Spec → Build → QA → Handover (milestone-based after scope agreement)
+
+TECH STACK: Cloudflare Workers, Workers AI, D1, KV, Vectorize, Astro, Tailwind CSS, TypeScript, Python, Playwright
+
+CASE STUDIES:
+- ScrabbleWordsFinder.com: AI chatbot + 1000+ page content platform + 6 games + world rankings
+- xConvert24.com: 60+ utility tools, Chrome extension, admin analytics
+- xCrypto24.com (Beta): Real-time crypto tracking, bubble charts, portfolio
+
+CONTACT: info@xsoftlimited.com
+BOOK A CALL: https://calendly.com/raj007/15min (15-minute free discovery call)
+
+RULES:
+- Keep responses concise (2-3 sentences max unless they ask for detail)
+- Always encourage booking a call for serious enquiries
+- When mentioning the booking link, always include the full URL: https://calendly.com/raj007/15min
+- When mentioning email, always include: info@xsoftlimited.com
+- Be friendly, professional, knowledgeable
+- For pricing questions: say "Our standard rate is £1,000 per week. For a rough calculation, the total cost is a multiple of £1,000 per week depending on the project's complexity and timeline."
+- If you don't know something specific, suggest they book a call or email
+- Never make up capabilities we don't have
+- Use British English`;
+
+  const chatHistory = [];
+  const panel = document.getElementById('chat-panel');
+  const toggle = document.getElementById('chat-toggle');
+  const closeBtn = document.getElementById('chat-close');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const messages = document.getElementById('chat-messages');
+  const iconOpen = document.getElementById('chat-icon-open');
+  const iconClose = document.getElementById('chat-icon-close');
+
+  toggle?.addEventListener('click', () => {
+    const isOpen = !panel.classList.contains('hidden');
+    if (isOpen) { closeChat(); } else { openChat(); }
+  });
+
+  closeBtn?.addEventListener('click', closeChat);
+
+  function openChat() {
+    panel.classList.remove('hidden');
+    panel.classList.add('flex');
+    iconOpen.classList.add('hidden');
+    iconClose.classList.remove('hidden');
+    input.focus();
+  }
+
+  function closeChat() {
+    panel.classList.add('hidden');
+    panel.classList.remove('flex');
+    iconOpen.classList.remove('hidden');
+    iconClose.classList.add('hidden');
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+
+    // Add user message
+    addMessage('user', msg);
+    chatHistory.push({ role: 'user', content: msg });
+
+    // Show typing indicator
+    const typingEl = addMessage('assistant', '...');
+    typingEl.querySelector('p').classList.add('animate-pulse');
+
+    try {
+      const res = await fetch('/api/chat/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: SYSTEM_KNOWLEDGE,
+          messages: chatHistory.slice(-10), // Last 10 messages for context
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const reply = data.response || "Sorry, I couldn't process that. Please try again or email info@xsoftlimited.com.";
+        typingEl.querySelector('p').innerHTML = linkify(reply);
+        typingEl.querySelector('p').classList.remove('animate-pulse');
+        chatHistory.push({ role: 'assistant', content: reply });
+      } else {
+        typingEl.querySelector('p').innerHTML = 'I\'m having trouble connecting right now. You can reach us at <a href="mailto:info@xsoftlimited.com" class="text-indigo-400 hover:underline">info@xsoftlimited.com</a> or <a href="https://calendly.com/raj007/15min" target="_blank" rel="noopener" class="text-indigo-400 hover:underline">book a call</a>.';
+        typingEl.querySelector('p').classList.remove('animate-pulse');
+      }
+    } catch {
+      typingEl.querySelector('p').innerHTML = 'Connection error. Please email <a href="mailto:info@xsoftlimited.com" class="text-indigo-400 hover:underline">info@xsoftlimited.com</a> directly.';
+      typingEl.querySelector('p').classList.remove('animate-pulse');
+    }
+
+    messages.scrollTop = messages.scrollHeight;
+  });
+
+  function addMessage(role, text) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex gap-2' + (role === 'user' ? ' justify-end' : '');
+
+    if (role === 'assistant') {
+      wrapper.innerHTML = `
+        <div class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0 mt-0.5">
+          <span class="text-xs">🤖</span>
+        </div>
+        <div class="bg-gray-800 rounded-xl rounded-tl-sm px-3 py-2 max-w-[85%]">
+          <p class="text-sm text-gray-200">${linkify(text)}</p>
+        </div>`;
+    } else {
+      wrapper.innerHTML = `
+        <div class="bg-indigo-600 rounded-xl rounded-tr-sm px-3 py-2 max-w-[85%]">
+          <p class="text-sm text-white">${escHtml(text)}</p>
+        </div>`;
+    }
+
+    messages.appendChild(wrapper);
+    messages.scrollTop = messages.scrollHeight;
+    return wrapper;
+  }
+
+  function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function linkify(text) {
+    // Convert URLs and emails to links BEFORE escaping (so :// doesn't get mangled)
+    const urlMap = {};
+    let idx = 0;
+    // Match full URLs (https://...)
+    let processed = text.replace(/(https?:\/\/[^\s]+)/g, (match) => {
+      const key = `__URL${idx++}__`;
+      urlMap[key] = `<a href="${match}" target="_blank" rel="noopener" class="text-indigo-400 hover:underline">${match}</a>`;
+      return key;
+    });
+    // Match domain-style URLs (word.com, word.co.uk) not already linked
+    processed = processed.replace(/\b([a-zA-Z0-9][-a-zA-Z0-9]*\.(com|co\.uk|org|net|io|dev))\b/g, (match) => {
+      const key = `__URL${idx++}__`;
+      urlMap[key] = `<a href="https://${match}" target="_blank" rel="noopener" class="text-indigo-400 hover:underline">${match}</a>`;
+      return key;
+    });
+    // Find emails
+    processed = processed.replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, (match) => {
+      const key = `__URL${idx++}__`;
+      urlMap[key] = `<a href="mailto:${match}" class="text-indigo-400 hover:underline">${match}</a>`;
+      return key;
+    });
+    // Escape HTML on the remaining text
+    let escaped = escHtml(processed);
+    // Convert **bold**
+    escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-white">$1</strong>');
+    // Convert * bullets
+    escaped = escaped.replace(/^\* /gm, '• ');
+    // Restore URL placeholders
+    for (const [key, html] of Object.entries(urlMap)) {
+      escaped = escaped.replace(key, html);
+    }
+    return escaped;
+  }
+})();
+</script>

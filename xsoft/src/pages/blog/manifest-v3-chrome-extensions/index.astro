@@ -1,0 +1,171 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+export const prerender = true;
+---
+
+<Layout title="Manifest V3 Chrome Extensions — Concept to Store | xSoft" description="A practical guide to building Chrome extensions with Manifest V3. Service workers, permissions, Web Store submission, and analytics." keywords="Chrome extension, Manifest V3, Chrome Web Store, service worker, browser extension development">
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Building Manifest V3 Chrome Extensions — From Concept to Web Store",
+    "description": "A practical guide to building and publishing Chrome extensions with Manifest V3.",
+    "datePublished": "2026-07-15",
+    "dateModified": "2026-07-15",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.xsoftlimited.com/about/" },
+    "publisher": { "@type": "Organization", "name": "xSoft Ltd", "logo": { "@type": "ImageObject", "url": "https://www.xsoftlimited.com/social-card.svg" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.xsoftlimited.com/blog/manifest-v3-chrome-extensions/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is Manifest V3 and why does it matter?", "acceptedAnswer": { "@type": "Answer", "text": "Manifest V3 is Chrome's latest extension platform. It replaces background pages with service workers, introduces declarativeNetRequest for network filtering, and enforces stricter security policies. All new extensions must use V3 — Google is deprecating V2." }},
+      { "@type": "Question", "name": "How long does Chrome Web Store review take?", "acceptedAnswer": { "@type": "Answer", "text": "Initial review typically takes 1-3 business days. Updates to existing extensions are usually reviewed within 24 hours. Rejections can add 1-2 weeks while you address feedback and resubmit." }},
+      { "@type": "Question", "name": "Can Chrome extensions collect user data?", "acceptedAnswer": { "@type": "Answer", "text": "Extensions can store data locally (chrome.storage), but collecting and transmitting user data requires full disclosure in the privacy practices section. Google strictly enforces minimal data collection — only request what your extension genuinely needs." }}
+    ]
+  })} />
+
+  <section class="pt-10 pb-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+        <a href="/blog/" class="hover:text-indigo-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">Chrome Extensions</span>
+      </nav>
+
+      <article class="prose prose-invert max-w-none">
+        <div class="mb-8">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Chrome</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Extensions</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Manifest V3</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white leading-tight">Manifest V3 Chrome Extensions — Concept to Web Store</h1>
+          <div class="mt-4 flex items-center gap-3 text-sm text-gray-400">
+            <time datetime="2026-07-15">15 July 2026</time>
+            <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+            <span>6 min read</span>
+          </div>
+        </div>
+
+        <p class="text-lg text-gray-300 leading-relaxed mb-8">We built and published Auto Button Clicker — a Chrome extension that auto-clicks elements at configurable intervals. Here's what we learned about Manifest V3, the review process, and getting from idea to published listing.</p>
+
+        <!-- MV3 Basics -->
+        <h2 class="text-xl font-light text-cyan-400 mt-10 mb-4 border-l-4 border-cyan-400 pl-4">Manifest V3: What Changed</h2>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+            <p class="text-green-400 font-semibold text-sm mb-1">V3: Service Workers</p>
+            <p class="text-xs text-gray-400">Event-driven, no persistent background page. Wakes on events, sleeps when idle. More efficient.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">V2: Background Pages (deprecated)</p>
+            <p class="text-xs text-gray-400">Always-running page consuming memory. Google is removing support.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+            <p class="text-green-400 font-semibold text-sm mb-1">V3: declarativeNetRequest</p>
+            <p class="text-xs text-gray-400">Rule-based network filtering. Faster, more private — rules run in the browser engine, not JS.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">V2: webRequest (deprecated)</p>
+            <p class="text-xs text-gray-400">Direct network interception. Powerful but privacy-invasive — could see all traffic.</p>
+          </div>
+        </div>
+
+        <!-- Architecture -->
+        <h2 class="text-xl font-light text-cyan-400 mt-10 mb-4 border-l-4 border-cyan-400 pl-4">Extension Architecture</h2>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-3">📦 File Structure</p>
+          <div class="space-y-1 text-sm text-gray-300 font-mono">
+            <p>manifest.json <span class="text-gray-500">— permissions, icons, entry points</span></p>
+            <p>background.js <span class="text-gray-500">— service worker (event handlers)</span></p>
+            <p>popup.html <span class="text-gray-500">— toolbar popup UI</span></p>
+            <p>popup.js <span class="text-gray-500">— popup logic</span></p>
+            <p>content.js <span class="text-gray-500">— injected into web pages</span></p>
+            <p>options.html <span class="text-gray-500">— settings page (optional)</span></p>
+            <p>icons/ <span class="text-gray-500">— 16, 48, 128px icons</span></p>
+          </div>
+        </div>
+
+        <!-- Permissions -->
+        <h2 class="text-xl font-light text-cyan-400 mt-10 mb-4 border-l-4 border-cyan-400 pl-4">Permissions: Less is More</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Google reviews every permission you request. The fewer you ask for, the faster your approval and the more users trust your extension.</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-4">
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+            <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">activeTab:</span> Only activates when user clicks the extension. The safest permission — no blanket access to all tabs.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+            <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">storage:</span> Saves user preferences locally. Syncs across devices if using chrome.storage.sync.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+            <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">scripting:</span> Required to inject content scripts programmatically. Justify clearly in your submission.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-950/20">
+            <p class="text-sm text-gray-300"><span class="text-purple-400 font-semibold">tabs:</span> Read tab URLs to detect restricted pages (chrome://, about:). Common but scrutinised.</p>
+          </div>
+        </div>
+
+        <!-- Web Store Submission -->
+        <h2 class="text-xl font-light text-cyan-400 mt-10 mb-4 border-l-4 border-cyan-400 pl-4">Chrome Web Store Submission</h2>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3">📋 Submission Checklist</p>
+          <div class="space-y-2 text-sm text-gray-300">
+            <p class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Icons: 128×128 (store) + 48×48 (toolbar) + 16×16 (favicon)</p>
+            <p class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Screenshots: 3-5 at 1280×800 showing different states</p>
+            <p class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Description: benefit-led, no keyword stuffing, clear single purpose</p>
+            <p class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Privacy policy URL: hosted and accessible</p>
+            <p class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Privacy practices: declare what data you collect (ideally: none)</p>
+            <p class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Single purpose description: one clear sentence</p>
+            <p class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Permission justifications: explain WHY for each permission</p>
+            <p class="flex items-center gap-2"><span class="text-emerald-400">✓</span> No remote code: everything bundled in the ZIP</p>
+          </div>
+        </div>
+
+        <!-- Analytics -->
+        <h2 class="text-xl font-light text-cyan-400 mt-10 mb-4 border-l-4 border-cyan-400 pl-4">Adding Analytics (Without Violating Privacy)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">You can track installs and usage without collecting personal data using GA4 Measurement Protocol:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">💡 Key Insight</p>
+          <p class="text-sm text-gray-300">GA4 Measurement Protocol lets you send events server-side (from the service worker) using just a measurement ID and API secret. No cookies, no tracking pixels, no user identification. You get aggregate data: install count, daily active users, feature usage — without compromising privacy.</p>
+        </div>
+
+        <!-- CTA -->
+        <div class="not-prose mt-12 p-6 rounded-2xl bg-gradient-to-r from-cyan-950/30 to-blue-950/20 border border-cyan-500/30 text-center">
+          <h3 class="text-xl font-bold text-white">Need a Chrome extension built?</h3>
+          <p class="mt-2 text-sm text-gray-400">We handle everything: development, testing, store submission, and analytics.</p>
+          <a href="/contact/" class="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all">
+            Get in Touch →
+          </a>
+        </div>
+
+        <aside class="not-prose border-t border-gray-800 mt-12 pt-8">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Related Articles</h3>
+          <div class="grid gap-3">
+            <a href="/blog/building-rag-chatbots-cloudflare/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">Building RAG Chatbots on Cloudflare</span>
+            </a>
+            <a href="/blog/seo-at-scale-1000-pages/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">SEO at Scale — 1000 Pages in 30 Days</span>
+            </a>
+          </div>
+        </aside>
+
+        <div class="not-prose mt-8 text-center">
+          <a href="/blog/" class="text-sm text-gray-400 hover:text-indigo-400 transition-colors">← Back to all articles</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</Layout>

@@ -1,0 +1,161 @@
+---
+import '../../../styles/global.css';
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emails — xSoft Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <!-- Admin Nav -->
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="/admin/" class="text-lg font-bold bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">xSoft Admin</a>
+      <a href="/admin/emails/" class="text-sm text-indigo-400 font-medium">Emails</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/" class="text-sm text-gray-500 hover:text-white transition-colors">← Site</a>
+      <a href="/api/auth/logout/" class="text-sm text-red-400 hover:text-red-300 transition-colors">Logout</a>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold text-white">Contact Enquiries</h1>
+      <div class="flex items-center gap-3">
+        <span id="total-count" class="text-sm text-gray-400"></span>
+        <button id="refresh-btn" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-medium transition-colors">Refresh</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-900 border-b border-gray-800">
+          <tr>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Date</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Name</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Email</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Service</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Timeline</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Message</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Status</th>
+            <th class="px-4 py-3 text-left text-gray-400 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="emails-body" class="divide-y divide-gray-800">
+          <tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="email-modal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-lg w-full p-6 max-h-[80vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white" id="modal-title">Email Details</h2>
+          <button id="modal-close" class="text-gray-400 hover:text-white text-xl">&times;</button>
+        </div>
+        <div id="modal-content" class="space-y-3 text-sm text-gray-300"></div>
+      </div>
+    </div>
+  </main>
+
+  <script is:inline>
+    let emails = [];
+
+    async function loadEmails() {
+      try {
+        const res = await fetch('/api/emails/');
+        if (res.ok) {
+          const data = await res.json();
+          emails = data.emails || [];
+          renderTable();
+          document.getElementById('total-count').textContent = `${emails.length} enquiries`;
+        }
+      } catch { }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('emails-body');
+      if (!emails.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No enquiries yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = emails.map((e, i) => `
+        <tr class="${i % 2 === 0 ? 'bg-gray-950' : 'bg-gray-900/50'} hover:bg-gray-800/50">
+          <td class="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">${new Date(e.created_at).toLocaleDateString('en-GB')}</td>
+          <td class="px-4 py-3 text-white font-medium">${esc(e.name)}</td>
+          <td class="px-4 py-3 text-gray-300"><a href="mailto:${esc(e.email)}" class="text-indigo-400 hover:underline">${esc(e.email)}</a></td>
+          <td class="px-4 py-3 text-gray-400">${esc(e.service || '—')}</td>
+          <td class="px-4 py-3 text-gray-400">${esc(e.timeline || '—')}</td>
+          <td class="px-4 py-3 text-gray-400 max-w-[200px] truncate">${esc(e.message?.substring(0, 60) || '')}${e.message?.length > 60 ? '...' : ''}</td>
+          <td class="px-4 py-3">${e.read ? '<span class="text-xs text-emerald-400">Read</span>' : '<span class="text-xs text-amber-400">New</span>'}</td>
+          <td class="px-4 py-3 flex gap-2">
+            <button onclick="viewEmail(${e.id})" class="text-xs text-indigo-400 hover:underline">View</button>
+            <button onclick="markRead(${e.id})" class="text-xs text-emerald-400 hover:underline">${e.read ? 'Unread' : 'Read'}</button>
+            <button onclick="deleteEmail(${e.id})" class="text-xs text-red-400 hover:underline">Del</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    function viewEmail(id) {
+      const e = emails.find(x => x.id === id);
+      if (!e) return;
+      document.getElementById('modal-title').textContent = `From: ${e.name}`;
+      document.getElementById('modal-content').innerHTML = `
+        <div><strong class="text-gray-400">Email:</strong> <a href="mailto:${esc(e.email)}" class="text-indigo-400">${esc(e.email)}</a></div>
+        <div><strong class="text-gray-400">Service:</strong> ${esc(e.service || 'Not specified')}</div>
+        <div><strong class="text-gray-400">Timeline:</strong> ${esc(e.timeline || 'Not specified')}</div>
+        <div><strong class="text-gray-400">Date:</strong> ${new Date(e.created_at).toLocaleString('en-GB')}</div>
+        <div><strong class="text-gray-400">IP:</strong> ${esc(e.ip_address || '—')}</div>
+        <hr class="border-gray-700 my-3"/>
+        <div class="whitespace-pre-wrap text-gray-200">${esc(e.message)}</div>
+        ${e.comment ? `<hr class="border-gray-700 my-3"/><div><strong class="text-gray-400">Notes:</strong> ${esc(e.comment)}</div>` : ''}
+      `;
+      document.getElementById('email-modal').classList.remove('hidden');
+      if (!e.read) markRead(id);
+    }
+
+    async function markRead(id) {
+      const e = emails.find(x => x.id === id);
+      if (!e) return;
+      await fetch('/api/emails/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, read: e.read ? 0 : 1 }),
+      });
+      loadEmails();
+    }
+
+    async function deleteEmail(id) {
+      if (!confirm('Delete this enquiry?')) return;
+      await fetch('/api/emails/', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      loadEmails();
+    }
+
+    document.getElementById('modal-close').addEventListener('click', () => {
+      document.getElementById('email-modal').classList.add('hidden');
+    });
+    document.getElementById('email-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+    });
+    document.getElementById('refresh-btn').addEventListener('click', loadEmails);
+
+    loadEmails();
+  </script>
+</body>
+</html>

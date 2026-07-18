@@ -1,0 +1,149 @@
+---
+// Voice Agent Widget — connects to xsoft-voice-agent Worker via WebSocket
+// Requires the voice agent Worker to be deployed separately
+---
+
+<!-- Floating voice button -->
+<div id="voice-widget" class="fixed bottom-6 right-6 z-50">
+  <!-- Main button -->
+  <button
+    id="voice-btn"
+    class="w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/25 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+    aria-label="Talk to our AI assistant"
+    title="Talk to Lex"
+  >
+    <svg id="voice-icon-mic" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0M12 19v2m-3-2h6M12 3a3 3 0 00-3 3v5a3 3 0 006 0V6a3 3 0 00-3-3z"/>
+    </svg>
+    <svg id="voice-icon-active" class="w-6 h-6 hidden animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+    </svg>
+  </button>
+
+  <!-- Status indicator -->
+  <div id="voice-status" class="hidden absolute bottom-16 right-0 bg-gray-900 border border-gray-700 rounded-xl p-4 w-72 shadow-2xl">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-xs text-gray-300 font-medium" id="voice-status-text">Listening...</span>
+      </div>
+      <button id="voice-end" class="text-xs text-red-400 hover:text-red-300">End</button>
+    </div>
+    <div id="voice-transcript" class="text-xs text-gray-400 max-h-32 overflow-y-auto space-y-1"></div>
+  </div>
+</div>
+
+<script is:inline>
+(function() {
+  const VOICE_AGENT_URL = 'http://localhost:8787';
+  // For production, use: 'https://xsoft-voice-agent.xsoftlimited.workers.dev'
+
+  const btn = document.getElementById('voice-btn');
+  const statusPanel = document.getElementById('voice-status');
+  const statusText = document.getElementById('voice-status-text');
+  const transcript = document.getElementById('voice-transcript');
+  const iconMic = document.getElementById('voice-icon-mic');
+  const iconActive = document.getElementById('voice-icon-active');
+  const endBtn = document.getElementById('voice-end');
+
+  let isActive = false;
+  let ws = null;
+  let mediaStream = null;
+  let audioContext = null;
+
+  btn?.addEventListener('click', async () => {
+    if (isActive) {
+      endCall();
+    } else {
+      startCall();
+    }
+  });
+
+  endBtn?.addEventListener('click', endCall);
+
+  async function startCall() {
+    // First check if getUserMedia is available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Your browser does not support microphone access. Try Chrome or Firefox.');
+      return;
+    }
+
+    // Request mic access separately
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (micErr) {
+      console.error('Mic error:', micErr);
+      alert('Microphone access was denied. Please allow mic access in your browser settings and try again.');
+      return;
+    }
+
+    isActive = true;
+    iconMic?.classList.add('hidden');
+    iconActive?.classList.remove('hidden');
+    statusPanel?.classList.remove('hidden');
+    statusText.textContent = 'Connecting...';
+    btn?.classList.add('bg-red-600', 'hover:bg-red-500');
+    btn?.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+
+    // Connect to voice agent via WebSocket
+    try {
+      const wsUrl = VOICE_AGENT_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/agents/XSoftVoiceAgent/default/voice';
+      console.log('Connecting to:', wsUrl);
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        statusText.textContent = 'Connected — speak now';
+        addTranscriptLine('agent', 'Hi! I\'m Lex from xSoft. How can I help?');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'transcript' && data.role === 'user') {
+            addTranscriptLine('you', data.text);
+          } else if (data.type === 'transcript' && data.role === 'assistant') {
+            addTranscriptLine('agent', data.text);
+          } else if (data.type === 'status') {
+            statusText.textContent = data.status;
+          }
+        } catch {}
+      };
+
+      ws.onclose = () => {
+        statusText.textContent = 'Disconnected';
+        setTimeout(endCall, 1500);
+      };
+
+      ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+        statusText.textContent = 'Connection failed — is the voice agent running?';
+        setTimeout(endCall, 3000);
+      };
+    } catch (wsErr) {
+      console.error('WebSocket setup error:', wsErr);
+      statusText.textContent = 'Failed to connect';
+      setTimeout(endCall, 2000);
+    }
+  }
+
+  function endCall() {
+    isActive = false;
+    if (ws) { ws.close(); ws = null; }
+    if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+
+    iconMic?.classList.remove('hidden');
+    iconActive?.classList.add('hidden');
+    statusPanel?.classList.add('hidden');
+    btn?.classList.remove('bg-red-600', 'hover:bg-red-500');
+    btn?.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
+  }
+
+  function addTranscriptLine(role, text) {
+    const el = document.createElement('p');
+    el.className = role === 'agent' ? 'text-indigo-400' : 'text-gray-300';
+    el.innerHTML = `<strong>${role === 'agent' ? 'Lex' : 'You'}:</strong> ${text}`;
+    transcript?.appendChild(el);
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+})();
+</script>

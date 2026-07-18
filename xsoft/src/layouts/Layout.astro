@@ -1,0 +1,182 @@
+---
+import VoiceWidget from '../components/VoiceWidget.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import packageJson from '../../package.json';
+
+const VERSION = packageJson.version;
+
+interface Props {
+  title: string;
+  description?: string;
+  keywords?: string;
+  ogImage?: string;
+  noindex?: boolean;
+}
+
+const { title, description = 'xSoft Ltd — AI-powered software solutions for modern businesses. Chatbots, web development, Chrome extensions, and SEO.', keywords = 'AI chatbot, web development, software consultancy, Cloudflare Workers, SEO, xSoft', ogImage = 'https://www.xsoftlimited.com/social-card.svg', noindex = false } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+// Generate breadcrumb items from URL path
+const pathSegments = Astro.url.pathname.split('/').filter(Boolean);
+const breadcrumbNames: Record<string, string> = {
+  'services': 'Services', 'case-studies': 'Case Studies', 'about': 'About',
+  'contact': 'Contact', 'blog': 'Blog', 'privacy': 'Privacy Policy',
+  'terms': 'Terms of Service', 'scrabblewordsfinder': 'ScrabbleWordsFinder',
+  'xconvert24': 'xConvert24', 'xcrypto24': 'xCrypto24', 'admin': 'Admin', 'emails': 'Emails'
+};
+const breadcrumbItems = pathSegments.map((seg, i) => ({
+  "@type": "ListItem",
+  "position": i + 2,
+  "name": breadcrumbNames[seg] || seg,
+  "item": `https://www.xsoftlimited.com/${pathSegments.slice(0, i + 1).join('/')}/`
+}));
+const breadcrumbSchema = pathSegments.length > 0 ? {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.xsoftlimited.com/" },
+    ...breadcrumbItems
+  ]
+} : null;
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="keywords" content={keywords} />
+  <link rel="canonical" href={canonicalURL} />
+  <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:site_name" content="xSoft Ltd" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  {breadcrumbSchema && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />}
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-gray-950/80 backdrop-blur-xl border-b border-gray-800/50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="/" class="flex items-center gap-2 group">
+          <img src="/logo.svg" alt="xSoft" class="h-[4.5rem]" />
+        </a>
+        <div class="hidden md:flex items-center gap-8">
+          <a href="/services/" class="text-sm text-gray-300 hover:text-indigo-400 transition-colors">Services</a>
+          <a href="/case-studies/" class="text-sm text-gray-300 hover:text-indigo-400 transition-colors">Case Studies</a>
+          <a href="/tech-stack/" class="text-sm text-gray-300 hover:text-indigo-400 transition-colors">Tech Stack</a>
+          <a href="/about/" class="text-sm text-gray-300 hover:text-indigo-400 transition-colors">About</a>
+          <a href="/blog/" class="text-sm text-gray-300 hover:text-indigo-400 transition-colors">Blog</a>
+          <a href="/contact/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-indigo-500/25">
+            Get in Touch
+          </a>
+        </div>
+        <!-- Mobile menu button -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-400 hover:text-white" aria-label="Toggle menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800/50 bg-gray-950/95 backdrop-blur-xl">
+      <div class="px-4 py-4 space-y-3">
+        <a href="/services/" class="block text-sm text-gray-300 hover:text-indigo-400">Services</a>
+        <a href="/case-studies/" class="block text-sm text-gray-300 hover:text-indigo-400">Case Studies</a>
+        <a href="/tech-stack/" class="block text-sm text-gray-300 hover:text-indigo-400">Tech Stack</a>
+        <a href="/about/" class="block text-sm text-gray-300 hover:text-indigo-400">About</a>
+        <a href="/blog/" class="block text-sm text-gray-300 hover:text-indigo-400">Blog</a>
+        <a href="/contact/" class="block text-sm text-indigo-400 font-semibold">Get in Touch</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="flex-1 pt-8">
+    <slot />
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-800/50 bg-gray-950">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- Brand -->
+        <div class="md:col-span-1">
+          <span class="text-xl font-black bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">xSoft</span>
+          <p class="mt-3 text-sm text-gray-400">AI-powered software solutions for businesses that want to move fast.</p>
+          <p class="mt-2 text-xs text-gray-500">xSoft Ltd — Company No. 17308915</p>
+        </div>
+        <!-- Services -->
+        <div>
+          <h4 class="text-sm font-semibold text-gray-200 mb-3">Services</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li><a href="/services/#ai-chatbots" class="hover:text-indigo-400 transition-colors">AI Chatbots</a></li>
+            <li><a href="/services/#web-development" class="hover:text-indigo-400 transition-colors">Web Development</a></li>
+            <li><a href="/services/#chrome-extensions" class="hover:text-indigo-400 transition-colors">Chrome Extensions</a></li>
+            <li><a href="/services/#seo" class="hover:text-indigo-400 transition-colors">SEO & Content</a></li>
+          </ul>
+        </div>
+        <!-- Company -->
+        <div>
+          <h4 class="text-sm font-semibold text-gray-200 mb-3">Company</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li><a href="/about/" class="hover:text-indigo-400 transition-colors">About Us</a></li>
+            <li><a href="/case-studies/" class="hover:text-indigo-400 transition-colors">Case Studies</a></li>
+            <li><a href="/blog/" class="hover:text-indigo-400 transition-colors">Blog</a></li>
+            <li><a href="/contact/" class="hover:text-indigo-400 transition-colors">Contact</a></li>
+          </ul>
+        </div>
+        <!-- Legal -->
+        <div>
+          <h4 class="text-sm font-semibold text-gray-200 mb-3">Legal</h4>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li><a href="/privacy/" class="hover:text-indigo-400 transition-colors">Privacy Policy</a></li>
+            <li><a href="/terms/" class="hover:text-indigo-400 transition-colors">Terms of Service</a></li>
+          </ul>
+          <h4 class="text-sm font-semibold text-gray-200 mt-6 mb-3">Contact</h4>
+          <p class="text-sm text-gray-400">info@xsoftlimited.com</p>
+        </div>
+      </div>
+      <div class="mt-10 pt-6 border-t border-gray-800/50 flex items-center justify-between text-xs text-gray-500">
+        <span>&copy; {new Date().getFullYear()} xSoft Ltd. All rights reserved. Registered in England & Wales.</span>
+        <a href="/releases/" class="font-mono text-indigo-400 hover:text-indigo-300 transition-colors" title={`Version ${VERSION}`}>v{VERSION}</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Version stamp (fixed corner) -->
+  <div class="fixed bottom-2 right-2 z-40 hidden sm:block">
+    <a href="/releases/" class="flex flex-col items-end leading-none shrink-0 opacity-60 hover:opacity-100 transition-opacity" title={`Version ${VERSION}`} style="font-size:8px;">
+      <span class="text-indigo-400 font-mono">v{VERSION}</span>
+      <span class="text-gray-500 font-mono mt-0.5">{new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).replace(/ /g,'').toUpperCase()}</span>
+    </a>
+  </div>
+
+  <!-- Chat Widget (bottom-left) -->
+  <ChatWidget />
+
+  <!-- Voice Agent Widget (bottom-right) -->
+  <VoiceWidget />
+
+  <!-- Mobile menu toggle -->
+  <script is:inline>
+    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+      document.getElementById('mobile-menu')?.classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>

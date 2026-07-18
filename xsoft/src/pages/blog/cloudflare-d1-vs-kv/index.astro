@@ -1,0 +1,178 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+export const prerender = true;
+---
+
+<Layout title="Cloudflare D1 vs KV — When to Use What | xSoft Blog" description="A practical comparison of Cloudflare D1 (SQLite) and KV (key-value store). When to choose each, performance, and real-world patterns." keywords="Cloudflare D1, Cloudflare KV, D1 vs KV, edge database, key-value store, serverless database">
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Cloudflare D1 vs KV — When to Use What",
+    "description": "A practical comparison of Cloudflare D1 and KV with real-world patterns from production.",
+    "datePublished": "2026-07-15",
+    "dateModified": "2026-07-15",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.xsoftlimited.com/about/" },
+    "publisher": { "@type": "Organization", "name": "xSoft Ltd", "logo": { "@type": "ImageObject", "url": "https://www.xsoftlimited.com/social-card.svg" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.xsoftlimited.com/blog/cloudflare-d1-vs-kv/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "When should I use Cloudflare D1 over KV?", "acceptedAnswer": { "@type": "Answer", "text": "Use D1 when you need relational queries (JOINs, WHERE clauses, aggregations), complex filtering, or ACID transactions. D1 is a full SQL database (SQLite). Use it for user data, form submissions, analytics, content management, and anything requiring structured queries." }},
+      { "@type": "Question", "name": "When should I use Cloudflare KV over D1?", "acceptedAnswer": { "@type": "Answer", "text": "Use KV for simple key-value lookups where you know the exact key. It's globally distributed with sub-millisecond reads. Perfect for: session tokens, feature flags, cached API responses, configuration values, and any read-heavy workload with infrequent writes." }},
+      { "@type": "Question", "name": "Can I use both D1 and KV in the same project?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, and you should. A common pattern: D1 as your source of truth (writes go here), KV as a read-through cache (cached reads for frequently accessed data). This gives you both query flexibility and read performance." }}
+    ]
+  })} />
+
+  <section class="pt-10 pb-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+        <a href="/blog/" class="hover:text-indigo-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">D1 vs KV</span>
+      </nav>
+
+      <article class="prose prose-invert max-w-none">
+        <div class="mb-8">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="px-2 py-0.5 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">Cloudflare</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">Database</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">Architecture</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white leading-tight">Cloudflare D1 vs KV — When to Use What</h1>
+          <div class="mt-4 flex items-center gap-3 text-sm text-gray-400">
+            <time datetime="2026-07-15">15 July 2026</time>
+            <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+            <span>5 min read</span>
+          </div>
+        </div>
+
+        <p class="text-lg text-gray-300 leading-relaxed mb-8">Cloudflare gives you two storage options: D1 (SQL database) and KV (key-value store). They solve different problems. Here's when to use each — based on real patterns from our production applications.</p>
+
+        <!-- Comparison -->
+        <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">At a Glance</h2>
+
+        <div class="not-prose my-6 overflow-x-auto">
+          <table class="w-full text-sm border border-gray-700 rounded-lg overflow-hidden">
+            <thead class="bg-gray-800">
+              <tr>
+                <th class="px-4 py-3 text-left text-gray-300 font-semibold">Feature</th>
+                <th class="px-4 py-3 text-left text-blue-400 font-semibold">D1</th>
+                <th class="px-4 py-3 text-left text-cyan-400 font-semibold">KV</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+              <tr class="bg-gray-900"><td class="px-4 py-3 text-gray-400">Type</td><td class="px-4 py-3 text-gray-300">Relational (SQLite)</td><td class="px-4 py-3 text-gray-300">Key-value store</td></tr>
+              <tr class="bg-gray-800/50"><td class="px-4 py-3 text-gray-400">Query language</td><td class="px-4 py-3 text-gray-300">Full SQL</td><td class="px-4 py-3 text-gray-300">get/put/list/delete</td></tr>
+              <tr class="bg-gray-900"><td class="px-4 py-3 text-gray-400">Read latency</td><td class="px-4 py-3 text-gray-300">5-30ms</td><td class="px-4 py-3 text-gray-300">&lt;1ms (cached)</td></tr>
+              <tr class="bg-gray-800/50"><td class="px-4 py-3 text-gray-400">Write latency</td><td class="px-4 py-3 text-gray-300">~30ms</td><td class="px-4 py-3 text-gray-300">~500ms (eventual)</td></tr>
+              <tr class="bg-gray-900"><td class="px-4 py-3 text-gray-400">Consistency</td><td class="px-4 py-3 text-gray-300">Strong (single region)</td><td class="px-4 py-3 text-gray-300">Eventually consistent</td></tr>
+              <tr class="bg-gray-800/50"><td class="px-4 py-3 text-gray-400">Best for</td><td class="px-4 py-3 text-gray-300">Structured data, queries</td><td class="px-4 py-3 text-gray-300">Caching, sessions, flags</td></tr>
+              <tr class="bg-gray-900"><td class="px-4 py-3 text-gray-400">Free tier</td><td class="px-4 py-3 text-gray-300">5M reads/day, 100K writes</td><td class="px-4 py-3 text-gray-300">100K reads/day, 1K writes</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- When to use D1 -->
+        <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Use D1 When...</h2>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-4">
+          <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+            <p class="text-sm text-gray-300"><span class="text-blue-400 font-semibold">You need to query by multiple fields:</span> "Show me all emails where category='contact' AND read=0 ORDER BY created_at DESC LIMIT 20" — this is SQL territory.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+            <p class="text-sm text-gray-300"><span class="text-blue-400 font-semibold">You need aggregations:</span> COUNT(*), SUM, AVG, GROUP BY — analytics, reporting, leaderboards.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+            <p class="text-sm text-gray-300"><span class="text-blue-400 font-semibold">You need relationships:</span> Users have posts, posts have comments — foreign keys, JOINs.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-950/20">
+            <p class="text-sm text-gray-300"><span class="text-blue-400 font-semibold">You need strong consistency:</span> A write must be immediately visible to the next read (financial data, counters, sequences).</p>
+          </div>
+        </div>
+
+        <!-- When to use KV -->
+        <h2 class="text-xl font-light text-cyan-400 mt-10 mb-4 border-l-4 border-cyan-400 pl-4">Use KV When...</h2>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-4">
+          <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+            <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">You know the exact key:</span> Session lookup by token, feature flag by name, user preference by UUID — O(1) access.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+            <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">Reads massively outnumber writes:</span> Config values, cached API responses, static content that rarely changes.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+            <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">You need global low-latency reads:</span> KV replicates globally. Sub-millisecond reads from anywhere in the world.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+            <p class="text-sm text-gray-300"><span class="text-cyan-400 font-semibold">You need TTL expiration:</span> Temporary data like rate limit counters, cache entries, or OTP tokens that auto-delete.</p>
+          </div>
+        </div>
+
+        <!-- Combined Pattern -->
+        <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">The Combined Pattern (Best of Both)</h2>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">💡 Our Production Pattern</p>
+          <p class="text-sm text-gray-300 leading-relaxed">Write to D1 (source of truth) → Cache the result in KV with a TTL → Reads hit KV first (fast) → If KV misses, query D1 (slower but always fresh) → Update KV with the result. This gives you SQL query power with global KV read speed.</p>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed">On ScrabbleWordsFinder, we use D1 for all structured data (emails, clicks, games, leaderboards, rankings) and KV for admin session tokens and cached API responses.</p>
+
+        <!-- Real Examples -->
+        <h2 class="text-xl font-light text-blue-400 mt-10 mb-4 border-l-4 border-blue-400 pl-4">Real Examples from Our Projects</h2>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/30">
+            <p class="text-white font-semibold text-sm mb-1">Contact form → D1</p>
+            <p class="text-xs text-gray-400">Structured data, filterable by category/status, editable via admin CRUD.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/30">
+            <p class="text-white font-semibold text-sm mb-1">Admin session → KV</p>
+            <p class="text-xs text-gray-400">Lookup by session token, TTL expiration (7 days), global availability.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/30">
+            <p class="text-white font-semibold text-sm mb-1">Click analytics → D1</p>
+            <p class="text-xs text-gray-400">20-field records, GROUP BY queries, time-series filtering, aggregation.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/30">
+            <p class="text-white font-semibold text-sm mb-1">Crypto prices → KV</p>
+            <p class="text-xs text-gray-400">Cached API response with 30-second TTL. Fast reads, infrequent updates.</p>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="not-prose mt-12 p-6 rounded-2xl bg-gradient-to-r from-blue-950/30 to-indigo-950/20 border border-blue-500/30 text-center">
+          <h3 class="text-xl font-bold text-white">Building on Cloudflare?</h3>
+          <p class="mt-2 text-sm text-gray-400">We architect and deploy full-stack applications on Cloudflare's edge. D1, KV, Workers AI — the full stack.</p>
+          <a href="/contact/" class="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all">
+            Let's Build Together →
+          </a>
+        </div>
+
+        <aside class="not-prose border-t border-gray-800 mt-12 pt-8">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Related Articles</h3>
+          <div class="grid gap-3">
+            <a href="/blog/building-rag-chatbots-cloudflare/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">Building RAG Chatbots on Cloudflare</span>
+            </a>
+            <a href="/blog/manifest-v3-chrome-extensions/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">Manifest V3 Chrome Extensions</span>
+            </a>
+          </div>
+        </aside>
+
+        <div class="not-prose mt-8 text-center">
+          <a href="/blog/" class="text-sm text-gray-400 hover:text-indigo-400 transition-colors">← Back to all articles</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</Layout>
