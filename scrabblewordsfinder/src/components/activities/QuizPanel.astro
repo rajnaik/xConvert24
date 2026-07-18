@@ -41,7 +41,18 @@
           <label id="quiz-from-workbench-label" class="hidden flex items-center gap-2 mt-3 cursor-pointer select-none">
             <input type="checkbox" id="quiz-from-workbench" class="w-4 h-4 rounded border-gray-600 bg-gray-800 text-blue-500 focus:ring-blue-500/30 focus:ring-offset-0" />
             <span class="text-xs text-gray-400">Use words from my Memory WordBench</span>
+            <button id="quiz-mwb-add-btn" type="button" class="ml-auto px-2.5 py-1 rounded-full bg-green-600/20 border border-green-500/40 text-[11px] text-green-400 hover:bg-green-600/40 hover:border-green-400 transition-colors whitespace-nowrap">+ Add new Dictionary</button>
           </label>
+          <!-- MWB Category Picker (shown when workbench checkbox is checked) -->
+          <div id="quiz-mwb-category-picker" class="hidden mt-3">
+            <label class="block text-xs text-gray-400 mb-1">Pick a dictionary category</label>
+            <div class="flex items-center gap-2">
+              <select id="quiz-mwb-category" class="flex-1 h-9 px-3 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-100">
+                <option value="all">All categories</option>
+              </select>
+            </div>
+            <p id="quiz-mwb-word-count" class="text-[10px] text-gray-500 mt-1"></p>
+          </div>
         </div>
 
         <!-- Quiz In Progress -->
@@ -249,6 +260,121 @@
     document.getElementById('quiz-lb-rank').classList.add('hidden');
   });
 
+  // ── MWB Category Picker Logic ──
+  (function initMwbPicker() {
+    var checkbox = document.getElementById('quiz-from-workbench');
+    var picker = document.getElementById('quiz-mwb-category-picker');
+    var select = document.getElementById('quiz-mwb-category');
+    var addBtn = document.getElementById('quiz-mwb-add-btn');
+    var countEl = document.getElementById('quiz-mwb-word-count');
+
+    if (!checkbox || !picker) return;
+
+    function getSavedWords() {
+      return JSON.parse(window.__swfStore.getRaw('scbAchievements') || '[]');
+    }
+
+    function getCategories() {
+      var saved = getSavedWords();
+      var cats = {};
+      saved.forEach(function(w) {
+        var c = w.category || 'manual';
+        if (!cats[c]) cats[c] = 0;
+        cats[c]++;
+      });
+      return cats;
+    }
+
+    function updateCategoryDropdown() {
+      var cats = getCategories();
+      var total = Object.values(cats).reduce(function(a, b) { return a + b; }, 0);
+      select.innerHTML = '<option value="all">All categories (' + total + ' words)</option>';
+      var catLabels = {
+        'wotd': '📖 Word of the Day',
+        'quiz': '🧠 Quiz',
+        'manual': '⭐ Saved',
+        'solver': '🔍 Solver'
+      };
+      Object.keys(cats).sort().forEach(function(c) {
+        var label = catLabels[c] || ('📝 ' + c.charAt(0).toUpperCase() + c.slice(1));
+        var opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = label + ' (' + cats[c] + ' words)';
+        select.appendChild(opt);
+      });
+      updateWordCount();
+    }
+
+    function updateWordCount() {
+      var saved = getSavedWords();
+      var selectedCat = select.value;
+      var filtered = selectedCat === 'all' ? saved : saved.filter(function(w) { return (w.category || 'manual') === selectedCat; });
+      var meaningful = filtered.filter(function(w) {
+        if (!w.meaning || !w.meaning.trim()) return false;
+        var m = w.meaning.toLowerCase();
+        if (m.indexOf('scrabble-legal word') !== -1) return false;
+        if (m.indexOf('no standard definition') !== -1) return false;
+        return true;
+      });
+      countEl.textContent = meaningful.length + ' quizzable words in this category';
+      if (meaningful.length < 3) {
+        countEl.textContent += ' (need at least 3)';
+        countEl.classList.add('text-amber-400');
+        countEl.classList.remove('text-gray-500');
+      } else {
+        countEl.classList.remove('text-amber-400');
+        countEl.classList.add('text-gray-500');
+      }
+    }
+
+    // Show/hide picker when checkbox changes
+    checkbox.addEventListener('change', function() {
+      if (checkbox.checked) {
+        updateCategoryDropdown();
+        picker.classList.remove('hidden');
+      } else {
+        picker.classList.add('hidden');
+      }
+    });
+
+    select.addEventListener('change', updateWordCount);
+
+    // Add button: prompt for new category name and create it
+    addBtn.addEventListener('click', function() {
+      var name = prompt('Enter a new dictionary category name:');
+      if (!name || !name.trim()) return;
+      var slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (!slug) return;
+
+      // Save this custom category to localStorage list
+      var customCats = JSON.parse(window.__swfStore.getRaw('swf-custom-dict-cats') || '[]');
+      if (customCats.indexOf(slug) === -1) {
+        customCats.push(slug);
+        window.__swfStore.setRaw('swf-custom-dict-cats', JSON.stringify(customCats));
+      }
+
+      // Update dropdown and select the new category
+      updateCategoryDropdown();
+      // Add the custom category if it doesn't exist in saved words yet
+      var cats = getCategories();
+      if (!cats[slug]) {
+        // Add it to select manually (it'll have 0 words until user adds some)
+        var opt = document.createElement('option');
+        opt.value = slug;
+        opt.textContent = '📝 ' + name.trim() + ' (0 words)';
+        select.appendChild(opt);
+      }
+      select.value = slug;
+      updateWordCount();
+    });
+
+    // On page load, check if workbench has words to show the label
+    var saved = getSavedWords();
+    if (saved.length >= 3) {
+      document.getElementById('quiz-from-workbench-label').classList.remove('hidden');
+    }
+  })();
+
   var encourageCorrect = [
     "🔥 On fire! {score}/{total} correct in {time}s",
     "💪 Nailed it! {score}/{total} — keep going!",
@@ -289,8 +415,12 @@
     var useWorkbench = document.getElementById('quiz-from-workbench') && document.getElementById('quiz-from-workbench').checked;
 
     if (useWorkbench) {
-      // Use words from Memory WordBench
+      // Use words from Memory WordBench — filter by selected category
       var saved = JSON.parse(window.__swfStore.getRaw('scbAchievements') || '[]');
+      var selectedCat = document.getElementById('quiz-mwb-category') ? document.getElementById('quiz-mwb-category').value : 'all';
+      if (selectedCat !== 'all') {
+        saved = saved.filter(function(w) { return (w.category || 'manual') === selectedCat; });
+      }
       var meaningful = saved.filter(function(w) {
         if (!w.meaning || !w.meaning.trim()) return false;
         var m = w.meaning.toLowerCase();
@@ -511,7 +641,9 @@
           best_word: '',
           best_score: score,
           total_score: score,
-          words_played: 1
+          words_played: 1,
+          display_name: localStorage.getItem('swf-display-name') || '',
+          avatar_id: parseInt(localStorage.getItem('swf-avatar') || '1')
         })
       }).then(function() {
         // Fetch user's rank after submitting score

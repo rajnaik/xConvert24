@@ -122,33 +122,54 @@ self.addEventListener('fetch', (event) => {
 // ── Push Notifications (WOTD daily alerts) ──
 
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
+  let dataPromise;
 
-  let data;
-  try {
-    data = event.data.json();
-  } catch {
-    data = { title: 'ScrabbleWordsFinder', body: event.data.text() };
+  if (event.data) {
+    // Payload push — use the data directly
+    try {
+      const data = event.data.json();
+      dataPromise = Promise.resolve(data);
+    } catch {
+      dataPromise = Promise.resolve({ title: 'ScrabbleWordsFinder', body: event.data.text() });
+    }
+  } else {
+    // No-payload push — fetch WOTD from API
+    dataPromise = fetch('https://www.scrabblewordsfinder.com/api/wotd/')
+      .then(r => r.json())
+      .then(d => ({
+        title: '📖 Word of the Day: ' + (d.word || 'New Word'),
+        body: d.meaning || 'Discover today\'s word!',
+        url: '/activities/#wotd',
+        date: d.date || new Date().toISOString().split('T')[0],
+      }))
+      .catch(() => ({
+        title: '📖 Word of the Day',
+        body: 'A new word is waiting for you!',
+        url: '/activities/#wotd',
+        date: new Date().toISOString().split('T')[0],
+      }));
   }
 
-  const options = {
-    body: data.body || 'Check out today\'s Word of the Day!',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
-    tag: 'wotd-' + (data.date || new Date().toISOString().split('T')[0]),
-    data: {
-      url: data.url || '/activities/#wotd',
-    },
-    actions: [
-      { action: 'open', title: 'View Word' },
-      { action: 'dismiss', title: 'Dismiss' },
-    ],
-    vibrate: [100, 50, 100],
-    renotify: false,
-  };
-
   event.waitUntil(
-    self.registration.showNotification(data.title || '📖 Word of the Day', options)
+    dataPromise.then(data => {
+      const options = {
+        body: data.body || 'Check out today\'s Word of the Day!',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        tag: 'wotd-' + (data.date || new Date().toISOString().split('T')[0]),
+        data: {
+          url: data.url || '/activities/#wotd',
+        },
+        actions: [
+          { action: 'open', title: 'View Word' },
+          { action: 'dismiss', title: 'Dismiss' },
+        ],
+        vibrate: [100, 50, 100],
+        renotify: false,
+      };
+
+      return self.registration.showNotification(data.title || '📖 Word of the Day', options);
+    })
   );
 });
 

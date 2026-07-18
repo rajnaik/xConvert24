@@ -5,7 +5,7 @@ export const prerender = false;
 
 const getDB = () => (env as any).DB;
 
-const VALID_GAMES = ['daily-duel', 'sixty-second', 'cab', 'daily-rack', 'daily-anagram', 'word-quiz'];
+const VALID_GAMES = ['daily-duel', 'sixty-second', 'cab', 'daily-rack', 'daily-anagram', 'word-quiz', 'magic-squares'];
 
 // Standard Scrabble letter values — server-side truth for score calculation
 const LETTER_VALUES: Record<string, number> = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const { game, user_id, best_word, best_score, total_score, words_played } = body;
+  const { game, user_id, best_word, best_score, total_score, words_played, display_name, avatar_id } = body;
 
   if (!game || !user_id || best_score == null) {
     return new Response(JSON.stringify({ error: 'Missing required fields: game, user_id, best_score' }), {
@@ -58,6 +58,21 @@ export const POST: APIRoute = async ({ request }) => {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+
+  // Auto-register user if not in users table (so leaderboard shows their name/avatar)
+  if (display_name || avatar_id) {
+    const userExists = await db.prepare('SELECT user_id FROM users WHERE user_id = ?').bind(user_id).first();
+    if (!userExists) {
+      await db.prepare(
+        'INSERT OR IGNORE INTO users (user_id, display_name, avatar_id, created_at) VALUES (?, ?, ?, datetime(\'now\'))'
+      ).bind(user_id, display_name || 'Anonymous', avatar_id || 1).run();
+    } else if (display_name) {
+      // Update display_name/avatar if changed
+      await db.prepare(
+        'UPDATE users SET display_name = ?, avatar_id = ? WHERE user_id = ?'
+      ).bind(display_name, avatar_id || 1, user_id).run();
+    }
   }
 
   const today = new Date().toISOString().split('T')[0];

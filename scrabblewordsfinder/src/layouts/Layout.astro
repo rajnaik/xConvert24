@@ -56,7 +56,7 @@ const adHideStyle = isDev ? '' : 'display:none';
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#e8d5c0" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- Preload LCP hero banner so the browser fetches it before parsing body -->
     <link rel="preload" href="/banner-options/banner-1.svg" as="image" type="image/svg+xml" fetchpriority="high" />
@@ -774,7 +774,7 @@ const adHideStyle = isDev ? '' : 'display:none';
           if (logoImg && data.logo_option) logoImg.setAttribute("src", "/logo-options/option-" + data.logo_option + ".svg");
         } catch {}
         try {
-          const bres = await fetch("/api/banners?active=true");
+          const bres = await fetch("/api/banners/?active=true");
           if (bres.ok) {
             const bdata = await bres.json();
             const banners = bdata.banners || [];
@@ -952,7 +952,7 @@ const adHideStyle = isDev ? '' : 'display:none';
         if (!activeBell) return;
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
           // Push not supported — bell remains visible but shows a tooltip on click
-          function unsupported() { alert('Push notifications are not supported on this browser. Try Chrome, Edge, or Firefox.'); }
+          var unsupported = function() { alert('Push notifications are not supported on this browser. Try Chrome, Edge, or Firefox.'); };
           if (bell) bell.addEventListener('click', unsupported);
           if (bellMobile) bellMobile.addEventListener('click', unsupported);
           return;

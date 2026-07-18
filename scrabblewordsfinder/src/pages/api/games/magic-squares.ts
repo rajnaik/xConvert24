@@ -30,7 +30,7 @@ export const GET: APIRoute = async ({ request }) => {
   const mode = url.searchParams.get('mode') || 'daily';
   const size = parseInt(url.searchParams.get('size') || '4');
   const variant = url.searchParams.get('variant') || 'any';
-  const difficulty = url.searchParams.get('difficulty') || 'any';
+  const difficulty = url.searchParams.get('difficulty') || 'easy'; // Controls reveals, not puzzle selection
 
   if (![4, 5, 6].includes(size)) {
     return json({ error: 'Size must be 4, 5, or 6' }, 400);
@@ -58,10 +58,6 @@ export const GET: APIRoute = async ({ request }) => {
           query += ' AND variant = ?';
           params.push(variant);
         }
-        if (difficulty !== 'any') {
-          query += ' AND difficulty = ?';
-          params.push(difficulty);
-        }
         query += ' ORDER BY RANDOM() LIMIT 1';
 
         const stmt = params.length > 0
@@ -78,17 +74,13 @@ export const GET: APIRoute = async ({ request }) => {
         }
       }
     } else {
-      // Random mode — get any random puzzle, increment play counter
+      // Random mode — get any random puzzle
       let query = `SELECT * FROM ${table} WHERE 1=1`;
       const params: any[] = [];
 
       if (variant !== 'any') {
         query += ' AND variant = ?';
         params.push(variant);
-      }
-      if (difficulty !== 'any') {
-        query += ' AND difficulty = ?';
-        params.push(difficulty);
       }
       query += ' ORDER BY RANDOM() LIMIT 1';
 
@@ -99,7 +91,7 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     if (!puzzle) {
-      return json({ error: 'No puzzles available for this configuration. Generate some first.', size, variant, difficulty }, 404);
+      return json({ error: 'No puzzles available for this configuration.', size, variant, difficulty }, 404);
     }
 
     // Build response — DON'T send the full solution, only metadata + hints
@@ -110,14 +102,15 @@ export const GET: APIRoute = async ({ request }) => {
       cols.push(puzzle[`col${i}`]);
     }
 
-    // Determine which cells to reveal based on difficulty
-    const revealed = generateReveals(rows, size, puzzle.difficulty);
+    // Determine which cells to reveal based on user-selected difficulty
+    const revealed = generateReveals(rows, size, difficulty);
 
     return json({
       id: puzzle.id,
       size,
       variant: puzzle.variant,
-      difficulty: puzzle.difficulty,
+      difficulty,
+      difficulty_score: puzzle.difficulty_score || 0,
       mode,
       date: puzzle.used_date || null,
       times_played: puzzle.times_played || 0,

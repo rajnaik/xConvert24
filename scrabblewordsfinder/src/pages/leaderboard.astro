@@ -18,6 +18,7 @@ import '../styles/global.css';
       <a href="/activities/#rack" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🎲</span> Rack</a>
       <a href="/activities/#wotd" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">📖</span> WOTD</a>
       <a href="/sixty-seconds/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">⏱️</span> 60s</a>
+      <a href="/magic-squares/" class="inline-flex items-center gap-1 text-blue-400 hover:underline"><span aria-hidden="true">🪄</span> Magic Squares</a>
     </div>
     <h2 class="sr-only">Game Rankings</h2>
 
@@ -28,6 +29,7 @@ import '../styles/global.css';
       <button data-game="daily-rack" class="lb-tab px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 transition-colors whitespace-nowrap">🎲 Daily Rack</button>
       <button data-game="daily-anagram" class="lb-tab px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 transition-colors whitespace-nowrap">🔤 Anagram</button>
       <button data-game="word-quiz" class="lb-tab px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 transition-colors whitespace-nowrap">🧠 Word Quiz</button>
+      <button data-game="magic-squares" class="lb-tab px-4 py-2.5 text-sm font-medium rounded-t-lg border border-b-0 border-gray-700/50 bg-gray-800/30 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 transition-colors whitespace-nowrap">🪄 Magic Squares</button>
     </div>
 
     <!-- Period Filter -->
@@ -48,7 +50,7 @@ import '../styles/global.css';
         </div>
         <div class="text-right">
           <p class="text-sm font-bold text-amber-400 uppercase" id="lb-your-best">0</p>
-          <p class="text-[10px] text-gray-500">Best word</p>
+          <p class="text-[10px] text-gray-500" id="lb-your-best-label">Best word</p>
         </div>
         <div class="text-right ml-4">
           <p class="text-lg font-bold text-green-400" id="lb-your-total">0</p>
@@ -138,6 +140,11 @@ import '../styles/global.css';
   // Activate saved game tab on load
   if (savedGame) {
     localStorage.setItem(LB_GAME_KEY, savedGame);
+    // Clean URL param so it doesn't override on refresh
+    if (urlGame) {
+      var cleanUrl = window.location.pathname + window.location.hash;
+      history.replaceState(null, '', cleanUrl);
+    }
     var savedTab = document.querySelector('.lb-tab[data-game="' + savedGame + '"]');
     if (savedTab) {
       document.querySelectorAll('.lb-tab').forEach(function(t) {
@@ -305,6 +312,13 @@ import '../styles/global.css';
         '<th class="px-4 py-3 text-right">Best Score</th>' +
         '<th class="px-4 py-3 text-right">Total</th>' +
         '<th class="px-4 py-3 text-right">Words Played</th>';
+    } else if (currentGame === 'magic-squares') {
+      theadRow.innerHTML = '<th class="px-4 py-3 text-left w-12">#</th>' +
+        '<th class="px-4 py-3 text-left">Player</th>' +
+        '<th class="px-4 py-3 text-center">Grid</th>' +
+        '<th class="px-4 py-3 text-right">Best Score</th>' +
+        '<th class="px-4 py-3 text-right">Total</th>' +
+        '<th class="px-4 py-3 text-right">Puzzles</th>';
     } else {
       theadRow.innerHTML = '<th class="px-4 py-3 text-left w-12">#</th>' +
         '<th class="px-4 py-3 text-left">Player</th>' +
@@ -346,6 +360,11 @@ import '../styles/global.css';
         html += '<td class="px-4 py-3 text-right text-green-400">' + entry.total_score + '</td>';
         html += '<td class="px-4 py-3 text-right text-blue-400">' + entry.words_played + '</td>';
         html += '<td class="px-4 py-3 text-right text-gray-400">' + (entry.games_played || '—') + '</td>';
+      } else if (currentGame === 'magic-squares') {
+        html += '<td class="px-4 py-3 text-center font-mono text-xs text-indigo-300">' + (entry.best_word || '—') + '</td>';
+        html += '<td class="px-4 py-3 text-right font-bold text-amber-400">' + entry.best_score + '</td>';
+        html += '<td class="px-4 py-3 text-right text-green-400">' + entry.total_score + '</td>';
+        html += '<td class="px-4 py-3 text-right text-gray-400">' + entry.words_played + '</td>';
       } else {
         var wordScoreCalc = '';
         if (currentGame === 'daily-rack' && entry.best_word) {
@@ -405,6 +424,15 @@ import '../styles/global.css';
       bestLabel.textContent = 'Best score';
       totalEl.textContent = yourEntry.total_score;
       totalLabel.textContent = 'Total correct';
+    } else if (currentGame === 'magic-squares') {
+      if (yourEntry.best_word) {
+        bestEl.textContent = yourEntry.best_word + ' (' + yourEntry.best_score + ')';
+      } else {
+        bestEl.textContent = yourEntry.best_score;
+      }
+      bestLabel.textContent = 'Best grid';
+      totalEl.textContent = yourEntry.total_score;
+      totalLabel.textContent = 'Total pts';
     } else {
       // Show best word with score in parentheses, e.g. "QUIZ (22)"
       if (yourEntry.best_word) {

@@ -56,7 +56,8 @@ async function sendDailyWOTD(env: any) {
       date: today,
     });
 
-    // Send to all subscribers using proper VAPID authorization
+    // Send to all subscribers — empty payload push with VAPID auth
+    // The service worker will fetch WOTD data itself when it receives the push event
     for (const sub of subscribers) {
       try {
         const audience = new URL(sub.endpoint as string).origin;
@@ -66,12 +67,10 @@ async function sendDailyWOTD(env: any) {
           method: 'POST',
           headers: {
             'Authorization': `vapid t=${vapidToken}, k=${vapidPublicKey}`,
-            'Content-Type': 'application/octet-stream',
-            'Content-Encoding': 'aes128gcm',
+            'Content-Length': '0',
             'TTL': '86400',
             'Urgency': 'normal',
           },
-          body: new TextEncoder().encode(payload),
         });
 
         if (response.status === 410 || response.status === 404) {
@@ -101,10 +100,24 @@ async function createCronVAPIDToken(audience: string, privateKeyBase64: string, 
   const claimsB64 = cronBase64url(JSON.stringify(claims));
   const unsignedToken = `${headerB64}.${claimsB64}`;
 
-  const keyData = cronBase64urlDecode(privateKeyBase64);
+  // Import VAPID private key as JWK (works with raw 32-byte base64url keys from web-push)
+  // The private key (d) is 32 bytes base64url, public key (x,y) is 65 bytes (04 + 32x + 32y)
+  const pubBytes = new Uint8Array(cronBase64urlDecode(publicKeyBase64));
+  // Public key is 65 bytes: 0x04 prefix + 32 bytes X + 32 bytes Y
+  const x = cronBase64url(pubBytes.slice(1, 33));
+  const y = cronBase64url(pubBytes.slice(33, 65));
+
+  const jwk = {
+    kty: 'EC',
+    crv: 'P-256',
+    x: x,
+    y: y,
+    d: privateKeyBase64, // Already base64url
+  };
+
   const key = await crypto.subtle.importKey(
-    'pkcs8',
-    keyData,
+    'jwk',
+    jwk,
     { name: 'ECDSA', namedCurve: 'P-256' },
     false,
     ['sign']
@@ -116,7 +129,27 @@ async function createCronVAPIDToken(audience: string, privateKeyBase64: string, 
     new TextEncoder().encode(unsignedToken)
   );
 
-  return `${unsignedToken}.${cronBase64url(new Uint8Array(signature))}`;
+  // Convert signature from DER to raw r||s format (64 bytes) for JWT
+  const sigBytes = new Uint8Array(signature);
+  let rawSig: Uint8Array;
+  if (sigBytes[0] === 0x30) {
+    // DER encoded — extract r and s
+    const rLen = sigBytes[3];
+    const rStart = 4;
+    const r = sigBytes.slice(rStart + (rLen > 32 ? 1 : 0), rStart + rLen);
+    const sLenOffset = rStart + rLen + 1;
+    const sLen = sigBytes[sLenOffset];
+    const sStart = sLenOffset + 1;
+    const s = sigBytes.slice(sStart + (sLen > 32 ? 1 : 0), sStart + sLen);
+    rawSig = new Uint8Array(64);
+    rawSig.set(r.length <= 32 ? r : r.slice(r.length - 32), 32 - Math.min(r.length, 32));
+    rawSig.set(s.length <= 32 ? s : s.slice(s.length - 32), 64 - Math.min(s.length, 32));
+  } else {
+    // Already raw format (64 bytes)
+    rawSig = sigBytes;
+  }
+
+  return `${unsignedToken}.${cronBase64url(rawSig)}`;
 }
 
 function cronBase64url(data: string | Uint8Array): string {

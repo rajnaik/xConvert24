@@ -152,6 +152,35 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // MWB mode: client provides the word, we just create a game record
+    const mwbWord = body.mwb_word || '';
+    if (mwbWord) {
+      // Insert a special CaB row for this MWB word (or reuse wordId=0)
+      // First check if word exists in CaB table
+      let wordId = 0;
+      const existing = await db.prepare("SELECT id FROM CaB WHERE UPPER(word) = UPPER(?) LIMIT 1").bind(mwbWord).first();
+      if (existing) {
+        wordId = existing.id;
+      } else {
+        // Insert it as a temporary word
+        const ins = await db.prepare("INSERT INTO CaB (word, length, status) VALUES (?, ?, 'mwb')").bind(mwbWord.toUpperCase(), mwbWord.length).run();
+        wordId = ins.meta.last_row_id;
+      }
+
+      const insertResult = await db.prepare(
+        "INSERT INTO CaB_Scores (wordId, user_id, timer_duration) VALUES (?, ?, ?)"
+      ).bind(wordId, userId, timerDuration).run();
+
+      return new Response(JSON.stringify({
+        gameId: insertResult.meta.last_row_id,
+        length: mwbWord.length,
+        wordId: wordId
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     // Pick a random word of the requested length
     const wordResult = await db.prepare(
       "SELECT id, word FROM CaB WHERE length = ? AND status = 'active' ORDER BY RANDOM() LIMIT 1"

@@ -59,6 +59,16 @@
           </div>
 
           <p class="text-sm text-gray-300 mb-3">Choose word length:</p>
+          <!-- MWB Dictionary option for CaB -->
+          <div class="flex items-center justify-center gap-2 mb-4">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="cab-use-mwb" class="w-3.5 h-3.5 rounded border-gray-600 bg-gray-800 text-orange-500 focus:ring-orange-500/30 focus:ring-offset-0" />
+              <span class="text-xs text-gray-400">Use my WordBench</span>
+            </label>
+            <select id="cab-mwb-category" class="hidden h-7 px-2 bg-gray-800 border border-gray-700 rounded text-xs text-white">
+              <option value="all">All categories</option>
+            </select>
+          </div>
           <div class="flex gap-2 justify-center mb-4">
             <button data-len="4" class="cab-len-btn px-4 py-2 rounded-lg border border-orange-600/40 bg-orange-950/30 text-sm font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">4 Letters</button>
             <button data-len="5" class="cab-len-btn px-4 py-2 rounded-lg border border-orange-600/40 bg-orange-950/30 text-sm font-semibold text-orange-300 hover:bg-orange-800/40 hover:border-orange-400 transition-colors cursor-pointer">5 Letters</button>
@@ -505,6 +515,36 @@
   // Restore saved state on load
   restoreTimerState();
 
+  // ── MWB category picker for CaB ──
+  (function initCabMwb() {
+    var checkbox = document.getElementById('cab-use-mwb');
+    var catSelect = document.getElementById('cab-mwb-category');
+    if (!checkbox || !catSelect) return;
+
+    function populateCategories() {
+      var saved = JSON.parse(S.getRaw('scbAchievements') || '[]');
+      var cats = {};
+      saved.forEach(function(w) { var c = w.category || 'manual'; if (!cats[c]) cats[c] = 0; cats[c]++; });
+      var labels = { 'wotd': '📖 WOTD', 'quiz': '🧠 Quiz', 'manual': '⭐ Saved', 'solver': '🔍 Solver' };
+      catSelect.innerHTML = '<option value="all">All (' + saved.length + ')</option>';
+      Object.keys(cats).sort().forEach(function(c) {
+        var opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = (labels[c] || '📝 ' + c) + ' (' + cats[c] + ')';
+        catSelect.appendChild(opt);
+      });
+    }
+
+    checkbox.addEventListener('change', function() {
+      if (checkbox.checked) {
+        populateCategories();
+        catSelect.classList.remove('hidden');
+      } else {
+        catSelect.classList.add('hidden');
+      }
+    });
+  })();
+
   function startGame(len) {
     // Disable buttons while loading
     lenBtns.forEach(function(b) { b.disabled = true; b.style.opacity = '0.5'; });
@@ -512,6 +552,91 @@
 
     // Reset letter status tracker
     letterStatus = {};
+
+    // Check if using MWB words
+    var useMwb = document.getElementById('cab-use-mwb') && document.getElementById('cab-use-mwb').checked;
+
+    if (useMwb) {
+      // Pick word from MWB client-side
+      var saved = JSON.parse(S.getRaw('scbAchievements') || '[]');
+      var selectedCat = document.getElementById('cab-mwb-category').value;
+      if (selectedCat !== 'all') saved = saved.filter(function(w) { return (w.category || 'manual') === selectedCat; });
+      var candidates = saved.filter(function(w) { return w.word && w.word.length === len; });
+      if (candidates.length === 0) {
+        alert('No ' + len + '-letter words in this category. Try a different length.');
+        lenBtns.forEach(function(b) { b.disabled = false; b.style.opacity = '1'; });
+        if (startBtn) startBtn.disabled = false;
+        return;
+      }
+      var picked = candidates[Math.floor(Math.random() * candidates.length)];
+      // Store locally for client-side comparison
+      gameState._mwbWord = picked.word.toUpperCase();
+      gameState._mwbMode = true;
+
+      // Create game record on server so it appears in history
+      fetch('/api/cab/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ length: len, user_id: uid, timer_duration: timerEnabled ? selectedTimerSecs : null, mwb_word: gameState._mwbWord })
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          gameState.gameId = data.gameId;
+          gameState.wordId = data.wordId;
+          gameState.length = len;
+          gameState.attempts = 0;
+          gameState.guesses = [];
+          gameState.solved = false;
+
+          setupEl.classList.add('hidden');
+          historyPanel.classList.add('hidden');
+          inspectPanel.classList.add('hidden');
+          gameEl.classList.remove('hidden');
+          resultEl.classList.add('hidden');
+          historyEl.innerHTML = '';
+          attemptsEl.textContent = 'Attempt: 0';
+          gameInfoEl.textContent = len + '-letter word • WordBench Mode';
+          buildInputBoxes(len);
+          buildAlphabet();
+          // Pre-mark double letters (we know the word in MWB mode)
+          var wordLetters = gameState._mwbWord.split('');
+          var letterCounts = {};
+          wordLetters.forEach(function(l) { letterCounts[l] = (letterCounts[l] || 0) + 1; });
+          for (var l in letterCounts) {
+            if (letterCounts[l] >= 2) {
+              if (!letterStatus[l]) letterStatus[l] = { bull: false, cow: false, miss: false, double: false };
+              letterStatus[l].double = true;
+            }
+          }
+          updateAlphabet();
+          if (timerEnabled && selectedTimerSecs > 0) startTimer(selectedTimerSecs);
+          lenBtns.forEach(function(b) { b.disabled = false; b.style.opacity = '1'; });
+          if (startBtn) startBtn.disabled = false;
+        })
+        .catch(function() {
+          // Fallback: play without server tracking
+          gameState.gameId = 'mwb-' + Date.now();
+          gameState.wordId = 0;
+          gameState.length = len;
+          gameState.attempts = 0;
+          gameState.guesses = [];
+          gameState.solved = false;
+          setupEl.classList.add('hidden');
+          gameEl.classList.remove('hidden');
+          resultEl.classList.add('hidden');
+          historyEl.innerHTML = '';
+          attemptsEl.textContent = 'Attempt: 0';
+          gameInfoEl.textContent = len + '-letter word • WordBench Mode (offline)';
+          buildInputBoxes(len);
+          buildAlphabet();
+          if (timerEnabled && selectedTimerSecs > 0) startTimer(selectedTimerSecs);
+          lenBtns.forEach(function(b) { b.disabled = false; b.style.opacity = '1'; });
+          if (startBtn) startBtn.disabled = false;
+        });
+      return;
+    }
+
+    gameState._mwbMode = false;
 
     fetch('/api/cab/', {
       method: 'POST',
@@ -620,6 +745,76 @@
     gameState.attempts++;
     attemptsEl.textContent = 'Attempt: ' + gameState.attempts;
 
+    // MWB mode: evaluate client-side
+    if (gameState._mwbMode) {
+      var target = gameState._mwbWord;
+      var bulls = 0, cows = 0;
+      var feedback = [];
+      var targetArr = target.split('');
+      var guessArr = guess.split('');
+      var used = new Array(target.length).fill(false);
+
+      // First pass: bulls
+      for (var i = 0; i < guessArr.length; i++) {
+        if (guessArr[i] === targetArr[i]) { bulls++; feedback[i] = 'bull'; used[i] = true; guessArr[i] = null; }
+      }
+      // Second pass: cows
+      for (var i = 0; i < guessArr.length; i++) {
+        if (guessArr[i] === null) continue;
+        for (var j = 0; j < targetArr.length; j++) {
+          if (!used[j] && guessArr[i] === targetArr[j]) { cows++; feedback[i] = 'cow'; used[j] = true; break; }
+        }
+        if (!feedback[i]) feedback[i] = 'miss';
+      }
+      // Fill unfilled feedback
+      for (var i = 0; i < feedback.length; i++) { if (!feedback[i]) feedback[i] = 'miss'; }
+
+      addGuessToHistory(guess, bulls, cows, feedback);
+      gameState.guesses.push({ guess: guess, bulls: bulls, cows: cows, feedback: feedback });
+      var inputs = inputRow.querySelectorAll('.cab-letter-input');
+      inputs.forEach(function(inp) { inp.value = ''; });
+      inputs[0].focus();
+
+      // Also save guess to server (best-effort, for history)
+      var splitTime = (timerEnabled && timerSecsRemaining > 0) ? timerSecsRemaining : null;
+      fetch('/api/cab/', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameId: gameState.gameId, wordId: gameState.wordId, guess: guess, guessNumber: gameState.attempts, split_time: splitTime })
+      }).catch(function(){});
+
+      if (bulls === gameState.length) {
+        gameState.solved = true;
+        stopTimer();
+        showResult(true, target);
+        // Show history button
+        historyBtnWrap.classList.remove('hidden');
+        // Submit to leaderboard (best-effort)
+        if (uid) {
+          var cabScore = (11 - gameState.attempts) * gameState.length;
+          fetch('/api/leaderboard/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              game: 'cab',
+              user_id: uid,
+              best_word: target,
+              best_score: cabScore,
+              total_score: cabScore,
+              words_played: 1,
+              display_name: localStorage.getItem('swf-display-name') || '',
+              avatar_id: parseInt(localStorage.getItem('swf-avatar') || '1')
+            })
+          }).catch(function() {});
+        }
+        // Save game to achievements
+        fetch('/api/achievements/', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ achievement_text: 'Cows & Bulls (MWB)', a_data: JSON.stringify({ word: target, attempts: gameState.attempts, length: gameState.length, solved: true, mwbMode: true, date: new Date().toISOString() }) }) }).catch(function(){});
+        // Award star
+        window.__awardStar && window.__awardStar('cab');
+      }
+      return;
+    }
+
     // Send guess to server for evaluation (include guessNumber for DB tracking)
     // Include split_time (seconds remaining) so it's stored if this guess solves the game
     var splitTime = (timerEnabled && timerSecsRemaining > 0) ? timerSecsRemaining : null;
@@ -664,7 +859,9 @@
                 best_word: data.word,
                 best_score: cabScore,
                 total_score: cabScore,
-                words_played: 1
+                words_played: 1,
+                display_name: localStorage.getItem('swf-display-name') || '',
+                avatar_id: parseInt(localStorage.getItem('swf-avatar') || '1')
               })
             }).catch(function() {});
           }
@@ -683,6 +880,24 @@
 
     var letters = document.createElement('div');
     letters.className = 'flex gap-1';
+
+    // First: detect doubles within THIS guess (same letter, 2+ non-miss feedback)
+    var guessLetterFeedback = {};
+    for (var i = 0; i < guess.length; i++) {
+      var fb = feedback && feedback[i] ? feedback[i] : 'miss';
+      var letter = guess[i];
+      if (!guessLetterFeedback[letter]) guessLetterFeedback[letter] = [];
+      guessLetterFeedback[letter].push(fb);
+    }
+    // Mark doubles: if same letter has 2+ non-miss entries in this guess
+    for (var l in guessLetterFeedback) {
+      var nonMiss = guessLetterFeedback[l].filter(function(f) { return f !== 'miss'; });
+      if (nonMiss.length >= 2) {
+        if (!letterStatus[l]) letterStatus[l] = { bull: false, cow: false, miss: false, double: false };
+        letterStatus[l].double = true;
+      }
+    }
+
     for (var i = 0; i < guess.length; i++) {
       var span = document.createElement('span');
       var fb = feedback && feedback[i] ? feedback[i] : 'miss';
@@ -696,15 +911,15 @@
       span.textContent = guess[i];
       letters.appendChild(span);
 
-      // Update letter status tracker (bull > cow > miss > unknown)
+      // Update letter status tracker
       var letter = guess[i];
-      var current = letterStatus[letter];
+      if (!letterStatus[letter]) letterStatus[letter] = { bull: false, cow: false, miss: false, double: false };
       if (fb === 'bull') {
-        letterStatus[letter] = 'bull';
-      } else if (fb === 'cow' && current !== 'bull') {
-        letterStatus[letter] = 'cow';
-      } else if (fb === 'miss' && !current) {
-        letterStatus[letter] = 'miss';
+        letterStatus[letter].bull = true;
+      } else if (fb === 'cow') {
+        letterStatus[letter].cow = true;
+      } else if (fb === 'miss') {
+        letterStatus[letter].miss = true;
       }
     }
 
@@ -739,13 +954,24 @@
     tiles.forEach(function(tile) {
       var letter = tile.getAttribute('data-letter');
       var status = letterStatus[letter];
-      // Reset classes
+      // Reset classes and styles
       tile.className = 'cab-alpha-tile w-7 h-8 flex items-center justify-center rounded text-xs font-bold transition-colors';
-      if (status === 'bull') {
+      tile.style.background = '';
+
+      if (!status) {
+        tile.className += ' bg-gray-700 text-white border border-gray-600';
+        return;
+      }
+
+      if (status.double) {
+        // Double letter confirmed: split green/amber
+        tile.className += ' text-white border-2 border-green-400';
+        tile.style.background = 'linear-gradient(135deg, #16a34a 50%, #d97706 50%)';
+      } else if (status.bull) {
         tile.className += ' bg-green-600 text-white border border-green-400';
-      } else if (status === 'cow') {
+      } else if (status.cow) {
         tile.className += ' bg-amber-600 text-white border border-amber-400';
-      } else if (status === 'miss') {
+      } else if (status.miss) {
         tile.className += ' bg-red-900/60 text-red-300 border border-red-500 opacity-60 line-through';
       } else {
         tile.className += ' bg-gray-700 text-white border border-gray-600';

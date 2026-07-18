@@ -83,11 +83,22 @@ async function createVAPIDToken(audience: string, privateKeyBase64: string, publ
   const claimsB64 = base64url(JSON.stringify(claims));
   const unsignedToken = `${headerB64}.${claimsB64}`;
 
-  // Import private key and sign
-  const keyData = base64urlDecode(privateKeyBase64);
+  // Import VAPID private key as JWK (raw 32-byte base64url from web-push)
+  const pubBytes = new Uint8Array(base64urlDecode(publicKeyBase64));
+  const x = base64url(pubBytes.slice(1, 33));
+  const y = base64url(pubBytes.slice(33, 65));
+
+  const jwk = {
+    kty: 'EC',
+    crv: 'P-256',
+    x: x,
+    y: y,
+    d: privateKeyBase64,
+  };
+
   const key = await crypto.subtle.importKey(
-    'pkcs8',
-    keyData,
+    'jwk',
+    jwk,
     { name: 'ECDSA', namedCurve: 'P-256' },
     false,
     ['sign']
@@ -99,7 +110,27 @@ async function createVAPIDToken(audience: string, privateKeyBase64: string, publ
     new TextEncoder().encode(unsignedToken)
   );
 
-  const signatureB64 = base64url(new Uint8Array(signature));
+  // Convert DER signature to raw r||s (64 bytes) for JWT
+  const sigBytes = new Uint8Array(signature);
+  let rawSig: Uint8Array;
+  if (sigBytes[0] === 0x30) {
+    const rLen = sigBytes[3];
+    const rStart = 4;
+    const r = sigBytes.slice(rStart, rStart + rLen);
+    const sLenOffset = rStart + rLen + 1;
+    const sLen = sigBytes[sLenOffset];
+    const sStart = sLenOffset + 1;
+    const s = sigBytes.slice(sStart, sStart + sLen);
+    rawSig = new Uint8Array(64);
+    const rPad = r[0] === 0 ? r.slice(1) : r;
+    const sPad = s[0] === 0 ? s.slice(1) : s;
+    rawSig.set(rPad, 32 - rPad.length);
+    rawSig.set(sPad, 64 - sPad.length);
+  } else {
+    rawSig = sigBytes;
+  }
+
+  const signatureB64 = base64url(rawSig);
   return { token: `${unsignedToken}.${signatureB64}` };
 }
 

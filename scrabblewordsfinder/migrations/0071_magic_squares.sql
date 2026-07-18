@@ -101,3 +101,13 @@ CREATE INDEX IF NOT EXISTS idx_msr_daily ON magic_squares_results(is_daily, crea
 ALTER TABLE magic_squares_4x4 ADD COLUMN times_solved INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE magic_squares_5x5 ADD COLUMN times_solved INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE magic_squares_6x6 ADD COLUMN times_solved INTEGER NOT NULL DEFAULT 0;
+
+-- Add difficulty_score column for numeric grid difficulty rating
+ALTER TABLE magic_squares_4x4 ADD COLUMN difficulty_score INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE magic_squares_5x5 ADD COLUMN difficulty_score INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE magic_squares_6x6 ADD COLUMN difficulty_score INTEGER NOT NULL DEFAULT 0;
+
+-- Unique indexes to prevent duplicate grids (enables INSERT OR IGNORE)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ms4_unique_grid ON magic_squares_4x4(row1, row2, row3, row4);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ms5_unique_grid ON magic_squares_5x5(row1, row2, row3, row4, row5);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ms6_unique_grid ON magic_squares_6x6(row1, row2, row3, row4, row5, row6);

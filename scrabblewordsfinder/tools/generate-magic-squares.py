@@ -255,30 +255,52 @@ def generate_cross_grids(words, trie, size, count, max_attempts=500000):
 
 
 def score_difficulty(grid, words, size):
-    """Score a grid's difficulty based on word commonality."""
-    # Simple heuristic: less common words = harder
-    # Use word length variety and rare letters as proxies
+    """Score a grid's difficulty based on multiple factors. Returns (label, numeric_score)."""
     rare_letters = set('QXZJK')
+    uncommon_starts = set('QXZJKVW')
+    # Common 4-6 letter words most people know
+    common_words = {'BALL','AREA','LEAD','STAR','TONE','FISH','BIRD','GAME','PLAY','WORD',
+                    'HELP','RACE','FIRE','COLD','WARM','RAIN','SNOW','TREE','HILL','LAKE',
+                    'EARTH','WATER','LIGHT','STONE','WORLD','HEART','HOUSE','PLANT','SOUND',
+                    'CASTLE','PLANET','GARDEN','STREAM','BRIDGE','SILVER','GOLDEN','MARKET'}
+    
     score = 0
     for word in grid:
-        # Rare letters increase difficulty
-        score += sum(1 for c in word if c in rare_letters) * 2
-        # Less common starting letters
-        if word[0] in 'QXZJ':
-            score += 3
+        # Rare letters: +3 per occurrence
+        score += sum(1 for c in word if c in rare_letters) * 3
+        # Uncommon starting letter: +2
+        if word[0] in uncommon_starts:
+            score += 2
+        # Double letters: +1 per double pair
+        for i in range(len(word) - 1):
+            if word[i] == word[i+1]:
+                score += 1
+        # Word commonality: common = 0, unknown = +2
+        if word not in common_words:
+            score += 2
+        else:
+            score -= 1  # bonus for easy words
     
-    if score <= 2:
-        return 'easy'
-    elif score <= 5:
-        return 'medium'
-    elif score <= 8:
-        return 'hard'
+    # Grid size bonus (bigger = harder inherently)
+    score += (size - 4) * 3
+    
+    # Clamp to 0 minimum
+    score = max(0, score)
+    
+    if score <= 6:
+        label = 'easy'
+    elif score <= 12:
+        label = 'medium'
+    elif score <= 18:
+        label = 'hard'
     else:
-        return 'expert'
+        label = 'expert'
+    
+    return label, score
 
 
-def grid_to_sql(grid, size, variant, difficulty):
-    """Convert a grid to an SQL INSERT statement."""
+def grid_to_sql(grid, size, variant, difficulty, difficulty_score):
+    """Convert a grid to an SQL INSERT OR IGNORE statement (dedup safe)."""
     table = f'magic_squares_{size}x{size}'
     
     # Compute columns
@@ -292,7 +314,7 @@ def grid_to_sql(grid, size, variant, difficulty):
     row_vals = ', '.join(f"'{grid[i]}'" for i in range(size))
     col_vals = ', '.join(f"'{cols[i]}'" for i in range(size))
     
-    return f"INSERT INTO {table} (variant, {row_cols}, {col_cols}, difficulty) VALUES ('{variant}', {row_vals}, {col_vals}, '{difficulty}');"
+    return f"INSERT OR IGNORE INTO {table} (variant, {row_cols}, {col_cols}, difficulty, difficulty_score) VALUES ('{variant}', {row_vals}, {col_vals}, '{difficulty}', {difficulty_score});"
 
 
 def main():
@@ -315,6 +337,7 @@ def main():
     trie = build_trie(words)
     
     all_sql = []
+    seen_grids = set()  # Dedup: track grid fingerprints to avoid duplicates
     
     if args.variant in ('classic', 'both'):
         print(f"\n{'='*50}")
@@ -328,8 +351,12 @@ def main():
         print(f"  Generated {len(classics)} classic squares in {elapsed:.1f}s")
         
         for grid in classics:
-            difficulty = score_difficulty(grid, words, size)
-            sql = grid_to_sql(grid, size, 'classic', difficulty)
+            fingerprint = '|'.join(grid)
+            if fingerprint in seen_grids:
+                continue
+            seen_grids.add(fingerprint)
+            difficulty, diff_score = score_difficulty(grid, words, size)
+            sql = grid_to_sql(grid, size, 'classic', difficulty, diff_score)
             all_sql.append(sql)
         
         # Show a few examples
@@ -350,8 +377,12 @@ def main():
         print(f"  Generated {len(crosses)} cross grids in {elapsed:.1f}s")
         
         for grid in crosses:
-            difficulty = score_difficulty(grid, words, size)
-            sql = grid_to_sql(grid, size, 'cross', difficulty)
+            fingerprint = '|'.join(grid)
+            if fingerprint in seen_grids:
+                continue
+            seen_grids.add(fingerprint)
+            difficulty, diff_score = score_difficulty(grid, words, size)
+            sql = grid_to_sql(grid, size, 'cross', difficulty, diff_score)
             all_sql.append(sql)
         
         # Show examples
