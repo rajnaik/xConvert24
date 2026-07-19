@@ -57,7 +57,7 @@ export const PUT: APIRoute = async ({ request }) => {
   if (!db) return new Response(JSON.stringify({ error: 'DB not available' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
 
   const body = await request.json() as any;
-  const { id, status, notes } = body;
+  const { id, status, notes, email, name, company, website } = body;
 
   if (!id) return new Response(JSON.stringify({ error: 'id required' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
@@ -69,6 +69,10 @@ export const PUT: APIRoute = async ({ request }) => {
     if (status === 'sent') { updates.push("sent_at = datetime('now')"); }
   }
   if (notes !== undefined) { updates.push('notes = ?'); values.push(notes); }
+  if (email !== undefined) { updates.push('email = ?'); values.push(email); }
+  if (name !== undefined) { updates.push('name = ?'); values.push(name); }
+  if (company !== undefined) { updates.push('company = ?'); values.push(company); }
+  if (website !== undefined) { updates.push('website = ?'); values.push(website); }
 
   if (!updates.length) return new Response(JSON.stringify({ error: 'No fields to update' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 

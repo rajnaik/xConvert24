@@ -1,0 +1,532 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+export const prerender = true;
+---
+
+<Layout title="Vector Databases Explained — What They Are, How They Work, and Why Your Business Needs One (2026) | xSoft Blog" description="Vector databases explained for business leaders. What they are, how they power AI search, RAG chatbots, and recommendation engines — with a comparison of Pinecone, Cloudflare Vectorize, Weaviate, Qdrant, and more." keywords="vector database explained, what is a vector database, vector search, embeddings explained, Pinecone vs Weaviate, Cloudflare Vectorize, vector database comparison 2026, semantic search business, AI search engine">
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Vector Databases Explained — What They Are, How They Work, and Why Your Business Needs One (2026)",
+    "description": "Vector databases explained for business leaders. What they are, how they power AI search, RAG chatbots, and recommendation engines.",
+    "datePublished": "2026-07-19",
+    "dateModified": "2026-07-19",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.xsoftlimited.com/about/" },
+    "publisher": { "@type": "Organization", "name": "xSoft Ltd", "logo": { "@type": "ImageObject", "url": "https://www.xsoftlimited.com/social-card.svg" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.xsoftlimited.com/blog/vector-databases-explained/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is a vector database in simple terms?", "acceptedAnswer": { "@type": "Answer", "text": "A vector database stores data as mathematical representations (vectors) that capture meaning, not just keywords. When you search, it finds results by meaning similarity rather than exact text matching. This means searching for 'affordable car' also returns results about 'budget vehicle' or 'cheap automobile' — because the meanings are close, even though the words differ." }},
+      { "@type": "Question", "name": "Why would my business need a vector database?", "acceptedAnswer": { "@type": "Answer", "text": "If you're building AI-powered search, a RAG chatbot, a recommendation engine, or any system that needs to understand meaning rather than just match keywords, you need a vector database. Common use cases: customer support chatbots that search your docs, product recommendations based on similarity, semantic search across your knowledge base, and de-duplication of records." }},
+      { "@type": "Question", "name": "How much does a vector database cost to run?", "acceptedAnswer": { "@type": "Answer", "text": "Costs vary dramatically by scale. For small workloads (under 100,000 vectors), many providers offer free tiers — Cloudflare Vectorize, Pinecone Starter, and Chroma are all free at small scale. At production scale (1-10 million vectors), expect £50-500/month. Enterprise scale (100M+ vectors) can cost £2,000-10,000+/month depending on query throughput and latency requirements." }},
+      { "@type": "Question", "name": "What is the difference between a vector database and a regular database?", "acceptedAnswer": { "@type": "Answer", "text": "A regular database (PostgreSQL, MySQL) stores structured data and searches by exact field matching or text patterns. A vector database stores high-dimensional numerical arrays and searches by mathematical similarity. Think of it this way: a regular database answers 'find all products named X', while a vector database answers 'find all products similar to X' — even if they have completely different names." }},
+      { "@type": "Question", "name": "Which vector database should I choose for my project?", "acceptedAnswer": { "@type": "Answer", "text": "For most small-to-medium businesses building their first AI feature, we recommend Cloudflare Vectorize (if you're already on Cloudflare) or Pinecone (if you want a standalone managed service). For open-source self-hosted: Qdrant for performance, Weaviate for developer experience. If you already use PostgreSQL, pgvector adds vector search without a new database. The right choice depends on your scale, existing infrastructure, and budget." }}
+    ]
+  })} />
+
+  <section class="pt-10 pb-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+        <a href="/blog/" class="hover:text-indigo-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">Vector Databases</span>
+      </nav>
+
+      <article class="prose prose-invert max-w-none">
+        <div class="mb-8">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">AI Infrastructure</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Vector Search</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">RAG</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Complete Guide</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white leading-tight">Vector Databases Explained — What They Are, How They Work, and Why Your Business Needs One</h1>
+          <div class="mt-4 flex items-center gap-3 text-sm text-gray-400">
+            <time datetime="2026-07-19">19 July 2026</time>
+            <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+            <span>14 min read</span>
+          </div>
+        </div>
+
+        <!-- Introduction -->
+        <p class="text-lg text-gray-300 leading-relaxed mb-4">Every AI-powered feature you've seen in the last two years — semantic search, chatbots that actually understand questions, recommendation engines that feel uncanny, RAG systems that answer from your own documents — they all share one piece of infrastructure under the hood: a vector database.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Yet most business leaders have never heard of them. They're the unsung engine behind the AI revolution — invisible to users, indispensable to builders. If you're planning any AI feature for your product or internal tools, understanding vector databases isn't optional. It's foundational.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">This guide explains vector databases from first principles. No maths degree required. By the end, you'll understand what they are, why they exist, how they compare, and whether your next project needs one.</p>
+
+        <div class="not-prose my-8 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">📖 What This Guide Covers</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-300">
+            <p>• What vectors and embeddings are</p>
+            <p>• How vector search differs from keyword search</p>
+            <p>• Key concepts: dimensions, similarity metrics</p>
+            <p>• Real use cases with business impact</p>
+            <p>• Database comparison (7 options)</p>
+            <p>• Decision framework for choosing</p>
+            <p>• Performance and indexing strategies</p>
+            <p>• Cost analysis at different scales</p>
+            <p>• Getting started (5 steps)</p>
+            <p>• When you DON'T need one</p>
+          </div>
+        </div>
+
+        <!-- Section 1: What is a Vector -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">What is a Vector? (The Plain English Version)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">A vector is simply a list of numbers that represents something's meaning. That's it. Not its text, not its name, not its ID — its <em>meaning</em>.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Think of it like GPS coordinates for concepts. London is at roughly (51.5, -0.1). Paris is at (48.9, 2.3). They're close together on a map — and their coordinates reflect that proximity. Now imagine doing the same thing, but for <em>meaning</em> rather than geography — and using 1,000+ dimensions instead of just two.</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-3">🗺️ The Meaning Map Analogy</p>
+          <div class="space-y-2 text-sm text-gray-300">
+            <p><strong class="text-white">"King"</strong> → [0.21, -0.44, 0.87, 0.12, ...] (1,536 numbers)</p>
+            <p><strong class="text-white">"Queen"</strong> → [0.23, -0.41, 0.85, 0.15, ...] (nearby in vector space)</p>
+            <p><strong class="text-white">"Banana"</strong> → [-0.65, 0.33, -0.12, 0.77, ...] (far away — different meaning)</p>
+          </div>
+          <p class="mt-3 text-xs text-gray-500">Words with similar meanings end up with similar numbers. The AI model that creates these numbers has learned from billions of text examples what "similar meaning" looks like.</p>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The process of converting text (or images, or audio) into these number arrays is called <strong class="text-white">embedding</strong>. The numbers themselves are called an <strong class="text-white">embedding vector</strong>. And the AI model that does the conversion is called an <strong class="text-white">embedding model</strong>.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">A vector database, then, is a specialised database optimised for storing millions of these number arrays and finding the most similar ones to a given query — in milliseconds.</p>
+
+        <!-- Section 2: How Vector Search Works -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">How Vector Search Works (vs Keyword Search)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Traditional search (what you've used for 25 years) is keyword-based. It matches the exact words you type against the exact words in the database. Vector search matches <em>meaning</em> against meaning — regardless of what specific words are used.</p>
+
+        <div class="not-prose my-6 overflow-x-auto">
+          <table class="w-full text-sm border border-gray-700 rounded-xl overflow-hidden">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-gray-300 font-semibold">Query</th>
+                <th class="px-4 py-3 text-center text-gray-300 font-semibold">Keyword Search Result</th>
+                <th class="px-4 py-3 text-center text-gray-300 font-semibold">Vector Search Result</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700/50">
+              <tr><td class="px-4 py-2 text-gray-300">"affordable car"</td><td class="px-4 py-2 text-center text-amber-400 text-xs">Only docs containing "affordable" AND "car"</td><td class="px-4 py-2 text-center text-green-400 text-xs">Also finds "budget vehicle", "cheap automobile", "economical transport"</td></tr>
+              <tr><td class="px-4 py-2 text-gray-300">"how to fix a broken pipe"</td><td class="px-4 py-2 text-center text-amber-400 text-xs">Plumbing AND software pipe results mixed</td><td class="px-4 py-2 text-center text-green-400 text-xs">Understands context — returns plumbing guides if context is home repair</td></tr>
+              <tr><td class="px-4 py-2 text-gray-300">"feeling under the weather"</td><td class="px-4 py-2 text-center text-amber-400 text-xs">Weather forecasts (wrong)</td><td class="px-4 py-2 text-center text-green-400 text-xs">Health and wellness content (correct — understands the idiom)</td></tr>
+              <tr><td class="px-4 py-2 text-gray-300">"I need to return this"</td><td class="px-4 py-2 text-center text-amber-400 text-xs">Pages containing the word "return"</td><td class="px-4 py-2 text-center text-green-400 text-xs">Returns policy, refund process, exchange info</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">This difference is transformative for business applications. Your customers don't search using the exact terminology in your documentation — they use their own words, slang, idioms, and questions. Vector search bridges that gap.</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-sm font-semibold text-green-400 uppercase tracking-wider mb-2">✅ The Business Impact</p>
+          <p class="text-sm text-gray-300">Companies switching from keyword search to vector search typically see a <strong class="text-white">40-60% improvement</strong> in search relevance and a <strong class="text-white">25-35% reduction</strong> in support tickets — because customers find the right answer on the first search, in their own words.</p>
+        </div>
+
+        <!-- Section 3: Key Concepts -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Key Concepts: Embeddings, Dimensions, and Similarity Metrics</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Three concepts come up in every vector database conversation. Here's what each means in practical terms:</p>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Embeddings</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">An embedding is the numerical representation of a piece of content — a sentence, paragraph, image, or product description. You create embeddings using an embedding model (like OpenAI's <code class="text-indigo-300">text-embedding-3-small</code> or Cloudflare's <code class="text-indigo-300">bge-base-en-v1.5</code>).</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">You embed your documents once (during indexing), and you embed the user's query at search time. Then you compare the query embedding against all stored document embeddings to find the closest matches.</p>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Dimensions</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Dimensions are how many numbers are in each vector. More dimensions generally means more nuanced meaning capture — but also more storage and computation cost.</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+            <p class="text-amber-400 font-bold text-sm mb-1">384 dimensions</p>
+            <p class="text-xs text-gray-400">Fast, cheap, good for simple similarity. Models: MiniLM, bge-small.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+            <p class="text-green-400 font-bold text-sm mb-1">768 dimensions</p>
+            <p class="text-xs text-gray-400">Balanced. Good for most business use cases. Models: bge-base, Cohere embed.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+            <p class="text-indigo-400 font-bold text-sm mb-1">1,536 dimensions</p>
+            <p class="text-xs text-gray-400">High fidelity. Best quality, higher cost. Models: OpenAI text-embedding-3-small.</p>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Similarity Metrics</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">How does the database decide which vectors are "close" to each other? Three main methods:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <p class="text-indigo-400 font-bold text-sm mb-2">Cosine Similarity</p>
+            <p class="text-xs text-gray-400 mb-2">Measures the angle between vectors. Ignores magnitude, focuses on direction.</p>
+            <p class="text-xs text-green-400">Best for: text search, RAG, semantic matching. The default choice for most use cases.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10">
+            <p class="text-purple-400 font-bold text-sm mb-2">Dot Product</p>
+            <p class="text-xs text-gray-400 mb-2">Measures both direction and magnitude. Rewards vectors that are both similar and "strong".</p>
+            <p class="text-xs text-green-400">Best for: recommendation systems where magnitude indicates relevance or popularity.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-cyan-500/20 bg-cyan-950/10">
+            <p class="text-cyan-400 font-bold text-sm mb-2">Euclidean Distance</p>
+            <p class="text-xs text-gray-400 mb-2">Straight-line distance between points. Simple and intuitive.</p>
+            <p class="text-xs text-green-400">Best for: clustering, anomaly detection, image similarity.</p>
+          </div>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">💡 Practical Advice</p>
+          <p class="text-sm text-gray-300">If you're unsure, use <strong class="text-white">cosine similarity</strong>. It's the default for text-based applications and works correctly regardless of how your embeddings are normalised. You'll only need alternatives for specialised use cases.</p>
+        </div>
+
+        <!-- Section 4: Use Cases -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Use Cases: Where Vector Databases Create Business Value</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Vector databases aren't a solution looking for a problem. They solve real, expensive problems that traditional databases cannot. Here are the six highest-impact use cases:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-blue-500/20 bg-blue-950/10">
+            <p class="text-blue-400 font-bold text-sm mb-2">🤖 RAG Chatbots</p>
+            <p class="text-xs text-gray-400 mb-2">AI chatbots that answer from your specific documentation. The vector database stores your knowledge base and retrieves relevant context for every question.</p>
+            <p class="text-xs text-gray-500"><strong>Impact:</strong> 60-80% reduction in support tickets. 24/7 instant answers.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10">
+            <p class="text-purple-400 font-bold text-sm mb-2">🔍 Semantic Search</p>
+            <p class="text-xs text-gray-400 mb-2">Replace keyword search with meaning-based search across documentation, products, or content. Customers find what they need using natural language.</p>
+            <p class="text-xs text-gray-500"><strong>Impact:</strong> 40-60% improvement in search relevance. Higher conversion.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-green-500/20 bg-green-950/10">
+            <p class="text-green-400 font-bold text-sm mb-2">🎯 Recommendation Engines</p>
+            <p class="text-xs text-gray-400 mb-2">"Customers who liked X also liked Y" — powered by embedding similarity rather than manual tagging. Works for products, content, music, and any catalogue.</p>
+            <p class="text-xs text-gray-500"><strong>Impact:</strong> 15-30% increase in average order value or engagement.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-amber-500/20 bg-amber-950/10">
+            <p class="text-amber-400 font-bold text-sm mb-2">🖼️ Image & Visual Search</p>
+            <p class="text-xs text-gray-400 mb-2">Upload a photo, find visually similar products. Used in fashion, real estate, manufacturing QA, and art. Embed images with CLIP or similar vision models.</p>
+            <p class="text-xs text-gray-500"><strong>Impact:</strong> New UX paradigm. "Find me something like this" without words.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-bold text-sm mb-2">🚨 Anomaly Detection</p>
+            <p class="text-xs text-gray-400 mb-2">Embed normal behaviour patterns, then flag anything that's far away in vector space. Used in fraud detection, security monitoring, and quality control.</p>
+            <p class="text-xs text-gray-500"><strong>Impact:</strong> Catch fraud 10x faster than rule-based systems.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-cyan-500/20 bg-cyan-950/10">
+            <p class="text-cyan-400 font-bold text-sm mb-2">🔄 De-Duplication</p>
+            <p class="text-xs text-gray-400 mb-2">Find near-duplicate records even when they're worded differently. "John Smith, 10 High St" and "J. Smith, 10 High Street" are the same person — vector similarity catches this.</p>
+            <p class="text-xs text-gray-500"><strong>Impact:</strong> Clean data, reduced storage costs, fewer customer mix-ups.</p>
+          </div>
+        </div>
+
+        <!-- Section 5: Comparison Table -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Vector Database Comparison (2026)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The market has matured rapidly. Here's how the major options compare across the dimensions that matter for production workloads:</p>
+
+        <div class="not-prose my-6 overflow-x-auto">
+          <table class="w-full text-xs border border-gray-700 rounded-xl overflow-hidden">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th class="px-3 py-3 text-left text-gray-300 font-semibold">Database</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Type</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Hosting</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Free Tier</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Max Vectors</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Best For</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700/50">
+              <tr><td class="px-3 py-2 text-indigo-400 font-semibold">Pinecone</td><td class="px-3 py-2 text-center text-gray-300">Managed SaaS</td><td class="px-3 py-2 text-center text-gray-300">Cloud only</td><td class="px-3 py-2 text-center text-green-400">Yes (100K vectors)</td><td class="px-3 py-2 text-center text-gray-300">Billions</td><td class="px-3 py-2 text-center text-gray-300">Enterprise, zero ops</td></tr>
+              <tr><td class="px-3 py-2 text-indigo-400 font-semibold">Cloudflare Vectorize</td><td class="px-3 py-2 text-center text-gray-300">Managed (edge)</td><td class="px-3 py-2 text-center text-gray-300">Cloudflare network</td><td class="px-3 py-2 text-center text-green-400">Yes (5M vectors)</td><td class="px-3 py-2 text-center text-gray-300">5M per index</td><td class="px-3 py-2 text-center text-gray-300">Cloudflare stack, low latency</td></tr>
+              <tr><td class="px-3 py-2 text-indigo-400 font-semibold">Weaviate</td><td class="px-3 py-2 text-center text-gray-300">Open source + Cloud</td><td class="px-3 py-2 text-center text-gray-300">Self-hosted or managed</td><td class="px-3 py-2 text-center text-green-400">Yes (sandbox)</td><td class="px-3 py-2 text-center text-gray-300">Billions</td><td class="px-3 py-2 text-center text-gray-300">Multi-modal, GraphQL API</td></tr>
+              <tr><td class="px-3 py-2 text-indigo-400 font-semibold">Qdrant</td><td class="px-3 py-2 text-center text-gray-300">Open source + Cloud</td><td class="px-3 py-2 text-center text-gray-300">Self-hosted or managed</td><td class="px-3 py-2 text-center text-green-400">Yes (1GB cluster)</td><td class="px-3 py-2 text-center text-gray-300">Billions</td><td class="px-3 py-2 text-center text-gray-300">Performance, Rust-native</td></tr>
+              <tr><td class="px-3 py-2 text-indigo-400 font-semibold">Milvus</td><td class="px-3 py-2 text-center text-gray-300">Open source + Cloud</td><td class="px-3 py-2 text-center text-gray-300">Self-hosted (Zilliz cloud)</td><td class="px-3 py-2 text-center text-green-400">Yes (Zilliz free)</td><td class="px-3 py-2 text-center text-gray-300">Trillions</td><td class="px-3 py-2 text-center text-gray-300">Massive scale, enterprise</td></tr>
+              <tr><td class="px-3 py-2 text-indigo-400 font-semibold">pgvector</td><td class="px-3 py-2 text-center text-gray-300">PostgreSQL extension</td><td class="px-3 py-2 text-center text-gray-300">Wherever Postgres runs</td><td class="px-3 py-2 text-center text-green-400">Yes (it's free)</td><td class="px-3 py-2 text-center text-gray-300">Millions</td><td class="px-3 py-2 text-center text-gray-300">Existing Postgres, simple</td></tr>
+              <tr><td class="px-3 py-2 text-indigo-400 font-semibold">Chroma</td><td class="px-3 py-2 text-center text-gray-300">Open source (embedded)</td><td class="px-3 py-2 text-center text-gray-300">In-process or hosted</td><td class="px-3 py-2 text-center text-green-400">Yes (open source)</td><td class="px-3 py-2 text-center text-gray-300">Millions</td><td class="px-3 py-2 text-center text-gray-300">Prototyping, Python devs</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-sm font-semibold text-green-400 uppercase tracking-wider mb-2">🏆 Our Recommendations</p>
+          <div class="space-y-2 text-sm text-gray-300">
+            <p><strong class="text-white">Already using Cloudflare?</strong> → Cloudflare Vectorize. Native integration with Workers AI, zero network hops, generous free tier.</p>
+            <p><strong class="text-white">Want zero infrastructure management?</strong> → Pinecone. The most mature managed service with excellent documentation.</p>
+            <p><strong class="text-white">Need full control (self-hosted)?</strong> → Qdrant. Rust-based, fast, excellent API design, good Docker support.</p>
+            <p><strong class="text-white">Already on PostgreSQL?</strong> → pgvector. Add vector search without introducing a new database. Limits around 1-5M vectors.</p>
+            <p><strong class="text-white">Just prototyping?</strong> → Chroma. Runs locally, zero config, Python-native. Move to production DB later.</p>
+          </div>
+        </div>
+
+        <!-- Section 6: How to Choose -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">How to Choose a Vector Database (Decision Framework)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Choosing the right vector database depends on five factors. Answer these questions and the right option usually becomes obvious:</p>
+
+        <div class="not-prose my-6 space-y-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+            <p class="text-white font-semibold text-sm mb-1">1. How many vectors will you store?</p>
+            <p class="text-xs text-gray-400">Under 100K → any option works, stay simple. 100K-5M → managed services or pgvector. 5M+ → purpose-built (Pinecone, Qdrant, Milvus). 100M+ → Milvus or Pinecone enterprise.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+            <p class="text-white font-semibold text-sm mb-1">2. What's your existing infrastructure?</p>
+            <p class="text-xs text-gray-400">On Cloudflare → Vectorize (zero-friction integration). On AWS → Pinecone or self-host on ECS. On PostgreSQL → pgvector first, migrate later if needed. On nothing yet → Pinecone (least to manage).</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+            <p class="text-white font-semibold text-sm mb-1">3. What latency do you need?</p>
+            <p class="text-xs text-gray-400">Under 50ms (real-time search UX) → Cloudflare Vectorize (edge), Qdrant (in-memory). Under 200ms (chatbot) → any managed service. Under 1s (batch processing) → anything, latency doesn't matter.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+            <p class="text-white font-semibold text-sm mb-1">4. Do you need metadata filtering?</p>
+            <p class="text-xs text-gray-400">"Find similar products, but only in category X and under £50" — this requires metadata filters. Pinecone, Qdrant, and Weaviate handle this natively. pgvector requires joining with regular SQL. Chroma supports basic filters.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+            <p class="text-white font-semibold text-sm mb-1">5. What's your budget and team size?</p>
+            <p class="text-xs text-gray-400">Solo developer → Chroma (prototype) then Pinecone (production). Small team → Pinecone or Cloudflare Vectorize. Dedicated infra team → Qdrant or Milvus self-hosted (cheapest at scale, most control).</p>
+          </div>
+        </div>
+
+        <!-- Section 7: Performance and Indexing -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Performance Considerations: Indexing Strategies</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">When you have millions of vectors, you can't compare the query against every single one (that would be too slow). Vector databases use indexing algorithms to approximate nearest-neighbour search — trading a small amount of accuracy for massive speed improvements.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Three main strategies dominate:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-4">
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-indigo-400 font-bold text-sm">HNSW (Hierarchical Navigable Small World)</p>
+              <span class="px-2 py-0.5 rounded text-xs bg-green-500/10 text-green-400 border border-green-500/20">Most Popular</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">Creates a graph structure that navigates from coarse to fine — like zooming into a map. Start at the continent level, narrow to country, city, street.</p>
+            <div class="grid grid-cols-3 gap-2 mt-2">
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Speed:</strong> Very fast (sub-ms)</p>
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Accuracy:</strong> 95-99%</p>
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Memory:</strong> High (index in RAM)</p>
+            </div>
+            <p class="text-xs text-green-400 mt-2">Used by: Pinecone, Qdrant, Weaviate, pgvector (with hnsw index)</p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10">
+            <p class="text-purple-400 font-bold text-sm mb-2">IVF (Inverted File Index)</p>
+            <p class="text-xs text-gray-400 mb-2">Divides vectors into clusters (buckets). At search time, only searches the most relevant buckets. Like searching one shelf in a library instead of the whole building.</p>
+            <div class="grid grid-cols-3 gap-2 mt-2">
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Speed:</strong> Fast</p>
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Accuracy:</strong> 90-95%</p>
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Memory:</strong> Lower than HNSW</p>
+            </div>
+            <p class="text-xs text-purple-400 mt-2">Used by: Milvus, Faiss, pgvector (with ivfflat index)</p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-cyan-500/20 bg-cyan-950/10">
+            <p class="text-cyan-400 font-bold text-sm mb-2">Flat (Brute Force)</p>
+            <p class="text-xs text-gray-400 mb-2">Compares against every vector. Guaranteed perfect accuracy, but O(n) — gets linearly slower as data grows. Only viable for small datasets.</p>
+            <div class="grid grid-cols-3 gap-2 mt-2">
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Speed:</strong> Slow at scale</p>
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Accuracy:</strong> 100%</p>
+              <p class="text-xs text-gray-500"><strong class="text-gray-300">Memory:</strong> Lowest</p>
+            </div>
+            <p class="text-xs text-cyan-400 mt-2">Used by: Chroma (default), development/testing environments</p>
+          </div>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-2">⚠️ What This Means Practically</p>
+          <p class="text-sm text-gray-300">For most business applications, the managed services handle indexing automatically — you don't need to configure HNSW parameters yourself. The key takeaway: vector search at scale is <strong class="text-white">approximate</strong> (95-99% accurate), not exact. This is fine for search, recommendations, and RAG. It would not be appropriate for cryptographic or financial applications requiring exact matching.</p>
+        </div>
+
+        <!-- Section 8: Cost Analysis -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Cost Analysis: What to Expect at Different Scales</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Vector database costs have dropped dramatically since 2023. Here's what realistic monthly costs look like in 2026:</p>
+
+        <div class="not-prose my-6 overflow-x-auto">
+          <table class="w-full text-xs border border-gray-700 rounded-xl overflow-hidden">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th class="px-3 py-3 text-left text-gray-300 font-semibold">Scale</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Vectors</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Queries/day</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Managed (£/mo)</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Self-hosted (£/mo)</th>
+                <th class="px-3 py-3 text-center text-gray-300 font-semibold">Notes</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700/50">
+              <tr><td class="px-3 py-2 text-green-400 font-semibold">Prototype</td><td class="px-3 py-2 text-center text-gray-300">Under 10K</td><td class="px-3 py-2 text-center text-gray-300">Under 100</td><td class="px-3 py-2 text-center text-green-400">£0 (free tier)</td><td class="px-3 py-2 text-center text-green-400">£0 (Chroma local)</td><td class="px-3 py-2 text-gray-400">All providers have free tier at this level</td></tr>
+              <tr><td class="px-3 py-2 text-blue-400 font-semibold">Small</td><td class="px-3 py-2 text-center text-gray-300">10K-100K</td><td class="px-3 py-2 text-center text-gray-300">100-1K</td><td class="px-3 py-2 text-center text-gray-300">£0-25</td><td class="px-3 py-2 text-center text-gray-300">£0 (pgvector on existing DB)</td><td class="px-3 py-2 text-gray-400">Most startups stay here for months</td></tr>
+              <tr><td class="px-3 py-2 text-amber-400 font-semibold">Medium</td><td class="px-3 py-2 text-center text-gray-300">100K-1M</td><td class="px-3 py-2 text-center text-gray-300">1K-10K</td><td class="px-3 py-2 text-center text-gray-300">£50-200</td><td class="px-3 py-2 text-center text-gray-300">£30-100 (VPS)</td><td class="px-3 py-2 text-gray-400">Most production RAG systems</td></tr>
+              <tr><td class="px-3 py-2 text-purple-400 font-semibold">Large</td><td class="px-3 py-2 text-center text-gray-300">1M-10M</td><td class="px-3 py-2 text-center text-gray-300">10K-100K</td><td class="px-3 py-2 text-center text-gray-300">£200-800</td><td class="px-3 py-2 text-center text-gray-300">£100-400 (dedicated)</td><td class="px-3 py-2 text-gray-400">E-commerce, large catalogues</td></tr>
+              <tr><td class="px-3 py-2 text-red-400 font-semibold">Enterprise</td><td class="px-3 py-2 text-center text-gray-300">10M+</td><td class="px-3 py-2 text-center text-gray-300">100K+</td><td class="px-3 py-2 text-center text-gray-300">£2,000+</td><td class="px-3 py-2 text-center text-gray-300">£1,000+ (cluster)</td><td class="px-3 py-2 text-gray-400">Custom pricing, multi-node clusters</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">💰 Hidden Costs to Budget For</p>
+          <div class="space-y-2 text-sm text-gray-300">
+            <p><strong class="text-white">Embedding generation:</strong> You pay the embedding model provider (OpenAI, Cohere, or self-hosted) to convert text into vectors. At £0.02-0.10 per 1M tokens, this is usually negligible for indexing but adds up for high query volumes.</p>
+            <p><strong class="text-white">Re-indexing:</strong> When you update documents, you need to regenerate embeddings. Budget for periodic re-indexing costs.</p>
+            <p><strong class="text-white">Query-time AI inference:</strong> In a RAG system, the vector DB is step 1. You still pay for the LLM that generates the final response (£0.50-5.00 per 1K queries depending on model).</p>
+          </div>
+        </div>
+
+        <!-- Section 9: Getting Started -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Getting Started: 5 Steps to Your First Vector Search</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Here's the practical path from "nothing" to "working vector search" — regardless of which provider you choose:</p>
+
+        <div class="not-prose my-6 space-y-4">
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <div class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm">1</span>
+              <div>
+                <p class="text-white font-semibold text-sm mb-1">Prepare Your Data</p>
+                <p class="text-xs text-gray-400">Gather the documents you want searchable. Split them into sensible chunks (typically 200-500 words per chunk). Each chunk becomes one vector. Too large = diluted meaning. Too small = lost context.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <div class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm">2</span>
+              <div>
+                <p class="text-white font-semibold text-sm mb-1">Choose an Embedding Model</p>
+                <p class="text-xs text-gray-400">For English text: OpenAI <code class="text-indigo-300">text-embedding-3-small</code> (cheap, good) or Cloudflare <code class="text-indigo-300">bge-base-en-v1.5</code> (free on Workers AI). For multilingual: Cohere <code class="text-indigo-300">embed-multilingual-v3</code>. Match the model's output dimensions to your vector database configuration.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <div class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm">3</span>
+              <div>
+                <p class="text-white font-semibold text-sm mb-1">Index Your Documents</p>
+                <p class="text-xs text-gray-400">Pass each chunk through the embedding model to get its vector. Store the vector + the original text + metadata (title, URL, category) in your vector database. This is a one-time operation (plus updates when docs change).</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <div class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm">4</span>
+              <div>
+                <p class="text-white font-semibold text-sm mb-1">Build the Query Pipeline</p>
+                <p class="text-xs text-gray-400">When a user searches: embed their query using the same model → query the vector DB for top-K similar vectors → return the associated text chunks. For RAG: feed those chunks + the original question to an LLM for a synthesised answer.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <div class="flex items-start gap-3">
+              <span class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm">5</span>
+              <div>
+                <p class="text-white font-semibold text-sm mb-1">Evaluate and Iterate</p>
+                <p class="text-xs text-gray-400">Test with real queries. Check: does it return the right documents? Is the relevance good? Tune: chunk size, overlap between chunks, number of results returned (top-K), and metadata filters. Most teams iterate 3-4 times before production.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-sm font-semibold text-green-400 uppercase tracking-wider mb-2">⏱️ Timeline Reality Check</p>
+          <p class="text-sm text-gray-300">A basic vector search proof of concept can be built in <strong class="text-white">1-2 days</strong> by an experienced developer. Production-quality (with chunking strategy, metadata, error handling, monitoring) takes <strong class="text-white">2-4 weeks</strong>. Full RAG system with citations, feedback loops, and analytics: <strong class="text-white">4-8 weeks</strong>.</p>
+        </div>
+
+        <!-- Section 10: When You Don't Need One -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">When You DON'T Need a Vector Database</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Not every search problem requires vectors. Here's when traditional approaches are better:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-bold text-sm mb-2">Skip Vectors When...</p>
+            <ul class="space-y-1 text-xs text-gray-400">
+              <li>• You need <strong>exact matching</strong> (order IDs, email addresses, SKUs)</li>
+              <li>• Your data is purely <strong>structured/numerical</strong> (SQL is better)</li>
+              <li>• You have <strong>fewer than 100 documents</strong> (just put them in the prompt)</li>
+              <li>• Users search by <strong>known fields</strong> (filters, not free text)</li>
+              <li>• <strong>Full-text search</strong> (Elasticsearch, Meilisearch) already works well enough</li>
+              <li>• Your content is <strong>highly structured</strong> (product codes, taxonomies)</li>
+            </ul>
+          </div>
+          <div class="p-4 rounded-xl border border-green-500/20 bg-green-950/10">
+            <p class="text-green-400 font-bold text-sm mb-2">Use Vectors When...</p>
+            <ul class="space-y-1 text-xs text-gray-400">
+              <li>• Users search with <strong>natural language questions</strong></li>
+              <li>• Content uses <strong>varied terminology</strong> for the same concepts</li>
+              <li>• You need <strong>"similar to this"</strong> functionality</li>
+              <li>• You're building <strong>RAG</strong> (AI + your documents)</li>
+              <li>• You need <strong>cross-lingual search</strong> (query in English, find French docs)</li>
+              <li>• You want <strong>recommendations</strong> based on content similarity</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-2">⚠️ Common Mistake</p>
+          <p class="text-sm text-gray-300">The biggest mistake we see: businesses adding a vector database when <strong class="text-white">full-text search with good ranking would suffice</strong>. If your users search for "Nike Air Max size 10" and you have structured product data with those exact fields — a regular search index (Elasticsearch, Meilisearch, even PostgreSQL full-text) is simpler, cheaper, and likely more accurate. Vectors shine when meaning varies from wording.</p>
+        </div>
+
+        <!-- Section 11: Summary -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Summary: Key Takeaways</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Vector databases are the infrastructure layer that makes modern AI features possible. Here's what to remember:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900/50">
+          <div class="space-y-3 text-sm text-gray-300">
+            <p><strong class="text-white">1. Vectors capture meaning, not keywords.</strong> They're numerical representations of content that allow similarity-based search — finding things that mean the same thing, even when worded differently.</p>
+            <p><strong class="text-white">2. They're the backbone of RAG.</strong> Every AI chatbot that answers from your documents uses a vector database to find the right context before generating a response.</p>
+            <p><strong class="text-white">3. The market is mature enough for production.</strong> Managed services (Pinecone, Cloudflare Vectorize) handle scaling, indexing, and operations. You don't need a PhD to use them.</p>
+            <p><strong class="text-white">4. Start small, scale later.</strong> Free tiers are generous. Prototype with 1,000 vectors, prove value, then scale to millions. The architecture stays the same.</p>
+            <p><strong class="text-white">5. Choose based on existing infrastructure.</strong> Already on Cloudflare? Use Vectorize. Already on PostgreSQL? Start with pgvector. Greenfield? Pinecone for zero ops.</p>
+            <p><strong class="text-white">6. They're not always the answer.</strong> Exact matching, structured queries, and small document sets don't need vectors. Use the right tool for the problem.</p>
+            <p><strong class="text-white">7. Costs are predictable and reasonable.</strong> Most production workloads cost £50-500/month. The embedding model and LLM inference are often the larger cost, not the database itself.</p>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="not-prose my-10 p-6 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/40 to-purple-950/30">
+          <p class="text-lg font-bold text-white mb-2">Need help choosing or implementing a vector database?</p>
+          <p class="text-sm text-gray-300 mb-4">We build production RAG systems and semantic search for UK businesses — from architecture selection through to deployment and monitoring. Whether you're evaluating options or ready to build, we can help you move faster with fewer wrong turns.</p>
+          <a href="/contact/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors">
+            Book a free consultation →
+          </a>
+        </div>
+
+      </article>
+    </div>
+  </section>
+
+  <!-- Related Articles -->
+  <aside class="pb-16">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-lg font-semibold text-white mb-4">Related Articles</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <a href="/blog/rag-complete-guide-business/" class="p-4 rounded-xl border border-gray-700 bg-gray-900/50 hover:border-indigo-500/50 transition-colors group">
+          <p class="text-sm font-semibold text-white group-hover:text-indigo-400 transition-colors">The Complete Guide to RAG for Business</p>
+          <p class="text-xs text-gray-500 mt-1">How RAG works, why it matters, and how to implement it without a PhD.</p>
+        </a>
+        <a href="/blog/building-rag-chatbots-cloudflare/" class="p-4 rounded-xl border border-gray-700 bg-gray-900/50 hover:border-indigo-500/50 transition-colors group">
+          <p class="text-sm font-semibold text-white group-hover:text-indigo-400 transition-colors">Building RAG Chatbots on Cloudflare</p>
+          <p class="text-xs text-gray-500 mt-1">Practical implementation using Workers AI, Vectorize, and D1.</p>
+        </a>
+        <a href="/blog/cloudflare-workers-vs-aws-lambda-vs-vercel/" class="p-4 rounded-xl border border-gray-700 bg-gray-900/50 hover:border-indigo-500/50 transition-colors group">
+          <p class="text-sm font-semibold text-white group-hover:text-indigo-400 transition-colors">Cloudflare Workers vs AWS Lambda vs Vercel</p>
+          <p class="text-xs text-gray-500 mt-1">Serverless platform comparison for modern AI workloads.</p>
+        </a>
+      </div>
+
+      <div class="mt-8 text-center">
+        <a href="/blog/" class="text-sm text-gray-400 hover:text-indigo-400 transition-colors">← Back to all articles</a>
+      </div>
+    </div>
+  </aside>
+
+</Layout>

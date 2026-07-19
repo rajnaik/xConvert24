@@ -1,0 +1,628 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+export const prerender = true;
+---
+
+<Layout title="Chrome Extension Development Guide 2026 — From Idea to Chrome Web Store | xSoft Blog" description="The complete guide to building Chrome extensions in 2026. Manifest V3, architecture patterns, development workflow, testing, publishing, and monetisation. Based on our production extensions." keywords="chrome extension development guide, manifest v3 tutorial, build chrome extension 2026, chrome web store publish, browser extension development, chrome extension architecture">
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Chrome Extension Development Guide 2026 — From Idea to Chrome Web Store",
+    "description": "The complete guide to building Chrome extensions in 2026. Manifest V3, architecture patterns, development workflow, testing, publishing, and monetisation.",
+    "datePublished": "2026-07-19",
+    "dateModified": "2026-07-19",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.xsoftlimited.com/" },
+    "publisher": { "@type": "Organization", "name": "xSoft Ltd", "logo": { "@type": "ImageObject", "url": "https://www.xsoftlimited.com/social-card.svg" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.xsoftlimited.com/blog/chrome-extension-development-guide-2026/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "How long does it take to build a Chrome extension?", "acceptedAnswer": { "@type": "Answer", "text": "A simple utility extension (popup UI, basic storage) can be built in 2-4 hours. A full-featured extension with content scripts, background processing, and polished UI typically takes 1-3 weeks. Publishing and review adds 1-5 business days on top." }},
+      { "@type": "Question", "name": "Is Manifest V3 the only option in 2026?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Google deprecated Manifest V2 and all new submissions must use V3. Existing V2 extensions have been migrated or removed from the Chrome Web Store. V3 uses service workers instead of background pages and has a stricter permissions model." }},
+      { "@type": "Question", "name": "How much does it cost to publish on the Chrome Web Store?", "acceptedAnswer": { "@type": "Answer", "text": "There is a one-time developer registration fee of $5 USD. After that, publishing and updates are free. There are no revenue-sharing fees from Google for free extensions." }},
+      { "@type": "Question", "name": "Can I monetise a Chrome extension?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Common models include freemium (free core + paid premium features), one-time purchases via your own payment system, subscriptions, affiliate links, and sponsorships. Google removed Chrome Web Store payments, so you need your own billing infrastructure." }},
+      { "@type": "Question", "name": "What permissions should I request for my extension?", "acceptedAnswer": { "@type": "Answer", "text": "Request the absolute minimum. Use activeTab instead of broad host permissions where possible. Every permission triggers a review and warning to users. Google rejects extensions that request permissions without clear justification in the listing." }}
+    ]
+  })} />
+
+  <section class="pt-10 pb-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+        <a href="/blog/" class="hover:text-indigo-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">Chrome Extension Development</span>
+      </nav>
+
+      <article class="prose prose-invert max-w-none">
+        <div class="mb-8">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Chrome</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Extensions</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Manifest V3</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Developer Guide</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white leading-tight">Chrome Extension Development Guide 2026 — From Idea to Chrome Web Store</h1>
+          <div class="mt-4 flex items-center gap-3 text-sm text-gray-400">
+            <time datetime="2026-07-19">19 July 2026</time>
+            <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+            <span>18 min read</span>
+          </div>
+        </div>
+
+        <!-- Introduction -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Why Chrome Extensions in 2026?</h2>
+
+        <p class="text-lg text-gray-300 leading-relaxed mb-4">Chrome has over 2 billion active users. The Chrome Web Store hosts 330,000+ extensions. And yet, the barrier to entry remains remarkably low — you can build and publish a useful extension in a single weekend with nothing more than HTML, CSS, and JavaScript.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Extensions sit in an unusual sweet spot: they have direct access to the browser (tabs, storage, network), they're discoverable through a marketplace, and they require no server infrastructure for basic functionality. For businesses, they're a distribution channel that lives inside the user's most-used application.</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 text-center">
+            <p class="text-2xl font-bold text-indigo-400">2B+</p>
+            <p class="text-xs text-gray-400 mt-1">Chrome active users</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 text-center">
+            <p class="text-2xl font-bold text-indigo-400">330K+</p>
+            <p class="text-xs text-gray-400 mt-1">Extensions published</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 text-center">
+            <p class="text-2xl font-bold text-indigo-400">$5</p>
+            <p class="text-xs text-gray-400 mt-1">One-time publish fee</p>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">This guide covers everything we've learned from building and publishing production extensions at xSoft — from architecture decisions through to store optimisation and user retention.</p>
+
+        <!-- What You Can Build -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">What You Can Build</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Extensions broadly fall into eight categories. Understanding where your idea fits helps you choose the right APIs, permissions, and architecture from day one.</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">🛠️ Productivity Tools</p>
+            <p class="text-xs text-gray-400">Tab managers, clipboard enhancers, auto-fill tools, bookmark organisers. High utility, low complexity.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">🚫 Ad & Content Blockers</p>
+            <p class="text-xs text-gray-400">Network request filtering via declarativeNetRequest. The most popular extension category globally.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">🧑‍💻 Developer Tools</p>
+            <p class="text-xs text-gray-400">JSON viewers, API testers, colour pickers, CSS inspectors. Devs build for devs.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">🤖 AI Assistants</p>
+            <p class="text-xs text-gray-400">Summarisers, writing helpers, code assistants. The fastest-growing category in 2026.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">📈 SEO & Marketing Tools</p>
+            <p class="text-xs text-gray-400">Meta tag viewers, rank trackers, competitor analysers. Niche but high-value audiences.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">💬 Social Media Tools</p>
+            <p class="text-xs text-gray-400">Schedulers, analytics overlays, bulk actions. Sensitive to platform ToS changes.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">📧 Communication Enhancers</p>
+            <p class="text-xs text-gray-400">Email trackers, canned responses, meeting schedulers. Integrations with Gmail, Outlook, Slack.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">♿ Accessibility Tools</p>
+            <p class="text-xs text-gray-400">Screen readers, contrast enhancers, text-to-speech. Meaningful impact, underserved market.</p>
+          </div>
+        </div>
+
+        <!-- Architecture & Manifest V3 -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Architecture & Manifest V3</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Manifest V3 is the only option in 2026. Google deprecated V2 entirely — new submissions require V3 and existing V2 extensions have been sunset. The core shift: background pages are gone, replaced by event-driven service workers.</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-3">🏗️ Extension Components</p>
+          <div class="space-y-3 text-sm text-gray-300">
+            <div class="flex gap-3">
+              <span class="text-indigo-400 font-mono text-xs w-28 shrink-0">Service Worker</span>
+              <span class="text-gray-400">Event-driven background script. Handles alarms, messages, tab events. Sleeps when idle — no persistent state in memory.</span>
+            </div>
+            <div class="flex gap-3">
+              <span class="text-indigo-400 font-mono text-xs w-28 shrink-0">Popup</span>
+              <span class="text-gray-400">The UI that appears when users click your toolbar icon. HTML + JS, rendered in a small window.</span>
+            </div>
+            <div class="flex gap-3">
+              <span class="text-indigo-400 font-mono text-xs w-28 shrink-0">Content Script</span>
+              <span class="text-gray-400">JavaScript injected into web pages. Can read/modify DOM. Isolated world — separate JS context from the page.</span>
+            </div>
+            <div class="flex gap-3">
+              <span class="text-indigo-400 font-mono text-xs w-28 shrink-0">Options Page</span>
+              <span class="text-gray-400">Full-page settings UI. Accessible via right-click → Options on your extension icon.</span>
+            </div>
+            <div class="flex gap-3">
+              <span class="text-indigo-400 font-mono text-xs w-28 shrink-0">Side Panel</span>
+              <span class="text-gray-400">New in V3 — a persistent panel alongside web content. Ideal for reference tools, chat assistants, note-taking.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-amber-300 font-semibold mb-1">⚠️ Service Worker Gotcha</p>
+          <p class="text-xs text-gray-400">Service workers terminate after ~30 seconds of inactivity. You cannot store state in global variables — use <code class="text-amber-300">chrome.storage</code> for persistence. This catches most developers migrating from V2.</p>
+        </div>
+
+        <!-- Development Setup -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Development Setup</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">You don't need a framework, bundler, or special tooling to build an extension. Plain HTML, CSS, and JavaScript work perfectly. That said, a structured setup saves time as your extension grows.</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
+          <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">📂 Recommended Folder Structure</p>
+          <div class="space-y-1 text-sm text-gray-300 font-mono">
+            <p>my-extension/</p>
+            <p class="pl-4">├── manifest.json</p>
+            <p class="pl-4">├── background.js</p>
+            <p class="pl-4">├── popup.html</p>
+            <p class="pl-4">├── popup.js</p>
+            <p class="pl-4">├── popup.css</p>
+            <p class="pl-4">├── content.js</p>
+            <p class="pl-4">├── options.html</p>
+            <p class="pl-4">├── options.js</p>
+            <p class="pl-4">├── icons/</p>
+            <p class="pl-4">│   ├── icon-16.png</p>
+            <p class="pl-4">│   ├── icon-48.png</p>
+            <p class="pl-4">│   └── icon-128.png</p>
+            <p class="pl-4">└── tests/</p>
+            <p class="pl-4">    └── extension.spec.ts</p>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The <code class="text-indigo-300">manifest.json</code> is the heart of your extension. It declares permissions, entry points, icons, and metadata. Here's a minimal V3 manifest:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
+          <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">manifest.json (Manifest V3)</p>
+          <pre class="text-xs text-gray-300 overflow-x-auto"><code>{
+  "manifest_version": 3,
+  "name": "My Extension",
+  "version": "1.0.0",
+  "description": "A brief description of what it does.",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/icon-16.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["&lt;all_urls&gt;"],
+    "js": ["content.js"]
+  }],
+  "icons": { "16": "icons/icon-16.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" }
+}</code></pre>
+        </div>
+
+        <div class="not-prose my-6 p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-sm text-green-300 font-semibold mb-1">💡 Hot Reload Setup</p>
+          <p class="text-xs text-gray-400">Go to <code class="text-green-300">chrome://extensions</code>, enable Developer Mode, click "Load unpacked" and select your folder. For changes to take effect: click the refresh icon on your extension card. Content script changes require refreshing the target page too.</p>
+        </div>
+
+        <!-- Key APIs -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Key Chrome APIs</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Chrome exposes over 50 APIs, but most extensions only need a handful. These ten cover 90% of use cases:</p>
+
+        <div class="not-prose my-6 overflow-hidden rounded-xl border border-gray-700">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">API</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Purpose</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Permission</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700/50">
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.tabs</td><td class="px-4 py-2 text-gray-400 text-xs">Query, create, update, close tabs</td><td class="px-4 py-2 text-gray-500 text-xs">tabs</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.storage</td><td class="px-4 py-2 text-gray-400 text-xs">Persistent key-value store (local + sync)</td><td class="px-4 py-2 text-gray-500 text-xs">storage</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.runtime</td><td class="px-4 py-2 text-gray-400 text-xs">Message passing, lifecycle events</td><td class="px-4 py-2 text-gray-500 text-xs">None</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.scripting</td><td class="px-4 py-2 text-gray-400 text-xs">Inject scripts/CSS into pages programmatically</td><td class="px-4 py-2 text-gray-500 text-xs">scripting</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.alarms</td><td class="px-4 py-2 text-gray-400 text-xs">Schedule recurring tasks (replaces setInterval)</td><td class="px-4 py-2 text-gray-500 text-xs">alarms</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.notifications</td><td class="px-4 py-2 text-gray-400 text-xs">Desktop notifications</td><td class="px-4 py-2 text-gray-500 text-xs">notifications</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.contextMenus</td><td class="px-4 py-2 text-gray-400 text-xs">Add items to right-click menu</td><td class="px-4 py-2 text-gray-500 text-xs">contextMenus</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.declarativeNetRequest</td><td class="px-4 py-2 text-gray-400 text-xs">Block/redirect network requests via rules</td><td class="px-4 py-2 text-gray-500 text-xs">declarativeNetRequest</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.identity</td><td class="px-4 py-2 text-gray-400 text-xs">OAuth2 authentication flows</td><td class="px-4 py-2 text-gray-500 text-xs">identity</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-indigo-400 font-mono text-xs">chrome.sidePanel</td><td class="px-4 py-2 text-gray-400 text-xs">Persistent side panel alongside page content</td><td class="px-4 py-2 text-gray-500 text-xs">sidePanel</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm text-indigo-300 font-semibold mb-1">💡 Pro Tip: chrome.storage.sync vs chrome.storage.local</p>
+          <p class="text-xs text-gray-400"><code class="text-indigo-300">sync</code> synchronises data across a user's signed-in Chrome instances (100KB limit). <code class="text-indigo-300">local</code> stores data on the current device only (10MB limit). Use <code class="text-indigo-300">local</code> for large data and <code class="text-indigo-300">sync</code> for user preferences.</p>
+        </div>
+
+        <!-- Development Workflow -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Development Workflow</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">A solid development loop keeps you productive. Here's the workflow we use at xSoft for all our extension projects:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">1. Load Unpacked</p>
+            <p class="text-xs text-gray-400">Navigate to <code class="text-indigo-300">chrome://extensions</code>, enable Developer Mode, click "Load unpacked". Point to your project folder.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">2. Edit & Refresh</p>
+            <p class="text-xs text-gray-400">Edit your code in VS Code. Click the refresh icon on the extension card. For popup changes, close and re-open the popup.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">3. Debug with DevTools</p>
+            <p class="text-xs text-gray-400">Right-click popup → Inspect. For service workers, click "Inspect views: service worker" on the extension card. Full DevTools access.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">4. Test with Playwright</p>
+            <p class="text-xs text-gray-400">Use <code class="text-indigo-300">launchPersistentContext</code> with <code class="text-indigo-300">--load-extension</code> flag for automated end-to-end testing in headed mode.</p>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">For automated testing, Playwright supports Chrome extensions through persistent contexts:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
+          <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Playwright Extension Test Pattern</p>
+          <pre class="text-xs text-gray-300 overflow-x-auto"><code>const context = await chromium.launchPersistentContext('', {
+  headless: false,
+  args: [
+    `--disable-extensions-except=${extensionPath}`,
+    `--load-extension=${extensionPath}`
+  ]
+});
+
+// Get the extension's background service worker
+const [bgPage] = context.serviceWorkers();
+
+// Open the popup
+const extensionId = bgPage.url().split('/')[2];
+const popup = await context.newPage();
+await popup.goto(`chrome-extension://${extensionId}/popup.html`);</code></pre>
+        </div>
+
+        <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm text-amber-300 font-semibold mb-1">⚠️ Headed Mode Required</p>
+          <p class="text-xs text-gray-400">Chrome extensions cannot run in headless mode. Always set <code class="text-amber-300">headless: false</code> in your Playwright config. This means CI/CD testing requires a display server (Xvfb on Linux).</p>
+        </div>
+
+        <!-- Common Patterns -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Common Patterns</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Most extension development comes down to a few recurring patterns. Master these and you can build almost anything.</p>
+
+        <h3 class="text-lg font-semibold text-gray-200 mt-6 mb-3">Message Passing</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The popup, background service worker, and content scripts run in isolated contexts. They communicate via Chrome's message-passing APIs:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
+          <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Popup → Background → Content Script</p>
+          <pre class="text-xs text-gray-300 overflow-x-auto"><code>// popup.js — send message to background
+chrome.runtime.sendMessage({ action: 'startClicking', selector: '#btn' });
+
+// background.js — relay to content script
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === 'startClicking') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, msg);
+    });
+  }
+});
+
+// content.js — receive and execute
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.action === 'startClicking') {
+    const el = document.querySelector(msg.selector);
+    if (el) el.click();
+  }
+});</code></pre>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-200 mt-6 mb-3">Storage Patterns</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Since service workers can terminate at any time, persistent state must live in <code class="text-indigo-300">chrome.storage</code>. Use a read-on-wake pattern:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
+          <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Read-on-Wake Pattern</p>
+          <pre class="text-xs text-gray-300 overflow-x-auto"><code>// background.js — load state when service worker starts
+let state = { isActive: false, interval: 5, selector: '' };
+
+chrome.storage.local.get(['extensionState'], (result) => {
+  if (result.extensionState) state = result.extensionState;
+});
+
+// Save state on every change
+function saveState() {
+  chrome.storage.local.set({ extensionState: state });
+}</code></pre>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-200 mt-6 mb-3">Content Script Injection</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">You can declare content scripts in the manifest (runs automatically on matching pages) or inject them programmatically (runs on demand):</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
+          <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Programmatic Injection (V3)</p>
+          <pre class="text-xs text-gray-300 overflow-x-auto"><code>// background.js — inject on user action
+chrome.action.onClicked.addListener((tab) => {
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ['content.js']
+  });
+});</code></pre>
+        </div>
+
+        <div class="not-prose my-6 p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-sm text-green-300 font-semibold mb-1">✅ Best Practice: Programmatic over Declarative</p>
+          <p class="text-xs text-gray-400">Prefer programmatic injection with <code class="text-green-300">activeTab</code> permission over declarative content scripts with broad host permissions. Google reviews are faster, users see fewer warnings, and your extension only runs when the user explicitly activates it.</p>
+        </div>
+
+        <!-- Publishing to Chrome Web Store -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Publishing to Chrome Web Store</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Getting from local development to a published listing involves several steps. The process is straightforward once you understand what Google expects.</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-3">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900 flex gap-4 items-start">
+            <span class="text-indigo-400 font-bold text-sm w-6 shrink-0">1</span>
+            <div>
+              <p class="text-sm font-semibold text-gray-200">Register a Developer Account</p>
+              <p class="text-xs text-gray-400 mt-1">One-time $5 fee at the Chrome Web Store Developer Dashboard. Verify your email address.</p>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900 flex gap-4 items-start">
+            <span class="text-indigo-400 font-bold text-sm w-6 shrink-0">2</span>
+            <div>
+              <p class="text-sm font-semibold text-gray-200">Prepare Your ZIP</p>
+              <p class="text-xs text-gray-400 mt-1">Create a ZIP of your extension folder (exclude tests, node_modules, .git). The manifest.json must be at the root level of the ZIP.</p>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900 flex gap-4 items-start">
+            <span class="text-indigo-400 font-bold text-sm w-6 shrink-0">3</span>
+            <div>
+              <p class="text-sm font-semibold text-gray-200">Upload & Fill Store Listing</p>
+              <p class="text-xs text-gray-400 mt-1">Title (clear, no keyword stuffing), description (benefit-led), screenshots (1280×800, minimum 3), icons (128×128 + 48×48), promo tiles.</p>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900 flex gap-4 items-start">
+            <span class="text-indigo-400 font-bold text-sm w-6 shrink-0">4</span>
+            <div>
+              <p class="text-sm font-semibold text-gray-200">Complete Privacy Practices</p>
+              <p class="text-xs text-gray-400 mt-1">Declare what data you collect (select "None" if you don't). Justify every permission. Provide a privacy policy URL. Certify compliance.</p>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900 flex gap-4 items-start">
+            <span class="text-indigo-400 font-bold text-sm w-6 shrink-0">5</span>
+            <div>
+              <p class="text-sm font-semibold text-gray-200">Submit for Review</p>
+              <p class="text-xs text-gray-400 mt-1">Initial review: 1-3 business days. Updates: typically within 24 hours. Complex extensions with broad permissions may take longer.</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-200 mt-6 mb-3">Store Listing Optimisation</h3>
+
+        <div class="not-prose my-6 overflow-hidden rounded-xl border border-gray-700">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Asset</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Dimensions</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Notes</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700/50">
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-gray-300 text-xs">Icon (toolbar)</td><td class="px-4 py-2 text-gray-400 text-xs">16 × 16px</td><td class="px-4 py-2 text-gray-500 text-xs">Must be recognisable at this tiny size</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-gray-300 text-xs">Icon (store)</td><td class="px-4 py-2 text-gray-400 text-xs">128 × 128px</td><td class="px-4 py-2 text-gray-500 text-xs">Your primary visual identity</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-gray-300 text-xs">Screenshots</td><td class="px-4 py-2 text-gray-400 text-xs">1280 × 800px</td><td class="px-4 py-2 text-gray-500 text-xs">Minimum 3, maximum 5. Show real UI.</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-gray-300 text-xs">Small promo tile</td><td class="px-4 py-2 text-gray-400 text-xs">440 × 280px</td><td class="px-4 py-2 text-gray-500 text-xs">JPEG or 24-bit PNG (no alpha)</td></tr>
+              <tr class="hover:bg-gray-800/30"><td class="px-4 py-2 text-gray-300 text-xs">Marquee promo</td><td class="px-4 py-2 text-gray-400 text-xs">1400 × 560px</td><td class="px-4 py-2 text-gray-500 text-xs">For featured placements. Clean, minimal text.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Monetisation -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Monetisation Strategies</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Google removed built-in Chrome Web Store payments in 2020. In 2026, you need your own monetisation infrastructure. Here are the models that work:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+            <p class="text-green-400 font-semibold text-sm mb-1">💎 Freemium</p>
+            <p class="text-xs text-gray-400">Free core features, paid premium tier. Most successful model. Users try before buying. Requires your own payment system (Stripe, Gumroad, LemonSqueezy).</p>
+          </div>
+          <div class="p-4 rounded-xl border border-green-500/30 bg-green-950/10">
+            <p class="text-green-400 font-semibold text-sm mb-1">🔄 Subscriptions</p>
+            <p class="text-xs text-gray-400">Monthly/yearly access. Works for extensions with ongoing costs (API calls, cloud storage, AI features). Requires user accounts and billing management.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">💰 One-Time Purchase</p>
+            <p class="text-xs text-gray-400">Pay once, use forever. Simpler to implement. Works for utility tools. Harder to sustain — no recurring revenue.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">🤝 Affiliate</p>
+            <p class="text-xs text-gray-400">Earn commission when users click through to partner services. Non-intrusive. Works if your extension naturally surfaces relevant products.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">🏢 Sponsorship</p>
+            <p class="text-xs text-gray-400">Companies pay for placement or branding within your extension. Requires significant user base (50K+ installs) to attract sponsors.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900">
+            <p class="text-indigo-400 font-semibold text-sm mb-1">🛒 Lead Generation</p>
+            <p class="text-xs text-gray-400">Extension drives users to your paid product/service. The extension itself is free but funnel users toward conversion.</p>
+          </div>
+        </div>
+
+        <div class="not-prose my-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm text-indigo-300 font-semibold mb-1">💡 What Works Best in 2026</p>
+          <p class="text-xs text-gray-400">Freemium with a generous free tier dominates. Users expect extensions to be free — gating core functionality behind a paywall leads to poor reviews. Instead, offer power-user features (bulk actions, advanced settings, data export) as the paid tier.</p>
+        </div>
+
+        <!-- Common Mistakes -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">8 Mistakes That Get Extensions Rejected</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">We've seen (and made) these mistakes. Each one can result in a store rejection, poor reviews, or both:</p>
+
+        <div class="not-prose my-6 space-y-3">
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">1. Requesting Too Many Permissions</p>
+            <p class="text-xs text-gray-400">Google will reject extensions that request permissions they don't demonstrably use. Every permission must be justified in your listing. Users see scary warnings for broad permissions like "Read and change all your data on all websites".</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">2. Storing State in Service Worker Variables</p>
+            <p class="text-xs text-gray-400">The service worker terminates after ~30s of inactivity. Global variables are wiped. Users report "settings not saving" — your worst review category. Always use chrome.storage.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">3. No Single Purpose</p>
+            <p class="text-xs text-gray-400">Google enforces "single purpose" strictly. An extension that's a tab manager AND a screenshot tool AND a note-taker will be rejected. One extension = one clear function.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">4. Missing Error Handling on Restricted Pages</p>
+            <p class="text-xs text-gray-400">Extensions cannot run on chrome://, chrome-extension://, or the Chrome Web Store itself. If you don't handle this gracefully, users see crashes. Always check the tab URL before injecting scripts.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">5. Keyword Stuffing in the Listing</p>
+            <p class="text-xs text-gray-400">Google's automated review catches keyword spam. "Best free fastest most powerful amazing extension" will get you flagged. Write naturally, lead with user benefits.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">6. No Privacy Policy</p>
+            <p class="text-xs text-gray-400">Even if you collect zero data, you need a privacy policy URL. Host a simple page on your website stating what you collect (or don't). No policy = automatic rejection.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">7. Using Remote Code</p>
+            <p class="text-xs text-gray-400">V3 bans loading JavaScript from external servers. All code must be bundled in your extension package. This includes analytics scripts, ad libraries, and CDN dependencies.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-1">8. Ignoring Internationalisation</p>
+            <p class="text-xs text-gray-400">Chrome has a global user base. Hardcoded English strings, right-to-left layout issues, and locale-dependent date formats frustrate international users and limit your reach.</p>
+          </div>
+        </div>
+
+        <!-- Our Experience -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Case Study: Auto Button Clicker</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">We built and published Auto Button Clicker — a Chrome extension that automatically clicks any element on a page at configurable intervals (1-60 seconds). Here's what the experience taught us.</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 text-center">
+            <p class="text-2xl font-bold text-indigo-400">4</p>
+            <p class="text-xs text-gray-400 mt-1">Permissions requested</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 text-center">
+            <p class="text-2xl font-bold text-indigo-400">2 days</p>
+            <p class="text-xs text-gray-400 mt-1">First review turnaround</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 text-center">
+            <p class="text-2xl font-bold text-indigo-400">V3</p>
+            <p class="text-xs text-gray-400 mt-1">Manifest version (required)</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 text-center">
+            <p class="text-2xl font-bold text-indigo-400">JS only</p>
+            <p class="text-xs text-gray-400 mt-1">No framework needed</p>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-200 mt-6 mb-3">What We Learned</h3>
+
+        <div class="not-prose my-6 space-y-3">
+          <div class="p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+            <p class="text-sm font-semibold text-indigo-300 mb-1">Permission justifications matter</p>
+            <p class="text-xs text-gray-400">We needed <code class="text-indigo-300">activeTab</code>, <code class="text-indigo-300">scripting</code>, <code class="text-indigo-300">storage</code>, and <code class="text-indigo-300">tabs</code>. Each had to be clearly justified in the store listing. "tabs" was needed to detect chrome:// pages where the extension can't operate — we had to explain this explicitly.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+            <p class="text-sm font-semibold text-indigo-300 mb-1">chrome:// detection is essential</p>
+            <p class="text-xs text-gray-400">Extensions crash silently on restricted pages. We added URL checks before every script injection and show a friendly "This page isn't supported" message instead of failing.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+            <p class="text-sm font-semibold text-indigo-300 mb-1">Screenshots sell the extension</p>
+            <p class="text-xs text-gray-400">Our conversion rate improved after adding 3 clean screenshots showing the extension in idle, running, and success states. Users want to see the UI before installing.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+            <p class="text-sm font-semibold text-indigo-300 mb-1">GA4 Measurement Protocol for analytics</p>
+            <p class="text-xs text-gray-400">You can't inject Google Analytics scripts into an extension (remote code ban). Instead, use the GA4 Measurement Protocol to send events server-side or directly from the extension via fetch().</p>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Summary & Key Takeaways</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Chrome extension development in 2026 is accessible, powerful, and commercially viable. The combination of a massive user base, low barrier to entry, and discoverable marketplace makes it one of the best channels for shipping software quickly.</p>
+
+        <div class="not-prose my-6 space-y-2">
+          <div class="flex gap-3 items-start p-3 rounded-lg border border-gray-700/50 bg-gray-900">
+            <span class="text-green-400 text-sm">✓</span>
+            <p class="text-sm text-gray-300">Manifest V3 is non-negotiable — build with service workers, declarativeNetRequest, and strict permissions from day one.</p>
+          </div>
+          <div class="flex gap-3 items-start p-3 rounded-lg border border-gray-700/50 bg-gray-900">
+            <span class="text-green-400 text-sm">✓</span>
+            <p class="text-sm text-gray-300">Request minimum permissions. Each extra permission slows review, scares users, and increases rejection risk.</p>
+          </div>
+          <div class="flex gap-3 items-start p-3 rounded-lg border border-gray-700/50 bg-gray-900">
+            <span class="text-green-400 text-sm">✓</span>
+            <p class="text-sm text-gray-300">Use chrome.storage for all persistent state — service workers die after 30 seconds of inactivity.</p>
+          </div>
+          <div class="flex gap-3 items-start p-3 rounded-lg border border-gray-700/50 bg-gray-900">
+            <span class="text-green-400 text-sm">✓</span>
+            <p class="text-sm text-gray-300">Handle restricted pages gracefully. Check URLs before injecting scripts. Show friendly error states.</p>
+          </div>
+          <div class="flex gap-3 items-start p-3 rounded-lg border border-gray-700/50 bg-gray-900">
+            <span class="text-green-400 text-sm">✓</span>
+            <p class="text-sm text-gray-300">Invest in store listing assets — 3+ clear screenshots, benefit-led description, and a privacy policy URL.</p>
+          </div>
+          <div class="flex gap-3 items-start p-3 rounded-lg border border-gray-700/50 bg-gray-900">
+            <span class="text-green-400 text-sm">✓</span>
+            <p class="text-sm text-gray-300">Test with Playwright in headed mode for automated regression testing before every store update.</p>
+          </div>
+          <div class="flex gap-3 items-start p-3 rounded-lg border border-gray-700/50 bg-gray-900">
+            <span class="text-green-400 text-sm">✓</span>
+            <p class="text-sm text-gray-300">Monetise with freemium — generous free tier plus power-user features for paying customers.</p>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="not-prose my-12 p-6 rounded-xl border border-indigo-500/40 bg-gradient-to-r from-indigo-950/30 to-purple-950/30">
+          <h3 class="text-lg font-bold text-white mb-2">Need a Custom Chrome Extension Built?</h3>
+          <p class="text-sm text-gray-300 mb-4">xSoft builds production-grade Chrome extensions for businesses — from initial concept through store publication and ongoing maintenance. We handle architecture, permissions, testing, and store optimisation.</p>
+          <a href="/contact/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors">
+            Discuss Your Extension Project →
+          </a>
+        </div>
+
+      </article>
+
+      <!-- Related Articles -->
+      <aside class="mt-12 pt-8 border-t border-gray-800">
+        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Related Articles</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <a href="/blog/cloudflare-workers-vs-aws-lambda-vs-vercel/" class="p-4 rounded-xl border border-gray-700 bg-gray-900 hover:border-indigo-500/50 transition-colors group">
+            <p class="text-sm font-semibold text-gray-200 group-hover:text-indigo-400 transition-colors">Cloudflare Workers vs AWS Lambda vs Vercel</p>
+            <p class="text-xs text-gray-500 mt-1">Serverless platforms compared for real workloads</p>
+          </a>
+          <a href="/blog/ai-tools-small-business/" class="p-4 rounded-xl border border-gray-700 bg-gray-900 hover:border-indigo-500/50 transition-colors group">
+            <p class="text-sm font-semibold text-gray-200 group-hover:text-indigo-400 transition-colors">AI Tools for Small Business</p>
+            <p class="text-xs text-gray-500 mt-1">Practical AI applications that save time and money</p>
+          </a>
+          <a href="/blog/how-much-does-a-website-cost-uk/" class="p-4 rounded-xl border border-gray-700 bg-gray-900 hover:border-indigo-500/50 transition-colors group">
+            <p class="text-sm font-semibold text-gray-200 group-hover:text-indigo-400 transition-colors">How Much Does a Website Cost in the UK?</p>
+            <p class="text-xs text-gray-500 mt-1">Honest breakdown of web development pricing</p>
+          </a>
+        </div>
+      </aside>
+
+      <!-- Back to blog -->
+      <div class="mt-10 pt-6 border-t border-gray-800">
+        <a href="/blog/" class="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">← Back to all articles</a>
+      </div>
+
+    </div>
+  </section>
+
+</Layout>

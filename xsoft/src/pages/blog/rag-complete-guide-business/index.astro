@@ -1,0 +1,901 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import '../../../styles/global.css';
+export const prerender = true;
+---
+
+<Layout title="The Complete Guide to RAG for Business (2026) — What It Is, How It Works, Why You Need It | xSoft Blog" description="RAG (Retrieval-Augmented Generation) explained for business leaders. How it works, why it matters, real use cases, costs, and how to implement it without a PhD in machine learning." keywords="RAG for business, retrieval augmented generation explained, RAG chatbot, AI knowledge base, enterprise RAG, RAG implementation guide 2026">
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "The Complete Guide to RAG for Business (2026)",
+    "description": "RAG (Retrieval-Augmented Generation) explained for business leaders. How it works, why it matters, real use cases, costs, and implementation guide.",
+    "datePublished": "2026-07-19",
+    "dateModified": "2026-07-19",
+    "author": { "@type": "Person", "name": "Raj Naik", "url": "https://www.xsoftlimited.com/about/" },
+    "publisher": { "@type": "Organization", "name": "xSoft Ltd", "logo": { "@type": "ImageObject", "url": "https://www.xsoftlimited.com/social-card.svg" } },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://www.xsoftlimited.com/blog/rag-complete-guide-business/" }
+  })} />
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is RAG in simple terms?", "acceptedAnswer": { "@type": "Answer", "text": "RAG (Retrieval-Augmented Generation) is a technique that gives AI access to your specific business data when answering questions. Instead of relying only on its general training, the AI first searches your documents for relevant information, then uses that information to generate an accurate, grounded response. Think of it as giving the AI a search engine for your knowledge base." }},
+      { "@type": "Question", "name": "How is RAG different from fine-tuning an AI model?", "acceptedAnswer": { "@type": "Answer", "text": "Fine-tuning permanently changes the AI model by retraining it on your data — expensive ($10K-100K+), slow (weeks), and needs repeating when data changes. RAG keeps the model unchanged and instead searches your data in real-time at query time. RAG is cheaper, faster to implement, and your knowledge stays current because you update the search index, not the model." }},
+      { "@type": "Question", "name": "What types of businesses benefit most from RAG?", "acceptedAnswer": { "@type": "Answer", "text": "Any business with substantial documentation that customers or employees need to search: SaaS companies (product docs), professional services (policy libraries), e-commerce (product catalogues), healthcare (clinical guidelines), legal firms (case databases), and any business with a knowledge base, FAQ, or internal wiki." }},
+      { "@type": "Question", "name": "How much does it cost to implement RAG?", "acceptedAnswer": { "@type": "Answer", "text": "A production RAG system costs £8,000-25,000 to build (depending on complexity) with ongoing costs of £100-500/month for hosting and AI inference. For businesses with under 10,000 documents, Cloudflare's free tier often covers the vector database and AI model costs entirely." }},
+      { "@type": "Question", "name": "Can RAG hallucinate or give wrong answers?", "acceptedAnswer": { "@type": "Answer", "text": "RAG significantly reduces hallucination compared to plain AI (from ~20% to under 5%), but doesn't eliminate it entirely. The key safeguards: set confidence thresholds (only answer when retrieval confidence is high), include source citations in responses, and have the AI say 'I don't know' when context is insufficient. A well-built RAG system is wrong less than 5% of the time." }}
+    ]
+  })} />
+
+  <section class="pt-10 pb-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="text-sm text-gray-400 mb-6 flex items-center gap-1">
+        <a href="/blog/" class="hover:text-indigo-400 transition-colors">← Blog</a>
+        <span class="mx-1">›</span>
+        <span class="text-gray-300">RAG Guide</span>
+      </nav>
+
+      <article class="prose prose-invert max-w-none">
+        <div class="mb-8">
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">AI</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">RAG</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Knowledge Base</span>
+            <span class="px-2 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Complete Guide</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-black text-white leading-tight">The Complete Guide to RAG for Business (2026)</h1>
+          <div class="mt-4 flex items-center gap-3 text-sm text-gray-400">
+            <time datetime="2026-07-19">19 July 2026</time>
+            <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+            <span>17 min read</span>
+          </div>
+        </div>
+
+        <!-- Introduction -->
+        <p class="text-lg text-gray-300 leading-relaxed mb-4">You've probably heard that AI chatbots "hallucinate" — they make things up with complete confidence. That's true. A standard ChatGPT has no access to your product documentation, company policies, or customer data. Ask it about your return policy and it'll invent one that sounds plausible but is completely wrong.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">RAG fixes this. It's the technique that makes AI actually useful for business — not as a general-purpose assistant, but as a knowledgeable expert on YOUR specific domain.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">This guide explains RAG from the ground up — no computer science degree required. By the end, you'll understand what it is, how it works, whether your business needs it, what it costs, and how to get started. Written for decision-makers, not engineers.</p>
+
+        <div class="not-prose my-8 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">🎯 What You'll Learn</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-300">
+            <p>• What RAG is (plain English)</p>
+            <p>• The problem it solves</p>
+            <p>• How it works (step by step)</p>
+            <p>• RAG vs fine-tuning vs prompting</p>
+            <p>• Real business use cases</p>
+            <p>• Cost breakdown</p>
+            <p>• Implementation roadmap</p>
+            <p>• How to measure success</p>
+          </div>
+        </div>
+
+        <!-- Section 1: The Problem -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">The Problem: AI Doesn't Know Your Business</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Large Language Models (LLMs) like GPT-4, Claude, and Llama are trained on massive datasets of internet text. They know a lot about the world in general — but nothing about:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-2">What AI Doesn't Know</p>
+            <ul class="space-y-1 text-xs text-gray-400">
+              <li>• Your product features and limitations</li>
+              <li>• Your pricing and plan differences</li>
+              <li>• Your company policies (returns, refunds, SLAs)</li>
+              <li>• Your technical documentation</li>
+              <li>• Changes made after its training cutoff</li>
+              <li>• Internal processes and workflows</li>
+              <li>• Your customer data and account details</li>
+              <li>• Anything behind a login or paywall</li>
+            </ul>
+          </div>
+          <div class="p-4 rounded-xl border border-green-500/20 bg-green-950/10">
+            <p class="text-green-400 font-semibold text-sm mb-2">What AI Does Know</p>
+            <ul class="space-y-1 text-xs text-gray-400">
+              <li>• General knowledge from the internet</li>
+              <li>• How to structure responses well</li>
+              <li>• Language, grammar, and tone</li>
+              <li>• Common patterns (FAQs, support, etc.)</li>
+              <li>• How to follow instructions</li>
+              <li>• How to synthesise information</li>
+              <li>• Multiple languages</li>
+              <li>• Reasoning and logic</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">This creates a gap. The AI is excellent at language and reasoning, but knows nothing about your specific business. Without your data, it's like hiring a brilliant communicator who's never read your handbook.</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-amber-500/30 bg-amber-950/10">
+          <p class="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-2">💡 The Core Insight</p>
+          <p class="text-sm text-gray-300">RAG solves this by giving the AI access to your business knowledge at the moment it needs it — without permanently changing the model. It's like giving a smart new employee a searchable filing cabinet on their first day, rather than expecting them to memorise everything before they start.</p>
+        </div>
+
+        <!-- Section 2: What is RAG -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">What is RAG? (The Non-Technical Explanation)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">RAG stands for <strong class="text-white">Retrieval-Augmented Generation</strong>. Let's break that down:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl border border-blue-500/20 bg-blue-950/10">
+            <p class="text-blue-400 font-bold text-lg mb-2">Retrieval</p>
+            <p class="text-xs text-gray-400">Search your documents for relevant information. Like a librarian finding the right page in the right book.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10">
+            <p class="text-purple-400 font-bold text-lg mb-2">Augmented</p>
+            <p class="text-xs text-gray-400">Add that information to the AI's context. "Here's what you need to know to answer this question."</p>
+          </div>
+          <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-950/10">
+            <p class="text-indigo-400 font-bold text-lg mb-2">Generation</p>
+            <p class="text-xs text-gray-400">The AI generates a response using both its language skills AND your specific data. Accurate and natural.</p>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">In practice, the flow is:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-3">⚡ The RAG Flow (Under 2 Seconds)</p>
+          <div class="space-y-2 text-sm text-gray-300">
+            <p><span class="text-cyan-400 font-mono">1.</span> Customer asks: "Can I return a sale item?"</p>
+            <p><span class="text-cyan-400 font-mono">2.</span> System searches your knowledge base for "returns" + "sale items"</p>
+            <p><span class="text-cyan-400 font-mono">3.</span> Finds your returns policy document (the relevant paragraphs)</p>
+            <p><span class="text-cyan-400 font-mono">4.</span> Gives the AI those paragraphs + the customer's question</p>
+            <p><span class="text-cyan-400 font-mono">5.</span> AI generates: "Yes, sale items can be returned within 14 days in original condition. Please note that sale items are refunded to store credit rather than original payment method."</p>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The response is accurate because it's based on YOUR actual policy — not the AI's imagination. And it's natural language because the AI formulates the response conversationally, rather than just pasting raw policy text.</p>
+
+        <!-- Section 3: RAG vs Alternatives -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">RAG vs Fine-Tuning vs Prompt Engineering</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">There are three ways to make an AI know about your business. Understanding the differences helps you choose the right approach:</p>
+
+        <div class="not-prose my-6 overflow-x-auto">
+          <table class="w-full text-sm border border-gray-700 rounded-xl overflow-hidden">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-gray-300 font-semibold">Approach</th>
+                <th class="px-4 py-3 text-center text-gray-300 font-semibold">Prompt Engineering</th>
+                <th class="px-4 py-3 text-center text-gray-300 font-semibold">RAG</th>
+                <th class="px-4 py-3 text-center text-gray-300 font-semibold">Fine-Tuning</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700/50">
+              <tr><td class="px-4 py-2 text-gray-400">How it works</td><td class="px-4 py-2 text-center text-gray-300 text-xs">Paste info into the prompt</td><td class="px-4 py-2 text-center text-gray-300 text-xs">Search & inject at query time</td><td class="px-4 py-2 text-center text-gray-300 text-xs">Retrain the model on your data</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Knowledge capacity</td><td class="px-4 py-2 text-center text-amber-400">Small (context window limit)</td><td class="px-4 py-2 text-center text-green-400">Unlimited (entire knowledge base)</td><td class="px-4 py-2 text-center text-green-400">Large (baked into model)</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Setup cost</td><td class="px-4 py-2 text-center text-green-400">Free</td><td class="px-4 py-2 text-center text-amber-400">£8-25K</td><td class="px-4 py-2 text-center text-red-400">£10-100K+</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Time to implement</td><td class="px-4 py-2 text-center text-green-400">Hours</td><td class="px-4 py-2 text-center text-amber-400">4-8 weeks</td><td class="px-4 py-2 text-center text-red-400">4-12 weeks</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Updating knowledge</td><td class="px-4 py-2 text-center text-green-400">Edit the prompt</td><td class="px-4 py-2 text-center text-green-400">Update index (minutes)</td><td class="px-4 py-2 text-center text-red-400">Retrain model (days/weeks)</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Accuracy</td><td class="px-4 py-2 text-center text-amber-400">Good (if info fits in prompt)</td><td class="px-4 py-2 text-center text-green-400">Excellent (cites sources)</td><td class="px-4 py-2 text-center text-amber-400">Variable (can still hallucinate)</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Citation ability</td><td class="px-4 py-2 text-center text-red-400">No</td><td class="px-4 py-2 text-center text-green-400">Yes (links to source docs)</td><td class="px-4 py-2 text-center text-red-400">No</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Best for</td><td class="px-4 py-2 text-center text-gray-300 text-xs">Simple bots, small FAQ</td><td class="px-4 py-2 text-center text-gray-300 text-xs">Most business use cases</td><td class="px-4 py-2 text-center text-gray-300 text-xs">Tone/style changes, niche domains</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">🏆 When to Use What</p>
+          <div class="space-y-2 text-sm text-gray-300">
+            <p><strong class="text-white">Under 10 pages of info:</strong> Prompt engineering (just paste it into the system prompt)</p>
+            <p><strong class="text-white">10-10,000+ documents:</strong> RAG (the sweet spot for 90% of businesses)</p>
+            <p><strong class="text-white">Need specific tone/style:</strong> Fine-tune a small model + RAG for knowledge (combine both)</p>
+          </div>
+        </div>
+
+        <!-- Section 4: How It Works Technically -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">How RAG Works Under the Hood</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">You don't need to understand the maths — but understanding the components helps you make informed decisions about vendors and architecture. Here's the simplified version:</p>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Phase 1: Indexing (One-Time Setup)</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Before the system can answer questions, your documents need to be processed and stored in a searchable format:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-purple-500/30 bg-purple-950/10">
+          <div class="space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">1</span>
+              <div>
+                <p class="text-sm text-white font-medium">Collect your documents</p>
+                <p class="text-xs text-gray-400">FAQ pages, help articles, product docs, policy documents, internal wikis — anything that contains answers to questions people might ask.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">2</span>
+              <div>
+                <p class="text-sm text-white font-medium">Split into chunks</p>
+                <p class="text-xs text-gray-400">Long documents are split into smaller pieces (typically 300-500 words each). This is because the AI works best with focused, relevant context — not entire 50-page PDFs.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">3</span>
+              <div>
+                <p class="text-sm text-white font-medium">Convert to vectors (embeddings)</p>
+                <p class="text-xs text-gray-400">Each chunk is converted into a list of numbers (a "vector") that represents its meaning. "Return policy" and "how to send items back" would have similar vectors — because they mean similar things, even though the words are different.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-purple-900/50 border border-purple-500/40 flex items-center justify-center text-xs text-purple-300 font-bold">4</span>
+              <div>
+                <p class="text-sm text-white font-medium">Store in a vector database</p>
+                <p class="text-xs text-gray-400">These vectors are stored in a specialised database designed for fast similarity search. When a question comes in, it finds the chunks whose meaning is closest to the question.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Phase 2: Query Time (Every Conversation)</h3>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <div class="space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">A</span>
+              <div>
+                <p class="text-sm text-white font-medium">User asks a question</p>
+                <p class="text-xs text-gray-400">"What's the difference between your Pro and Enterprise plans?"</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">B</span>
+              <div>
+                <p class="text-sm text-white font-medium">Question is vectorised</p>
+                <p class="text-xs text-gray-400">The question gets converted into a vector (same process as indexing). This takes ~30ms.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">C</span>
+              <div>
+                <p class="text-sm text-white font-medium">Similar chunks are retrieved</p>
+                <p class="text-xs text-gray-400">The vector database finds the 3-5 chunks most similar in meaning. In this case: the pricing page section comparing plans. Takes ~20ms.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">D</span>
+              <div>
+                <p class="text-sm text-white font-medium">Context is assembled</p>
+                <p class="text-xs text-gray-400">A prompt is built: "Using the following information from our documentation, answer the customer's question: [retrieved chunks] Question: [user's question]"</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-cyan-900/50 border border-cyan-500/40 flex items-center justify-center text-xs text-cyan-300 font-bold">E</span>
+              <div>
+                <p class="text-sm text-white font-medium">AI generates a response</p>
+                <p class="text-xs text-gray-400">The LLM reads the context and generates a natural, accurate response grounded in your actual data. First token in ~200ms, full response in 1-3 seconds.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Total time: under 2 seconds. The user never sees the retrieval step — they just get an accurate, conversational answer that reflects your actual business information.</p>
+
+        <!-- Section 5: Use Cases -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Real Business Use Cases for RAG</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">RAG isn't just for chatbots. Here are the most impactful use cases we see in UK businesses:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-4">
+          <div class="p-5 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-indigo-400 font-semibold text-sm">Customer Support Chatbot</p>
+              <span class="px-2 py-0.5 rounded text-xs bg-green-500/10 text-green-400 border border-green-500/20">Most Common</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">An AI chatbot on your website that answers customer questions using your help centre, product docs, and FAQs. Handles 60-80% of queries without human intervention.</p>
+            <p class="text-xs text-gray-500"><strong>Knowledge source:</strong> Help articles, FAQ, product documentation, policy pages</p>
+            <p class="text-xs text-gray-500"><strong>ROI:</strong> 40-60% reduction in support ticket volume</p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-indigo-400 font-semibold text-sm">Internal Knowledge Assistant</p>
+              <span class="px-2 py-0.5 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">High Impact</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">An AI for your team that answers questions about company processes, HR policies, IT procedures, and internal documentation. "How do I submit an expense claim?" answered instantly instead of hunting through Confluence.</p>
+            <p class="text-xs text-gray-500"><strong>Knowledge source:</strong> Internal wikis, HR handbook, IT guides, process documents</p>
+            <p class="text-xs text-gray-500"><strong>ROI:</strong> 2-3 hours/employee/week saved on finding information</p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-indigo-400 font-semibold text-sm">Sales Enablement</p>
+              <span class="px-2 py-0.5 rounded text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">Revenue Driver</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">AI that helps sales teams answer prospect questions instantly. "How does our product compare to Competitor X?" with accurate, up-to-date battle cards. Also: personalised proposal generation using past case studies.</p>
+            <p class="text-xs text-gray-500"><strong>Knowledge source:</strong> Sales playbooks, competitor analysis, case studies, pricing guides</p>
+            <p class="text-xs text-gray-500"><strong>ROI:</strong> 20-30% faster sales cycle, more consistent messaging</p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-indigo-400 font-semibold text-sm">Legal/Compliance Search</p>
+              <span class="px-2 py-0.5 rounded text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">Specialist</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">Search across contracts, regulations, and compliance documents in natural language. "What does our insurance policy say about remote work equipment liability?" instead of reading 200-page PDFs.</p>
+            <p class="text-xs text-gray-500"><strong>Knowledge source:</strong> Contracts, regulations, policies, legal precedents</p>
+            <p class="text-xs text-gray-500"><strong>ROI:</strong> Hours of research reduced to seconds per query</p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-indigo-400 font-semibold text-sm">Product Discovery</p>
+              <span class="px-2 py-0.5 rounded text-xs bg-green-500/10 text-green-400 border border-green-500/20">E-Commerce</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">Instead of filters and search boxes, customers describe what they need: "I need a waterproof jacket for hiking in Scotland, budget around £150." The AI searches your product catalogue semantically and recommends specific items.</p>
+            <p class="text-xs text-gray-500"><strong>Knowledge source:</strong> Product catalogue, reviews, specifications, buying guides</p>
+            <p class="text-xs text-gray-500"><strong>ROI:</strong> 15-25% increase in conversion rate for complex purchases</p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-indigo-400 font-semibold text-sm">Onboarding & Training</p>
+              <span class="px-2 py-0.5 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">HR</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-2">New employees ask a RAG-powered assistant anything about the company during their first weeks. "How do I set up VPN access?" "What's the dress code?" "Who handles procurement?" Reduces dependency on busy managers for basic questions.</p>
+            <p class="text-xs text-gray-500"><strong>Knowledge source:</strong> Onboarding guides, IT setup docs, team org charts, policies</p>
+            <p class="text-xs text-gray-500"><strong>ROI:</strong> 50% faster time-to-productivity for new hires</p>
+          </div>
+        </div>
+
+        <!-- Section 6: Quality Factors -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">What Makes a RAG System Good or Bad</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Not all RAG implementations are equal. The difference between a helpful system and a frustrating one comes down to these factors:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-green-500/20 bg-green-950/10">
+            <p class="text-green-400 font-semibold text-sm mb-2">Signs of Good RAG</p>
+            <ul class="space-y-1 text-xs text-gray-400">
+              <li>• Accurate answers that match source documents</li>
+              <li>• Admits "I don't know" when info isn't available</li>
+              <li>• Provides source citations (links to original docs)</li>
+              <li>• Handles ambiguous questions by asking for clarification</li>
+              <li>• Response time under 3 seconds</li>
+              <li>• Consistent answers (same question = same response)</li>
+              <li>• Handles follow-up questions with context</li>
+              <li>• Updates reflect new content within hours</li>
+            </ul>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm mb-2">Signs of Bad RAG</p>
+            <ul class="space-y-1 text-xs text-gray-400">
+              <li>• Makes up information not in the knowledge base</li>
+              <li>• Never says "I don't know" (always generates something)</li>
+              <li>• Can't cite where the answer came from</li>
+              <li>• Gives different answers to the same question each time</li>
+              <li>• Slow (5+ seconds per response)</li>
+              <li>• Returns irrelevant chunks (topic mismatch)</li>
+              <li>• Can't handle multi-turn conversations</li>
+              <li>• Outdated information despite document updates</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">The #1 Quality Factor: Your Data</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">A RAG system is only as good as the documents it searches. If your knowledge base is outdated, disorganised, or incomplete — the AI will give outdated, confusing, or partial answers. The single biggest determinant of RAG quality is content quality.</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-blue-500/30 bg-blue-950/20">
+          <p class="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">📐 The Content Quality Checklist</p>
+          <div class="space-y-2 text-sm text-gray-300">
+            <p>□ Content is factually accurate and current</p>
+            <p>□ Answers are clearly stated (not buried in jargon)</p>
+            <p>□ Each document has a clear topic focus</p>
+            <p>□ No contradictions between documents</p>
+            <p>□ Coverage: common questions all have documented answers</p>
+            <p>□ Tone is consistent across all content</p>
+            <p>□ Information is structured with headings and sections</p>
+          </div>
+        </div>
+
+        <!-- Section 7: Costs -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">What RAG Costs (Honest Numbers)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Here's what a RAG implementation actually costs for a UK business, broken into build and ongoing:</p>
+
+        <div class="not-prose my-6 overflow-x-auto">
+          <table class="w-full text-sm border border-gray-700 rounded-xl overflow-hidden">
+            <thead class="bg-gray-800/50">
+              <tr>
+                <th class="px-4 py-3 text-left text-gray-300 font-semibold">Component</th>
+                <th class="px-4 py-3 text-right text-gray-300 font-semibold">Build Cost</th>
+                <th class="px-4 py-3 text-right text-gray-300 font-semibold">Monthly Cost</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700/50">
+              <tr><td class="px-4 py-2 text-gray-400">Content preparation & chunking</td><td class="px-4 py-2 text-right text-gray-300">£2,000-5,000</td><td class="px-4 py-2 text-right text-gray-300">£200-500 (updates)</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Vector database (Vectorize/Pinecone)</td><td class="px-4 py-2 text-right text-gray-300">Included</td><td class="px-4 py-2 text-right text-gray-300">£0-100</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Embedding pipeline</td><td class="px-4 py-2 text-right text-gray-300">£1,000-3,000</td><td class="px-4 py-2 text-right text-gray-300">£5-50 (re-indexing)</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">API/backend development</td><td class="px-4 py-2 text-right text-gray-300">£3,000-8,000</td><td class="px-4 py-2 text-right text-gray-300">£5-50 (hosting)</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">LLM inference (AI responses)</td><td class="px-4 py-2 text-right text-gray-300">—</td><td class="px-4 py-2 text-right text-gray-300">£20-300 (usage-based)</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Frontend/chat widget</td><td class="px-4 py-2 text-right text-gray-300">£1,500-4,000</td><td class="px-4 py-2 text-right text-gray-300">—</td></tr>
+              <tr><td class="px-4 py-2 text-gray-400">Testing & launch</td><td class="px-4 py-2 text-right text-gray-300">£1,000-3,000</td><td class="px-4 py-2 text-right text-gray-300">—</td></tr>
+              <tr class="bg-gray-800/30"><td class="px-4 py-2 text-white font-semibold">Total</td><td class="px-4 py-2 text-right text-white font-semibold">£8,500-23,000</td><td class="px-4 py-2 text-right text-white font-semibold">£230-1,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-sm font-semibold text-green-400 uppercase tracking-wider mb-2">💰 The Cloudflare Advantage</p>
+          <p class="text-sm text-gray-300">Using Cloudflare Workers AI + Vectorize, the ongoing costs for a small-to-medium RAG system (under 10,000 queries/month) can be as low as <strong class="text-white">£20-50/month</strong>. The free tier covers: 10K AI inferences/day, Vectorize indexing, D1 database, and Workers compute. This is why we build on Cloudflare — the economics are unbeatable for SMEs.</p>
+        </div>
+
+        <!-- Section 8: Common Questions -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Questions Decision-Makers Always Ask</h2>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-3">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm mb-1">"What if our information changes frequently?"</p>
+            <p class="text-xs text-gray-400">RAG handles this well. When a document changes, you re-embed the updated chunks and replace them in the vector database. This takes minutes, not days. You can even set up automatic re-indexing pipelines that trigger on content changes.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm mb-1">"Can it handle confidential information safely?"</p>
+            <p class="text-xs text-gray-400">Yes, with the right architecture. Use edge-deployed models (Cloudflare Workers AI) where data never leaves your infrastructure. Implement access controls so the AI only retrieves information the user is authorised to see. Avoid sending sensitive data to third-party APIs unless their terms explicitly protect it.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm mb-1">"What if the AI gives a wrong answer?"</p>
+            <p class="text-xs text-gray-400">Build in safeguards: confidence thresholds (don't answer if retrieval confidence is below 75%), citation links (user can verify source), feedback buttons (flag incorrect responses), and regular accuracy audits. A well-built system is wrong less than 5% of the time — and the 5% get caught by safeguards.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm mb-1">"How many documents can it handle?"</p>
+            <p class="text-xs text-gray-400">Practically unlimited. Vector databases scale to millions of chunks. A business with 10,000 pages of documentation (large enterprise) would produce roughly 50,000 chunks — well within capacity. The system stays fast regardless of size because vector search is mathematically efficient.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm mb-1">"Do we need a data science team?"</p>
+            <p class="text-xs text-gray-400">No. In 2026, RAG can be implemented by a competent web developer with AI experience. The heavy lifting (embeddings, vector search) is handled by cloud services. You need someone who understands the architecture and can configure it correctly — not PhDs or ML engineers.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm mb-1">"How long before we see results?"</p>
+            <p class="text-xs text-gray-400">A basic RAG chatbot can be deployed in 4-6 weeks. You'll see immediate impact: instant answers to questions that previously took hours, 24/7 availability, and consistent quality. Measurable ticket deflection and cost savings typically appear within the first month of full deployment.</p>
+          </div>
+        </div>
+
+        <!-- Section 9: Getting Started -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Implementation Patterns: Three Approaches</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">There are three common ways to implement RAG, each suited to different business situations:</p>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Pattern 1: Knowledge Base Q&A</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The simplest and most common pattern. A chatbot widget that answers questions from your documentation. No actions, no integrations — just accurate Q&A.</p>
+
+        <div class="not-prose my-4 p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Architecture</p>
+          <p class="text-sm text-gray-300">Documents → Embedding Pipeline → Vector DB → Chat API → Frontend Widget</p>
+          <p class="text-xs text-gray-500 mt-2"><strong>Build time:</strong> 3-4 weeks | <strong>Cost:</strong> £8-15K | <strong>Best for:</strong> First RAG project, customer support, FAQ automation</p>
+        </div>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Pattern 2: RAG + Actions</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Combines knowledge retrieval with the ability to take actions (check order status, book appointments, update records). The AI decides whether to answer from knowledge or call a function.</p>
+
+        <div class="not-prose my-4 p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Architecture</p>
+          <p class="text-sm text-gray-300">Documents → Vector DB + Function Definitions → AI Router → Knowledge Response OR Action Execution → Frontend</p>
+          <p class="text-xs text-gray-500 mt-2"><strong>Build time:</strong> 5-8 weeks | <strong>Cost:</strong> £15-30K | <strong>Best for:</strong> Support + booking, sales + CRM, operations</p>
+        </div>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Pattern 3: Multi-Source RAG</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Searches across multiple knowledge sources simultaneously — documentation, real-time databases, APIs, and external sources. Combines results intelligently before generating a response.</p>
+
+        <div class="not-prose my-4 p-4 rounded-xl border border-gray-700 bg-gray-900/50">
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Architecture</p>
+          <p class="text-sm text-gray-300">Multiple Sources (docs, DB, APIs) → Parallel Retrieval → Result Ranking → Context Assembly → AI Generation</p>
+          <p class="text-xs text-gray-500 mt-2"><strong>Build time:</strong> 8-12 weeks | <strong>Cost:</strong> £25-50K | <strong>Best for:</strong> Enterprise internal search, complex product queries</p>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">🎯 Start with Pattern 1</p>
+          <p class="text-sm text-gray-300">90% of businesses should start with Pattern 1 (Knowledge Base Q&A). It's the fastest to build, easiest to measure, and gives you the foundation to add actions (Pattern 2) later. Don't over-engineer your first RAG project. Prove value with simplicity, then expand.</p>
+        </div>
+
+        <!-- Section 10: Common Mistakes -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">8 Common RAG Mistakes (And How to Avoid Them)</h2>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-3">
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm">1. Chunking too large or too small</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>Problem:</strong> Chunks that are 2000 words dilute relevance (too much noise). Chunks of 50 words lose context (too little information). <strong>Fix:</strong> 300-500 words per chunk with 50-100 word overlap between chunks. Split on paragraph boundaries, not arbitrary character counts.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm">2. No confidence threshold</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>Problem:</strong> The system always generates a response even when retrieval returns poor matches. <strong>Fix:</strong> Set a minimum similarity score (0.7-0.8). Below threshold: "I don't have specific information about that. Here's how to reach our team for help."</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm">3. Ignoring metadata</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>Problem:</strong> Chunks are stored without source information, making it impossible to cite sources or filter by category. <strong>Fix:</strong> Always store: source URL, document title, category, last updated date. Use metadata for filtering and citation.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm">4. No update pipeline</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>Problem:</strong> Knowledge base was indexed once and never updated. Prices change, features launch, policies update — but the AI still quotes old information. <strong>Fix:</strong> Automated re-indexing pipeline triggered by content changes. At minimum: monthly full re-index.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm">5. Skipping the evaluation step</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>Problem:</strong> Launched without testing accuracy. Users discover wrong answers in production — damaging trust. <strong>Fix:</strong> Create a test set of 50-100 questions with known correct answers. Measure accuracy before launch. Target: 90%+ correct on known-answer queries.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm">6. Context window overflow</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>Problem:</strong> Retrieving too many chunks (10-20) fills the AI's context window, causing it to ignore some information or generate worse responses. <strong>Fix:</strong> Retrieve 3-5 chunks maximum. Quality over quantity — the most relevant chunks, not the most chunks.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm">7. Contradictory documents</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>Problem:</strong> Two documents say different things (old FAQ vs updated policy). The AI retrieves both and gives a confused or incorrect answer. <strong>Fix:</strong> De-duplicate your knowledge base. When documents conflict, remove the outdated one. Add recency weighting to retrieval.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-red-500/20 bg-red-950/10">
+            <p class="text-red-400 font-semibold text-sm">8. No human escalation path</p>
+            <p class="text-xs text-gray-400 mt-1"><strong>Problem:</strong> The AI tries to answer everything, including questions it can't handle well. Users get frustrated with bad answers and no escape route. <strong>Fix:</strong> Always provide "talk to a human" option. After 2-3 low-confidence responses, proactively offer escalation.</p>
+          </div>
+        </div>
+
+        <!-- Section 11: Measuring Success -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Measuring RAG Success</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Track these metrics to know whether your RAG system is delivering value:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">Retrieval Accuracy</p>
+            <p class="text-xs text-gray-400">Are the retrieved chunks actually relevant to the question? Measure by sampling 50 queries/week and manually checking if the right documents were found.</p>
+            <p class="text-xs text-green-400 mt-2">Target: 85%+ relevant retrieval</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">Answer Accuracy</p>
+            <p class="text-xs text-gray-400">Is the final generated answer factually correct? Test against known-answer questions regularly. Track user feedback (thumbs up/down).</p>
+            <p class="text-xs text-green-400 mt-2">Target: 90%+ correct answers</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">Hallucination Rate</p>
+            <p class="text-xs text-gray-400">How often does the AI generate information that's not in the source documents? Should be very low with proper thresholds.</p>
+            <p class="text-xs text-green-400 mt-2">Target: Under 5% (ideally under 2%)</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">Coverage</p>
+            <p class="text-xs text-gray-400">What percentage of user questions can the system answer (vs "I don't know" responses)? Indicates knowledge base completeness.</p>
+            <p class="text-xs text-green-400 mt-2">Target: 70-80% answerable</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">Response Latency</p>
+            <p class="text-xs text-gray-400">Time from question to first response token. Includes embedding, retrieval, and generation time.</p>
+            <p class="text-xs text-green-400 mt-2">Target: Under 2 seconds (first token)</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-indigo-400 font-semibold text-sm mb-2">User Satisfaction</p>
+            <p class="text-xs text-gray-400">Post-conversation rating. The ultimate quality signal — did the user find what they needed?</p>
+            <p class="text-xs text-green-400 mt-2">Target: 80%+ positive feedback</p>
+          </div>
+        </div>
+
+        <!-- Section 12: Case Study -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Case Study: RAG in Practice (ScrabbleWordsFinder)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">We built a RAG-powered AI coach called "Lex" for ScrabbleWordsFinder.com. Here's what the numbers look like after 3 months in production:</p>
+
+        <div class="not-prose my-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="p-3 rounded-xl border border-indigo-500/20 bg-indigo-950/10 text-center">
+            <p class="text-xl font-bold text-indigo-400">1,000+</p>
+            <p class="text-xs text-gray-400 mt-1">Articles indexed</p>
+          </div>
+          <div class="p-3 rounded-xl border border-indigo-500/20 bg-indigo-950/10 text-center">
+            <p class="text-xl font-bold text-indigo-400">3,500</p>
+            <p class="text-xs text-gray-400 mt-1">Vector chunks</p>
+          </div>
+          <div class="p-3 rounded-xl border border-indigo-500/20 bg-indigo-950/10 text-center">
+            <p class="text-xl font-bold text-indigo-400">&lt;300ms</p>
+            <p class="text-xs text-gray-400 mt-1">First token</p>
+          </div>
+          <div class="p-3 rounded-xl border border-indigo-500/20 bg-indigo-950/10 text-center">
+            <p class="text-xl font-bold text-indigo-400">~£30</p>
+            <p class="text-xs text-gray-400 mt-1">Monthly cost</p>
+          </div>
+        </div>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-3">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Stack</p>
+            <p class="text-xs text-gray-400 mt-1">Cloudflare Workers AI (Llama 4 Scout) + Cloudflare Vectorize (bge-base-en-v1.5) + D1 SQLite (conversation history) + Astro frontend (streaming chat widget)</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">What it does</p>
+            <p class="text-xs text-gray-400 mt-1">Answers questions about Scrabble strategy, word validity, game rules, and tips — all sourced from 1,000+ expert articles. Stays strictly on-topic (won't discuss politics or write your essay). Provides links to source articles for further reading.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Key learning</p>
+            <p class="text-xs text-gray-400 mt-1">Chunking strategy had more impact on answer quality than model choice. Moving from Llama 3.1 8B to Llama 4 Scout improved quality ~10%. Fixing chunking from whole-document to paragraph-level improved relevance ~40%. Data prep matters most.</p>
+          </div>
+        </div>
+
+        <!-- Getting Started -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Getting Started: Your First RAG Project</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Ready to explore RAG for your business? Here's the practical next-step framework:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-green-500/30 bg-green-950/10">
+          <p class="text-sm font-semibold text-green-400 uppercase tracking-wider mb-3">🚀 5-Step RAG Readiness Plan</p>
+          <div class="space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">1</span>
+              <div>
+                <p class="text-sm text-white font-medium">Identify your use case</p>
+                <p class="text-xs text-gray-400">What question does your team or customers ask most often that has a factual answer somewhere in your docs? Start there. One use case, one source of truth.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">2</span>
+              <div>
+                <p class="text-sm text-white font-medium">Audit your content</p>
+                <p class="text-xs text-gray-400">Is the information accurate, current, and well-structured? If not, clean it up first. RAG won't fix bad documentation — it'll amplify it. This is often 30-40% of the project.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">3</span>
+              <div>
+                <p class="text-sm text-white font-medium">Define success metrics</p>
+                <p class="text-xs text-gray-400">How will you know it's working? Accuracy rate, deflection rate, response time, CSAT score? Set targets before building so you can measure objectively.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">4</span>
+              <div>
+                <p class="text-sm text-white font-medium">Choose build or buy</p>
+                <p class="text-xs text-gray-400">SaaS (Intercom Fin, etc.) for speed. Custom build for control and economics. The right choice depends on your budget, technical team, and how core this is to your business.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="shrink-0 w-6 h-6 rounded-full bg-green-900/50 border border-green-500/40 flex items-center justify-center text-xs text-green-300 font-bold">5</span>
+              <div>
+                <p class="text-sm text-white font-medium">Start small, iterate fast</p>
+                <p class="text-xs text-gray-400">Deploy with your top 20 topics. Measure. Expand coverage. Refine. A RAG system that covers 20 topics brilliantly is more valuable than one that covers 200 topics poorly.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">The Technology Landscape: What to Use</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The RAG stack has three main components. Here's what's available in 2026 for each layer:</p>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Embedding Models (Converts Text → Vectors)</h3>
+
+        <div class="not-prose my-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Cloudflare bge-base-en-v1.5</p>
+            <p class="text-xs text-gray-400 mt-1">768 dimensions. Free on Workers AI. Fast, good quality. Our default choice.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">OpenAI text-embedding-3-small</p>
+            <p class="text-xs text-gray-400 mt-1">1536 dimensions. $0.02/1M tokens. Slightly better quality than bge for complex queries.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Cohere embed-v3</p>
+            <p class="text-xs text-gray-400 mt-1">1024 dimensions. Optimised for search quality. Good for multilingual content.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Voyage AI</p>
+            <p class="text-xs text-gray-400 mt-1">Domain-specific models (code, legal, finance). Best for specialised content.</p>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">Vector Databases (Stores & Searches Vectors)</h3>
+
+        <div class="not-prose my-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Cloudflare Vectorize</p>
+            <p class="text-xs text-gray-400 mt-1">Edge-deployed, integrated with Workers. Free tier included. Best for Cloudflare-native stacks.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Pinecone</p>
+            <p class="text-xs text-gray-400 mt-1">Most popular managed vector DB. Excellent performance and reliability. Free tier for small projects.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Weaviate</p>
+            <p class="text-xs text-gray-400 mt-1">Open-source, self-hostable. Built-in hybrid search (vector + keyword). Good for teams wanting control.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">pgvector (PostgreSQL)</p>
+            <p class="text-xs text-gray-400 mt-1">Add vectors to your existing Postgres DB. No new infrastructure. Good enough for &lt;100K vectors.</p>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">LLMs (Generates Responses)</h3>
+
+        <div class="not-prose my-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Cloudflare Workers AI (Llama 4)</p>
+            <p class="text-xs text-gray-400 mt-1">Edge-deployed, no cold starts. Free tier covers most SME volumes. Our recommendation for cost-sensitive projects.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">OpenAI GPT-4o-mini</p>
+            <p class="text-xs text-gray-400 mt-1">Best quality-per-penny for RAG. Fast, follows instructions well. $0.15/1M input tokens.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">OpenAI GPT-4o</p>
+            <p class="text-xs text-gray-400 mt-1">Premium quality for complex reasoning. Best at synthesising multiple sources. Higher cost but worth it for enterprise.</p>
+          </div>
+          <div class="p-3 rounded-xl border border-gray-700 bg-gray-900/30">
+            <p class="text-white font-semibold text-sm">Claude 3.5 Sonnet</p>
+            <p class="text-xs text-gray-400 mt-1">Excellent at long context and careful reasoning. Better at saying "I don't know" than GPT. Good for accuracy-critical applications.</p>
+          </div>
+        </div>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
+          <p class="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">🛠️ Our Default Stack</p>
+          <p class="text-sm text-gray-300">For most UK SME projects: <strong class="text-white">Cloudflare Workers AI</strong> (LLM) + <strong class="text-white">Cloudflare Vectorize</strong> (vectors) + <strong class="text-white">bge-base-en-v1.5</strong> (embeddings) + <strong class="text-white">D1</strong> (conversation storage). Total infrastructure cost: often £0 on the free tier. Maximum cost at scale: £50-200/month. No vendor lock-in, data stays on your infrastructure, and everything runs on Cloudflare's global edge network.</p>
+        </div>
+
+        <!-- RAG Maturity -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">The RAG Maturity Model</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">RAG systems improve over time. Here's what the journey typically looks like:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 gap-4">
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="px-2 py-0.5 rounded text-xs bg-gray-500/30 text-gray-300 font-bold">Level 1</span>
+              <p class="text-white font-semibold text-sm">Basic Q&A</p>
+            </div>
+            <p class="text-xs text-gray-400">Static knowledge base, single retrieval pass, no conversation memory. Answers simple questions from documentation. Accuracy: 75-85%.</p>
+            <p class="text-xs text-indigo-400 mt-1">Timeline: Week 4 (first launch)</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="px-2 py-0.5 rounded text-xs bg-blue-500/30 text-blue-300 font-bold">Level 2</span>
+              <p class="text-white font-semibold text-sm">Conversational</p>
+            </div>
+            <p class="text-xs text-gray-400">Multi-turn context, follow-up questions work, confidence thresholds active, feedback collection running. Accuracy: 85-92%.</p>
+            <p class="text-xs text-indigo-400 mt-1">Timeline: Week 6-8 (post refinement)</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="px-2 py-0.5 rounded text-xs bg-purple-500/30 text-purple-300 font-bold">Level 3</span>
+              <p class="text-white font-semibold text-sm">Intelligent</p>
+            </div>
+            <p class="text-xs text-gray-400">Hybrid retrieval (vector + keyword), re-ranking for relevance, automatic gap detection, proactive content suggestions. Accuracy: 92-96%.</p>
+            <p class="text-xs text-indigo-400 mt-1">Timeline: Month 3-4 (optimised)</p>
+          </div>
+          <div class="p-4 rounded-xl border border-gray-700 bg-gray-900/30">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="px-2 py-0.5 rounded text-xs bg-green-500/30 text-green-300 font-bold">Level 4</span>
+              <p class="text-white font-semibold text-sm">Autonomous</p>
+            </div>
+            <p class="text-xs text-gray-400">Takes actions (booking, lookups, updates), integrates live data sources, self-identifies knowledge gaps, routes intelligently between AI and human. Accuracy: 95%+.</p>
+            <p class="text-xs text-indigo-400 mt-1">Timeline: Month 6+ (mature system)</p>
+          </div>
+        </div>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Most businesses reach Level 2 within 6-8 weeks. Level 3 comes from 2-3 months of data-driven optimisation. Level 4 requires intentional investment in integrations and agent capabilities. There's no rush — each level delivers meaningful value.</p>
+
+        <!-- Readiness Assessment -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Is Your Business Ready for RAG?</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">Not every business is ready to implement RAG today. Answer these questions to assess your readiness:</p>
+
+        <div class="not-prose my-6 p-5 rounded-xl border border-cyan-500/30 bg-cyan-950/10">
+          <p class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-3">📋 RAG Readiness Scorecard</p>
+          <div class="space-y-3 text-sm text-gray-300">
+            <div class="flex items-start gap-3">
+              <span class="text-cyan-400 font-mono shrink-0">□</span>
+              <p>Do you have at least 20+ pages of documentation, FAQs, or knowledge content? <span class="text-xs text-gray-500">(+2 if yes)</span></p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-cyan-400 font-mono shrink-0">□</span>
+              <p>Do you receive 50+ questions/month that could be answered by existing docs? <span class="text-xs text-gray-500">(+2 if yes)</span></p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-cyan-400 font-mono shrink-0">□</span>
+              <p>Is your documentation mostly accurate and up-to-date? <span class="text-xs text-gray-500">(+2 if yes, +1 if mostly)</span></p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-cyan-400 font-mono shrink-0">□</span>
+              <p>Do you have budget for a £10-25K project (one-time)? <span class="text-xs text-gray-500">(+2 if yes)</span></p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-cyan-400 font-mono shrink-0">□</span>
+              <p>Can you dedicate 2-3 hours/week for the first month to testing and feedback? <span class="text-xs text-gray-500">(+1 if yes)</span></p>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="text-cyan-400 font-mono shrink-0">□</span>
+              <p>Is your content in digital format (not locked in PDFs or paper)? <span class="text-xs text-gray-500">(+1 if yes)</span></p>
+            </div>
+            <div class="border-t border-cyan-500/20 pt-3 mt-3">
+              <p class="text-xs text-gray-400"><strong class="text-cyan-400">8-10:</strong> Highly ready — start now. <strong class="text-cyan-400">5-7:</strong> Ready with some prep work needed. <strong class="text-cyan-400">Under 5:</strong> Build your knowledge base first, then revisit in 3 months.</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-white mt-8 mb-3">If You're Not Ready Yet</h3>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The best preparation for RAG is simply documenting what you know. Start with:</p>
+
+        <ul class="text-gray-300 leading-relaxed mb-4 list-disc list-inside space-y-2">
+          <li><strong class="text-white">Write down your top 20 FAQs</strong> with clear, complete answers. This alone becomes your initial knowledge base.</li>
+          <li><strong class="text-white">Document your processes.</strong> How do you handle returns? What's the onboarding flow? What are your pricing tiers?</li>
+          <li><strong class="text-white">Organise existing content.</strong> Pull together scattered docs into one location (Notion, Confluence, Google Drive folder). Clean up outdated info.</li>
+          <li><strong class="text-white">Track questions.</strong> For one month, log every question your support team receives. Categorise them. This becomes your requirements document for RAG scope.</li>
+        </ul>
+
+        <p class="text-gray-300 leading-relaxed mb-4">This preparation work has value independent of RAG — it makes your team more effective, your support more consistent, and your onboarding faster. When you're ready for RAG, the foundation is already laid.</p>
+
+        <!-- The Future -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">The Future of RAG (2026-2027)</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">RAG is evolving rapidly. Here's what's emerging:</p>
+
+        <div class="not-prose my-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10">
+            <p class="text-purple-400 font-semibold text-sm mb-2">Agentic RAG</p>
+            <p class="text-xs text-gray-400">RAG systems that don't just retrieve and respond — they plan multi-step research, query multiple sources, validate answers, and take actions. The line between chatbot and autonomous agent blurs.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10">
+            <p class="text-purple-400 font-semibold text-sm mb-2">Multimodal RAG</p>
+            <p class="text-xs text-gray-400">Search across images, videos, and audio — not just text. "Show me the installation diagram for model X" retrieves and displays the correct image from your documentation.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10">
+            <p class="text-purple-400 font-semibold text-sm mb-2">Real-Time RAG</p>
+            <p class="text-xs text-gray-400">Knowledge bases that update in real-time (not batch). A price change on your website is immediately reflected in chatbot answers — zero delay between content update and AI awareness.</p>
+          </div>
+          <div class="p-4 rounded-xl border border-purple-500/20 bg-purple-950/10">
+            <p class="text-purple-400 font-semibold text-sm mb-2">Personalised RAG</p>
+            <p class="text-xs text-gray-400">Different answers for different users based on their account type, history, and preferences. Enterprise customers get technical detail; new users get simplified explanations — automatically.</p>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <h2 class="text-xl font-light text-indigo-400 mt-10 mb-4 border-l-4 border-indigo-400 pl-4">Summary</h2>
+
+        <p class="text-gray-300 leading-relaxed mb-4">RAG is the bridge between "AI that sounds smart but makes things up" and "AI that gives accurate answers about YOUR business." It's the most practical, cost-effective way to deploy useful AI in 2026.</p>
+
+        <p class="text-gray-300 leading-relaxed mb-4">The key takeaways:</p>
+
+        <ul class="text-gray-300 leading-relaxed mb-4 list-disc list-inside space-y-2">
+          <li><strong class="text-white">RAG = search + AI generation.</strong> It searches your docs first, then generates a response using what it found.</li>
+          <li><strong class="text-white">It's the best approach for 90% of business AI.</strong> Better than fine-tuning (cheaper, faster, updatable) and better than prompt engineering (handles more data).</li>
+          <li><strong class="text-white">Quality depends on your content.</strong> Invest in documentation quality — it's the foundation.</li>
+          <li><strong class="text-white">Costs are reasonable.</strong> £8-25K to build, £100-500/month to run. Pays for itself through ticket deflection and time savings.</li>
+          <li><strong class="text-white">Start with one use case.</strong> Customer support chatbot is the most common and highest-ROI starting point.</li>
+          <li><strong class="text-white">It's not magic — but it's close.</strong> A well-built RAG system transforms how customers and employees interact with your business knowledge.</li>
+        </ul>
+
+        <p class="text-gray-300 leading-relaxed">The businesses implementing RAG now are building a knowledge advantage that compounds over time. Their AI gets better as their documentation improves. Their customers get faster answers. Their teams get freed from repetitive questions. It's one of those rare technologies where starting early genuinely matters.</p>
+
+        <!-- CTA -->
+        <div class="not-prose mt-12 p-6 rounded-2xl bg-gradient-to-r from-indigo-950/30 to-blue-950/20 border border-indigo-500/30 text-center">
+          <h3 class="text-xl font-bold text-white">Ready to Explore RAG for Your Business?</h3>
+          <p class="mt-2 text-sm text-gray-400">We build production RAG systems in 4-6 weeks. Trained on your data, deployed on Cloudflare's edge, with full ownership of everything we build. Book a free 30-minute call to discuss your use case.</p>
+          <a href="/contact/" class="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all">
+            Book a RAG Discovery Call →
+          </a>
+        </div>
+
+        <!-- Related -->
+        <aside class="not-prose border-t border-gray-800 mt-12 pt-8">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Related Articles</h3>
+          <div class="grid gap-3">
+            <a href="/blog/building-rag-chatbots-cloudflare/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">Building RAG Chatbots on Cloudflare Workers AI (Technical Deep Dive)</span>
+            </a>
+            <a href="/blog/how-to-build-ai-chatbot-business/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">How to Build an AI Chatbot for Your Business in 2026</span>
+            </a>
+            <a href="/blog/how-to-automate-customer-support-ai/" class="flex items-center gap-3 p-3 rounded-lg border border-gray-800 hover:border-indigo-500/50 transition-all group">
+              <span class="text-indigo-400 group-hover:translate-x-0.5 transition-transform">→</span>
+              <span class="text-sm text-gray-300 group-hover:text-indigo-400">How to Automate Customer Support with AI</span>
+            </a>
+          </div>
+        </aside>
+
+        <div class="not-prose mt-8 text-center">
+          <a href="/blog/" class="text-sm text-gray-400 hover:text-indigo-400 transition-colors">← Back to all articles</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</Layout>
