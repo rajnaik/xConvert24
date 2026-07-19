@@ -184,25 +184,25 @@ export const prerender = true;
 
         <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
           <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">manifest.json (Manifest V3)</p>
-          <pre class="text-xs text-gray-300 overflow-x-auto"><code set:html={`{
+          <pre class="text-xs text-gray-300 overflow-x-auto" set:html={`<code>&#123;
   "manifest_version": 3,
   "name": "My Extension",
   "version": "1.0.0",
   "description": "A brief description of what it does.",
   "permissions": ["activeTab", "storage"],
-  "action": {
+  "action": &#123;
     "default_popup": "popup.html",
-    "default_icon": { "16": "icons/icon-16.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" }
-  },
-  "background": {
+    "default_icon": &#123; "16": "icons/icon-16.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" &#125;
+  &#125;,
+  "background": &#123;
     "service_worker": "background.js"
-  },
-  "content_scripts": [{
+  &#125;,
+  "content_scripts": [&#123;
     "matches": ["&lt;all_urls&gt;"],
     "js": ["content.js"]
-  }],
-  "icons": { "16": "icons/icon-16.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" }
-}`} /></pre>
+  &#125;],
+  "icons": &#123; "16": "icons/icon-16.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" &#125;
+&#125;</code>`} />
         </div>
 
         <div class="not-prose my-6 p-4 rounded-xl border border-green-500/30 bg-green-950/10">
@@ -272,13 +272,13 @@ export const prerender = true;
 
         <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
           <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Playwright Extension Test Pattern</p>
-          <pre class="text-xs text-gray-300 overflow-x-auto"><code set:html={`const context = await chromium.launchPersistentContext('', {
+          <pre class="text-xs text-gray-300 overflow-x-auto" set:html={`<code>const context = await chromium.launchPersistentContext('', &#123;
   headless: false,
   args: [
-    \`--disable-extensions-except=\${extensionPath}\`,
-    \`--load-extension=\${extensionPath}\`
+    \`--disable-extensions-except=\$&#123;extensionPath&#125;\`,
+    \`--load-extension=\$&#123;extensionPath&#125;\`
   ]
-});
+&#125;);
 
 // Get the extension's background service worker
 const [bgPage] = context.serviceWorkers();
@@ -286,7 +286,7 @@ const [bgPage] = context.serviceWorkers();
 // Open the popup
 const extensionId = bgPage.url().split('/')[2];
 const popup = await context.newPage();
-await popup.goto(\`chrome-extension://\${extensionId}/popup.html\`);`} /></pre>
+await popup.goto(\`chrome-extension://\$&#123;extensionId&#125;/popup.html\`);</code>`} /></pre>
         </div>
 
         <div class="not-prose my-6 p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
@@ -305,25 +305,25 @@ await popup.goto(\`chrome-extension://\${extensionId}/popup.html\`);`} /></pre>
 
         <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
           <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Popup → Background → Content Script</p>
-          <pre class="text-xs text-gray-300 overflow-x-auto"><code set:html={`// popup.js — send message to background
-chrome.runtime.sendMessage({ action: 'startClicking', selector: '#btn' });
+          <pre class="text-xs text-gray-300 overflow-x-auto" set:html={`<code>// popup.js — send message to background
+chrome.runtime.sendMessage(&#123; action: 'startClicking', selector: '#btn' &#125;);
 
 // background.js — relay to content script
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) =&gt; {
-  if (msg.action === 'startClicking') {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =&gt; {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) =&gt; &#123;
+  if (msg.action === 'startClicking') &#123;
+    chrome.tabs.query(&#123; active: true, currentWindow: true &#125;, (tabs) =&gt; &#123;
       chrome.tabs.sendMessage(tabs[0].id, msg);
-    });
-  }
-});
+    &#125;);
+  &#125;
+&#125;);
 
 // content.js — receive and execute
-chrome.runtime.onMessage.addListener((msg) =&gt; {
-  if (msg.action === 'startClicking') {
+chrome.runtime.onMessage.addListener((msg) =&gt; &#123;
+  if (msg.action === 'startClicking') &#123;
     const el = document.querySelector(msg.selector);
     if (el) el.click();
-  }
-});`} /></pre>
+  &#125;
+&#125;);</code>`} /></pre>
         </div>
 
         <h3 class="text-lg font-semibold text-gray-200 mt-6 mb-3">Storage Patterns</h3>
@@ -332,17 +332,17 @@ chrome.runtime.onMessage.addListener((msg) =&gt; {
 
         <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
           <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Read-on-Wake Pattern</p>
-          <pre class="text-xs text-gray-300 overflow-x-auto"><code set:html={`// background.js — load state when service worker starts
-let state = { isActive: false, interval: 5, selector: '' };
+          <pre class="text-xs text-gray-300 overflow-x-auto" set:html={`<code>// background.js — load state when service worker starts
+let state = &#123; isActive: false, interval: 5, selector: '' &#125;;
 
-chrome.storage.local.get(['extensionState'], (result) =&gt; {
+chrome.storage.local.get(['extensionState'], (result) =&gt; &#123;
   if (result.extensionState) state = result.extensionState;
-});
+&#125;);
 
 // Save state on every change
-function saveState() {
-  chrome.storage.local.set({ extensionState: state });
-}`} /></pre>
+function saveState() &#123;
+  chrome.storage.local.set(&#123; extensionState: state &#125;);
+&#125;</code>`} /></pre>
         </div>
 
         <h3 class="text-lg font-semibold text-gray-200 mt-6 mb-3">Content Script Injection</h3>
@@ -351,13 +351,13 @@ function saveState() {
 
         <div class="not-prose my-6 p-5 rounded-xl border border-gray-700 bg-gray-900">
           <p class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">Programmatic Injection (V3)</p>
-          <pre class="text-xs text-gray-300 overflow-x-auto"><code set:html={`// background.js — inject on user action
-chrome.action.onClicked.addListener((tab) =&gt; {
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
+          <pre class="text-xs text-gray-300 overflow-x-auto" set:html={`<code>// background.js — inject on user action
+chrome.action.onClicked.addListener((tab) =&gt; &#123;
+  chrome.scripting.executeScript(&#123;
+    target: &#123; tabId: tab.id &#125;,
     files: ['content.js']
-  });
-});`} /></pre>
+  &#125;);
+&#125;);</code>`} /></pre>
         </div>
 
         <div class="not-prose my-6 p-4 rounded-xl border border-green-500/30 bg-green-950/10">
