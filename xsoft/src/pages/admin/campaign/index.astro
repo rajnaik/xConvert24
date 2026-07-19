@@ -1,0 +1,280 @@
+---
+import '../../../styles/global.css';
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaign Manager — xSoft Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="/admin/" class="text-lg font-bold bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">xSoft Admin</a>
+      <a href="/admin/emails/" class="text-sm text-gray-400 hover:text-indigo-400">Emails</a>
+      <a href="/admin/seo/" class="text-sm text-gray-400 hover:text-indigo-400">SEO</a>
+      <a href="/admin/campaign/" class="text-sm text-amber-400 font-medium">Campaigns</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/" class="text-sm text-gray-500 hover:text-white">← Site</a>
+      <a href="/api/auth/logout/" class="text-sm text-red-400 hover:text-red-300">Logout</a>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold text-white">Email Campaign Manager</h1>
+      <div class="flex gap-2">
+        <button id="bulk-btn" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm text-white font-medium transition-colors">Bulk Import</button>
+        <button id="add-btn" class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-sm text-white font-medium transition-colors">+ Add Recipient</button>
+      </div>
+    </div>
+
+    <!-- Bulk Import -->
+    <div id="bulk-panel" class="hidden mb-6 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+      <h3 class="text-sm font-semibold text-indigo-400 mb-2">Bulk Import</h3>
+      <p class="text-xs text-gray-400 mb-3">One per line. Format: <code class="text-indigo-300">email, company</code> or <code class="text-indigo-300">email - company</code></p>
+      <textarea id="bulk-input" rows="6" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-mono placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-y" placeholder="info@company.com, Company Name&#10;hello@another.co.uk - Another Ltd&#10;contact@third.com, Third Corp"></textarea>
+      <div class="mt-3 flex items-center gap-3">
+        <button id="bulk-submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-sm text-white font-medium transition-colors">Import All</button>
+        <span id="bulk-status" class="text-xs text-gray-400"></span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div class="p-4 rounded-xl border border-gray-800 bg-gray-900/50 text-center">
+        <p class="text-2xl font-bold text-white" id="stat-total">—</p>
+        <p class="text-xs text-gray-400">Total</p>
+      </div>
+      <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-950/10 text-center">
+        <p class="text-2xl font-bold text-amber-400" id="stat-pending">—</p>
+        <p class="text-xs text-gray-400">Pending</p>
+      </div>
+      <div class="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10 text-center">
+        <p class="text-2xl font-bold text-emerald-400" id="stat-sent">—</p>
+        <p class="text-xs text-gray-400">Sent</p>
+      </div>
+      <div class="p-4 rounded-xl border border-red-500/30 bg-red-950/10 text-center">
+        <p class="text-2xl font-bold text-red-400" id="stat-unsub">—</p>
+        <p class="text-xs text-gray-400">Unsubscribed</p>
+      </div>
+    </div>
+
+    <!-- Email Template -->
+    <details class="mb-6 rounded-xl border border-gray-800 bg-gray-900/30">
+      <summary class="px-4 py-3 cursor-pointer text-sm font-semibold text-indigo-400">📧 View Email Template (for Gmail Mail Merge)</summary>
+      <div class="px-4 pb-4">
+        <div class="mt-3 p-4 rounded-lg bg-gray-800 text-sm text-gray-300 whitespace-pre-wrap font-mono text-xs leading-relaxed" id="email-template">Subject: Your business, answering customers 24/7 — even while you sleep
+
+Hi {'{{name}}'},
+
+Quick question — how many customer enquiries does your business miss outside of office hours?
+
+At xSoft, we build AI-powered chatbots that sit on your website and answer customer questions around the clock. No missed leads at 11pm. No "we'll get back to you Monday" on a Saturday.
+
+What you get:
+• A custom AI chatbot trained on your business — your services, your FAQs, your tone of voice
+• 24/7 instant responses to customer queries (no human needed for routine questions)
+• Seamless handoff to your team when a conversation needs a real person
+• Works on your existing website — no platform migration required
+
+For most businesses, we can have an AI chatbot live on your site within 2-4 weeks. Every project is quoted individually — book a quick call and we'll give you an honest estimate.
+
+Interested? Book a free 15-minute call: https://calendly.com/raj007/15min
+
+Or just reply to this email — happy to answer any questions.
+
+Best,
+Raj Naik
+Director, xSoft Ltd
+https://xsoftlimited.com
+
+---
+xSoft Ltd | Company No. 17308915 | England & Wales
+You received this because your business contact details are publicly listed.
+To stop receiving emails from us: https://xsoftlimited.com/api/unsubscribe/?token={'{{email}}'}</div>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('email-template').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy Template',1500)" class="mt-3 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-medium transition-colors">Copy Template</button>
+      </div>
+    </details>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-900 border-b border-gray-800">
+          <tr>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Email</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Name</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Company</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Status</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Token</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="recipients-body" class="divide-y divide-gray-800">
+          <tr><td colspan="6" class="px-3 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add Modal -->
+    <div id="add-modal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-md w-full p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white">Add Recipient</h2>
+          <button id="modal-close" class="text-gray-400 hover:text-white text-xl">&times;</button>
+        </div>
+        <form id="add-form" class="space-y-4">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Email *</label>
+            <input type="email" id="add-email" required class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-amber-500" placeholder="info@company.com" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Name</label>
+              <input type="text" id="add-name" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="Contact name" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Company</label>
+              <input type="text" id="add-company" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="Company Ltd" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Website</label>
+            <input type="url" id="add-website" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="https://company.com" />
+          </div>
+          <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold transition-colors">Add to Campaign</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script is:inline>
+    let recipients = [];
+
+    async function load() {
+      const [listRes, countRes] = await Promise.all([
+        fetch('/api/campaign/'),
+        fetch('/api/campaign/?count=true'),
+      ]);
+      if (listRes.ok) { const d = await listRes.json(); recipients = d.recipients || []; renderTable(); }
+      if (countRes.ok) {
+        const s = await countRes.json();
+        document.getElementById('stat-total').textContent = s.total;
+        document.getElementById('stat-pending').textContent = s.pending;
+        document.getElementById('stat-sent').textContent = s.sent;
+        document.getElementById('stat-unsub').textContent = s.unsubscribed;
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('recipients-body');
+      if (!recipients.length) { tbody.innerHTML = '<tr><td colspan="6" class="px-3 py-8 text-center text-gray-500">No recipients yet. Click + Add Recipient.</td></tr>'; return; }
+      tbody.innerHTML = recipients.map((r, i) => {
+        const statusColor = r.status === 'sent' ? 'text-emerald-400' : r.status === 'unsubscribed' ? 'text-red-400' : 'text-amber-400';
+        return `<tr class="${i % 2 === 0 ? 'bg-gray-950' : 'bg-gray-900/50'}">
+          <td class="px-3 py-2 text-gray-300">${esc(r.email)}</td>
+          <td class="px-3 py-2 text-gray-400">${esc(r.name || '—')}</td>
+          <td class="px-3 py-2 text-gray-400">${esc(r.company || '—')}</td>
+          <td class="px-3 py-2 ${statusColor} font-medium">${r.status}</td>
+          <td class="px-3 py-2"><code class="text-xs text-gray-500 cursor-pointer" onclick="navigator.clipboard.writeText('${r.unsubscribe_token}');this.textContent='copied!';setTimeout(()=>this.textContent='${r.unsubscribe_token?.slice(0,8)}...',1000)">${r.unsubscribe_token?.slice(0,8)}...</code></td>
+          <td class="px-3 py-2 flex gap-2">
+            ${r.status === 'pending' ? `<button onclick="markSent(${r.id})" class="text-xs text-emerald-400 hover:underline">Mark Sent</button>` : ''}
+            <button onclick="deleteRecipient(${r.id})" class="text-xs text-red-400 hover:underline">Del</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    async function markSent(id) {
+      await fetch('/api/campaign/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status: 'sent' }) });
+      load();
+    }
+
+    async function deleteRecipient(id) {
+      if (!confirm('Remove this recipient?')) return;
+      await fetch('/api/campaign/', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      load();
+    }
+
+    document.getElementById('add-btn')?.addEventListener('click', () => document.getElementById('add-modal').classList.remove('hidden'));
+    document.getElementById('modal-close')?.addEventListener('click', () => document.getElementById('add-modal').classList.add('hidden'));
+    document.getElementById('add-modal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden'); });
+
+    // Bulk import toggle
+    document.getElementById('bulk-btn')?.addEventListener('click', () => {
+      document.getElementById('bulk-panel').classList.toggle('hidden');
+    });
+
+    // Bulk import submit
+    document.getElementById('bulk-submit')?.addEventListener('click', async () => {
+      const input = document.getElementById('bulk-input').value.trim();
+      if (!input) return;
+
+      const lines = input.split('\n').filter(l => l.trim());
+      const status = document.getElementById('bulk-status');
+      let added = 0, failed = 0;
+      status.textContent = `Importing ${lines.length} entries...`;
+
+      for (const line of lines) {
+        // Split by comma or hyphen (first occurrence)
+        let email, company = '';
+        if (line.includes(',')) {
+          [email, company] = line.split(',').map(s => s.trim());
+        } else if (line.includes(' - ')) {
+          [email, company] = line.split(' - ').map(s => s.trim());
+        } else {
+          email = line.trim();
+        }
+
+        if (!email || !email.includes('@')) { failed++; continue; }
+
+        const res = await fetch('/api/campaign/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, company }),
+        });
+
+        if (res.ok) { added++; } else { failed++; }
+      }
+
+      status.textContent = `Done! ${added} added, ${failed} skipped.`;
+      status.className = 'text-xs text-emerald-400';
+      document.getElementById('bulk-input').value = '';
+      setTimeout(() => { status.textContent = ''; status.className = 'text-xs text-gray-400'; }, 3000);
+      load();
+    });
+
+    document.getElementById('add-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/api/campaign/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('add-email').value,
+          name: document.getElementById('add-name').value,
+          company: document.getElementById('add-company').value,
+          website: document.getElementById('add-website').value,
+        }),
+      });
+      if (res.ok) {
+        document.getElementById('add-modal').classList.add('hidden');
+        document.getElementById('add-form').reset();
+        load();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to add');
+      }
+    });
+
+    load();
+  </script>
+</body>
+</html>

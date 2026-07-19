@@ -1,0 +1,211 @@
+---
+import '../../../styles/global.css';
+export const prerender = false;
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tools Manager — xSoft Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-6">
+      <a href="/admin/" class="text-lg font-bold bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">xSoft Admin</a>
+      <a href="/admin/emails/" class="text-sm text-gray-400 hover:text-indigo-400">Emails</a>
+      <a href="/admin/seo/" class="text-sm text-gray-400 hover:text-indigo-400">SEO</a>
+      <a href="/admin/campaign/" class="text-sm text-gray-400 hover:text-indigo-400">Campaigns</a>
+      <a href="/admin/tools/" class="text-sm text-cyan-400 font-medium">Tools</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/" class="text-sm text-gray-500 hover:text-white">← Site</a>
+      <a href="/api/auth/logout/" class="text-sm text-red-400 hover:text-red-300">Logout</a>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-6 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold text-white">Tools Directory Manager</h1>
+      <div class="flex gap-2">
+        <span id="tool-count" class="text-sm text-gray-400 self-center"></span>
+        <button id="add-btn" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-sm text-white font-medium transition-colors">+ Add Tool</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-gray-800">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-900 border-b border-gray-800">
+          <tr>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Name</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Category</th>
+            <th class="px-3 py-3 text-center text-gray-400 font-medium">Rating</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Pricing</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Badge</th>
+            <th class="px-3 py-3 text-center text-gray-400 font-medium">Status</th>
+            <th class="px-3 py-3 text-left text-gray-400 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tools-body" class="divide-y divide-gray-800">
+          <tr><td colspan="7" class="px-3 py-8 text-center text-gray-500">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="tool-modal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white" id="modal-title">Add Tool</h2>
+          <button id="modal-close" class="text-gray-400 hover:text-white text-xl">&times;</button>
+        </div>
+        <form id="tool-form" class="space-y-4">
+          <input type="hidden" id="form-id" />
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Name *</label>
+            <input type="text" id="form-name" required class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-cyan-500" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Description</label>
+            <textarea id="form-desc" rows="3" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm focus:border-cyan-500 resize-none"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Category</label>
+              <input type="text" id="form-category" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="AI & LLMs" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Rating (0-5)</label>
+              <input type="number" id="form-rating" step="0.1" min="0" max="5" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Pricing</label>
+              <input type="text" id="form-pricing" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="Freemium" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Badge</label>
+              <input type="text" id="form-badge" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="We use this" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">URL</label>
+            <input type="url" id="form-url" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" placeholder="https://..." />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Sort Order</label>
+              <input type="number" id="form-sort" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Status</label>
+              <select id="form-status" class="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm">
+                <option value="1">Active (visible)</option>
+                <option value="0">Hidden</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold transition-colors">Save</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script is:inline>
+    let tools = [];
+
+    async function load() {
+      const res = await fetch('/api/tools/');
+      if (res.ok) { const d = await res.json(); tools = d.tools || []; render(); }
+    }
+
+    function render() {
+      document.getElementById('tool-count').textContent = `${tools.length} tools (${tools.filter(t=>t.status).length} active)`;
+      const tbody = document.getElementById('tools-body');
+      if (!tools.length) { tbody.innerHTML = '<tr><td colspan="7" class="px-3 py-8 text-center text-gray-500">No tools. Click + Add Tool.</td></tr>'; return; }
+      tbody.innerHTML = tools.map((t, i) => `
+        <tr class="${i%2===0?'bg-gray-950':'bg-gray-900/50'}">
+          <td class="px-3 py-2 text-white font-medium">${esc(t.name)}</td>
+          <td class="px-3 py-2 text-gray-400">${esc(t.category)}</td>
+          <td class="px-3 py-2 text-center text-amber-400">${t.rating}</td>
+          <td class="px-3 py-2 text-gray-400">${esc(t.pricing)}</td>
+          <td class="px-3 py-2">${t.badge?`<span class="text-emerald-400 text-xs">${esc(t.badge)}</span>`:'<span class="text-gray-600">—</span>'}</td>
+          <td class="px-3 py-2 text-center">${t.status?'<span class="text-emerald-400">●</span>':'<span class="text-gray-600">○</span>'}</td>
+          <td class="px-3 py-2 flex gap-2">
+            <button onclick="editTool(${t.id})" class="text-xs text-indigo-400 hover:underline">Edit</button>
+            <button onclick="toggleStatus(${t.id},${t.status})" class="text-xs ${t.status?'text-amber-400':'text-emerald-400'} hover:underline">${t.status?'Hide':'Show'}</button>
+            <button onclick="deleteTool(${t.id})" class="text-xs text-red-400 hover:underline">Del</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+
+    document.getElementById('add-btn')?.addEventListener('click', () => {
+      document.getElementById('modal-title').textContent = 'Add Tool';
+      document.getElementById('form-id').value = '';
+      document.getElementById('tool-form').reset();
+      document.getElementById('form-status').value = '1';
+      document.getElementById('tool-modal').classList.remove('hidden');
+    });
+
+    function editTool(id) {
+      const t = tools.find(x=>x.id===id);
+      if(!t) return;
+      document.getElementById('modal-title').textContent = 'Edit Tool';
+      document.getElementById('form-id').value = t.id;
+      document.getElementById('form-name').value = t.name;
+      document.getElementById('form-desc').value = t.description;
+      document.getElementById('form-category').value = t.category;
+      document.getElementById('form-rating').value = t.rating;
+      document.getElementById('form-pricing').value = t.pricing;
+      document.getElementById('form-badge').value = t.badge;
+      document.getElementById('form-url').value = t.url;
+      document.getElementById('form-sort').value = t.sort_order;
+      document.getElementById('form-status').value = t.status;
+      document.getElementById('tool-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('tool-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('form-id').value;
+      const payload = {
+        name: document.getElementById('form-name').value,
+        description: document.getElementById('form-desc').value,
+        category: document.getElementById('form-category').value,
+        rating: parseFloat(document.getElementById('form-rating').value) || 0,
+        pricing: document.getElementById('form-pricing').value,
+        url: document.getElementById('form-url').value,
+        badge: document.getElementById('form-badge').value,
+        sort_order: parseInt(document.getElementById('form-sort').value) || 0,
+        status: parseInt(document.getElementById('form-status').value),
+      };
+      if (id) { payload.id = parseInt(id); await fetch('/api/tools/',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); }
+      else { await fetch('/api/tools/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); }
+      document.getElementById('tool-modal').classList.add('hidden');
+      load();
+    });
+
+    async function toggleStatus(id, current) {
+      await fetch('/api/tools/',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:current?0:1})});
+      load();
+    }
+
+    async function deleteTool(id) {
+      if(!confirm('Delete this tool?')) return;
+      await fetch('/api/tools/',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+      load();
+    }
+
+    document.getElementById('modal-close')?.addEventListener('click',()=>document.getElementById('tool-modal').classList.add('hidden'));
+    document.getElementById('tool-modal')?.addEventListener('click',(e)=>{if(e.target===e.currentTarget)e.currentTarget.classList.add('hidden');});
+
+    load();
+  </script>
+</body>
+</html>

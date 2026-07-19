@@ -1,0 +1,77 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import '../../styles/global.css';
+import { env } from 'cloudflare:workers';
+
+const db = (env as any).DB;
+let tools: any[] = [];
+let categories: string[] = [];
+
+if (db) {
+  const { results } = await db.prepare('SELECT * FROM tools WHERE status = 1 ORDER BY sort_order ASC').all();
+  tools = results || [];
+  categories = [...new Set(tools.map((t: any) => t.category))];
+}
+---
+
+<Layout title="AI Tools We Recommend — xSoft Ltd | Expert Guidance" description="Curated directory of 25+ AI and business tools we use and recommend. From LLMs to infrastructure to marketing — we know these tools inside out." keywords="AI tools, business tools, Cloudflare Workers, ChatGPT, automation tools, xSoft recommendations">
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "AI Tools We Recommend",
+    "url": "https://www.xsoftlimited.com/tools/",
+    "description": "Curated AI tools directory from xSoft Ltd.",
+    "publisher": { "@type": "Organization", "name": "xSoft Ltd" }
+  })} />
+
+  <section class="pt-10 pb-8 border-b border-gray-800/50">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <p class="text-sm font-medium text-indigo-400 uppercase tracking-widest mb-3">🔧 Expert Picks</p>
+      <h1 class="text-3xl sm:text-4xl font-black text-white">AI Tools We Know & Recommend</h1>
+      <p class="mt-3 text-gray-400 max-w-2xl">We've evaluated, used, and integrated these tools across our projects. This isn't a generic list — it's the stack we trust to deliver results for our clients.</p>
+    </div>
+  </section>
+
+  <section class="py-12">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      {categories.map(category => (
+        <div class="mb-12">
+          <h2 class="text-sm font-semibold text-indigo-400 uppercase tracking-widest mb-6 border-b border-gray-800 pb-2">{category}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {tools.filter((t: any) => t.category === category).map((tool: any) => (
+              <a href={tool.url} target="_blank" rel="noopener" class="group p-4 rounded-xl border border-gray-800 hover:border-indigo-500/50 bg-gray-900/30 hover:bg-gray-900/60 transition-all hover:-translate-y-0.5">
+                <div class="flex items-start justify-between mb-2">
+                  <h3 class="text-sm font-semibold text-white group-hover:text-indigo-400 transition-colors">{tool.name}</h3>
+                  {tool.badge && <span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">{tool.badge}</span>}
+                </div>
+                <p class="text-xs text-gray-400 leading-relaxed mb-3">{tool.description}</p>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-gray-500">{tool.pricing}</span>
+                  <span class="text-amber-400">⭐ {tool.rating}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {tools.length === 0 && (
+        <p class="text-center text-gray-500 py-12">Loading tools...</p>
+      )}
+
+    </div>
+  </section>
+
+  <section class="py-12 border-t border-gray-800/50">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-2xl font-bold text-white">Need help choosing the right tools?</h2>
+      <p class="mt-3 text-gray-400">Our team can help you evaluate and implement the best AI tools for your specific business needs.</p>
+      <a href="/contact/" class="mt-6 inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all hover:shadow-xl hover:shadow-indigo-500/25">
+        Get Expert Guidance →
+      </a>
+    </div>
+  </section>
+
+</Layout>
