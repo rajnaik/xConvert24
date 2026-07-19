@@ -12,6 +12,60 @@ if (db) {
   tools = results || [];
   categories = [...new Set(tools.map((t: any) => t.category))];
 }
+
+// Tool logo mapping (favicon URLs via Google S2)
+const toolLogos: Record<string, string> = {
+  'OpenAI / ChatGPT': 'https://www.google.com/s2/favicons?domain=openai.com&sz=32',
+  'Anthropic Claude': 'https://www.google.com/s2/favicons?domain=anthropic.com&sz=32',
+  'Google Gemini': 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=32',
+  'Cloudflare Workers': 'https://www.google.com/s2/favicons?domain=cloudflare.com&sz=32',
+  'Cloudflare Workers AI': 'https://www.google.com/s2/favicons?domain=cloudflare.com&sz=32',
+  'Cloudflare D1': 'https://www.google.com/s2/favicons?domain=cloudflare.com&sz=32',
+  'Cloudflare Vectorize': 'https://www.google.com/s2/favicons?domain=cloudflare.com&sz=32',
+  'Astro': 'https://www.google.com/s2/favicons?domain=astro.build&sz=32',
+  'Tailwind CSS': 'https://www.google.com/s2/favicons?domain=tailwindcss.com&sz=32',
+  'GitHub': 'https://www.google.com/s2/favicons?domain=github.com&sz=32',
+  'Cursor': 'https://www.google.com/s2/favicons?domain=cursor.com&sz=32',
+  'Kiro': 'https://www.google.com/s2/favicons?domain=kiro.dev&sz=32',
+  'Playwright': 'https://www.google.com/s2/favicons?domain=playwright.dev&sz=32',
+  'Zapier': 'https://www.google.com/s2/favicons?domain=zapier.com&sz=32',
+  'n8n': 'https://www.google.com/s2/favicons?domain=n8n.io&sz=32',
+  'Make (Integromat)': 'https://www.google.com/s2/favicons?domain=make.com&sz=32',
+  'LangChain': 'https://www.google.com/s2/favicons?domain=langchain.com&sz=32',
+  'Notion': 'https://www.google.com/s2/favicons?domain=notion.so&sz=32',
+  'Slack': 'https://www.google.com/s2/favicons?domain=slack.com&sz=32',
+  'Calendly': 'https://www.google.com/s2/favicons?domain=calendly.com&sz=32',
+  'HubSpot': 'https://www.google.com/s2/favicons?domain=hubspot.com&sz=32',
+  'Mailchimp': 'https://www.google.com/s2/favicons?domain=mailchimp.com&sz=32',
+  'Intercom': 'https://www.google.com/s2/favicons?domain=intercom.com&sz=32',
+  'Freshdesk': 'https://www.google.com/s2/favicons?domain=freshdesk.com&sz=32',
+  'Crisp': 'https://www.google.com/s2/favicons?domain=crisp.chat&sz=32',
+  'Tidio': 'https://www.google.com/s2/favicons?domain=tidio.com&sz=32',
+  'Canva': 'https://www.google.com/s2/favicons?domain=canva.com&sz=32',
+  'Midjourney': 'https://www.google.com/s2/favicons?domain=midjourney.com&sz=32',
+  'Jasper AI': 'https://www.google.com/s2/favicons?domain=jasper.ai&sz=32',
+  'ElevenLabs': 'https://www.google.com/s2/favicons?domain=elevenlabs.io&sz=32',
+  'Google Search Console': 'https://www.google.com/s2/favicons?domain=search.google.com&sz=32',
+  'Plausible': 'https://www.google.com/s2/favicons?domain=plausible.io&sz=32',
+  'PostHog': 'https://www.google.com/s2/favicons?domain=posthog.com&sz=32',
+  'Resend': 'https://www.google.com/s2/favicons?domain=resend.com&sz=32',
+  'Dify': 'https://www.google.com/s2/favicons?domain=dify.ai&sz=32',
+  'Tavily': 'https://www.google.com/s2/favicons?domain=tavily.com&sz=32',
+  'Aikido Security': 'https://www.google.com/s2/favicons?domain=aikido.dev&sz=32',
+  'OpenHuman': 'https://www.google.com/s2/favicons?domain=github.com/tinyhumansai/openhuman&sz=32',
+  'Promptfoo': 'https://www.google.com/s2/favicons?domain=promptfoo.dev&sz=32',
+  'Chroma': 'https://www.google.com/s2/favicons?domain=trychroma.com&sz=32',
+  'Ollama': 'https://www.google.com/s2/favicons?domain=ollama.com&sz=32',
+  'Pinecone': 'https://www.google.com/s2/favicons?domain=pinecone.io&sz=32',
+  'pgvector': 'https://www.google.com/s2/favicons?domain=github.com&sz=32',
+  'Vercel': 'https://www.google.com/s2/favicons?domain=vercel.com&sz=32',
+  'Stripe': 'https://www.google.com/s2/favicons?domain=stripe.com&sz=32',
+  'Supabase': 'https://www.google.com/s2/favicons?domain=supabase.com&sz=32',
+  'Turso': 'https://www.google.com/s2/favicons?domain=turso.tech&sz=32',
+  'Upstash': 'https://www.google.com/s2/favicons?domain=upstash.com&sz=32',
+  'Sentry': 'https://www.google.com/s2/favicons?domain=sentry.io&sz=32',
+  'PostHog': 'https://www.google.com/s2/favicons?domain=posthog.com&sz=32',
+};
 ---
 
 <Layout title="AI Tools We Recommend — xSoft Ltd | Expert Guidance" description="Curated directory of 25+ AI and business tools we use and recommend. From LLMs to infrastructure to marketing — we know these tools inside out." keywords="AI tools, business tools, Cloudflare Workers, ChatGPT, automation tools, xSoft recommendations">
@@ -33,7 +87,7 @@ if (db) {
     </div>
   </section>
 
-  <section class="py-12">
+  <section class="pt-6 pb-12">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
       {categories.map(category => (
@@ -43,7 +97,10 @@ if (db) {
             {tools.filter((t: any) => t.category === category).map((tool: any) => (
               <a href={tool.url} target="_blank" rel="noopener" class="group p-4 rounded-xl border border-gray-800 hover:border-indigo-500/50 bg-gray-900/30 hover:bg-gray-900/60 transition-all hover:-translate-y-0.5">
                 <div class="flex items-start justify-between mb-2">
-                  <h3 class="text-sm font-semibold text-white group-hover:text-indigo-400 transition-colors">{tool.name}</h3>
+                  <div class="flex items-center gap-2">
+                    {toolLogos[tool.name] && <img src={toolLogos[tool.name]} alt="" width="16" height="16" class="rounded-sm shrink-0" loading="lazy" />}
+                    <h3 class="text-sm font-semibold text-white group-hover:text-indigo-400 transition-colors">{tool.name}</h3>
+                  </div>
                   {tool.badge && <span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">{tool.badge}</span>}
                 </div>
                 <p class="text-xs text-gray-400 leading-relaxed mb-3">{tool.description}</p>

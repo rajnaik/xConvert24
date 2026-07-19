@@ -8,6 +8,9 @@ export default defineConfig({
   trailingSlash: 'always',
   security: { checkOrigin: false },
   server: { port: 4325 },
+  build: {
+    inlineStylesheets: 'always',
+  },
   vite: {
     plugins: [tailwindcss()],
     server: { strictPort: true },
